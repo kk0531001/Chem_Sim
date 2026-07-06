@@ -1,0 +1,230 @@
+// Quantum mechanics & atomic structure: hydrogen orbital viewer,
+// energy levels / spectral series, electron configuration builder.
+import { h, card, theory, slider, select, plot, type TabDef } from './framework';
+
+// ---- hydrogen wavefunctions (a0 = 1, unnormalized — shape is what matters) ----
+type OrbitalId = '1s' | '2s' | '2pz' | '2px' | '3s' | '3pz' | '3dz2' | '3dxz' | '3dx2y2';
+
+const ORBITALS: Record<OrbitalId, { n: number; l: number; psi: (x: number, z: number) => number; desc: string }> = {
+  '1s':     { n: 1, l: 0, psi: (x, z) => Math.exp(-r(x, z)), desc: 'spherical, no nodes' },
+  '2s':     { n: 2, l: 0, psi: (x, z) => (2 - r(x, z)) * Math.exp(-r(x, z) / 2), desc: '1 radial node (sign flips at r = 2a₀)' },
+  '2pz':    { n: 2, l: 1, psi: (x, z) => z * Math.exp(-r(x, z) / 2), desc: '1 angular node (xy-plane)' },
+  '2px':    { n: 2, l: 1, psi: (x, z) => x * Math.exp(-r(x, z) / 2), desc: 'same shape as 2p𝑧, rotated 90°' },
+  '3s':     { n: 3, l: 0, psi: (x, z) => { const rr = r(x, z); return (27 - 18 * rr + 2 * rr * rr) * Math.exp(-rr / 3); }, desc: '2 radial nodes' },
+  '3pz':    { n: 3, l: 1, psi: (x, z) => { const rr = r(x, z); return rr === 0 ? 0 : (6 - rr) * z * Math.exp(-rr / 3); }, desc: '1 radial + 1 angular node' },
+  '3dz2':   { n: 3, l: 2, psi: (x, z) => (3 * z * z - (x * x + z * z)) * Math.exp(-r(x, z) / 3), desc: 'two lobes + torus; 2 angular (conical) nodes' },
+  '3dxz':   { n: 3, l: 2, psi: (x, z) => x * z * Math.exp(-r(x, z) / 3), desc: '4 lobes between axes; 2 angular nodes' },
+  '3dx2y2': { n: 3, l: 2, psi: (x, z) => x * x * Math.exp(-r(x, z) / 3), desc: '4 lobes on axes (x–y slice shown along x)' },
+};
+const r = (x: number, z: number) => Math.hypot(x, z);
+
+function drawOrbital(canvas: HTMLCanvasElement, id: OrbitalId): void {
+  const orb = ORBITALS[id];
+  const N = canvas.width;
+  const extent = orb.n === 1 ? 6 : orb.n === 2 ? 16 : 32; // a0 units, half-width
+  const ctx = canvas.getContext('2d')!;
+  const img = ctx.createImageData(N, N);
+  // find max |psi| for normalization
+  let maxA = 0;
+  const vals = new Float32Array(N * N);
+  for (let j = 0; j < N; j++) {
+    for (let i = 0; i < N; i++) {
+      const x = ((i / (N - 1)) * 2 - 1) * extent;
+      const z = ((j / (N - 1)) * 2 - 1) * extent;
+      const v = orb.psi(x, z);
+      vals[j * N + i] = v;
+      maxA = Math.max(maxA, Math.abs(v));
+    }
+  }
+  for (let k = 0; k < N * N; k++) {
+    const v = vals[k] / maxA;
+    const a = Math.pow(Math.abs(v), 0.6); // gamma boost so faint lobes show
+    const o = k * 4;
+    if (v >= 0) { img.data[o] = 90; img.data[o + 1] = 170; img.data[o + 2] = 255; }
+    else { img.data[o] = 255; img.data[o + 1] = 110; img.data[o + 2] = 90; }
+    img.data[o + 3] = Math.min(255, a * 290);
+  }
+  ctx.fillStyle = '#0b0e14';
+  ctx.fillRect(0, 0, N, N);
+  ctx.putImageData(img, 0, 0);
+  // nucleus + scale note
+  ctx.fillStyle = '#ffe27a';
+  ctx.beginPath(); ctx.arc(N / 2, N / 2, 2, 0, 7); ctx.fill();
+  ctx.fillStyle = '#5a6a7d'; ctx.font = '10px monospace';
+  ctx.fillText(`${extent * 2} a₀ across · x–z slice`, 6, N - 8);
+}
+
+// ---- energy levels / Rydberg ----
+function levelDiagram(canvas: HTMLCanvasElement, ni: number, nf: number): string {
+  const ctx = canvas.getContext('2d')!;
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  const E = (n: number) => -13.606 / (n * n);
+  const Y = (e: number) => 24 + (H - 60) * (e / -13.606); // 0 eV top
+  ctx.font = '11px monospace';
+  for (let n = 1; n <= 6; n++) {
+    const y = Y(E(n));
+    ctx.strokeStyle = n === ni || n === nf ? '#ffe27a' : '#3a4a5d';
+    ctx.lineWidth = n === ni || n === nf ? 2 : 1;
+    ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(W - 20, y); ctx.stroke();
+    ctx.fillStyle = '#7d8fa3';
+    ctx.textAlign = 'right';
+    ctx.fillText(`n=${n}  ${E(n).toFixed(2)} eV`, 66, y + 3);
+  }
+  ctx.fillStyle = '#5a6a7d'; ctx.textAlign = 'left';
+  ctx.fillText('E = 0 (ionized)', 70, 14);
+
+  const hi = Math.max(ni, nf), lo = Math.min(ni, nf);
+  const dE = Math.abs(E(hi) - E(lo));
+  const lambda = 1239.8 / dE; // nm
+  const emit = ni > nf;
+  // arrow
+  const x = 70 + (W - 90) * 0.55;
+  ctx.strokeStyle = '#6fc3ff'; ctx.fillStyle = '#6fc3ff'; ctx.lineWidth = 2;
+  const y1 = Y(E(ni)), y2 = Y(E(nf));
+  ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+  const dir = y2 > y1 ? 1 : -1;
+  ctx.beginPath(); ctx.moveTo(x, y2); ctx.lineTo(x - 5, y2 - 8 * dir); ctx.lineTo(x + 5, y2 - 8 * dir); ctx.fill();
+
+  const series = lo === 1 ? 'Lyman (UV)' : lo === 2 ? 'Balmer (visible)' : lo === 3 ? 'Paschen (IR)' : '—';
+  const visible = lambda >= 380 && lambda <= 750;
+  const color = !visible ? null : lambda < 450 ? 'violet/blue' : lambda < 495 ? 'blue' : lambda < 570 ? 'green' : lambda < 590 ? 'yellow' : lambda < 620 ? 'orange' : 'red';
+  return `${emit ? 'Emission' : 'Absorption'}: n=${ni} → n=${nf} · ΔE = ${dE.toFixed(3)} eV · ` +
+    `λ = <b>${lambda.toFixed(0)} nm</b> · series: ${series}${color ? ` · appears <b>${color}</b>` : lambda < 380 ? ' · UV' : ' · IR'}`;
+}
+
+// ---- electron configuration ----
+const SUBSHELLS: { label: string; cap: number }[] = [
+  { label: '1s', cap: 2 }, { label: '2s', cap: 2 }, { label: '2p', cap: 6 },
+  { label: '3s', cap: 2 }, { label: '3p', cap: 6 }, { label: '4s', cap: 2 },
+  { label: '3d', cap: 10 }, { label: '4p', cap: 6 },
+];
+const SYMBOLS = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Sc','Ti','V','Cr','Mn','Fe','Co','Ni','Cu','Zn','Ga','Ge','As','Se','Br','Kr'];
+
+function electronConfig(Z: number): { fills: number[]; note: string } {
+  const fills = SUBSHELLS.map(() => 0);
+  let e = Z;
+  for (let i = 0; i < SUBSHELLS.length && e > 0; i++) {
+    fills[i] = Math.min(SUBSHELLS[i].cap, e);
+    e -= fills[i];
+  }
+  let note = '';
+  const i4s = SUBSHELLS.findIndex(s => s.label === '4s');
+  const i3d = SUBSHELLS.findIndex(s => s.label === '3d');
+  if (Z === 24) { fills[i4s] = 1; fills[i3d] = 5; note = 'Exception! Half-filled 3d⁵ is extra stable → [Ar] 4s¹ 3d⁵'; }
+  if (Z === 29) { fills[i4s] = 1; fills[i3d] = 10; note = 'Exception! Filled 3d¹⁰ is extra stable → [Ar] 4s¹ 3d¹⁰'; }
+  return { fills, note };
+}
+
+function configHTML(Z: number): string {
+  const { fills, note } = electronConfig(Z);
+  const sup = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+  const supN = (n: number) => String(n).split('').map(d => sup[+d]).join('');
+  let cfg = '';
+  fills.forEach((f, i) => { if (f > 0) cfg += `${SUBSHELLS[i].label}${supN(f)} `; });
+  // orbital boxes with Hund's rule
+  let boxes = '';
+  fills.forEach((f, i) => {
+    if (f === 0) return;
+    const nOrb = SUBSHELLS[i].cap / 2;
+    const arr: string[] = [];
+    for (let o = 0; o < nOrb; o++) {
+      const up = f > o ? '↑' : '';
+      const down = f > o + nOrb ? '↓' : '';
+      arr.push(`<span style="border:1px solid #2a3546;padding:1px 5px;margin:1px;display:inline-block;min-width:26px;text-align:center">${up}${down}</span>`);
+    }
+    boxes += `<div style="margin:3px 0"><span style="color:#7d8fa3;display:inline-block;width:26px">${SUBSHELLS[i].label}</span>${arr.join('')}</div>`;
+  });
+  return `<p class="big"><b>${SYMBOLS[Z - 1]}</b> (Z=${Z}): ${cfg}</p>${note ? `<p class="trap">${note}</p>` : ''}${boxes}
+  <p class="muted">Boxes fill by Hund's rule: one ↑ in each degenerate orbital before pairing. Cations lose 4s before 3d (Fe²⁺ = [Ar]3d⁶, not 4s²3d⁴).</p>`;
+}
+
+export const quantumTab: TabDef = {
+  id: 'quantum',
+  label: 'Quantum',
+  mount(root) {
+    // orbital viewer
+    const orbCanvas = h('canvas', { width: 320, height: 320 });
+    const orbDesc = h('p', { class: 'muted' });
+    const drawOrb = (id: string) => {
+      drawOrbital(orbCanvas, id as OrbitalId);
+      const o = ORBITALS[id as OrbitalId];
+      orbDesc.textContent = `n=${o.n}, ℓ=${o.l} · radial nodes = n−ℓ−1 = ${o.n - o.l - 1} · angular nodes = ℓ = ${o.l} · ${o.desc}`;
+    };
+    const orbCard = card('Hydrogen orbital viewer |ψ|² (blue = ψ>0, red = ψ<0)',
+      select('orbital', Object.keys(ORBITALS).map(k => ({ value: k, label: k.replace('z2', ' z²').replace('x2y2', ' x²−y²') })), drawOrb, '2pz'),
+      orbCanvas, orbDesc,
+    );
+    drawOrb('2pz');
+
+    // radial distribution
+    const radCanvas = h('canvas', { width: 460, height: 240 });
+    const drawRadial = () => {
+      const xs: number[] = [], s1: number[] = [], s2: number[] = [], s3: number[] = [];
+      for (let rr = 0.01; rr < 25; rr += 0.05) {
+        xs.push(rr);
+        s1.push(Math.pow(rr * Math.exp(-rr), 2) * 4);
+        s2.push(Math.pow(rr * (2 - rr) * Math.exp(-rr / 2), 2) / 8);
+        s3.push(Math.pow(rr * rr * Math.exp(-rr / 2), 2) / 24);
+      }
+      plot(radCanvas, [
+        { xs, ys: s1, color: '#6fc3ff', label: '1s' },
+        { xs, ys: s2, color: '#ffe27a', label: '2s' },
+        { xs, ys: s3, color: '#ff8a6f', label: '2p' },
+      ], { xLabel: 'r / a₀', yLabel: '4πr²|ψ|² (radial probability)' });
+    };
+    drawRadial();
+    const radCard = card('Radial distribution — where the electron actually is',
+      radCanvas,
+      h('p', {}, '2s has a small inner lobe that penetrates close to the nucleus — closer than 2p. That penetration is why 2s is lower in energy than 2p in multi-electron atoms (it feels a larger Z_eff).'),
+    );
+
+    // energy levels
+    const lvlCanvas = h('canvas', { width: 460, height: 300 });
+    const lvlOut = h('div', { class: 'result' });
+    let ni = 3, nf = 2;
+    const redraw = () => { lvlOut.innerHTML = levelDiagram(lvlCanvas, ni, nf); };
+    const lvlCard = card('Energy levels & spectral lines (Rydberg)',
+      slider({ label: 'initial n', min: 1, max: 6, value: ni, onInput: v => { ni = v; redraw(); } }),
+      slider({ label: 'final n', min: 1, max: 6, value: nf, onInput: v => { nf = v; redraw(); } }),
+      lvlCanvas, lvlOut,
+    );
+    redraw();
+
+    // configuration builder
+    const cfgOut = h('div', {});
+    const setZ = (Z: number) => { cfgOut.innerHTML = configHTML(Z); };
+    const cfgCard = card('Electron configuration builder (H → Kr)',
+      slider({ label: 'Z', min: 1, max: 36, value: 26, onInput: setZ }),
+      cfgOut,
+    );
+    setZ(26);
+
+    root.append(
+      h('div', { class: 'cards' }, orbCard, radCard, lvlCard, cfgCard),
+      theory('Theory & key equations — quantum / atomic structure', `
+<h4>Quantum numbers</h4>
+<ul>
+<li><b>n</b> = 1,2,3… (size/energy) · <b>ℓ</b> = 0…n−1 (shape: s,p,d,f) · <b>m<sub>ℓ</sub></b> = −ℓ…+ℓ (orientation) · <b>m<sub>s</sub></b> = ±½</li>
+<li>Nodes: total = n−1; angular = ℓ; radial = n−ℓ−1. <span class="trap">Classic trap: "how many radial nodes in 4d?" → 4−2−1 = 1.</span></li>
+<li>Pauli: no two electrons share all four quantum numbers. Hund: maximize parallel spins in degenerate orbitals.</li>
+</ul>
+<h4>Hydrogen-like energies & light</h4>
+<span class="eq">E<sub>n</sub> = −13.6 · Z²/n² eV &nbsp;&nbsp; ΔE = hc/λ &nbsp;&nbsp; λ(nm) ≈ 1240/ΔE(eV)</span>
+<span class="eq">1/λ = R<sub>H</sub>(1/n₁² − 1/n₂²), R<sub>H</sub> = 1.097×10⁷ m⁻¹</span>
+<ul>
+<li>Lyman → n=1 (UV), Balmer → n=2 (visible: 656 red, 486 blue-green, 434, 410 nm), Paschen → n=3 (IR).</li>
+<li>de Broglie: λ = h/mv. Heisenberg: Δx·Δp ≥ ħ/2. Photoelectric: KE = hν − φ (intensity ↑ = more e⁻, not faster e⁻).</li>
+</ul>
+<h4>Multi-electron atoms & periodic trends</h4>
+<ul>
+<li>Z<sub>eff</sub> ≈ Z − S (shielding). Penetration order within a shell: s &gt; p &gt; d &gt; f.</li>
+<li>Across a period: Z<sub>eff</sub> ↑ → radius ↓, IE ↑, EA ↑ (more negative), electronegativity ↑. Down a group: all reverse.</li>
+<li><span class="trap">IE exceptions:</span> Be→B drops (new 2p subshell); N→O drops (pairing repulsion in 2p⁴). Same pattern in period 3 (Mg→Al, P→S).</li>
+<li>Successive IEs jump hugely once you break into a core shell — use the jump to identify the group.</li>
+<li>Isoelectronic series: more protons = smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
+<li>PES (photoelectron spectroscopy): each peak = one subshell; peak height ∝ number of electrons; higher binding energy = closer to nucleus.</li>
+</ul>`, true),
+    );
+  },
+};
