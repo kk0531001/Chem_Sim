@@ -1,6 +1,8 @@
 // Gases, IMFs, phase diagrams, solutions: kinetic gas box, Maxwell-Boltzmann,
 // interactive phase diagrams, colligative properties.
-import { h, card, theory, slider, select, plot, linspace, type TabDef, type TabHandle } from './framework';
+import { h, card, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
+import { GASES_QUIZ } from './questions2';
+
 
 const Rgas = 8.314, R_atm = 0.08206;
 
@@ -268,10 +270,11 @@ function makeColligative(): HTMLElement {
 export const gasesTab: TabDef = {
   id: 'gases',
   label: 'Gases & Phases',
+  group: 'Physical Chemistry',
   mount(root): TabHandle {
     const gasBox = makeGasBox();
     root.append(
-      h('div', { class: 'cards' }, gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative()),
+      h('div', { class: 'cards' }, gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative(), card('Quick quiz', quiz(GASES_QUIZ, 5))),
       theory('Theory & key equations — gases / IMF / solutions', `
 <h4>Gas laws</h4>
 <span class="eq">PV = nRT (R = 0.08206 L·atm/mol·K = 8.314 J/mol·K) · P<sub>i</sub> = x<sub>i</sub>P<sub>total</sub> (Dalton) · rate ∝ 1/√M (Graham)</span>

@@ -25,11 +25,29 @@ with a reason stated in the commit/summary.
 ## Topic tabs (olympiad modules)
 
 - Every study topic is a tab module in src/tabs/, exporting a `TabDef`
-  ({ id, label, mount }) registered in src/main.ts. Tabs mount lazily.
+  ({ id, label, group, mount }) registered in src/main.ts. Tabs mount lazily
+  and render as a grouped left-sidebar menu (initTabs returns a TabsAPI with
+  show/suspend/resume used by the homepage ↔ app transitions in main.ts).
+- src/home.ts is the landing page (scroll-reveal via IntersectionObserver).
+  The app shell (#app) stays hidden until the user enters from the homepage.
+- No emojis anywhere in the UI — use text labels or inline SVG (see MARK_SVG).
 - Tabs with animation loops must gate on visibility via the `TabHandle`
   onShow/onHide callbacks (see equilibrium.ts, gases.ts, nuclear.ts).
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
-  select, pills, plot) instead of hand-rolling DOM or canvas-axis code.
+  select, pills, plot, quiz) instead of hand-rolling DOM or canvas-axis code.
+- Every topic tab has a quiz of 25 QuizQ entries (5 warm-ups, then 20
+  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts and questions2.ts.
+  Keep questions trap-focused and put the reasoning in `why`; pass the
+  warm-up count as quiz(BANK, 5).
+- The Question Bank tab (src/tabs/qbank.ts) holds exam-format practice split
+  by part: bankPart1.ts (Part I MC, 10 per topic), bankPart2.ts (Part II
+  free-response FRQ with per-part worked solutions), bankPart3.ts (Part III
+  lab scenarios). All bank questions must be ORIGINAL — never copy real
+  CCC/CCO/USNCO items (they are copyrighted); match format and difficulty
+  only. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
+  redox, atomic, bonding, descriptive, organic, lab.
+- Visual language is defined by CSS variables in src/style.css (:root tokens).
+  Use var(--accent/--blue/--green/--red) instead of hardcoded colors in new UI.
 - Theory blocks: real equations, olympiad traps marked with class="trap".
   Chemistry content must be checked against textbook values (e.g. titration
   equivalence pH, E°cell, bond energies) before shipping.

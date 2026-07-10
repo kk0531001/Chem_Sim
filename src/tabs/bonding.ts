@@ -1,5 +1,7 @@
 // Chemical bonding: VSEPR geometry explorer + MO diagrams for diatomics.
-import { h, card, theory, select, type TabDef } from './framework';
+import { h, card, theory, select, quiz, type TabDef } from './framework';
+import { BONDING_QUIZ } from './questions1';
+
 
 // ---- VSEPR ----
 interface VseprEntry {
@@ -124,6 +126,7 @@ function moDiagram(canvas: HTMLCanvasElement, sp: MOSpecies): string {
 export const bondingTab: TabDef = {
   id: 'bonding',
   label: 'Bonding & MO',
+  group: 'Foundations',
   mount(root) {
     // VSEPR card
     const shapeBox = h('div', {});
@@ -155,7 +158,7 @@ export const bondingTab: TabDef = {
     setMO('O₂');
 
     root.append(
-      h('div', { class: 'cards' }, vseprCard, moCard),
+      h('div', { class: 'cards' }, vseprCard, moCard, card('Quick quiz', quiz(BONDING_QUIZ, 5))),
       theory('Theory & key ideas — Lewis, VSEPR, valence bond, MO', `
 <h4>Lewis structures & formal charge</h4>
 <span class="eq">FC = valence e⁻ − nonbonding e⁻ − ½(bonding e⁻)</span>

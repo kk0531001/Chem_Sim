@@ -3,11 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chemistry Engine — CCC Olympiad Trainer</title>
+    <title>ChemPrep — Chemistry Olympiad Trainer</title>
   </head>
   <body>
-    <nav id="tabbar"></nav>
-    <main id="view"></main>
+    <div id="app" hidden>
+      <aside id="sidenav">
+        <button id="brand" title="Back to home"></button>
+        <nav id="nav-items"></nav>
+        <button id="home-link">Back to homepage</button>
+      </aside>
+      <main id="view"></main>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

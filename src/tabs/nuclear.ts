@@ -1,5 +1,7 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
-import { h, card, theory, slider, select, button, plot, linspace, pills, type TabDef, type TabHandle } from './framework';
+import { h, card, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle } from './framework';
+import { NUCLEAR_QUIZ } from './questions2';
+
 
 // ================= NUCLEAR =================
 function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void } {
@@ -259,12 +261,14 @@ function makeDescriptive(): HTMLElement {
 export const nuclearTab: TabDef = {
   id: 'nuclear',
   label: 'Nuclear & Coord.',
+  group: 'Inorganic & Organic',
   mount(root): TabHandle {
     const nuc = makeNuclear();
     root.append(pills([
       { label: 'Nuclear', el: nuc.el },
       { label: 'Coordination', el: makeCoordination() },
       { label: 'Descriptive', el: makeDescriptive() },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(NUCLEAR_QUIZ, 5))) },
     ]));
     // pills swap DOM but the rAF loop lives on; gate on tab visibility
     return {

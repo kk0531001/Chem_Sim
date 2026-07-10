@@ -10,10 +10,18 @@ export interface TabHandle {
 export interface TabDef {
   id: string;
   label: string;
+  group?: string;
   mount: (root: HTMLElement) => TabHandle | void;
 }
 
-export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement): void {
+export interface TabsAPI {
+  show: (id: string) => void;
+  suspend: () => void; // pause the active tab's animation loops (leaving the app)
+  resume: () => void;
+  current: () => string | null;
+}
+
+export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement): TabsAPI {
   const roots = new Map<string, { root: HTMLElement; handle: TabHandle | void }>();
   const buttons = new Map<string, HTMLButtonElement>();
   let currentId: string | null = null;
@@ -40,12 +48,73 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement): v
     currentId = id;
   }
 
+  let lastGroup = '';
   for (const def of defs) {
-    const btn = h('button', { class: 'tab-btn', onclick: () => show(def.id) }, def.label);
+    const g = def.group ?? '';
+    if (g && g !== lastGroup) {
+      nav.appendChild(h('div', { class: 'nav-group' }, g));
+      lastGroup = g;
+    }
+    const btn = h('button', { class: 'nav-item', onclick: () => show(def.id) }, def.label);
     buttons.set(def.id, btn);
     nav.appendChild(btn);
   }
-  show(defs[0].id);
+
+  return {
+    show,
+    suspend() { if (currentId) roots.get(currentId)?.handle?.onHide?.(); },
+    resume() { if (currentId) roots.get(currentId)?.handle?.onShow?.(); },
+    current: () => currentId,
+  };
+}
+
+// ---- quick-quiz widget: one question at a time, instant feedback ----
+export interface QuizQ { q: string; opts: string[]; a: number; why: string }
+
+export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
+  let i = 0, score = 0, answered = false;
+  const progress = h('div', { class: 'quiz-progress' });
+  const qEl = h('div', { class: 'quiz-q' });
+  const optsEl = h('div', { class: 'quiz-opts' });
+  const whyEl = h('div', { class: 'quiz-why' });
+  const nextBtn = button('Next question', () => { i++; render(); }, 'primary');
+  const wrap = h('div', { class: 'quiz' }, progress, qEl, optsEl, whyEl, nextBtn);
+
+  function render(): void {
+    answered = false;
+    whyEl.innerHTML = '';
+    whyEl.className = 'quiz-why';
+    nextBtn.style.display = 'none';
+    if (i >= qs.length) {
+      progress.textContent = '';
+      qEl.innerHTML = `Done — score <b>${score}/${qs.length}</b> ` +
+        (score === qs.length ? '— perfect!' : score >= Math.ceil(qs.length * 0.7) ? '— solid!' : '— review the theory panel and retry.');
+      optsEl.replaceChildren(button('Restart quiz', () => { i = 0; score = 0; render(); }, 'primary'));
+      return;
+    }
+    const q = qs[i];
+    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · warm-up' : ' · olympiad';
+    progress.textContent = `Question ${i + 1} of ${qs.length}${tier} · score ${score}`;
+    qEl.innerHTML = q.q;
+    optsEl.replaceChildren(...q.opts.map((o, j) => {
+      const b = h('button', { class: 'quiz-opt' }, o);
+      b.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        if (j === q.a) { score++; b.classList.add('correct'); }
+        else {
+          b.classList.add('wrong');
+          (optsEl.children[q.a] as HTMLElement).classList.add('correct');
+        }
+        whyEl.innerHTML = q.why;
+        whyEl.classList.add(j === q.a ? 'good' : 'bad');
+        nextBtn.style.display = '';
+      });
+      return b;
+    }));
+  }
+  render();
+  return wrap;
 }
 
 // ---- hyperscript-style element builder ----
@@ -180,10 +249,11 @@ export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts
   const X = (x: number) => padL + ((x - xMin) / (xMax - xMin)) * (W - padL - padR);
   const Y = (y: number) => Hh - padB - ((y - yMin) / (yMax - yMin)) * (Hh - padT - padB);
 
+  const MONO = '"SF Mono", Menlo, Consolas, monospace';
   // grid + ticks
-  ctx.font = '10px monospace';
-  ctx.fillStyle = '#5a6a7d';
-  ctx.strokeStyle = '#1c2430';
+  ctx.font = `10px ${MONO}`;
+  ctx.fillStyle = '#64748f';
+  ctx.strokeStyle = '#161d2b';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
     const xv = xMin + (i / 5) * (xMax - xMin);
@@ -196,23 +266,28 @@ export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts
     ctx.fillText(fmtTick(yv), padL - 5, Y(yv) + 3);
   }
   // axes
-  ctx.strokeStyle = '#3a4a5d';
+  ctx.strokeStyle = '#2b3750';
   ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, Hh - padB); ctx.lineTo(W - padR, Hh - padB); ctx.stroke();
   if (opts.xLabel) {
-    ctx.textAlign = 'center'; ctx.fillStyle = '#7d8fa3';
+    ctx.textAlign = 'center'; ctx.fillStyle = '#8b9bb0';
     ctx.fillText(opts.xLabel, padL + (W - padL - padR) / 2, Hh - 4);
   }
   if (opts.yLabel) {
     ctx.save(); ctx.translate(11, padT + (Hh - padT - padB) / 2); ctx.rotate(-Math.PI / 2);
-    ctx.textAlign = 'center'; ctx.fillStyle = '#7d8fa3';
+    ctx.textAlign = 'center'; ctx.fillStyle = '#8b9bb0';
     ctx.fillText(opts.yLabel, 0, 0); ctx.restore();
   }
 
   // series
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
   for (const s of series) {
     ctx.strokeStyle = s.color;
-    ctx.lineWidth = s.width ?? 1.8;
+    ctx.lineWidth = s.width ?? 2.2;
     ctx.setLineDash(s.dash ?? []);
+    if (s.width === 0) { ctx.setLineDash([]); continue; } // marker-only series
+    ctx.shadowColor = s.color;
+    ctx.shadowBlur = 4;
     ctx.beginPath();
     let started = false;
     for (let i = 0; i < s.xs.length; i++) {
@@ -221,30 +296,34 @@ export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts
       if (!started) { ctx.moveTo(px, py); started = true; } else ctx.lineTo(px, py);
     }
     ctx.stroke();
+    ctx.shadowBlur = 0;
     ctx.setLineDash([]);
   }
 
   // markers
   for (const m of opts.markers ?? []) {
-    ctx.fillStyle = m.color ?? '#ffe27a';
-    ctx.beginPath(); ctx.arc(X(m.x), Y(m.y), 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = m.color ?? '#ffd166';
+    ctx.shadowColor = m.color ?? '#ffd166';
+    ctx.shadowBlur = 6;
+    ctx.beginPath(); ctx.arc(X(m.x), Y(m.y), 4.5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
     if (m.label) {
-      ctx.textAlign = 'left'; ctx.font = '11px monospace';
-      ctx.fillText(m.label, X(m.x) + 7, Y(m.y) - 5);
+      ctx.textAlign = 'left'; ctx.font = `11px ${MONO}`;
+      ctx.fillText(m.label, X(m.x) + 8, Y(m.y) - 6);
     }
   }
 
   // legend
   if (opts.legend !== false && series.some(s => s.label)) {
-    let ly = padT + 6;
-    ctx.font = '11px monospace'; ctx.textAlign = 'left';
+    let ly = padT + 8;
+    ctx.font = `11px ${MONO}`; ctx.textAlign = 'left';
     for (const s of series) {
       if (!s.label) continue;
       ctx.fillStyle = s.color;
-      ctx.fillRect(W - padR - 130, ly - 4, 14, 3);
-      ctx.fillStyle = '#9fb4c7';
-      ctx.fillText(s.label, W - padR - 112, ly);
-      ly += 15;
+      ctx.beginPath(); ctx.arc(W - padR - 126, ly - 3, 3.5, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#a8b6c8';
+      ctx.fillText(s.label, W - padR - 116, ly);
+      ly += 16;
     }
   }
 }

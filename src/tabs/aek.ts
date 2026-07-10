@@ -1,6 +1,8 @@
 // Acid-base (titration curves), electrochemistry (galvanic cells + Nernst),
 // kinetics (integrated rate laws + Arrhenius). Three pill sections.
-import { h, card, theory, slider, select, pills, plot, linspace, type TabDef } from './framework';
+import { h, card, theory, slider, select, pills, plot, linspace, quiz, type TabDef } from './framework';
+import { AEK_QUIZ } from './questions2';
+
 
 const Kw = 1e-14;
 
@@ -35,11 +37,40 @@ function makeAcidBase(): HTMLElement {
   }
 
   const Veq = () => (Ca * Va) / Cb;
+  let vbFrac = 0.35; // current buret position, as a fraction of 2·Veq
+  const liveOut = h('div', { class: 'result' });
+
+  function phenColor(p: number): string {
+    if (p < 8.2) return '#e8e8e810'; // colorless
+    if (p > 10) return '#e858b8';
+    return `rgba(232, 88, 184, ${(p - 8.2) / 1.8})`;
+  }
+  function moColor(p: number): string {
+    if (p < 3.1) return '#e84545';
+    if (p > 4.4) return '#e8c545';
+    return '#e88a45';
+  }
+
+  function liveUpdate(): void {
+    const Vb = vbFrac * 2 * Veq();
+    const p = Math.min(14, Math.max(0, pHat(Vb)));
+    const pct = (Vb / Veq()) * 100;
+    const stage = pct < 2 ? 'initial acid' : pct < 90 ? (strong ? 'excess acid' : 'buffer region') :
+      pct < 99.5 ? 'approaching equivalence — pH climbing fast' :
+        pct <= 100.5 ? 'EQUIVALENCE POINT' : 'excess strong base';
+    liveOut.innerHTML =
+      `Buret reads <b>${Vb.toFixed(2)} mL</b> (${pct.toFixed(0)}% to equivalence) → pH = <b class="big">${p.toFixed(2)}</b> · ${stage}<br>` +
+      `flask color — phenolphthalein: <span class="swatch" style="background:${phenColor(p)}"></span>` +
+      `${p < 8.2 ? ' colorless' : p > 10 ? ' pink' : ' first blush of pink'} · ` +
+      `methyl orange: <span class="swatch" style="background:${moColor(p)}"></span>` +
+      `${p < 3.1 ? ' red' : p > 4.4 ? ' yellow' : ' orange (transition)'}`;
+  }
 
   function draw(): void {
     const vmax = Veq() * 2;
     const xs = linspace(0.001, vmax, 400);
     const ys = xs.map(pHat).map(p => Math.min(14, Math.max(0, p)));
+    const VbNow = vbFrac * vmax;
     plot(curveCanvas, [
       { xs, ys, color: '#6fc3ff', label: 'pH' },
       { xs: [0, vmax], ys: [7, 7], color: '#5a6a7d', dash: [3, 4] },
@@ -51,6 +82,7 @@ function makeAcidBase(): HTMLElement {
       markers: [
         { x: Veq(), y: Math.min(14, Math.max(0, pHat(Veq()))), label: `equivalence pH ${pHat(Veq()).toFixed(1)}` },
         ...(!strong ? [{ x: Veq() / 2, y: pKa, color: '#7ae27a', label: `½-equiv: pH = pKa = ${pKa.toFixed(1)}` }] : []),
+        { x: VbNow, y: Math.min(14, Math.max(0, pHat(VbNow))), color: '#ff5577', label: 'you are here' },
       ],
     });
     const eqPH = pHat(Veq());
@@ -59,6 +91,7 @@ function makeAcidBase(): HTMLElement {
       (strong ? '(= 7: neutral salt)' : `(&gt;7: A⁻ is a weak base — <span class="trap">weak-acid titrations never end at 7</span>)`) +
       `<br>Indicator choice: phenolphthalein (pink dashes, 8.2–10) fits weak-acid/strong-base; methyl orange (orange dashes, 3.1–4.4) fits strong-acid titrations.` +
       (!strong ? `<br>Buffer region: flat zone around ½-equivalence where pH = pKa ± 1 (max buffer capacity at pH = pKa).` : '');
+    liveUpdate();
   }
 
   const controls = h('div', {},
@@ -70,6 +103,7 @@ function makeAcidBase(): HTMLElement {
     slider({ label: 'acid conc (M)', min: 0.01, max: 0.5, step: 0.01, value: Ca, fmt: v => v.toFixed(2), onInput: v => { Ca = v; draw(); } }),
     slider({ label: 'acid volume (mL)', min: 5, max: 50, step: 1, value: Va, onInput: v => { Va = v; draw(); } }),
     slider({ label: 'base conc (M)', min: 0.01, max: 0.5, step: 0.01, value: Cb, fmt: v => v.toFixed(2), onInput: v => { Cb = v; draw(); } }),
+    slider({ label: 'open the buret', min: 0, max: 1, step: 0.002, value: vbFrac, fmt: v => `${(v * 200).toFixed(0)}%·Veq`, onInput: v => { vbFrac = v; draw(); } }),
   );
   draw();
 
@@ -122,7 +156,7 @@ function makeAcidBase(): HTMLElement {
   shockCalc();
 
   return h('div', { class: 'cards' },
-    card('Titration simulator: acid + NaOH', controls, curveCanvas, out),
+    card('Titration simulator: acid + NaOH', controls, curveCanvas, liveOut, out),
     bufferCard,
     theory('Acid–base essentials', `
 <span class="eq">pH = −log[H⁺] · pH + pOH = 14 (25 °C) · K<sub>a</sub>K<sub>b</sub> = K<sub>w</sub> · pK<sub>a</sub> + pK<sub>b</sub> = 14</span>
@@ -311,11 +345,13 @@ function makeKinetics(): HTMLElement {
 export const aekTab: TabDef = {
   id: 'aek',
   label: 'Acids · Redox · Kinetics',
+  group: 'Physical Chemistry',
   mount(root) {
     root.append(pills([
       { label: 'Acid–Base & Titration', el: makeAcidBase() },
       { label: 'Electrochemistry', el: makeElectro() },
       { label: 'Kinetics', el: makeKinetics() },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — all three topics', quiz(AEK_QUIZ, 5))) },
     ]));
   },
 };

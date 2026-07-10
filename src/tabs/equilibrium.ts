@@ -1,10 +1,13 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
-import { h, card, theory, slider, select, button, plot, type TabDef, type TabHandle } from './framework';
+import { h, card, theory, slider, select, button, plot, quiz, type TabDef, type TabHandle } from './framework';
+import { EQUILIBRIUM_QUIZ } from './questions1';
+
 
 export const equilibriumTab: TabDef = {
   id: 'equilibrium',
   label: 'Equilibrium',
+  group: 'Physical Chemistry',
   mount(root): TabHandle {
     // ---- live sim: N2O4 (A) ⇌ 2 NO2 (B) ----
     let kf = 0.30, kr = 0.60; // K = kf/kr = 0.5
@@ -153,7 +156,7 @@ export const equilibriumTab: TabDef = {
     kspCalc();
 
     root.append(
-      h('div', { class: 'cards' }, simCard, iceCard, kspCard),
+      h('div', { class: 'cards' }, simCard, iceCard, kspCard, card('Quick quiz', quiz(EQUILIBRIUM_QUIZ, 5))),
       theory('Theory & key equations — equilibrium (highest-volume olympiad topic)', `
 <h4>The law of mass action</h4>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>

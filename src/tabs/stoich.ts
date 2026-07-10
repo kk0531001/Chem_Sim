@@ -1,6 +1,8 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
-import { h, card, theory, slider, select, type TabDef } from './framework';
+import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { STOICH_QUIZ } from './questions1';
+
 
 interface RxSpecies { f: string; coef: number; M: number }
 interface Reaction { name: string; reactants: RxSpecies[]; products: RxSpecies[] }
@@ -15,6 +17,7 @@ const REACTIONS: Reaction[] = [
 export const stoichTab: TabDef = {
   id: 'stoich',
   label: 'Stoichiometry',
+  group: 'Foundations',
   mount(root) {
     // ---- limiting reagent ----
     let rx = REACTIONS[1];
@@ -133,7 +136,7 @@ export const stoichTab: TabDef = {
     );
 
     root.append(
-      h('div', { class: 'cards' }, limCard, solCard, yieldCard),
+      h('div', { class: 'cards' }, limCard, solCard, yieldCard, card('Quick quiz', quiz(STOICH_QUIZ, 5))),
       theory('Theory & key equations — stoichiometry / reactions / solutions', `
 <h4>The mole highway</h4>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>

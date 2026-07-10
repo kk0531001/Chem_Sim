@@ -1,11 +1,14 @@
 // Thermodynamics II: entropy (microstates), Gibbs energy, ΔG° ↔ K.
-import { h, card, theory, slider, plot, linspace, lnFactorial, type TabDef } from './framework';
+import { h, card, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef } from './framework';
+import { THERMO2_QUIZ } from './questions1';
+
 
 const R = 8.314; // J/mol·K
 
 export const thermo2Tab: TabDef = {
   id: 'thermo2',
   label: 'Thermo II',
+  group: 'Physical Chemistry',
   mount(root) {
     // ---- microstates ----
     const microCanvas = h('canvas', { width: 440, height: 240 });
@@ -78,7 +81,7 @@ export const thermo2Tab: TabDef = {
     kCalc();
 
     root.append(
-      h('div', { class: 'cards' }, microCard, gibbsCard, kCard),
+      h('div', { class: 'cards' }, microCard, gibbsCard, kCard, card('Quick quiz', quiz(THERMO2_QUIZ, 5))),
       theory('Theory & key equations — entropy / Gibbs energy', `
 <h4>Second & third laws</h4>
 <span class="eq">ΔS<sub>univ</sub> = ΔS<sub>sys</sub> + ΔS<sub>surr</sub> &gt; 0 for spontaneous · ΔS<sub>surr</sub> = −ΔH<sub>sys</sub>/T</span>

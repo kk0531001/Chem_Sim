@@ -1,6 +1,8 @@
 // Quantum mechanics & atomic structure: hydrogen orbital viewer,
 // energy levels / spectral series, electron configuration builder.
-import { h, card, theory, slider, select, plot, type TabDef } from './framework';
+import { h, card, theory, slider, select, plot, quiz, type TabDef } from './framework';
+import { QUANTUM_QUIZ } from './questions1';
+
 
 // ---- hydrogen wavefunctions (a0 = 1, unnormalized — shape is what matters) ----
 type OrbitalId = '1s' | '2s' | '2pz' | '2px' | '3s' | '3pz' | '3dz2' | '3dxz' | '3dx2y2';
@@ -142,6 +144,7 @@ function configHTML(Z: number): string {
 export const quantumTab: TabDef = {
   id: 'quantum',
   label: 'Quantum',
+  group: 'Foundations',
   mount(root) {
     // orbital viewer
     const orbCanvas = h('canvas', { width: 320, height: 320 });
@@ -201,7 +204,7 @@ export const quantumTab: TabDef = {
     setZ(26);
 
     root.append(
-      h('div', { class: 'cards' }, orbCard, radCard, lvlCard, cfgCard),
+      h('div', { class: 'cards' }, orbCard, radCard, lvlCard, cfgCard, card('Quick quiz', quiz(QUANTUM_QUIZ, 5))),
       theory('Theory & key equations — quantum / atomic structure', `
 <h4>Quantum numbers</h4>
 <ul>

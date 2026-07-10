@@ -1,6 +1,8 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
-import { h, card, theory, slider, button, plot, pills, type TabDef } from './framework';
+import { h, card, theory, slider, button, plot, pills, quiz, type TabDef } from './framework';
+import { LABDATA_QUIZ } from './questions2';
+
 
 // ================= BEER'S LAW =================
 function makeBeer(): HTMLElement {
@@ -175,11 +177,13 @@ function makeTechnique(): HTMLElement {
 export const labdataTab: TabDef = {
   id: 'labdata',
   label: 'Lab & Data',
+  group: 'Skills',
   mount(root) {
     root.append(pills([
       { label: 'Beer\'s law', el: makeBeer() },
       { label: 'Sig figs & error', el: makeSigFigs() },
       { label: 'Technique', el: makeTechnique() },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(LABDATA_QUIZ, 5))) },
     ]));
   },
 };

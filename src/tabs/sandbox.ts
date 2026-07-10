@@ -5,13 +5,14 @@ import { stepMovement } from '../movement';
 import { stepReactions } from '../reaction';
 import { detectMolecules, type Molecule } from '../molecules';
 import { initRender, syncRender } from '../render';
-import { buildUI, applyPreset, updateCensus } from '../ui';
+import { buildUI, updateCensus } from '../ui';
 import type { TabDef, TabHandle } from './framework';
 import { h } from './framework';
 
 export const sandboxTab: TabDef = {
   id: 'sandbox',
   label: 'Sandbox',
+  group: 'Playground',
   mount(root: HTMLElement): TabHandle {
     root.classList.add('sandbox-root');
     const stage = h('div', { id: 'stage' });
@@ -29,8 +30,7 @@ export const sandboxTab: TabDef = {
     (async () => {
       const app = await initRender(stage);
       appRef = app;
-      buildUI(paneHost);
-      applyPreset(1); // start on "Water synthesis"
+      buildUI(paneHost); // starts empty — pick a preset or add atoms
 
       let molecules: Molecule[] = [];
       let frame = 0;

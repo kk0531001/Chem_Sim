@@ -1,8 +1,10 @@
 # Chemistry Engine — CCC Olympiad Trainer
 
 An interactive chemistry learning environment built for Chemistry Olympiad (CCC /
-USNCO-style) preparation. A live particle sandbox plus **11 topic tabs**, each with
-interactive simulations and a theory panel of key equations and olympiad traps.
+USNCO-style) preparation. A live particle sandbox plus **12 topic tabs**, each with
+interactive simulations, a 🎯 instant-feedback quiz (25 questions per topic —
+5 warm-ups then 20 olympiad-style, 300 questions total), and a theory panel of
+key equations and olympiad traps.
 
 Built with **TypeScript + Vite + PixiJS v8 + Tweakpane**, following the
 "appropriately simple" architecture: a flat particle array, a bond list, and one
@@ -32,6 +34,7 @@ npm run dev     # open http://localhost:5173
 | **Organic I** | SN1/SN2/E1/E2 decision engine with energy profiles, pKa ladder ("who deprotonates whom"), carbocation stability |
 | **Organic II** | alkene addition predictor (Markovnikov & anti-), EAS directing-effect visualizer, carbonyl reaction map, point-group identifier |
 | **Lab & Data** | Beer's law calibration-curve simulator with noisy standards and unknown, sig-fig counter + calculation rules, glassware uncertainty table, titration technique & error-direction reference |
+| **Question Bank** | original exam-format practice split by part: Part I multiple choice (110, filterable by 12 topics), Part II multi-part free response with worked solutions (22), Part III laboratory scenarios (25); topic filter + shuffle |
 
 ## What you can do
 

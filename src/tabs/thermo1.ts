@@ -1,5 +1,7 @@
 // Thermodynamics I: first law, calorimetry, Hess's law, bond enthalpies.
-import { h, card, theory, slider, select, type TabDef } from './framework';
+import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { THERMO1_QUIZ } from './questions1';
+
 
 const SUBSTANCES: { name: string; c: number }[] = [
   { name: 'water', c: 4.18 }, { name: 'ethanol', c: 2.44 }, { name: 'aluminum', c: 0.897 },
@@ -54,6 +56,7 @@ const BOND_RXNS: { name: string; broken: [string, number][]; formed: [string, nu
 export const thermo1Tab: TabDef = {
   id: 'thermo1',
   label: 'Thermo I',
+  group: 'Physical Chemistry',
   mount(root) {
     // ---- calorimetry mixer ----
     let sA = SUBSTANCES[3], sB = SUBSTANCES[0];
@@ -131,7 +134,7 @@ export const thermo1Tab: TabDef = {
     setBondRxn(BOND_RXNS[0].name);
 
     root.append(
-      h('div', { class: 'cards' }, calCard, hessCard, bondCard),
+      h('div', { class: 'cards' }, calCard, hessCard, bondCard, card('Quick quiz', quiz(THERMO1_QUIZ, 5))),
       theory('Theory & key equations — first law / enthalpy', `
 <h4>First law</h4>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
