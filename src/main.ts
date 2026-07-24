@@ -1,6 +1,6 @@
 import './style.css';
 import { initTabs, type TabsAPI } from './tabs/framework';
-import { buildHome, MARK_SVG } from './home';
+import { buildHome, TILE_HTML } from './home';
 import { sandboxTab } from './tabs/sandbox';
 import { quantumTab } from './tabs/quantum';
 import { bondingTab } from './tabs/bonding';
@@ -31,7 +31,7 @@ const viewEl = document.getElementById('view')!;
 const brandEl = document.getElementById('brand')!;
 const homeLinkEl = document.getElementById('home-link')!;
 
-brandEl.innerHTML = `${MARK_SVG}<span><b>ChemPrep</b><small>CCC Trainer</small></span>`;
+brandEl.innerHTML = `${TILE_HTML}<span><b>ChemPrep</b><small>CCC Trainer</small></span>`;
 
 let tabs: TabsAPI | null = null;
 

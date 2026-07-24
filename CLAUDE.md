@@ -46,8 +46,15 @@ with a reason stated in the commit/summary.
   CCC/CCO/USNCO items (they are copyrighted); match format and difficulty
   only. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
   redox, atomic, bonding, descriptive, organic, lab.
-- Visual language is defined by CSS variables in src/style.css (:root tokens).
-  Use var(--accent/--blue/--green/--red) instead of hardcoded colors in new UI.
+- Visual language ("Lab Journal") is defined by CSS variables in src/style.css:
+  paper/ink reading surfaces (--paper/--ink/--rule), ONE accent (--accent,
+  flame orange), and dark instrument panels (--panel/--panel-text) reserved
+  for canvases, SVG figures, and .result readouts. Serif display type
+  (--serif) for headings; mono only for numbers. The sandbox tab is scoped
+  dark under .sandbox-root. Keep canvas/inline drawing colors designed for
+  dark backgrounds — canvases always sit on dark panels.
+- Homepage figures use .figure (dark panel) + .fig-cap ("Fig. n — caption")
+  — extend that pattern for any new illustrative content.
 - Theory blocks: real equations, olympiad traps marked with class="trap".
   Chemistry content must be checked against textbook values (e.g. titration
   equivalence pH, E°cell, bond energies) before shipping.

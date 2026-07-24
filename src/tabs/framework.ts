@@ -161,10 +161,20 @@ export function slider(opts: {
     type: 'range', min: opts.min, max: opts.max,
     step: opts.step ?? 1, value: opts.value, autocomplete: 'off',
   });
+  // The readout updates instantly (cheap); the heavy callback (canvas redraws,
+  // innerHTML rebuilds) is coalesced to once per animation frame so fast drags
+  // stay smooth instead of running the handler for every input event.
+  let raf = 0;
+  let pending = opts.value;
   input.addEventListener('input', () => {
-    const v = Number(input.value);
-    valEl.textContent = fmt(v);
-    opts.onInput(v);
+    pending = Number(input.value);
+    valEl.textContent = fmt(pending);
+    if (raf === 0) {
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        opts.onInput(pending);
+      });
+    }
   });
   return h('label', { class: 'ctl' },
     h('span', { class: 'ctl-label' }, opts.label), input, valEl);
