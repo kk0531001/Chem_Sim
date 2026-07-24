@@ -3,6 +3,12 @@
 Interactive 2D chemistry sandbox: TypeScript + Vite + PixiJS v8 + Tweakpane.
 See README.md for the code map and roadmap.
 
+## Commits
+
+Never add `Co-Authored-By` trailers or any other Claude/Anthropic attribution
+to commit messages in this repository. Commits are authored solely by the
+repository owner.
+
 ## Locked interfaces
 
 `Particle` and `Bond` in src/particle.ts are the contract every module depends
