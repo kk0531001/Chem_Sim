@@ -42,13 +42,18 @@ with a reason stated in the commit/summary.
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
   select, pills, plot, quiz) instead of hand-rolling DOM or canvas-axis code.
 - Every topic tab has a quiz of 25 QuizQ entries (5 warm-ups, then 20
-  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts and questions2.ts.
-  Keep questions trap-focused and put the reasoning in `why`; pass the
-  warm-up count as quiz(BANK, 5).
+  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions4.ts
+  (questions3/4 hold the Advanced-CCO banks). Keep questions trap-focused and
+  put the reasoning in `why`; pass the warm-up count as quiz(BANK, 5).
+- Advanced (CCO) modules (analytical, spectroscopy, advinorganic, biophys) sit
+  in the "Advanced (CCO)" nav group and cover IChO-level material: analytical/
+  quantitative, spectroscopy (IR/NMR/MS) + synthesis, coordination/solid-state,
+  and advanced thermo/kinetics + biochemistry — mirroring CCO problem sets 1–4.
 - The Question Bank tab (src/tabs/qbank.ts) holds exam-format practice split
   by part: bankPart1.ts (Part I MC, 10 per topic), bankPart2.ts (Part II
   free-response FRQ with per-part worked solutions), bankPart3.ts (Part III
-  lab scenarios). All bank questions must be ORIGINAL — never copy real
+  lab scenarios), and bankCCO.ts (advanced CCO problem sets PS1–PS4, reusing
+  the FRQ type). All bank questions must be ORIGINAL — never copy real
   CCC/CCO/USNCO items (they are copyrighted); match format and difficulty
   only. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
   redox, atomic, bonding, descriptive, organic, lab.

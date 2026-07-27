@@ -34,7 +34,11 @@ npm run dev     # open http://localhost:5173
 | **Organic I** | SN1/SN2/E1/E2 decision engine with energy profiles, pKa ladder ("who deprotonates whom"), carbocation stability |
 | **Organic II** | alkene addition predictor (Markovnikov & anti-), EAS directing-effect visualizer, carbonyl reaction map, point-group identifier |
 | **Lab & Data** | Beer's law calibration-curve simulator with noisy standards and unknown, sig-fig counter + calculation rules, glassware uncertainty table, titration technique & error-direction reference |
-| **Question Bank** | original exam-format practice split by part: Part I multiple choice (110, filterable by 12 topics), Part II multi-part free response with worked solutions (22), Part III laboratory scenarios (25); topic filter + shuffle |
+| **Analytical & Quantitative** (CCO) | EDTA complexometric titration curves (conditional K′ vs pH), Debye–Hückel/Davies activity, gravimetric-factor & back-titration calculators |
+| **Spectroscopy & Synthesis** (CCO) | IR band finder, ¹H-NMR n+1 splitting predictor + shift table, mass-spec DoU/nitrogen-rule/isotope calculator, named-reaction & pericyclic map |
+| **Advanced Inorganic** (CCO) | LFSE + term symbols + Jahn–Teller, unit-cell density/radius/packing + Bragg's law + radius-ratio rules, HSAB & descriptive chemistry |
+| **Physical & Biochemistry** (CCO) | Michaelis–Menten + Lineweaver–Burk with inhibitors, Eyring transition-state plots, Boltzmann populations, bioenergetics & protein/nucleic-acid reference |
+| **Question Bank** | original exam-format practice: Part I multiple choice (110, 12 topics), Part II free response (22), Part III lab scenarios (25), and the four advanced **CCO problem sets** PS1–PS4 (Nov–Jan) with worked solutions; topic filter + shuffle |
 
 ## What you can do
 

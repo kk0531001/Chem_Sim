@@ -14,6 +14,10 @@ import { nuclearTab } from './tabs/nuclear';
 import { organic1Tab } from './tabs/organic1';
 import { organic2Tab } from './tabs/organic2';
 import { labdataTab } from './tabs/labdata';
+import { analyticalTab } from './tabs/analytical';
+import { spectroscopyTab } from './tabs/spectroscopy';
+import { advInorganicTab } from './tabs/advinorganic';
+import { biophysTab } from './tabs/biophys';
 import { qbankTab } from './tabs/qbank';
 
 const DEFS = [
@@ -22,6 +26,7 @@ const DEFS = [
   thermo1Tab, thermo2Tab, equilibriumTab, aekTab, gasesTab,
   nuclearTab, organic1Tab, organic2Tab,
   labdataTab,
+  analyticalTab, spectroscopyTab, advInorganicTab, biophysTab,
   qbankTab,
 ];
 

@@ -18,7 +18,11 @@ const TOPICS: Topic[] = [
   { id: 'nuclear', title: 'Nuclear & Coordination', tag: 'Inorganic', blurb: 'Truly random decay against the exponential law, carbon dating, and crystal-field color prediction.' },
   { id: 'organic1', title: 'Organic I — Mechanisms', tag: 'Organic', blurb: 'The SN1 / SN2 / E1 / E2 decision engine, the pKa ladder, and carbocation stability.' },
   { id: 'organic2', title: 'Organic II & Symmetry', tag: 'Organic', blurb: 'Markovnikov predictions, EAS directing effects, the carbonyl map, and point groups.' },
-  { id: 'qbank', title: 'Exam Question Bank', tag: 'Practice', blurb: 'Original exam-format practice: Part I multiple choice, Part II free response with worked solutions, Part III lab practicals.' },
+  { id: 'analytical', title: 'Analytical & Quantitative', tag: 'Advanced · CCO', blurb: 'EDTA titration curves, Debye–Hückel activity, gravimetric factors — the quantitative core of CCO PS1.' },
+  { id: 'spectroscopy', title: 'Spectroscopy & Synthesis', tag: 'Advanced · CCO', blurb: 'IR, ¹H-NMR splitting and mass-spec interpretation, plus named-reaction and pericyclic synthesis (PS2).' },
+  { id: 'advinorganic', title: 'Advanced Inorganic', tag: 'Advanced · CCO', blurb: 'LFSE and term symbols, unit-cell packing and Bragg\'s law, radius-ratio rules and descriptive chemistry (PS3).' },
+  { id: 'biophys', title: 'Physical & Biochemistry', tag: 'Advanced · CCO', blurb: 'Michaelis–Menten, Eyring transition-state theory, Boltzmann populations and bioenergetics (PS4).' },
+  { id: 'qbank', title: 'Exam Question Bank', tag: 'Practice', wide: true, blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and the four advanced CCO problem sets (PS1–PS4) with full worked solutions.' },
 ];
 
 export const TILE_HTML = `<span class="tile">Ch</span>`;
@@ -155,7 +159,7 @@ export function buildHome(onEnter: (tabId: string) => void): HTMLElement {
       h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
       h('h1', { class: 'hero-in', style: 'transition-delay:.06s', html: 'The chemistry in this page is <em>actually running</em>.' }),
       h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
-        'Twelve interactive modules — quantum orbitals to organic mechanisms — plus 450+ exam-style practice questions that explain every answer. Built for olympiad preparation, not for slideshows.'),
+        'Sixteen interactive modules — quantum orbitals to enzyme kinetics — plus 600+ exam-style questions and the advanced CCO problem sets, every answer worked out. Built for olympiad preparation, not for slideshows.'),
       h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
         h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning'),
         h('button', {
@@ -172,10 +176,10 @@ export function buildHome(onEnter: (tabId: string) => void): HTMLElement {
 
   // ---- stats strip ----
   const statDefs = [
-    { n: 12, suffix: '', label: 'interactive modules' },
-    { n: 40, suffix: '+', label: 'simulations & tools' },
-    { n: 450, suffix: '+', label: 'practice questions' },
-    { n: 60, suffix: '+', label: 'key equations' },
+    { n: 16, suffix: '', label: 'interactive modules' },
+    { n: 55, suffix: '+', label: 'simulations & tools' },
+    { n: 600, suffix: '+', label: 'practice questions' },
+    { n: 80, suffix: '+', label: 'key equations' },
   ];
   const stats = h('section', { class: 'stats' },
     ...statDefs.map(s =>
