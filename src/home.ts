@@ -2,28 +2,8 @@
 // one flame accent, and the chemistry itself as the artwork (a live mini
 // simulation in the hero, figure panels with captions elsewhere).
 import { h } from './tabs/framework';
-
-interface Topic { id: string; title: string; blurb: string; tag: string; wide?: boolean }
-
-const TOPICS: Topic[] = [
-  { id: 'sandbox', title: 'Particle Sandbox', tag: 'Playground', wide: true, blurb: 'Spawn atoms and watch molecules self-assemble by valence rules — then heat the box until they shake apart. The engine behind the figure above.' },
-  { id: 'quantum', title: 'Quantum & Atomic Structure', tag: 'Foundations', blurb: 'Real hydrogen orbitals, radial distributions, spectral series, and an electron-configuration builder.' },
-  { id: 'bonding', title: 'Bonding, VSEPR & MO Theory', tag: 'Foundations', blurb: 'Every VSEPR shape with lone-pair sketches, plus MO diagrams that explain why O₂ is magnetic.' },
-  { id: 'stoich', title: 'Stoichiometry & Solutions', tag: 'Foundations', blurb: 'Limiting reagents you can see, molarity and dilution tools, and the empirical-formula recipe.' },
-  { id: 'thermo1', title: 'Thermodynamics I', tag: 'Physical', blurb: 'Calorimetry mixing, Hess\'s law cycles, and estimating ΔH from bond enthalpies.' },
-  { id: 'thermo2', title: 'Thermodynamics II', tag: 'Physical', blurb: 'Entropy as microstate counting, the ΔG = ΔH − TΔS spontaneity map, and the ΔG° ↔ K converter.' },
-  { id: 'equilibrium', title: 'Chemical Equilibrium', tag: 'Physical', blurb: 'A live N₂O₄ ⇌ 2NO₂ system you can shove around, an ICE solver, and the full Ksp toolkit.' },
-  { id: 'aek', title: 'Acids, Redox & Kinetics', tag: 'Physical', blurb: 'Titration curves with a working buret, buffer design, galvanic cells, and integrated rate laws.' },
-  { id: 'gases', title: 'Gases, IMFs & Phases', tag: 'Physical', blurb: 'A kinetic gas box, Maxwell–Boltzmann curves, draggable phase diagrams, Clausius–Clapeyron.' },
-  { id: 'nuclear', title: 'Nuclear & Coordination', tag: 'Inorganic', blurb: 'Truly random decay against the exponential law, carbon dating, and crystal-field color prediction.' },
-  { id: 'organic1', title: 'Organic I — Mechanisms', tag: 'Organic', blurb: 'The SN1 / SN2 / E1 / E2 decision engine, the pKa ladder, and carbocation stability.' },
-  { id: 'organic2', title: 'Organic II & Symmetry', tag: 'Organic', blurb: 'Markovnikov predictions, EAS directing effects, the carbonyl map, and point groups.' },
-  { id: 'analytical', title: 'Analytical & Quantitative', tag: 'Advanced · CCO', blurb: 'EDTA titration curves, Debye–Hückel activity, gravimetric factors — the quantitative core of CCO PS1.' },
-  { id: 'spectroscopy', title: 'Spectroscopy & Synthesis', tag: 'Advanced · CCO', blurb: 'IR, ¹H-NMR splitting and mass-spec interpretation, plus named-reaction and pericyclic synthesis (PS2).' },
-  { id: 'advinorganic', title: 'Advanced Inorganic', tag: 'Advanced · CCO', blurb: 'LFSE and term symbols, unit-cell packing and Bragg\'s law, radius-ratio rules and descriptive chemistry (PS3).' },
-  { id: 'biophys', title: 'Physical & Biochemistry', tag: 'Advanced · CCO', blurb: 'Michaelis–Menten, Eyring transition-state theory, Boltzmann populations and bioenergetics (PS4).' },
-  { id: 'qbank', title: 'Exam Question Bank', tag: 'Practice', wide: true, blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and the four advanced CCO problem sets (PS1–PS4) with full worked solutions.' },
-];
+import { mountHomepageAccountWidget } from './authWidget';
+import { TOPICS } from './topics';
 
 export const TILE_HTML = `<span class="tile">Ch</span>`;
 
@@ -143,14 +123,20 @@ function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) =>
   return { canvas, setRunning: v => { running = v; } };
 }
 
-export function buildHome(onEnter: (tabId: string) => void): HTMLElement {
+export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void): HTMLElement {
   const progress = h('div', { class: 'scroll-progress' });
 
   // ---- top bar ----
+  const accountHolder = h('div', {});
   const topBar = h('div', { class: 'home-top' },
     h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>CCC Trainer</small>` }),
-    h('button', { class: 'btn-ghost', onclick: () => onEnter('quantum') }, 'Open the app'),
+    h('div', { class: 'home-top-right' },
+      h('button', { class: 'btn-ghost', onclick: onMenu }, 'All Topics'),
+      accountHolder,
+      h('button', { class: 'btn-ghost', onclick: () => onEnter('quantum') }, 'Open the app'),
+    ),
   );
+  mountHomepageAccountWidget(accountHolder);
 
   // ---- hero ----
   const sim = makeHeroSim();
@@ -159,7 +145,7 @@ export function buildHome(onEnter: (tabId: string) => void): HTMLElement {
       h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
       h('h1', { class: 'hero-in', style: 'transition-delay:.06s', html: 'The chemistry in this page is <em>actually running</em>.' }),
       h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
-        'Sixteen interactive modules — quantum orbitals to enzyme kinetics — plus 600+ exam-style questions and the advanced CCO problem sets, every answer worked out. Built for olympiad preparation, not for slideshows.'),
+        'Eighteen interactive modules — quantum orbitals to enzyme kinetics — plus 650+ exam-style questions and the advanced CCO problem sets, every answer worked out. Built for olympiad preparation, not for slideshows.'),
       h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
         h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning'),
         h('button', {
@@ -176,10 +162,10 @@ export function buildHome(onEnter: (tabId: string) => void): HTMLElement {
 
   // ---- stats strip ----
   const statDefs = [
-    { n: 16, suffix: '', label: 'interactive modules' },
-    { n: 55, suffix: '+', label: 'simulations & tools' },
-    { n: 600, suffix: '+', label: 'practice questions' },
-    { n: 80, suffix: '+', label: 'key equations' },
+    { n: 18, suffix: '', label: 'interactive modules' },
+    { n: 65, suffix: '+', label: 'simulations & tools' },
+    { n: 650, suffix: '+', label: 'practice questions' },
+    { n: 90, suffix: '+', label: 'key equations' },
   ];
   const stats = h('section', { class: 'stats' },
     ...statDefs.map(s =>
@@ -206,6 +192,9 @@ export function buildHome(onEnter: (tabId: string) => void): HTMLElement {
           h('p', {}, t.blurb),
           h('span', { class: 'topic-open' }, 'Open module →'),
         )),
+    ),
+    h('div', { style: 'text-align:center;margin-top:30px' },
+      h('button', { class: 'btn-ghost', onclick: onMenu }, 'Browse the full directory →'),
     ),
   );
 

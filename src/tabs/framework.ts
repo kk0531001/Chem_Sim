@@ -1,6 +1,7 @@
 // Tab framework + shared DOM/plot helpers for the topic modules.
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
+import { qid, isSolved, markSolved, solvedOf, onProgressChange } from '../progress';
 
 export interface TabHandle {
   onShow?: () => void;
@@ -73,12 +74,14 @@ export interface QuizQ { q: string; opts: string[]; a: number; why: string }
 
 export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   let i = 0, score = 0, answered = false;
+  const ids = qs.map(q => qid(q.q));
   const progress = h('div', { class: 'quiz-progress' });
   const qEl = h('div', { class: 'quiz-q' });
   const optsEl = h('div', { class: 'quiz-opts' });
   const whyEl = h('div', { class: 'quiz-why' });
   const nextBtn = button('Next question', () => { i++; render(); }, 'primary');
   const wrap = h('div', { class: 'quiz' }, progress, qEl, optsEl, whyEl, nextBtn);
+  onProgressChange(() => { if (i < qs.length) updateProgressLine(); });
 
   function render(): void {
     answered = false;
@@ -93,26 +96,34 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
       return;
     }
     const q = qs[i];
-    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · warm-up' : ' · olympiad';
-    progress.textContent = `Question ${i + 1} of ${qs.length}${tier} · score ${score}`;
-    qEl.innerHTML = q.q;
+    updateProgressLine();
+    qEl.innerHTML = q.q + (isSolved(ids[i]) ? ' <span class="solved-tag">✓ solved</span>' : '');
     optsEl.replaceChildren(...q.opts.map((o, j) => {
       const b = h('button', { class: 'quiz-opt' }, o);
       b.addEventListener('click', () => {
         if (answered) return;
         answered = true;
-        if (j === q.a) { score++; b.classList.add('correct'); }
+        if (j === q.a) { score++; b.classList.add('correct'); markSolved(ids[i]); }
         else {
           b.classList.add('wrong');
           (optsEl.children[q.a] as HTMLElement).classList.add('correct');
         }
         whyEl.innerHTML = q.why;
         whyEl.classList.add(j === q.a ? 'good' : 'bad');
+        updateProgressLine();
         nextBtn.style.display = '';
       });
       return b;
     }));
   }
+
+  function updateProgressLine(): void {
+    if (i >= qs.length) return;
+    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · warm-up' : ' · olympiad';
+    const done = solvedOf(ids);
+    progress.textContent = `Question ${i + 1} of ${qs.length}${tier} · score ${score} · ${done}/${qs.length} solved`;
+  }
+
   render();
   return wrap;
 }

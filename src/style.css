@@ -115,6 +115,66 @@ body { overflow: hidden; }
   margin-left: 2px;
 }
 .home-top .btn-ghost { padding: 8px 18px; }
+.home-top-right { display: flex; align-items: center; gap: 12px; }
+
+/* ---- account widget: homepage popover ---- */
+.account-widget { position: relative; }
+.acc-trigger { padding: 8px 16px; }
+.acc-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 270px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(28, 30, 33, 0.14);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.acc-form { display: flex; flex-direction: column; gap: 9px; }
+.acc-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--rule-2);
+  background: var(--paper-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.acc-google-btn:hover { border-color: var(--ink); background: var(--paper); }
+.acc-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-faint);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.acc-divider::before, .acc-divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+.acc-form input[type='email'] {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: 7px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.acc-form input[type='email']:focus { border-color: var(--accent); }
+.acc-msg { font-size: 11px; color: var(--accent-dark); line-height: 1.4; }
 
 /* ---- hero ---- */
 .hero {
@@ -297,6 +357,31 @@ body { overflow: hidden; }
 .home-end p { color: var(--ink-faint); margin-bottom: 26px; font-size: 14px; }
 
 /* ============================================================
+   MENU PAGE (full topic directory)
+   ============================================================ */
+#menu-page {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--paper);
+}
+.menu-search {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-2);
+  border-radius: 10px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+}
+.menu-search:focus { border-color: var(--accent); }
+
+/* ============================================================
    APP SHELL
    ============================================================ */
 #app { display: flex; height: 100vh; }
@@ -352,12 +437,73 @@ body { overflow: hidden; }
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 .nav-item:hover { color: var(--ink); background: var(--paper-2); }
+#menu-link {
+  margin: 12px 14px 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink);
+  background: var(--paper-2);
+  border: 1px solid var(--rule-2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-color 0.13s;
+}
+#menu-link:hover { border-color: var(--accent); }
 .nav-item.active {
   color: var(--accent-dark);
   background: var(--accent-wash);
   border-left-color: var(--accent);
   font-weight: 600;
 }
+#progress-panel {
+  border-top: 1px solid var(--rule);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+#progress-panel .pp-count { font-size: 13px; color: var(--ink-dim); }
+#progress-panel .pp-count b { font-family: var(--mono); color: var(--accent-dark); font-size: 15px; }
+#progress-panel .pp-note { font-size: 11px; color: var(--ink-faint); line-height: 1.4; }
+#progress-panel .pp-msg { font-size: 11px; color: var(--accent-dark); line-height: 1.4; }
+#progress-panel input {
+  background: var(--paper-2);
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 12px;
+  outline: none;
+}
+#progress-panel input:focus { border-color: var(--accent); }
+#progress-panel .pp-btn {
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--rule-2);
+  background: var(--paper-2);
+  color: var(--ink);
+  cursor: pointer;
+}
+#progress-panel .pp-btn:hover { border-color: var(--accent); }
+
+.solved-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  background: rgba(47, 158, 68, 0.1);
+  border-radius: 10px;
+  padding: 1px 8px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
 #home-link {
   font: inherit;
   font-size: 12px;
@@ -370,7 +516,57 @@ body { overflow: hidden; }
 }
 #home-link:hover { color: var(--ink); }
 
+#app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
+
+#topic-crumb {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 26px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 12.5px;
+}
+#topic-crumb:empty { display: none; }
+.crumb-link {
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.crumb-link:hover { color: var(--accent-dark); text-decoration: underline; }
+.crumb-sep { color: var(--rule-2); }
+.crumb-current { color: var(--ink); font-weight: 600; }
+
 #view { flex: 1; overflow: hidden; position: relative; min-width: 0; background: var(--paper); }
+
+#topic-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 26px;
+  border-top: 1px solid var(--rule);
+}
+#topic-footer:empty { display: none; }
+.topic-nav-btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--rule-2);
+  background: var(--paper-2);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.topic-nav-btn:hover { border-color: var(--accent); }
+
 .tab-root {
   height: 100%;
   overflow-y: auto;

@@ -71,7 +71,7 @@ export const NUCLEAR_QUIZ: QuizQ[] = [
   { q: 'Coordination number of Co in [Co(NH₃)₆]³⁺?', opts: ['3', '4', '6', '12'], a: 2, why: 'Six NH₃ ligands bond directly to the metal → CN = 6, octahedral.' },
   // ---- olympiad ----
   { q: '²³⁸U undergoes alpha decay. The daughter is…', opts: ['²³⁴Th (Z=90)', '²³⁸Np (Z=93)', '²³⁴Pa (Z=91)', '²³⁶U (Z=92)'], a: 0, why: 'A drops 4 (238→234), Z drops 2 (92→90) → thorium-234.' },
-  { q: 'After 3 half-lives, percent remaining = ?', opts: ['33%', '25%', '12.5%', '6.25%'], a: 2, why: '(½)³ = 1/8 = 12.5%.' },
+  { q: 'After 3 half-lives, percent remaining = ?', opts: ['33%', '25%', '12.5%', '6.25%'], a: 2, why: 'Each half-life halves the amount: (½)³ = 1/8 = 12.5%. Radioactive decay is strictly first-order, so the fraction depends only on the number of half-lives elapsed.' },
   { q: 'In [Fe(CN)₆]³⁻, iron\'s oxidation state and d-count are…', opts: ['+2, d⁶', '+3, d⁵', '+3, d⁶', '+2, d⁵'], a: 1, why: 'Six CN⁻ = −6, overall −3 → Fe³⁺ = [Ar]3d⁵. Strong-field CN⁻ → low spin, 1 unpaired.' },
   { q: 'Which aqueous ion is COLORLESS?', opts: ['Cu²⁺', 'Ni²⁺', 'Zn²⁺', 'Fe³⁺'], a: 2, why: 'Zn²⁺ is d¹⁰ — full d shell, no d→d transition. Same for d⁰ (Sc³⁺, Ti⁴⁺).' },
   { q: 'The chelate effect is driven mainly by…', opts: ['stronger M–N bonds', 'entropy', 'solvation enthalpy', 'ligand size'], a: 1, why: 'en displacing two NH₃ increases free-particle count → ΔS > 0. Bond enthalpies are nearly identical.' },

@@ -1,0 +1,163 @@
+// Periodicity — interactive trends explorer, Slater's-rules Z_eff calculator,
+// and the anomaly/amphoterism reference. (IChO area 4.)
+import { h, card, theory, select, plot, quiz, type TabDef } from './framework';
+import { PERIODICITY_QUIZ } from './questions5';
+
+// Period-2 and period-3 data: IE1 (kJ/mol), atomic radius (pm), EA (kJ/mol, +ve released),
+// Pauling electronegativity. Values are standard textbook figures.
+interface Elem { sym: string; Z: number; ie1: number; radius: number; ea: number; en: number }
+const PERIOD2: Elem[] = [
+  { sym: 'Li', Z: 3, ie1: 520, radius: 152, ea: 60, en: 0.98 },
+  { sym: 'Be', Z: 4, ie1: 899, radius: 112, ea: 0, en: 1.57 },
+  { sym: 'B', Z: 5, ie1: 801, radius: 85, ea: 27, en: 2.04 },
+  { sym: 'C', Z: 6, ie1: 1086, radius: 77, ea: 122, en: 2.55 },
+  { sym: 'N', Z: 7, ie1: 1402, radius: 75, ea: 0, en: 3.04 },
+  { sym: 'O', Z: 8, ie1: 1314, radius: 73, ea: 141, en: 3.44 },
+  { sym: 'F', Z: 9, ie1: 1681, radius: 71, ea: 328, en: 3.98 },
+  { sym: 'Ne', Z: 10, ie1: 2081, radius: 69, ea: 0, en: 0 },
+];
+const PERIOD3: Elem[] = [
+  { sym: 'Na', Z: 11, ie1: 496, radius: 186, ea: 53, en: 0.93 },
+  { sym: 'Mg', Z: 12, ie1: 738, radius: 160, ea: 0, en: 1.31 },
+  { sym: 'Al', Z: 13, ie1: 578, radius: 143, ea: 42, en: 1.61 },
+  { sym: 'Si', Z: 14, ie1: 786, radius: 118, ea: 134, en: 1.90 },
+  { sym: 'P', Z: 15, ie1: 1012, radius: 110, ea: 72, en: 2.19 },
+  { sym: 'S', Z: 16, ie1: 1000, radius: 103, ea: 200, en: 2.58 },
+  { sym: 'Cl', Z: 17, ie1: 1251, radius: 99, ea: 349, en: 3.16 },
+  { sym: 'Ar', Z: 18, ie1: 1521, radius: 97, ea: 0, en: 0 },
+];
+
+function makeTrends(): HTMLElement {
+  let prop: 'ie1' | 'radius' | 'ea' | 'en' = 'ie1';
+  const canvas = h('canvas', { width: 500, height: 280 });
+  const out = h('div', { class: 'result' });
+  const LABEL = { ie1: 'first ionization energy (kJ/mol)', radius: 'atomic radius (pm)', ea: 'electron affinity (kJ/mol)', en: 'electronegativity (Pauling)' };
+  function draw(): void {
+    // plot period 2 and period 3 as two series on a shared "position in period" axis
+    const pos = [1, 2, 3, 4, 5, 6, 7, 8];
+    plot(canvas, [
+      { xs: pos, ys: PERIOD2.map(e => e[prop]), color: '#e8590c', label: 'period 2' },
+      { xs: pos, ys: PERIOD3.map(e => e[prop]), color: '#7c8798', label: 'period 3' },
+    ], { xLabel: 'position in period (group 1 → 18)', yLabel: LABEL[prop] });
+    let note = '';
+    if (prop === 'ie1') note = 'Note the two dips: <b>Be→B</b> (new higher-energy 2p) and <b>N→O</b> (pairing repulsion in 2p⁴). The same pattern repeats in period 3 (Mg→Al, P→S).';
+    else if (prop === 'radius') note = 'Radius <b>decreases</b> across each period (rising Z_eff) and each period-3 element is larger than its period-2 congener (extra shell).';
+    else if (prop === 'ea') note = 'Zero bars are the stable-shell cases (Be, N, Ne — noble gases and filled/half-filled shells barely accept electrons). <b>F\'s EA is smaller than Cl\'s</b> — small-atom electron repulsion.';
+    else note = 'Electronegativity rises toward the top-right; the noble gases are left off the Pauling scale (shown as 0).';
+    out.innerHTML = `Showing <b>${LABEL[prop]}</b>.<br>${note}`;
+  }
+  const el = card('Periodic trends explorer',
+    select('property', [
+      { value: 'ie1', label: 'first ionization energy' },
+      { value: 'radius', label: 'atomic radius' },
+      { value: 'ea', label: 'electron affinity' },
+      { value: 'en', label: 'electronegativity' },
+    ], v => { prop = v as typeof prop; draw(); }, 'ie1'),
+    canvas, out,
+    h('p', { class: 'muted' }, 'Both curves are plotted against position in the period so period 2 and period 3 line up group-for-group.'),
+  );
+  draw();
+  return el;
+}
+
+// ---- Slater's rules Z_eff ----
+function makeSlater(): HTMLElement {
+  const ELEMS = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'];
+  let Z = 16; // sulfur
+  const out = h('div', { class: 'result' });
+  // build config as [ (n, l-group, count) ] using Slater grouping: (1s)(2s2p)(3s3p)(3d)(4s4p)...
+  function slater(z: number): { zeff: number; s: number; group: string } {
+    // fill order for grouping
+    const caps: [string, number][] = [['1s', 2], ['2s2p', 8], ['3s3p', 8], ['3d', 10], ['4s4p', 8]];
+    let e = z; const filled: [string, number][] = [];
+    for (const [g, cap] of caps) { if (e <= 0) break; const n = Math.min(cap, e); filled.push([g, n]); e -= n; }
+    const lastIdx = filled.length - 1;
+    const [lastG, lastN] = filled[lastIdx];
+    // shielding of an electron in the last group
+    let s = 0;
+    // same group: 0.35 each (0.30 for 1s), minus the electron itself
+    const same = lastG === '1s' ? 0.30 : 0.35;
+    s += (lastN - 1) * same;
+    // for s/p valence: n-1 shell shields 0.85, deeper 1.00
+    if (lastG.startsWith('4')) {
+      // n-1 = 3 shell (3s3p + 3d), deeper = 1s2s2p
+      for (let i = 0; i < lastIdx; i++) {
+        const [g, n] = filled[i];
+        if (g.startsWith('3')) s += n * 0.85; else s += n * 1.00;
+      }
+    } else if (lastG.startsWith('3s')) {
+      for (let i = 0; i < lastIdx; i++) {
+        const [g, n] = filled[i];
+        if (g.startsWith('2')) s += n * 0.85; else s += n * 1.00;
+      }
+    } else if (lastG.startsWith('2')) {
+      for (let i = 0; i < lastIdx; i++) { const [, n] = filled[i]; s += n * 1.00; }
+    } else if (lastG === '3d') {
+      // d electron: everything inside shields 1.00, same-group 0.35
+      for (let i = 0; i < lastIdx; i++) { const [, n] = filled[i]; s += n * 1.00; }
+    }
+    return { zeff: z - s, s, group: lastG };
+  }
+  function calc(): void {
+    const { zeff, s, group } = slater(Z);
+    out.innerHTML =
+      `<b>${ELEMS[Z - 1]}</b> (Z = ${Z}) · outermost group ${group}<br>` +
+      `screening constant S = <b>${s.toFixed(2)}</b> → Z_eff = Z − S = <b class="big">${zeff.toFixed(2)}</b><br>` +
+      `<span class="muted">Slater: same-group electrons shield 0.35 (0.30 for 1s); the (n−1) shell 0.85; deeper shells 1.00. Rising Z_eff across a period is what drives radius↓, IE↑, EN↑.</span>`;
+  }
+  const el = card("Slater's rules — effective nuclear charge",
+    select('element', ELEMS.map((s, i) => ({ value: String(i + 1), label: `${s} (Z=${i + 1})` })), v => { Z = Number(v); calc(); }, String(Z)),
+    out,
+  );
+  calc();
+  return el;
+}
+
+function makeAnomalies(): HTMLElement {
+  return h('div', { class: 'cards' },
+    card('Anomalies, diagonals & amphoterism',
+      h('h3', {}, 'Trend-breaking anomalies (know the WHY)'),
+      h('ul', {},
+        h('li', { html: '<b>IE dip Be→B:</b> B\'s electron leaves a higher-energy 2p, shielded by the 2s².' }),
+        h('li', { html: '<b>IE dip N→O:</b> O pairs a 2p electron (2p⁴); pairing repulsion aids removal. N\'s half-filled 2p³ is extra stable.' }),
+        h('li', { html: '<b>EA F < Cl:</b> adding an electron to F\'s tiny 2p shell crowds it (repulsion), releasing less energy than for Cl.' }),
+        h('li', { html: '<b>2nd IE jump:</b> huge once you break into a noble-gas core — the jump position gives the group number.' }),
+      ),
+      h('h3', {}, 'Diagonal relationships'),
+      h('p', { html: 'Li~Mg, Be~Al, B~Si — similar charge/radius ratio → similar chemistry (Li and Mg both form nitrides; Be and Al both amphoteric).' }),
+      h('h3', {}, 'Amphoterism & oxide acidity'),
+      h('p', { html: 'Amphoteric oxides/hydroxides: <b>Al, Zn, Be, Sn, Pb</b> — dissolve in both acid and base. Across a period, oxides go basic (Na₂O) → amphoteric (Al₂O₃) → acidic (SO₃, Cl₂O₇).' }),
+    ),
+  );
+}
+
+export const periodicityTab: TabDef = {
+  id: 'periodicity',
+  label: 'Periodicity',
+  group: 'Foundations',
+  mount(root) {
+    root.append(
+      h('div', { class: 'cards' }, makeTrends(), makeSlater(), makeAnomalies(), card('Quick quiz', quiz(PERIODICITY_QUIZ, 5))),
+      theory('Theory — periodicity (IChO area 4)', `
+<h4>The trends and their driver</h4>
+<span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>
+<ul>
+<li>Across a period: Z_eff ↑ (same shell, poor mutual shielding) → radius ↓, IE ↑, EA more −ve, EN ↑.</li>
+<li>Down a group: new shells dominate → radius ↑, IE ↓, EN ↓; reactivity of metals ↑, of non-metals ↓.</li>
+<li>Isoelectronic series: more protons → smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
+</ul>
+<h4>Anomalies to explain, not memorize</h4>
+<ul>
+<li>IE dips Be→B (new 2p subshell) and N→O (2p⁴ pairing repulsion); repeat in period 3.</li>
+<li>EA F &lt; Cl (small-atom electron–electron repulsion); noble gases and half/filled shells resist adding electrons.</li>
+<li>Successive-IE jumps reveal valence-electron count (group).</li>
+</ul>
+<h4>Descriptive consequences</h4>
+<ul>
+<li>Metallic ↔ non-metallic character; amphoterism (Al, Zn, Be, Sn, Pb); oxide acid–base trend across a period.</li>
+<li>Diagonal relationships (Li–Mg, Be–Al, B–Si); inert-pair effect for heavy p-block; lanthanide contraction (Zr ≈ Hf).</li>
+<li>Electronegativity scales: Pauling (bond energies), Mulliken (½(IE+EA)), Allred–Rochow (Z_eff/r²).</li>
+</ul>`, true),
+    );
+  },
+};

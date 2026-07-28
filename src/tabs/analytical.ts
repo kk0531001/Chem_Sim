@@ -134,13 +134,46 @@ function makeGravimetric(): HTMLElement {
   return el;
 }
 
+function makeSeparations(): HTMLElement {
+  let spot = 3.4, front = 5.0; // cm
+  const out = h('div', { class: 'result' });
+  function calc(): void {
+    const rf = spot / front;
+    out.innerHTML =
+      `<span class="eq">R_f = (distance travelled by spot) / (distance travelled by solvent front)</span>` +
+      `R_f = ${spot.toFixed(1)} / ${front.toFixed(1)} = <b class="big">${rf.toFixed(2)}</b><br>` +
+      (rf > 0.9 ? '<span class="trap">R_f near 1 — the compound is too non-polar for this solvent (barely retained); use a less polar eluent.</span>'
+        : rf < 0.15 ? '<span class="trap">R_f near 0 — too polar / strongly retained; use a more polar eluent.</span>'
+          : 'A good R_f sits ~0.3–0.7. More polar compounds stick to the polar silica and travel less (lower R_f) in a given solvent.') +
+      `<br><span class="muted">R_f is characteristic of a compound in a fixed system, so it aids identification. On normal-phase silica: polar spots low, non-polar spots high.</span>`;
+  }
+  const el = card('Separations — TLC R_f & chromatography',
+    slider({ label: 'spot distance (cm)', min: 0, max: 6, step: 0.1, value: spot, fmt: v => v.toFixed(1), onInput: v => { spot = Math.min(v, front); calc(); } }),
+    slider({ label: 'solvent front (cm)', min: 1, max: 8, step: 0.1, value: front, fmt: v => v.toFixed(1), onInput: v => { front = v; calc(); } }),
+    out,
+    h('h3', {}, 'Separation methods at a glance'),
+    h('table', { class: 'ref-table', html: `
+<tr><th>method</th><th>separates by</th><th>use</th></tr>
+<tr><td>TLC</td><td>polarity (adsorption)</td><td>quick purity / reaction monitoring; R_f ID</td></tr>
+<tr><td>column chromatography</td><td>polarity</td><td>preparative purification</td></tr>
+<tr><td>GC</td><td>volatility / boiling point</td><td>volatile mixtures; retention time</td></tr>
+<tr><td>HPLC</td><td>polarity (high-res)</td><td>quantitative analysis, non-volatiles</td></tr>
+<tr><td>electrophoresis</td><td>charge / size</td><td>proteins, DNA</td></tr>
+<tr><td>fractional distillation</td><td>boiling point</td><td>miscible liquids (ΔBP)</td></tr>
+<tr><td>solvent extraction</td><td>partition coefficient K_D</td><td>pull a solute into the phase it prefers</td></tr></table>` }),
+    h('p', { class: 'muted' }, 'Solvent extraction: K_D = [A]_org/[A]_aq. Several small extractions remove more solute than one large one — a common quantitative-lab result.'),
+  );
+  calc();
+  return el;
+}
+
 export const analyticalTab: TabDef = {
   id: 'analytical',
   label: 'Analytical & Quant.',
   group: 'Advanced (CCO)',
   mount(root) {
     root.append(
-      h('div', { class: 'cards' }, makeEDTA(), makeActivity(), makeGravimetric(), card('Quick quiz', quiz(ANALYTICAL_QUIZ, 5))),
+      h('div', { class: 'cards' }, makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations(), card('Quick quiz', quiz(ANALYTICAL_QUIZ, 5))),
       theory('Theory — analytical & quantitative chemistry (CCO PS1)', `
 <h4>Complexometric (EDTA) titrations</h4>
 <span class="eq">K′ = α₄·K_f &nbsp; (conditional formation constant)</span>
@@ -165,6 +198,13 @@ export const analyticalTab: TabDef = {
 <li>Permanganate — self-indicating (purple). Dichromate — needs an indicator. Iodometry — thiosulfate + starch (added near the end).</li>
 <li>Back-titration for slow or solid analytes. Karl Fischer for water. Gran plots linearize weak endpoints.</li>
 <li>Method of standard additions cancels matrix effects; internal standards correct instrument drift.</li>
+</ul>
+<h4>Separations</h4>
+<ul>
+<li>Chromatography splits mixtures between a stationary and mobile phase: TLC/column/HPLC by polarity, GC by volatility, electrophoresis by charge/size.</li>
+<li>TLC: R_f = spot distance / solvent-front distance — characteristic in a fixed system. On silica, polar = low R_f.</li>
+<li>Solvent extraction: partition coefficient K_D = [A]_org/[A]_aq; multiple small extractions beat one large one.</li>
+<li>Electroanalytical: potentiometry and ion-selective/pH electrodes give Nernstian E ∝ log[ion].</li>
 </ul>`, true),
     );
   },

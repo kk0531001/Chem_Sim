@@ -174,6 +174,99 @@ function makeTechnique(): HTMLElement {
   );
 }
 
+// ================= UNCERTAINTY PROPAGATION + Q-TEST =================
+function makeUncertainty(): HTMLElement {
+  const num = (v: number, step = 0.01) => h('input', { type: 'number', value: v, step });
+  // propagation: result = (A*B)/C style — relative uncertainties add in quadrature (or linearly)
+  const A = num(25.00, 0.01), dA = num(0.03, 0.01), B = num(0.1000, 0.0001), dB = num(0.0005, 0.0001), C = num(10.00, 0.01), dC = num(0.02, 0.01);
+  const propOut = h('div', { class: 'result' });
+  const propCalc = () => {
+    const a = Number(A.value), da = Number(dA.value), b = Number(B.value), db = Number(dB.value), c = Number(C.value), dc = Number(dC.value);
+    if (a && b && c) {
+      const result = (a * b) / c;
+      const relA = da / a, relB = db / b, relC = dc / c;
+      const relLinear = relA + relB + relC;
+      const relQuad = Math.sqrt(relA * relA + relB * relB + relC * relC);
+      propOut.innerHTML =
+        `result = A·B/C = <b>${result.toPrecision(4)}</b><br>` +
+        `relative uncertainties: A ${(relA * 100).toFixed(2)}%, B ${(relB * 100).toFixed(2)}%, C ${(relC * 100).toFixed(2)}%<br>` +
+        `linear sum (conservative): ±${(relLinear * 100).toFixed(2)}% → ±${(result * relLinear).toPrecision(2)}<br>` +
+        `in quadrature (independent errors): ±${(relQuad * 100).toFixed(2)}% → <b>${result.toPrecision(4)} ± ${(result * relQuad).toPrecision(2)}</b><br>` +
+        `<span class="muted">For ×/÷ the RELATIVE uncertainties combine; for +/− the ABSOLUTE ones do. The largest relative term dominates — improve that measurement first.</span>`;
+    }
+  };
+  [A, dA, B, dB, C, dC].forEach(i => i.addEventListener('input', propCalc));
+  propCalc();
+
+  // Q-test
+  const vals = h('input', { type: 'text', value: '10.1, 10.2, 10.3, 10.9' });
+  const qOut = h('div', { class: 'result' });
+  const Q90: Record<number, number> = { 3: 0.941, 4: 0.765, 5: 0.642, 6: 0.560, 7: 0.507, 8: 0.468 };
+  const qCalc = () => {
+    const data = vals.value.split(/[,\s]+/).map(Number).filter(x => !isNaN(x)).sort((a, b) => a - b);
+    const n = data.length;
+    if (n < 3 || n > 8) { qOut.innerHTML = 'Enter 3–8 numbers.'; return; }
+    const range = data[n - 1] - data[0];
+    const gapLow = data[1] - data[0], gapHigh = data[n - 1] - data[n - 2];
+    const suspect = gapHigh >= gapLow ? data[n - 1] : data[0];
+    const gap = Math.max(gapLow, gapHigh);
+    const Q = gap / range;
+    const crit = Q90[n];
+    qOut.innerHTML =
+      `n = ${n}, suspect value = <b>${suspect}</b><br>` +
+      `Q = gap/range = ${gap.toFixed(2)}/${range.toFixed(2)} = <b>${Q.toFixed(3)}</b> vs Q_crit(90%, n=${n}) = ${crit}<br>` +
+      (Q > crit ? `<b style="color:#e8590c">Q &gt; Q_crit → reject ${suspect} as an outlier</b> (at 90% confidence).`
+        : `<b>Q ≤ Q_crit → keep ${suspect}</b>; not a statistical outlier.`) +
+      `<br><span class="muted">Never discard data without a stated test — the Q-test gives an objective rule.</span>`;
+  };
+  vals.addEventListener('input', qCalc);
+  qCalc();
+
+  return h('div', { class: 'cards' },
+    card('Uncertainty propagation',
+      h('p', { class: 'muted' }, 'Compute A·B/C with its uncertainty:'),
+      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'A ± δA'), A, dA),
+      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'B ± δB'), B, dB),
+      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'C ± δC'), C, dC),
+      propOut,
+    ),
+    card('Q-test for outliers',
+      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'values (comma-sep)'), vals),
+      qOut,
+    ),
+  );
+}
+
+// ================= QUALITATIVE FUNCTIONAL-GROUP TESTS =================
+function makeQualTests(): HTMLElement {
+  return h('div', { class: 'cards' },
+    card('Qualitative functional-group tests',
+      h('table', { class: 'ref-table', html: `
+<tr><th>test / reagent</th><th>positive result</th><th>detects</th></tr>
+<tr><td>Tollens (Ag(NH₃)₂⁺)</td><td>silver mirror</td><td>aldehyde (not ketone)</td></tr>
+<tr><td>Fehling's / Benedict's (Cu²⁺)</td><td>brick-red Cu₂O</td><td>aldehyde / reducing sugar</td></tr>
+<tr><td>2,4-DNP (Brady's)</td><td>yellow-orange precipitate</td><td>aldehyde OR ketone (C=O)</td></tr>
+<tr><td>Iodoform (I₂/NaOH)</td><td>yellow CHI₃ precipitate</td><td>methyl ketone or CH₃CH(OH)–</td></tr>
+<tr><td>Lucas (ZnCl₂/HCl)</td><td>cloudiness: 3° fast, 2° slow, 1° none</td><td>alcohol class</td></tr>
+<tr><td>Bromine water</td><td>orange → colorless</td><td>alkene/alkyne (C=C, C≡C)</td></tr>
+<tr><td>Baeyer (cold dilute KMnO₄)</td><td>purple → brown MnO₂</td><td>alkene (also oxidizable groups)</td></tr>
+<tr><td>FeCl₃</td><td>violet/blue color</td><td>phenol</td></tr>
+<tr><td>NaHCO₃</td><td>effervescence (CO₂)</td><td>carboxylic acid</td></tr>
+<tr><td>Ceric ammonium nitrate</td><td>red → amber</td><td>alcohol</td></tr>` }),
+      h('p', { class: 'muted' }, 'Strategy: 2,4-DNP first confirms a carbonyl, then Tollens/iodoform narrows aldehyde vs methyl ketone. Bromine water and Baeyer both flag unsaturation; combine tests to pin the group.'),
+    ),
+    card('Cation / anion & gas tests',
+      h('ul', {},
+        h('li', { html: '<b>Flame:</b> Li crimson, Na yellow, K lilac, Ca brick-red, Ba green, Cu blue-green.' }),
+        h('li', { html: '<b>Halides + AgNO₃:</b> Cl⁻ white, Br⁻ cream, I⁻ yellow; AgCl dissolves in dilute NH₃.' }),
+        h('li', { html: '<b>SO₄²⁻ + Ba²⁺:</b> white precipitate insoluble in acid. <b>CO₃²⁻ + acid:</b> CO₂ (limewater milky).' }),
+        h('li', { html: '<b>NH₄⁺ + NaOH (warm):</b> NH₃ gas (damp red litmus → blue).' }),
+        h('li', { html: '<b>Gas tests:</b> H₂ squeaky pop; O₂ relights glowing splint; CO₂ limewater milky.' }),
+      ),
+    ),
+  );
+}
+
 export const labdataTab: TabDef = {
   id: 'labdata',
   label: 'Lab & Data',
@@ -182,6 +275,8 @@ export const labdataTab: TabDef = {
     root.append(pills([
       { label: 'Beer\'s law', el: makeBeer() },
       { label: 'Sig figs & error', el: makeSigFigs() },
+      { label: 'Uncertainty & Q-test', el: makeUncertainty() },
+      { label: 'Qual. analysis', el: makeQualTests() },
       { label: 'Technique', el: makeTechnique() },
       { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(LABDATA_QUIZ, 5))) },
     ]));

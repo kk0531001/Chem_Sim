@@ -37,7 +37,7 @@ export const BONDING_QUIZ: QuizQ[] = [
   { q: 'How many covalent bonds does carbon usually form?', opts: ['2', '3', '4', '6'], a: 2, why: 'Carbon has 4 valence electrons and 4 empty slots — tetravalence is the backbone of organic chemistry.' },
   { q: 'The shape of CO₂ is…', opts: ['bent', 'linear', 'trigonal planar', 'tetrahedral'], a: 1, why: 'Two double-bond domains, no lone pairs on C → 180° linear. (Contrast SO₂, which has a lone pair and is bent.)' },
   { q: 'A double bond consists of…', opts: ['2 σ bonds', '2 π bonds', '1 σ + 1 π', '1 σ + 2 π'], a: 2, why: 'The first bond of any multiple bond is σ (head-on); extras are π (sideways p overlap). Triple = 1σ + 2π.' },
-  { q: 'The most electronegative element is…', opts: ['O', 'F', 'Cl', 'N'], a: 1, why: 'Fluorine, χ = 4.0. The order F > O > N ≈ Cl is worth memorizing.' },
+  { q: 'A bond between atoms with an electronegativity difference of about 0.5 is best called…', opts: ['nonpolar covalent', 'polar covalent', 'ionic', 'metallic'], a: 1, why: 'ΔEN ≈ 0.4–1.8 is polar covalent (unequal sharing). Below ~0.4 is nonpolar; above ~1.8 the bond is essentially ionic (electron transfer).' },
   { q: 'The bond in NaCl is best described as…', opts: ['nonpolar covalent', 'polar covalent', 'ionic', 'metallic'], a: 2, why: 'ΔEN ≈ 2.1 — the metal transfers its electron to the nonmetal, giving an ion lattice.' },
   // ---- olympiad ----
   { q: 'What is the molecular shape of XeF₄?', opts: ['tetrahedral', 'seesaw', 'square planar', 'square pyramidal'], a: 2, why: '6 domains: 4 bonds + 2 lone pairs trans to each other → AX₄E₂ = <b>square planar</b>.' },

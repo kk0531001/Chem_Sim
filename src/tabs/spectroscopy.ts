@@ -180,6 +180,8 @@ function makeSynthesis(): HTMLElement {
 <ul>
 <li>Match oxidation-state changes to reagents; control regio-/stereochemistry (Markovnikov vs anti-Markovnikov, syn vs anti addition).</li>
 <li>Enolate chemistry (aldol, Claisen, Michael, malonic/acetoacetic ester) builds most C–C bonds in multistep synthesis.</li>
+<li><b>Amines & diazonium:</b> reductive amination and the Gabriel synthesis make amines; aryl diazonium salts (ArN₂⁺, from ArNH₂ + HNO₂/0 °C) undergo substitution (→ ArOH, ArCN, ArX via Sandmeyer) and azo coupling (→ dyes).</li>
+<li><b>Classic rearrangements:</b> carbocation (hydride/methyl shifts), pinacol (1,2-diol → ketone), Beckmann (oxime → amide), Hofmann/Curtius (→ amine with loss of one carbon).</li>
 </ul>`),
   );
   set(REACTIONS[0].name);

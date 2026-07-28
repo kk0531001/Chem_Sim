@@ -188,6 +188,43 @@ function makeSymmetry(): HTMLElement {
   return el;
 }
 
+// ---- Hückel aromaticity checker + conformation ----
+const RINGS: { name: string; pi: number; planar: boolean; verdict: string; note: string }[] = [
+  { name: 'benzene', pi: 6, planar: true, verdict: 'aromatic', note: '6 π e⁻ = 4n+2 (n=1), planar, cyclic, fully conjugated.' },
+  { name: 'cyclobutadiene', pi: 4, planar: true, verdict: 'antiaromatic', note: '4 π e⁻ = 4n → destabilized; distorts to a rectangle to escape it.' },
+  { name: 'cyclooctatetraene', pi: 8, planar: false, verdict: 'nonaromatic', note: '8 π e⁻ would be antiaromatic, so it puckers into a tub — non-planar, so the rule does not apply.' },
+  { name: 'cyclopentadienyl anion', pi: 6, planar: true, verdict: 'aromatic', note: '6 π e⁻ over 5 carbons — the anion is aromatic (the cation, 4 e⁻, is antiaromatic).' },
+  { name: 'tropylium cation (C₇H₇⁺)', pi: 6, planar: true, verdict: 'aromatic', note: '6 π e⁻ over a 7-membered ring → a stable aromatic cation.' },
+  { name: 'pyridine', pi: 6, planar: true, verdict: 'aromatic', note: 'N lone pair is in an sp² orbital in the plane, NOT the π system — 6 π e⁻ from the ring.' },
+  { name: 'pyrrole', pi: 6, planar: true, verdict: 'aromatic', note: 'Here the N lone pair IS donated into the π system to reach 6 — so pyrrole N is a poor base.' },
+  { name: 'cyclohexane', pi: 0, planar: false, verdict: 'nonaromatic', note: 'No π system (saturated); adopts the chair conformation instead.' },
+];
+function makeAromaticity(): HTMLElement {
+  const out = h('div', { class: 'result' });
+  const set = (name: string) => {
+    const r = RINGS.find(x => x.name === name)!;
+    const huckel = r.pi > 0 ? (r.pi - 2) % 4 === 0 ? '4n+2 ✓' : '4n (antiaromatic count)' : 'no π system';
+    out.innerHTML = `<b class="big">${r.verdict}</b><br>π electrons = ${r.pi} (${huckel}) · planar: ${r.planar ? 'yes' : 'no'}<p>${r.note}</p>`;
+  };
+  const el = h('div', { class: 'cards' },
+    card('Hückel aromaticity checker',
+      select('ring system', RINGS.map(r => ({ value: r.name, label: r.name })), set, RINGS[0].name),
+      out,
+      h('p', { class: 'muted' }, 'Aromatic needs ALL of: cyclic, planar, fully conjugated, and 4n+2 π electrons. Fail planarity (COT) → nonaromatic; hit 4n while planar → antiaromatic (destabilized).'),
+    ),
+    card('Conformational analysis (chair cyclohexane)',
+      h('ul', {},
+        h('li', { html: 'Chair is the low-energy conformer; ring-flip interconverts axial ↔ equatorial.' }),
+        h('li', { html: 'Bulky groups prefer <b>equatorial</b> to avoid 1,3-diaxial strain — the bigger the A-value, the stronger the preference (t-Bu ≈ 4.9 kcal/mol locks the ring).' }),
+        h('li', { html: '<span class="trap">E2 on cyclohexanes needs the leaving group AXIAL (anti-periplanar to a β-H)</span> — read this directly off the chair.' }),
+        h('li', { html: 'Newman projections: staggered (anti &lt; gauche) beats eclipsed; torsional + steric strain set the energy profile.' }),
+      ),
+    ),
+  );
+  set(RINGS[0].name);
+  return el;
+}
+
 export const organic2Tab: TabDef = {
   id: 'organic2',
   label: 'Organic II',
@@ -197,6 +234,7 @@ export const organic2Tab: TabDef = {
       { label: 'Alkene addition', el: makeAddition() },
       { label: 'EAS (aromatics)', el: makeEAS() },
       { label: 'Carbonyls', el: makeCarbonyl() },
+      { label: 'Aromaticity & conformation', el: makeAromaticity() },
       { label: 'Symmetry & inorganic', el: makeSymmetry() },
       { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(ORGANIC2_QUIZ, 5))) },
     ]));

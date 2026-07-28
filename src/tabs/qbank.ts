@@ -8,6 +8,7 @@ import { PART1 } from './bankPart1';
 import { PART2, type FRQ } from './bankPart2';
 import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
+import { qid, isSolved, markSolved, unmarkSolved } from '../progress';
 
 const TOPICS: { id: string; label: string }[] = [
   { id: 'all', label: 'All topics' },
@@ -38,7 +39,15 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
   );
   function show(): void {
     const f = items[idx];
+    const id = qid(f.title + '|' + f.prompt);
     pos.textContent = `Problem ${idx + 1} of ${items.length} · ${topicLabel(f.topic)}`;
+    const solveBtn = button('', () => { isSolved(id) ? unmarkSolved(id) : markSolved(id); syncSolveBtn(); });
+    function syncSolveBtn(): void {
+      const done = isSolved(id);
+      solveBtn.textContent = done ? '✓ Solved — click to unmark' : 'Mark as solved';
+      solveBtn.className = done ? 'btn primary' : 'btn';
+    }
+    syncSolveBtn();
     holder.replaceChildren(
       h('h3', {}, f.title),
       h('div', { class: 'result', html: f.prompt }),
@@ -52,6 +61,7 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
         });
         return h('div', { style: 'margin-top:14px' }, h('p', { html: `<b>${p.q}</b>` }), btn, sol);
       }),
+      h('div', { style: 'margin-top:16px' }, solveBtn),
     );
   }
   show();

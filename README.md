@@ -10,6 +10,19 @@ Built with **TypeScript + Vite + PixiJS v8 + Tweakpane**, following the
 "appropriately simple" architecture: a flat particle array, a bond list, and one
 function per physical process. No ECS, no physics-engine black box.
 
+## Pages
+
+The site is a real multi-page app with proper URLs and browser back/forward:
+
+- **`/`** — homepage (hero, live sim, stats, module teaser grid, feature rows)
+- **`/menu`** — the full topic directory, grouped by category with a search box
+- **`/topic/:id`** — one page per module, with a breadcrumb (Home / group /
+  title) and a prev/next footer for moving through the syllabus in order
+
+Every module and both directory pages are bookmarkable and shareable, and
+reloading on any URL lands you back on the same page (Netlify config in
+`public/_redirects`).
+
 ## Run it
 
 ```bash
@@ -17,24 +30,41 @@ npm install
 npm run dev     # open http://localhost:5173
 ```
 
+## Progress tracking
+
+Solved questions are recorded automatically — answer a quiz question correctly,
+or hit **Mark as solved** on a free-response problem, and it's saved. The
+sidebar shows your solved count and each quiz shows an `X/25 solved` tally with
+a `✓ solved` tag on questions you've already done.
+
+By default this is stored **locally in the browser** (works offline, no setup).
+To sync across devices, connect a free Supabase project — sign in with a
+one-click magic-link email or "Continue with Google", available both from the
+homepage (top-right) and inside the app sidebar. See
+[SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the one-time setup (including
+optional Google OAuth). Without keys configured the app runs fine in
+local-only mode.
+
 ## The tabs
 
 | Tab | Interactive tools |
 |---|---|
 | **Sandbox** | the original emergent-chemistry particle sim (valence bonding, presets, census) |
 | **Quantum** | hydrogen orbital viewer (real wavefunctions), radial distributions, Rydberg level diagram, e⁻ configuration builder with Cr/Cu exceptions |
+| **Periodicity** | interactive trend curves (IE/radius/EA/EN) with the Be→B and N→O anomalies annotated, a Slater's-rules Z_eff calculator, and diagonal/amphoterism reference |
 | **Bonding & MO** | VSEPR explorer (all 13 AXₘEₙ classes with sketches), MO diagrams for period-2 diatomics (bond order, paramagnetism, π/σ ordering flip) |
 | **Stoichiometry** | limiting-reagent visualizer with bars, molarity & dilution calculators, % yield |
-| **Thermo I** | calorimetry mixer (q = mcΔT), Hess's law worked examples, ΔH from bond enthalpies |
+| **Thermo I** | calorimetry mixer (q = mcΔT), Hess's law worked examples, ΔH from bond enthalpies, Born–Haber lattice-energy cycle |
 | **Thermo II** | microstate counter (S = k ln W), ΔG = ΔH − TΔS explorer with spontaneity crossover, ΔG° ↔ K converter |
 | **Equilibrium** | live N₂O₄ ⇌ 2NO₂ kinetic sim with Le Chatelier perturbation buttons (add, compress, heat), ICE-table solver with 5% rule check, Ksp solver (common-ion, Q vs Ksp precipitate check) |
-| **Acids · Redox · Kinetics** | titration curve simulator (weak/strong, buffer region, indicators), buffer designer & shock test, galvanic cell builder with Nernst slider, Faraday electrolysis calculator, integrated rate law plots + Arrhenius |
+| **Acids · Redox · Kinetics** | titration curve simulator (weak/strong, buffer region, indicators), buffer designer & shock test, galvanic cell builder with Nernst slider, Faraday electrolysis calculator, Latimer diagram + disproportionation, integrated rate law plots + Arrhenius |
 | **Gases & Phases** | kinetic gas box (PV = nRT), Maxwell–Boltzmann curves, draggable phase diagrams (H₂O & CO₂), Clausius–Clapeyron vapor pressure/boiling tool, colligative calculator |
 | **Nuclear & Coord.** | stochastic decay sim vs. exponential law, C-14 dating, crystal field explorer (high/low spin, CFSE, color), descriptive-chem reference tables |
 | **Organic I** | SN1/SN2/E1/E2 decision engine with energy profiles, pKa ladder ("who deprotonates whom"), carbocation stability |
-| **Organic II** | alkene addition predictor (Markovnikov & anti-), EAS directing-effect visualizer, carbonyl reaction map, point-group identifier |
-| **Lab & Data** | Beer's law calibration-curve simulator with noisy standards and unknown, sig-fig counter + calculation rules, glassware uncertainty table, titration technique & error-direction reference |
-| **Analytical & Quantitative** (CCO) | EDTA complexometric titration curves (conditional K′ vs pH), Debye–Hückel/Davies activity, gravimetric-factor & back-titration calculators |
+| **Organic II** | alkene addition predictor (Markovnikov & anti-), EAS directing-effect visualizer, carbonyl reaction map, Hückel aromaticity checker + chair-conformation notes, point-group identifier |
+| **Polymers** | monomer↔polymer explorer (addition vs condensation), Mₙ/Mᵂ/PDI/degree-of-polymerization calculator, Carothers equation |
+| **Lab & Data** | Beer's law calibration-curve simulator, sig-fig counter + calculation rules, uncertainty propagation + Q-test calculators, qualitative functional-group / ion / gas test tables, titration technique & error-direction reference |
+| **Analytical & Quantitative** (CCO) | EDTA complexometric titration curves (conditional K′ vs pH), Debye–Hückel/Davies activity, gravimetric-factor & back-titration calculators, TLC Rf + separations reference |
 | **Spectroscopy & Synthesis** (CCO) | IR band finder, ¹H-NMR n+1 splitting predictor + shift table, mass-spec DoU/nitrogen-rule/isotope calculator, named-reaction & pericyclic map |
 | **Advanced Inorganic** (CCO) | LFSE + term symbols + Jahn–Teller, unit-cell density/radius/packing + Bragg's law + radius-ratio rules, HSAB & descriptive chemistry |
 | **Physical & Biochemistry** (CCO) | Michaelis–Menten + Lineweaver–Burk with inhibitors, Eyring transition-state plots, Boltzmann populations, bioenergetics & protein/nucleic-acid reference |

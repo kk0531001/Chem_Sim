@@ -28,6 +28,21 @@ with a reason stated in the commit/summary.
 - New chemistry in the sandbox = a new step function called from the ticker in
   src/tabs/sandbox.ts, not a rewrite of existing ones.
 
+## Pages & routing (src/router.ts)
+
+- The app is a real multi-page site via the History API: `/` (home),
+  `/menu` (full topic directory), `/topic/:id` (one page per module). Netlify
+  needs public/_redirects (`/* /index.html 200`) for deep links to resolve.
+- src/topics.ts is the SINGLE source of topic metadata (id/title/blurb/tag/
+  group) — used by the homepage teaser grid, the Menu directory, and the
+  breadcrumb/prev-next footer in main.ts. Add a new module's entry there (and
+  to DEFS in main.ts) — never duplicate the list.
+- Topic pages show a breadcrumb (Home / group / title) and a prev/next footer
+  driven by TOPICS array order — this is the docs-site pattern (MDN/Stripe
+  Docs/Tailwind Docs: persistent sidebar + breadcrumb + prev/next), chosen
+  deliberately over a single-page tab-switcher so each module is bookmarkable,
+  shareable, and has real browser back/forward.
+
 ## Topic tabs (olympiad modules)
 
 - Every study topic is a tab module in src/tabs/, exporting a `TabDef`
@@ -42,9 +57,10 @@ with a reason stated in the commit/summary.
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
   select, pills, plot, quiz) instead of hand-rolling DOM or canvas-axis code.
 - Every topic tab has a quiz of 25 QuizQ entries (5 warm-ups, then 20
-  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions4.ts
-  (questions3/4 hold the Advanced-CCO banks). Keep questions trap-focused and
-  put the reasoning in `why`; pass the warm-up count as quiz(BANK, 5).
+  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions5.ts
+  (questions3/4 = Advanced-CCO banks; questions5 = periodicity + polymers).
+  Keep questions trap-focused and put the reasoning in `why`; pass the warm-up
+  count as quiz(BANK, 5).
 - Advanced (CCO) modules (analytical, spectroscopy, advinorganic, biophys) sit
   in the "Advanced (CCO)" nav group and cover IChO-level material: analytical/
   quantitative, spectroscopy (IR/NMR/MS) + synthesis, coordination/solid-state,
@@ -69,6 +85,22 @@ with a reason stated in the commit/summary.
 - Theory blocks: real equations, olympiad traps marked with class="trap".
   Chemistry content must be checked against textbook values (e.g. titration
   equivalence pH, E°cell, bond energies) before shipping.
+
+## Progress tracking (src/progress.ts)
+
+- Solved questions are tracked by a stable content hash of the question text
+  (`qid()`), cached in localStorage, and — when the user is signed in — synced
+  to a Supabase `solved` table (per-user, row-level security). Cloud sync is
+  OPTIONAL: absent VITE_SUPABASE_URL/ANON_KEY env vars, the app degrades to
+  local-only and must never crash. Auth is magic-link or Google OAuth only
+  (never handle passwords directly). The anon key is publishable/client-safe;
+  never use the service_role key. Setup steps live in SUPABASE_SETUP.md; keys
+  go in .env (gitignored) and Netlify env vars.
+- src/authWidget.ts is the ONE shared sign-in UI (Google + email magic-link),
+  used both as the always-open sidebar panel (mountSidebarAccountPanel, called
+  from main.ts) and the homepage "Sign in" popover (mountHomepageAccountWidget,
+  called from home.ts). Don't duplicate this UI — extend authWidget.ts instead.
+  See the quiz/FRQ progress integration in framework.ts / qbank.ts.
 
 ## Verifying changes
 

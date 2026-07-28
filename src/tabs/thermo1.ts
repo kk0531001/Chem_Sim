@@ -133,8 +133,32 @@ export const thermo1Tab: TabDef = {
     );
     setBondRxn(BOND_RXNS[0].name);
 
+    // ---- Born–Haber cycle (lattice energy) ----
+    // Default: NaCl. ΔHf = ΔH_sub(Na) + ½D(Cl2) + IE(Na) − EA(Cl) − U_lattice
+    let bhSub = 108, bhIE = 496, bhDiss = 122, bhEA = 349, bhHf = -411; // kJ/mol; Diss is ½ D(Cl2)
+    const bhOut = h('div', { class: 'result' });
+    const bhCalc = () => {
+      // solve for lattice energy U (defined here as the exothermic value, reported negative)
+      const U = bhHf - (bhSub + bhIE + bhDiss - bhEA);
+      bhOut.innerHTML =
+        `<span class="eq">ΔH_f = ΔH_sub + IE + ½D − EA + U_lattice</span>` +
+        `Solving for lattice energy: U = ΔH_f − (ΔH_sub + IE + ½D − EA)<br>` +
+        `U = ${bhHf} − (${bhSub} + ${bhIE} + ${bhDiss} − ${bhEA}) = <b class="big">${U.toFixed(0)} kJ/mol</b><br>` +
+        `<span class="muted">The large negative lattice energy is the pay-off that makes ionic-solid formation favourable despite the endothermic sublimation and ionization steps. Higher ionic charge and smaller ions ⇒ more exothermic U (MgO ≫ NaCl).</span>`;
+    };
+    const bhCard = card('Born–Haber cycle — lattice energy',
+      slider({ label: 'ΔH_sub metal (kJ/mol)', min: 50, max: 200, step: 1, value: bhSub, onInput: v => { bhSub = v; bhCalc(); } }),
+      slider({ label: 'IE metal (kJ/mol)', min: 300, max: 900, step: 1, value: bhIE, onInput: v => { bhIE = v; bhCalc(); } }),
+      slider({ label: '½ dissociation X₂ (kJ/mol)', min: 50, max: 250, step: 1, value: bhDiss, onInput: v => { bhDiss = v; bhCalc(); } }),
+      slider({ label: 'EA nonmetal (kJ/mol)', min: 200, max: 400, step: 1, value: bhEA, onInput: v => { bhEA = v; bhCalc(); } }),
+      slider({ label: 'ΔH_f salt (kJ/mol)', min: -700, max: -200, step: 1, value: bhHf, onInput: v => { bhHf = v; bhCalc(); } }),
+      bhOut,
+      h('p', { class: 'muted' }, 'Defaults are NaCl (U ≈ −786 kJ/mol). The cycle is just Hess\'s law drawn as a loop — the unmeasurable lattice energy falls out of the measurable steps.'),
+    );
+    bhCalc();
+
     root.append(
-      h('div', { class: 'cards' }, calCard, hessCard, bondCard, card('Quick quiz', quiz(THERMO1_QUIZ, 5))),
+      h('div', { class: 'cards' }, calCard, hessCard, bondCard, bhCard, card('Quick quiz', quiz(THERMO1_QUIZ, 5))),
       theory('Theory & key equations — first law / enthalpy', `
 <h4>First law</h4>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
@@ -154,6 +178,8 @@ export const thermo1Tab: TabDef = {
 <ul>
 <li>ΔH°f = 0 for elements in their standard state: O₂(g), N₂(g), C(graphite), Br₂(l), Hg(l), S₈(s)… <span class="trap">not O(g), not C(diamond)</span>.</li>
 <li>Three routes to ΔH: formation enthalpies (exact), Hess cycles (exact), bond enthalpies (estimate, gas phase only).</li>
+<li><b>Born–Haber cycle:</b> a Hess loop for ionic solids — ΔH_f = ΔH_sub + IE + ½D − EA + U_lattice — lets you extract the unmeasurable lattice energy from measurable steps.</li>
+<li><b>Kirchhoff's law:</b> ΔH is temperature-dependent — ΔH(T₂) = ΔH(T₁) + ΔC_p(T₂ − T₁), where ΔC_p = ΣC_p(products) − ΣC_p(reactants).</li>
 </ul>`, true),
     );
   },

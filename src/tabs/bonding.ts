@@ -171,6 +171,7 @@ export const bondingTab: TabDef = {
 <ul>
 <li>Bond order ↑ → length ↓, strength ↑. C–C 154 pm &gt; C=C 134 &gt; C≡C 120.</li>
 <li>Polarity: ΔEN &gt; ~1.8 ionic, 0.4–1.8 polar covalent. Dipoles are vectors — symmetric shapes cancel (CO₂, CCl₄, XeF₄ nonpolar).</li>
+<li><b>Fajans' rules:</b> covalent character in an "ionic" bond grows with a small, highly-charged cation and a large, polarizable anion (why AgI and AlCl₃ are quite covalent). Bonding is a continuum, not a switch.</li>
 </ul>
 <h4>Valence bond / hybridization</h4>
 <ul>

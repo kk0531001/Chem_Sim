@@ -244,6 +244,41 @@ function makeElectro(): HTMLElement {
   );
   farCalc();
 
+  // ---- Latimer diagram & disproportionation ----
+  // A Latimer diagram is a chain of species with the reduction potential (V)
+  // between each adjacent pair. A species disproportionates if E°(right) > E°(left).
+  const LATIMERS: { name: string; species: string[]; potentials: number[] }[] = [
+    { name: 'Copper (acid)', species: ['Cu²⁺', 'Cu⁺', 'Cu'], potentials: [0.16, 0.52] },
+    { name: 'Oxygen (acid)', species: ['O₂', 'H₂O₂', 'H₂O'], potentials: [0.70, 1.76] },
+    { name: 'Chlorine (basic)', species: ['ClO⁻', 'Cl₂', 'Cl⁻'], potentials: [0.40, 1.36] },
+    { name: 'Manganese (acid)', species: ['MnO₄⁻', 'MnO₂', 'Mn²⁺'], potentials: [1.70, 1.23] },
+  ];
+  let lat = LATIMERS[0];
+  const latOut = h('div', { class: 'result' });
+  function latCalc(): void {
+    const sp = lat.species, po = lat.potentials;
+    // check each middle species for disproportionation: E°(to its right) > E°(to its left)
+    const dispro: string[] = [];
+    for (let i = 1; i < sp.length - 1; i++) {
+      const left = po[i - 1];  // potential for (i-1 -> i), i is product (reduced)
+      const right = po[i];     // potential for (i -> i+1), i is reactant (oxidized... )
+      if (right > left) dispro.push(sp[i]);
+    }
+    const chain = sp.map((s, i) => i < po.length ? `${s} —(${po[i].toFixed(2)} V)→` : s).join(' ');
+    latOut.innerHTML =
+      `<span style="font-family:var(--mono);font-size:12px">${chain}</span><br>` +
+      (dispro.length
+        ? `<b style="color:#e8590c">${dispro.join(', ')} disproportionates</b> — the potential on its right exceeds the one on its left, so it oxidizes and reduces itself.`
+        : `<b>No species disproportionates</b> here (each right-hand potential ≤ the left). The reverse — comproportionation — may instead be favourable.`) +
+      `<br><span class="muted">Rule: a species disproportionates when E°(species→more reduced) &gt; E°(more oxidized→species). Cu⁺ is the classic case: 2Cu⁺ → Cu + Cu²⁺.</span>`;
+  }
+  const latCard = card('Latimer diagram & disproportionation',
+    select('element series', LATIMERS.map(l => ({ value: l.name, label: l.name })), v => { lat = LATIMERS.find(l => l.name === v)!; latCalc(); }, lat.name),
+    latOut,
+    h('p', { class: 'muted' }, 'Potentials are intensive — to get E° for a non-adjacent couple, weight by electron count: E° = Σ(nᵢE°ᵢ)/Σnᵢ, never a plain average.' ),
+  );
+  latCalc();
+
   const el = h('div', { class: 'cards' },
     card('Galvanic cell builder',
       select('half-cell 1', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c1 = COUPLES.find(c => c.label === v)!; recompute(); }, c1.label),
@@ -253,6 +288,7 @@ function makeElectro(): HTMLElement {
       nernstOut,
     ),
     faradayCard,
+    latCard,
     theory('Electrochemistry essentials', `
 <span class="eq">E°cell = E°cat − E°an &nbsp;·&nbsp; ΔG° = −nFE° &nbsp;·&nbsp; E = E° − (0.0592/n)logQ (25 °C) &nbsp;·&nbsp; log K = nE°/0.0592</span>
 <ul>
@@ -262,6 +298,7 @@ function makeElectro(): HTMLElement {
 <li>Electrolysis stoichiometry: mol e⁻ = It/F (F = 96485 C/mol). Charge → moles → grams plated.</li>
 <li>Electrolysis of aqueous salts: water may be reduced (−0.83 V) instead of Na⁺, or oxidized (+1.23 V) instead of F⁻/SO₄²⁻. Overpotential makes Cl₂ possible from brine.</li>
 <li>Concentration cells: same couple both sides, E° = 0, driven purely by the concentration difference.</li>
+<li><b>Latimer diagrams</b> chain species by reduction potential; a species disproportionates when the potential to its right exceeds the one to its left. <b>Frost diagrams</b> plot nΔE° vs oxidation state — the lowest point is most stable, and a species above the line joining its neighbours disproportionates.</li>
 </ul>`, true),
   );
   recompute();
