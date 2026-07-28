@@ -1,7 +1,7 @@
 // Menu page — the full course directory, grouped by category with search.
 // Reuses the homepage's card/grid visual language for consistency.
 import { h } from './tabs/framework';
-import { TOPICS } from './topics';
+import { TOPICS, renderTopicCard } from './topics';
 import { TILE_HTML } from './home';
 
 export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void): HTMLElement {
@@ -27,12 +27,7 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
       body.append(
         h('div', { class: 'sect-head', style: 'margin-top:34px' }, h('h2', {}, group)),
         h('div', { class: 'topic-grid' },
-          ...shown.map(t => h('article', { class: `topic-card${t.wide ? ' span2' : ''}`, onclick: () => onOpen(t.id) },
-            h('div', { class: 'topic-tag' }, t.tag),
-            h('h3', {}, t.title),
-            h('p', {}, t.blurb),
-            h('span', { class: 'topic-open' }, 'Open module →'),
-          )),
+          ...shown.map(t => renderTopicCard(t, onOpen, '', '', true)),
         ),
       );
     }

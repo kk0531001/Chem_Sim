@@ -191,7 +191,7 @@ function makeSynthesis(): HTMLElement {
 export const spectroscopyTab: TabDef = {
   id: 'spectroscopy',
   label: 'Spectroscopy & Synthesis',
-  group: 'Advanced (CCO)',
+  group: 'Spectroscopy',
   mount(root) {
     root.append(pills([
       { label: 'IR', el: makeIR() },

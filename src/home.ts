@@ -3,7 +3,7 @@
 // simulation in the hero, figure panels with captions elsewhere).
 import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
-import { TOPICS } from './topics';
+import { TOPICS, renderTopicCard } from './topics';
 
 export const TILE_HTML = `<span class="tile">Ch</span>`;
 
@@ -175,32 +175,9 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
       )),
   );
 
-  // ---- 01 · modules ----
-  const topics = h('section', { class: 'topics' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '01'), h('h2', {}, 'The whole syllabus, module by module')),
-    h('p', { class: 'section-lede reveal' },
-      'Each module pairs hands-on simulations with the key equations and the traps examiners reuse, then tests you with a 25-question quiz — five warm-ups, twenty at contest level.'),
-    h('div', { class: 'topic-grid' },
-      ...TOPICS.map((t, i) =>
-        h('article', {
-          class: `topic-card reveal${t.wide ? ' span2' : ''}`,
-          style: `transition-delay:${(i % 3) * 60}ms`,
-          onclick: () => onEnter(t.id),
-        },
-          h('div', { class: 'topic-tag' }, t.tag),
-          h('h3', {}, t.title),
-          h('p', {}, t.blurb),
-          h('span', { class: 'topic-open' }, 'Open module →'),
-        )),
-    ),
-    h('div', { style: 'text-align:center;margin-top:30px' },
-      h('button', { class: 'btn-ghost', onclick: onMenu }, 'Browse the full directory →'),
-    ),
-  );
-
-  // ---- 02 · why it works ----
+  // ---- 01 · why it works (builds trust before the full catalog) ----
   const features = h('section', { class: 'features' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '02'), h('h2', {}, 'Why it works')),
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '01'), h('h2', {}, 'Why it works')),
     featureRow('left', 'Simulations, not flashcards',
       'The equilibrium module is a real kinetic system — add reactant, compress the vessel, heat it, and watch it chase K back down. Gases push on their walls. Nuclei decay at random yet trace the exponential law. You learn the behavior, not a sentence about the behavior.',
       'See the live equilibrium', () => onEnter('equilibrium'),
@@ -215,6 +192,19 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
       FIG_DECAY, '<b>Fig. 4</b> — sixty nuclei, each deciding at random; the ensemble still obeys first-order kinetics.'),
   );
 
+  // ---- 02 · the full catalog ----
+  const topics = h('section', { class: 'topics' },
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '02'), h('h2', {}, 'The whole syllabus, module by module')),
+    h('p', { class: 'section-lede reveal' },
+      'Each module pairs hands-on simulations with the key equations and the traps examiners reuse, then tests you with a 25-question quiz — five warm-ups, twenty at contest level.'),
+    h('div', { class: 'topic-grid' },
+      ...TOPICS.map((t, i) => renderTopicCard(t, onEnter, ' reveal', `transition-delay:${(i % 3) * 60}ms`)),
+    ),
+    h('div', { style: 'text-align:center;margin-top:34px' },
+      h('button', { class: 'btn-ghost', onclick: onMenu }, 'Browse the full directory →'),
+    ),
+  );
+
   // ---- 03 · footer ----
   const footer = h('section', { class: 'home-end' },
     h('h2', { class: 'reveal' }, 'Ready when you are.'),
@@ -224,7 +214,7 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
 
   const root = h('div', { id: 'home' },
     progress,
-    h('div', { class: 'home-wrap' }, topBar, hero, stats, topics, features, footer),
+    h('div', { class: 'home-wrap' }, topBar, hero, stats, features, topics, footer),
   );
 
   // ---- scroll reveals + count-up ----

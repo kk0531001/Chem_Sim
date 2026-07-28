@@ -121,7 +121,7 @@ function makeDescriptive(): HTMLElement {
 export const advInorganicTab: TabDef = {
   id: 'advinorganic',
   label: 'Advanced Inorganic',
-  group: 'Advanced (CCO)',
+  group: 'Inorganic Chemistry',
   mount(root) {
     root.append(pills([
       { label: 'Crystal field (LFSE)', el: h('div', { class: 'cards' }, makeLFSE()) },

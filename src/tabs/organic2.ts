@@ -228,7 +228,7 @@ function makeAromaticity(): HTMLElement {
 export const organic2Tab: TabDef = {
   id: 'organic2',
   label: 'Organic II',
-  group: 'Inorganic & Organic',
+  group: 'Organic Chemistry',
   mount(root) {
     root.append(pills([
       { label: 'Alkene addition', el: makeAddition() },

@@ -34,9 +34,13 @@ with a reason stated in the commit/summary.
   `/menu` (full topic directory), `/topic/:id` (one page per module). Netlify
   needs public/_redirects (`/* /index.html 200`) for deep links to resolve.
 - src/topics.ts is the SINGLE source of topic metadata (id/title/blurb/tag/
-  group) — used by the homepage teaser grid, the Menu directory, and the
-  breadcrumb/prev-next footer in main.ts. Add a new module's entry there (and
-  to DEFS in main.ts) — never duplicate the list.
+  group/icon/estMinutes/difficulty/prereqs) — used by the homepage teaser
+  grid, the Menu directory, and the breadcrumb/prereq/next-lesson chrome in
+  main.ts. Add a new module's entry there (and to DEFS in main.ts) — never
+  duplicate the list. `renderTopicCard()` in topics.ts is the one card
+  renderer shared by home.ts and menu.ts — extend it, don't fork it.
+  Difficulty badges use the CCC < USNCO < CCO < IChO tiers (src/icons.ts has
+  the matching line-art icon set, no emoji anywhere per house style).
 - Topic pages show a breadcrumb (Home / group / title) and a prev/next footer
   driven by TOPICS array order — this is the docs-site pattern (MDN/Stripe
   Docs/Tailwind Docs: persistent sidebar + breadcrumb + prev/next), chosen
@@ -57,14 +61,22 @@ with a reason stated in the commit/summary.
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
   select, pills, plot, quiz) instead of hand-rolling DOM or canvas-axis code.
 - Every topic tab has a quiz of 25 QuizQ entries (5 warm-ups, then 20
-  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions5.ts
-  (questions3/4 = Advanced-CCO banks; questions5 = periodicity + polymers).
-  Keep questions trap-focused and put the reasoning in `why`; pass the warm-up
-  count as quiz(BANK, 5).
-- Advanced (CCO) modules (analytical, spectroscopy, advinorganic, biophys) sit
-  in the "Advanced (CCO)" nav group and cover IChO-level material: analytical/
-  quantitative, spectroscopy (IR/NMR/MS) + synthesis, coordination/solid-state,
-  and advanced thermo/kinetics + biochemistry — mirroring CCO problem sets 1–4.
+  CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions7.ts
+  (questions3/4 = Advanced-CCO banks; questions5 = periodicity + polymers;
+  questions6 = physchem + organic3 + coordchem; questions7 = labtech +
+  structure). Keep questions trap-focused and put the reasoning in `why`; pass
+  the warm-up count as quiz(BANK, 5).
+- Modules are grouped by CHEMISTRY DOMAIN, not exam tier. The nav-group /
+  TopicMeta.group taxonomy (single source: topics.ts, mirrored by DEFS order in
+  main.ts) is: Playground · Foundations · Physical Chemistry · Organic
+  Chemistry · Inorganic Chemistry · Laboratory Skills · Spectroscopy · Practice.
+  Difficulty is carried separately by the CCC/USNCO/CCO/IChO badges. When adding
+  a module, set the same `group` string on both its TabDef and its TopicMeta and
+  slot it into that group's run in BOTH topics.ts (menu/home/prev-next order)
+  and main.ts DEFS (sidebar order). IChO-level CCO material now lives inside the
+  domain groups: physchem/biophys (Physical), organic3 (Organic), coordchem/
+  advinorganic (Inorganic), labtech/analytical (Lab Skills), spectroscopy/
+  structure (Spectroscopy) — mirroring CCO problem sets 1–4.
 - The Question Bank tab (src/tabs/qbank.ts) holds exam-format practice split
   by part: bankPart1.ts (Part I MC, 10 per topic), bankPart2.ts (Part II
   free-response FRQ with per-part worked solutions), bankPart3.ts (Part III

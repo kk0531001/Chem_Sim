@@ -261,7 +261,7 @@ function makeDescriptive(): HTMLElement {
 export const nuclearTab: TabDef = {
   id: 'nuclear',
   label: 'Nuclear & Coord.',
-  group: 'Inorganic & Organic',
+  group: 'Inorganic Chemistry',
   mount(root): TabHandle {
     const nuc = makeNuclear();
     root.append(pills([

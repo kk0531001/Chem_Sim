@@ -270,7 +270,7 @@ function makeQualTests(): HTMLElement {
 export const labdataTab: TabDef = {
   id: 'labdata',
   label: 'Lab & Data',
-  group: 'Skills',
+  group: 'Laboratory Skills',
   mount(root) {
     root.append(pills([
       { label: 'Beer\'s law', el: makeBeer() },

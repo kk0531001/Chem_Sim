@@ -104,7 +104,7 @@ const PKAS: { acid: string; conj: string; pka: number }[] = [
 export const organic1Tab: TabDef = {
   id: 'organic1',
   label: 'Organic I',
-  group: 'Inorganic & Organic',
+  group: 'Organic Chemistry',
   mount(root) {
     // decision engine
     let sub: Sub = 'secondary', reag: Reag = 'strongBase', solv: Solv = 'protic', heat = false;

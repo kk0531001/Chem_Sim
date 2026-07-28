@@ -22,7 +22,10 @@ export interface TabsAPI {
   current: () => string | null;
 }
 
-export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement): TabsAPI {
+// `onSelect` (optional) is called when a sidebar nav item is clicked, so the
+// host can route through the History API — keeping the URL and the topic chrome
+// (breadcrumb + prev/next footer) in sync. Falls back to a plain tab swap.
+export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, onSelect?: (id: string) => void): TabsAPI {
   const roots = new Map<string, { root: HTMLElement; handle: TabHandle | void }>();
   const buttons = new Map<string, HTMLButtonElement>();
   let currentId: string | null = null;
@@ -56,7 +59,7 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement): T
       nav.appendChild(h('div', { class: 'nav-group' }, g));
       lastGroup = g;
     }
-    const btn = h('button', { class: 'nav-item', onclick: () => show(def.id) }, def.label);
+    const btn = h('button', { class: 'nav-item', onclick: () => (onSelect ?? show)(def.id) }, def.label);
     buttons.set(def.id, btn);
     nav.appendChild(btn);
   }
