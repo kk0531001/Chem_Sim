@@ -80,10 +80,15 @@ with a reason stated in the commit/summary.
 - The Question Bank tab (src/tabs/qbank.ts) holds exam-format practice split
   by part: bankPart1.ts (Part I MC, 10 per topic), bankPart2.ts (Part II
   free-response FRQ with per-part worked solutions), bankPart3.ts (Part III
-  lab scenarios), and bankCCO.ts (advanced CCO problem sets PS1–PS4, reusing
-  the FRQ type). All bank questions must be ORIGINAL — never copy real
-  CCC/CCO/USNCO items (they are copyrighted); match format and difficulty
-  only. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
+  lab scenarios), bankCCO.ts (advanced CCO problem sets PS1–PS4, reusing the
+  FRQ type), and bankIntegrated.ts (Integrated Challenges — multi-topic,
+  multi-step problems mixing two areas, e.g. Thermo+Equilibrium, Organic+
+  Spectroscopy, Electrochem+Equilibrium, Crystal Field+Magnetism; reuses the
+  ProblemSet/FRQ types with a theme picker). FRQ prompt/answer fields are HTML,
+  so embed data tables and graphs via the `miniPlot()` SVG-string helper in
+  framework.ts (the FRQ browser sets innerHTML and can't run the canvas
+  plot()). All bank questions must be ORIGINAL — never copy real CCC/CCO/USNCO
+  items (they are copyrighted); match format and difficulty only. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
   redox, atomic, bonding, descriptive, organic, lab.
 - Visual language ("Lab Journal") is defined by CSS variables in src/style.css:
   paper/ink reading surfaces (--paper/--ink/--rule), ONE accent (--accent,

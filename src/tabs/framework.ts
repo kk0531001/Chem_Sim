@@ -404,6 +404,49 @@ function fmtTick(v: number): string {
   return String(Math.round(v * 100) / 100);
 }
 
+// Static SVG line plot returning a markup STRING — for embedding a graph inside
+// HTML that is set via innerHTML (e.g. Question-Bank FRQ prompts, which can't run
+// the canvas plot()). Styled for the dark .result / .figure panels.
+export function miniPlot(
+  series: { xs: number[]; ys: number[]; color?: string; dashed?: boolean; dots?: boolean }[],
+  opts: { xLabel?: string; yLabel?: string; xMin?: number; xMax?: number; yMin?: number; yMax?: number } = {},
+): string {
+  const W = 340, H = 210, padL = 46, padR = 12, padT = 12, padB = 30;
+  let xmin = opts.xMin ?? Infinity, xmax = opts.xMax ?? -Infinity;
+  let ymin = opts.yMin ?? Infinity, ymax = opts.yMax ?? -Infinity;
+  for (const s of series) for (let i = 0; i < s.xs.length; i++) {
+    if (opts.xMin === undefined) xmin = Math.min(xmin, s.xs[i]);
+    if (opts.xMax === undefined) xmax = Math.max(xmax, s.xs[i]);
+    if (opts.yMin === undefined) ymin = Math.min(ymin, s.ys[i]);
+    if (opts.yMax === undefined) ymax = Math.max(ymax, s.ys[i]);
+  }
+  if (!Number.isFinite(xmin)) { xmin = 0; xmax = 1; }
+  if (!Number.isFinite(ymin)) { ymin = 0; ymax = 1; }
+  if (xmin === xmax) { xmin -= 1; xmax += 1; }
+  if (ymin === ymax) { ymin -= 1; ymax += 1; }
+  const X = (x: number) => padL + ((x - xmin) / (xmax - xmin)) * (W - padL - padR);
+  const Y = (y: number) => H - padB - ((y - ymin) / (ymax - ymin)) * (H - padT - padB);
+  let out = '';
+  for (let i = 0; i <= 4; i++) {
+    const xv = xmin + (i / 4) * (xmax - xmin), yv = ymin + (i / 4) * (ymax - ymin);
+    out += `<line x1="${X(xv).toFixed(1)}" y1="${padT}" x2="${X(xv).toFixed(1)}" y2="${H - padB}" stroke="#243049" stroke-width="0.5"/>`;
+    out += `<line x1="${padL}" y1="${Y(yv).toFixed(1)}" x2="${W - padR}" y2="${Y(yv).toFixed(1)}" stroke="#243049" stroke-width="0.5"/>`;
+    out += `<text x="${X(xv).toFixed(1)}" y="${H - padB + 12}" fill="#8b9bb0" font-size="9" text-anchor="middle" font-family="monospace">${fmtTick(xv)}</text>`;
+    out += `<text x="${(padL - 5).toFixed(1)}" y="${(Y(yv) + 3).toFixed(1)}" fill="#8b9bb0" font-size="9" text-anchor="end" font-family="monospace">${fmtTick(yv)}</text>`;
+  }
+  out += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="#4a5670" stroke-width="1"/>`;
+  out += `<line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="#4a5670" stroke-width="1"/>`;
+  for (const s of series) {
+    const pts = s.xs.map((x, i) => `${X(x).toFixed(1)},${Y(s.ys[i]).toFixed(1)}`).join(' ');
+    out += `<polyline points="${pts}" fill="none" stroke="${s.color ?? '#e8590c'}" stroke-width="2" stroke-linejoin="round"${s.dashed ? ' stroke-dasharray="4 4"' : ''}/>`;
+    if (s.dots ?? !s.dashed) for (let i = 0; i < s.xs.length; i++)
+      out += `<circle cx="${X(s.xs[i]).toFixed(1)}" cy="${Y(s.ys[i]).toFixed(1)}" r="2.6" fill="${s.color ?? '#e8590c'}"/>`;
+  }
+  if (opts.xLabel) out += `<text x="${(padL + (W - padL - padR) / 2).toFixed(1)}" y="${H - 3}" fill="#a8b6c8" font-size="10" text-anchor="middle">${opts.xLabel}</text>`;
+  if (opts.yLabel) { const cy = padT + (H - padT - padB) / 2; out += `<text x="12" y="${cy.toFixed(1)}" fill="#a8b6c8" font-size="10" text-anchor="middle" transform="rotate(-90 12 ${cy.toFixed(1)})">${opts.yLabel}</text>`; }
+  return `<svg viewBox="0 0 ${W} ${H}" style="max-width:360px;width:100%;height:auto;margin:8px 0" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+}
+
 export function linspace(a: number, b: number, n: number): number[] {
   const out: number[] = [];
   for (let i = 0; i < n; i++) out.push(a + ((b - a) * i) / (n - 1));

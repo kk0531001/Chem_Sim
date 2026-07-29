@@ -3,11 +3,12 @@
 // Part II = multi-part free response with worked solutions
 // Part III = laboratory practical scenarios
 // CCO     = advanced CCO problem sets PS1–PS4 (multi-part, worked)
-import { h, card, quiz, button, select, type TabDef } from './framework';
+import { h, card, quiz, button, select, typesetMath, type TabDef } from './framework';
 import { PART1 } from './bankPart1';
 import { PART2, type FRQ } from './bankPart2';
 import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
+import { INTEGRATED_SETS } from './bankIntegrated';
 import { qid, isSolved, markSolved, unmarkSolved } from '../progress';
 
 const TOPICS: { id: string; label: string }[] = [
@@ -63,6 +64,9 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
       }),
       h('div', { style: 'margin-top:16px' }, solveBtn),
     );
+    // Typeset immediately (prompt + pre-built, still-hidden solutions) rather
+    // than waiting on the rAF-based observer, which can flash raw \( … \).
+    typesetMath(holder);
   }
   show();
   return card(heading, nav, holder);
@@ -73,21 +77,23 @@ export const qbankTab: TabDef = {
   label: 'Question Bank',
   group: 'Practice',
   mount(root) {
-    let part: '1' | '2' | '3' | 'cco' = '1';
+    let part: '1' | '2' | '3' | 'cco' | 'integrated' = '1';
     let topic = 'all';
     let ccoSet = CCO_SETS[0].id;
+    let intSet = INTEGRATED_SETS[0].id;
     let shuffle = false;
 
     const content = h('div', {});
     const countNote = h('span', { class: 'muted' });
 
-    type Part = '1' | '2' | '3' | 'cco';
+    type Part = '1' | '2' | '3' | 'cco' | 'integrated';
     const partBtns = new Map<string, HTMLButtonElement>();
     const PARTS: [Part, string][] = [
       ['1', 'Part I — Multiple Choice'],
       ['2', 'Part II — Free Response'],
       ['3', 'Part III — Laboratory'],
       ['cco', 'CCO Problem Sets'],
+      ['integrated', 'Integrated Challenges'],
     ];
     const partBar = h('div', { class: 'pill-bar' },
       ...PARTS.map(([p, label]) => {
@@ -113,11 +119,18 @@ export const qbankTab: TabDef = {
       v => { ccoSet = v; render(); }, ccoSet);
     ccoCtl.style.display = 'none';
 
+    // Integrated-challenge theme picker (shown only for the Integrated part)
+    const intCtl = select('theme', INTEGRATED_SETS.map(s => ({ value: s.id, label: s.label })),
+      v => { intSet = v; render(); }, intSet);
+    intCtl.style.display = 'none';
+
     function syncPills(): void {
       partBtns.forEach((b, p) => b.classList.toggle('active', p === part));
-      topicCtl.style.display = part === 'cco' ? 'none' : '';
-      shuffleBtn.style.display = part === 'cco' ? 'none' : '';
+      const isSet = part === 'cco' || part === 'integrated';
+      topicCtl.style.display = isSet ? 'none' : '';
+      shuffleBtn.style.display = isSet ? 'none' : '';
       ccoCtl.style.display = part === 'cco' ? '' : 'none';
+      intCtl.style.display = part === 'integrated' ? '' : 'none';
     }
 
     function maybeShuffle<T>(arr: T[]): T[] {
@@ -141,6 +154,15 @@ export const qbankTab: TabDef = {
         );
         return;
       }
+      if (part === 'integrated') {
+        const set = INTEGRATED_SETS.find(s => s.id === intSet)!;
+        countNote.textContent = ` ${set.problems.length} problems`;
+        content.append(
+          h('p', { class: 'section-lede', style: 'margin-bottom:12px' }, `${set.label} — ${set.blurb}`),
+          frqBrowser(set.problems, `${set.label} — reason through every part before revealing the solution`),
+        );
+        return;
+      }
       if (part === '2') {
         const items = maybeShuffle(PART2.filter(f => topic === 'all' || f.topic === topic));
         countNote.textContent = ` ${items.length} problems`;
@@ -160,9 +182,9 @@ export const qbankTab: TabDef = {
       h('div', { class: 'cards' },
         h('section', { class: 'card wide' },
           h('h2', {}, 'Exam-style question bank'),
-          h('p', {}, 'Original practice written in the format and difficulty of the CCC / CCO / USNCO exam sections: Part I multiple choice, Part II free-response with worked solutions, Part III laboratory practicals, and the advanced CCO problem sets (PS1–PS4). Nothing here is copied from real papers.'),
+          h('p', {}, 'Original practice written in the format and difficulty of the CCC / CCO / USNCO exam sections: Part I multiple choice, Part II free-response with worked solutions, Part III laboratory practicals, the advanced CCO problem sets (PS1–PS4), and Integrated Challenges — multi-topic problems that demand experimental design, data interpretation, graph analysis, and open-response reasoning. Nothing here is copied from real papers.'),
           partBar,
-          h('div', { style: 'display:flex;gap:14px;align-items:center;flex-wrap:wrap' }, topicCtl, ccoCtl, shuffleBtn, countNote),
+          h('div', { style: 'display:flex;gap:14px;align-items:center;flex-wrap:wrap' }, topicCtl, ccoCtl, intCtl, shuffleBtn, countNote),
         ),
       ),
       content,
