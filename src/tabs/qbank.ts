@@ -9,6 +9,7 @@ import { PART2, type FRQ } from './bankPart2';
 import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
 import { INTEGRATED_SETS } from './bankIntegrated';
+import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
 import { qid, isSolved, markSolved, unmarkSolved } from '../progress';
 
 const TOPICS: { id: string; label: string }[] = [
@@ -72,21 +73,40 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
   return card(heading, nav, holder);
 }
 
+// Panel that LINKS OUT to the official past papers (copyright CIC — never
+// reproduced here), grouped by year then competition/part.
+function officialPapersPanel(): HTMLElement {
+  const rows = officialByYear().map(({ year, papers }) =>
+    h('div', { class: 'oly-year' },
+      h('span', { class: 'oly-year-label' }, String(year)),
+      h('div', { class: 'oly-links' },
+        ...papers.map(p => h('a', {
+          class: 'oly-link', href: p.url, target: '_blank', rel: 'noopener noreferrer',
+        }, `${p.competition} ${p.part === 'Full' ? '(full)' : 'Part ' + p.part}`)),
+      ),
+    ));
+  return card('Official past papers',
+    h('p', { class: 'muted' }, 'Practice the real exams: these open the official PDFs on cheminst.ca in a new tab. They are the copyright of the Chemical Institute of Canada and are only linked here, not reproduced. Sorted by year, then competition (Olympiad before Contest) and part.'),
+    ...rows,
+  );
+}
+
 export const qbankTab: TabDef = {
   id: 'qbank',
   label: 'Question Bank',
   group: 'Practice',
   mount(root) {
-    let part: '1' | '2' | '3' | 'cco' | 'integrated' = '1';
+    let part: '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' = '1';
     let topic = 'all';
     let ccoSet = CCO_SETS[0].id;
     let intSet = INTEGRATED_SETS[0].id;
+    let olyPaper = OLYMPIAD_PAPERS[0].id;
     let shuffle = false;
 
     const content = h('div', {});
     const countNote = h('span', { class: 'muted' });
 
-    type Part = '1' | '2' | '3' | 'cco' | 'integrated';
+    type Part = '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad';
     const partBtns = new Map<string, HTMLButtonElement>();
     const PARTS: [Part, string][] = [
       ['1', 'Part I — Multiple Choice'],
@@ -94,6 +114,7 @@ export const qbankTab: TabDef = {
       ['3', 'Part III — Laboratory'],
       ['cco', 'CCO Problem Sets'],
       ['integrated', 'Integrated Challenges'],
+      ['olympiad', 'Olympiad Questions'],
     ];
     const partBar = h('div', { class: 'pill-bar' },
       ...PARTS.map(([p, label]) => {
@@ -124,13 +145,19 @@ export const qbankTab: TabDef = {
       v => { intSet = v; render(); }, intSet);
     intCtl.style.display = 'none';
 
+    // Olympiad mock-paper picker (shown only for the Olympiad part)
+    const olyCtl = select('paper', OLYMPIAD_PAPERS.map(p => ({ value: p.id, label: p.label })),
+      v => { olyPaper = v; render(); }, olyPaper);
+    olyCtl.style.display = 'none';
+
     function syncPills(): void {
       partBtns.forEach((b, p) => b.classList.toggle('active', p === part));
-      const isSet = part === 'cco' || part === 'integrated';
+      const isSet = part === 'cco' || part === 'integrated' || part === 'olympiad';
       topicCtl.style.display = isSet ? 'none' : '';
       shuffleBtn.style.display = isSet ? 'none' : '';
       ccoCtl.style.display = part === 'cco' ? '' : 'none';
       intCtl.style.display = part === 'integrated' ? '' : 'none';
+      olyCtl.style.display = part === 'olympiad' ? '' : 'none';
     }
 
     function maybeShuffle<T>(arr: T[]): T[] {
@@ -163,6 +190,17 @@ export const qbankTab: TabDef = {
         );
         return;
       }
+      if (part === 'olympiad') {
+        const paper = OLYMPIAD_PAPERS.find(p => p.id === olyPaper)!;
+        countNote.textContent = ` Part A: ${paper.partA.length} MC · Part B: ${paper.partB.length} written`;
+        content.append(
+          officialPapersPanel(),
+          h('p', { class: 'section-lede', style: 'margin-top:20px;margin-bottom:12px' }, `${paper.label} — ${paper.blurb} All original, written to match the real contest format.`),
+          card(`Part A — multiple choice (${paper.partA.length} questions)`, quiz(paper.partA)),
+          frqBrowser(paper.partB, 'Part B — written problems (work each part before revealing)'),
+        );
+        return;
+      }
       if (part === '2') {
         const items = maybeShuffle(PART2.filter(f => topic === 'all' || f.topic === topic));
         countNote.textContent = ` ${items.length} problems`;
@@ -182,9 +220,9 @@ export const qbankTab: TabDef = {
       h('div', { class: 'cards' },
         h('section', { class: 'card wide' },
           h('h2', {}, 'Exam-style question bank'),
-          h('p', {}, 'Original practice written in the format and difficulty of the CCC / CCO / USNCO exam sections: Part I multiple choice, Part II free-response with worked solutions, Part III laboratory practicals, the advanced CCO problem sets (PS1–PS4), and Integrated Challenges — multi-topic problems that demand experimental design, data interpretation, graph analysis, and open-response reasoning. Nothing here is copied from real papers.'),
+          h('p', {}, 'Original practice written in the format and difficulty of the CCC / CCO / USNCO exam sections: Part I multiple choice, Part II free-response with worked solutions, Part III laboratory practicals, the advanced CCO problem sets (PS1–PS4), Integrated Challenges — multi-topic problems that demand experimental design, data interpretation, graph analysis, and open-response reasoning — and Olympiad Questions: five full-length mock papers (Part A + Part B) plus links to the official past papers. Nothing here is copied from real papers.'),
           partBar,
-          h('div', { style: 'display:flex;gap:14px;align-items:center;flex-wrap:wrap' }, topicCtl, ccoCtl, intCtl, shuffleBtn, countNote),
+          h('div', { style: 'display:flex;gap:14px;align-items:center;flex-wrap:wrap' }, topicCtl, ccoCtl, intCtl, olyCtl, shuffleBtn, countNote),
         ),
       ),
       content,

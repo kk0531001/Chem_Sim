@@ -930,6 +930,17 @@ body { overflow: hidden; }
 .result .ref-table th { background: var(--panel-2); color: #9aa4b0; }
 .result .ref-table tr:hover td { background: var(--panel-2); }
 
+/* official past-paper link panel (Olympiad Questions) */
+.oly-year { display: flex; gap: 14px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--rule); }
+.oly-year:first-of-type { border-top: none; }
+.oly-year-label { font-family: var(--mono, monospace); font-weight: 700; color: var(--ink); min-width: 3.2em; }
+.oly-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.oly-link {
+  display: inline-block; font-size: 12.5px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--rule); color: var(--accent); text-decoration: none; white-space: nowrap;
+}
+.oly-link:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
 .swatch {
   display: inline-block;
   width: 42px;

@@ -156,11 +156,16 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
         }
         whyEl.innerHTML = q.why;
         whyEl.classList.add(j === q.a ? 'good' : 'bad');
+        typesetMath(whyEl);
         updateProgressLine();
         nextBtn.style.display = '';
       });
       return b;
     }));
+    // Typeset any LaTeX/mhchem in the question and options now, rather than
+    // depending on the rAF-based observer (which can flash raw \( … \)).
+    typesetMath(qEl);
+    typesetMath(optsEl);
   }
 
   function updateProgressLine(): void {

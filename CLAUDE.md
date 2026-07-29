@@ -84,11 +84,16 @@ with a reason stated in the commit/summary.
   FRQ type), and bankIntegrated.ts (Integrated Challenges — multi-topic,
   multi-step problems mixing two areas, e.g. Thermo+Equilibrium, Organic+
   Spectroscopy, Electrochem+Equilibrium, Crystal Field+Magnetism; reuses the
-  ProblemSet/FRQ types with a theme picker). FRQ prompt/answer fields are HTML,
-  so embed data tables and graphs via the `miniPlot()` SVG-string helper in
-  framework.ts (the FRQ browser sets innerHTML and can't run the canvas
-  plot()). All bank questions must be ORIGINAL — never copy real CCC/CCO/USNCO
-  items (they are copyrighted); match format and difficulty only. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
+  ProblemSet/FRQ types with a theme picker), and bankOlympiad.ts (Olympiad
+  Questions — five full-length ORIGINAL mock papers in olympiadPaper1–5.ts,
+  each Part A = 25 MC + Part B = written FRQ, plus OFFICIAL_PAPERS: a
+  LINKS-ONLY panel to the real CCC/CCO PDFs on cheminst.ca, sorted by year/
+  competition/part). FRQ prompt/answer fields are HTML, so embed data tables
+  and graphs via the `miniPlot()` SVG-string helper in framework.ts (the FRQ
+  browser sets innerHTML and can't run the canvas plot()). All bank questions
+  must be ORIGINAL — never copy real CCC/CCO/USNCO items (they are
+  copyrighted); match format and difficulty only, and only ever LINK to real
+  papers, never reproduce them. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
   redox, atomic, bonding, descriptive, organic, lab.
 - Visual language ("Lab Journal") is defined by CSS variables in src/style.css:
   paper/ink reading surfaces (--paper/--ink/--rule), ONE accent (--accent,
