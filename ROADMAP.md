@@ -44,33 +44,42 @@ Two corrections to the original phase plan follow from this table:
 
 Small, unrelated, all worth doing before anyone else looks at the project.
 
-### 0.1 Decide: public repo or private (5 min) — **do this first**
+### 0.1 Decide: public repo or private — **[x] DONE**
 
-[CLAUDE.md](CLAUDE.md) currently contains a rule instructing that AI attribution
-be kept out of commit messages. In a public repo that rule is itself the
-disclosure — it simultaneously reveals that AI was used and that the trailers
-were suppressed, which reads worse than either fact alone. Pick one:
+**Decision: the repository is private.** The `CLAUDE.md` attribution rule stays
+as written; the site ships publicly, the source stays closed. Revisit only if the
+repo is ever opened up — at that point the rule becomes its own disclosure and
+should be deleted rather than kept.
 
-- [ ] **Own it** — delete the rule, let the trailers land. Recommended: "built
-      with AI assistance, here's my architecture doc" is a stronger story in 2026
-      than a clean-looking log, and the `CLAUDE.md` architecture rules are
-      genuinely good evidence of engineering judgment.
-- [ ] **Private the repo** — keep the rule, ship the site publicly, keep the
-      source closed until you decide otherwise.
+### 0.2 Social + search metadata — **[x] DONE**
 
-Either is fine. Leaving it as-is is the only bad option.
+- [x] `<meta name="description">` + `<link rel="canonical">`
+- [x] Full Open Graph set — `og:type`/`site_name`/`title`/`description`/`url`/
+      `image` (+ `image:type`/`width`/`height`/`alt`) and `og:locale`
+- [x] `twitter:card` = `summary_large_image` + title/description/image/alt
+- [x] `public/favicon.svg` — the `.tile` mark inverted to flame-orange on the
+      dark panel. The "25" superscript is dropped here because it muddies the
+      "Ch" at 16px; the larger icons carry the full mark
+- [x] `public/favicon-32.png` (PNG fallback), `public/apple-touch-icon.png`
+      (180×180, kept clear of iOS's ~40px corner mask)
+- [x] `public/og-image.png` — 1200×630, echoing the homepage hero so a shared
+      link and the landing page read as the same product
+- [x] `theme-color` + `color-scheme`
 
-### 0.2 Social + search metadata (20 min) — highest visibility per minute
+**Absolute URLs.** Social scrapers don't resolve relative `og:image` paths and
+don't run JS, so the origin has to be in the served HTML. [index.html](index.html)
+carries a `%SITE_URL%` placeholder that [vite.config.ts](vite.config.ts)
+substitutes at build time from `VITE_SITE_URL` → Netlify's automatic `URL` →
+a localhost fallback. **Set `VITE_SITE_URL` if a custom domain is added**;
+otherwise Netlify's `URL` is already correct with no configuration.
 
-[index.html](index.html) has a `<title>` and nothing else. Every shared link
-unfurls blank, on every platform, which undercuts the one distribution channel
-the project is built around (Phase 8 is entirely about sharing links).
+Verified: `tsc --noEmit` clean, production build leaves zero `%SITE_URL%`
+placeholders, all four assets serve with correct content types.
 
-- [ ] `<meta name="description">`
-- [ ] `og:title` / `og:description` / `og:image` / `og:url` / `og:type`
-- [ ] `twitter:card` = `summary_large_image`
-- [ ] Favicon + apple-touch-icon in `public/` (reuse `TILE_HTML` mark from [home.ts](src/home.ts))
-- [ ] A 1200×630 OG image — the flame-orange mark on the dark panel background
+Also corrected while here: the homepage lede still claimed "Eighteen interactive
+modules … 650+ exam-style questions". Actual counts are **25 modules, 854
+multiple-choice questions, and 67 multi-part written problems** (212 worked
+sub-parts). Copy and OG image now both say 25 / 850+ / 67 / 5 mock papers.
 
 ### 0.3 Accessibility pass (1–2 hrs)
 

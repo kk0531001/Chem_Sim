@@ -145,7 +145,7 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
       h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
       h('h1', { class: 'hero-in', style: 'transition-delay:.06s', html: 'The chemistry in this page is <em>actually running</em>.' }),
       h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
-        'Eighteen interactive modules — quantum orbitals to enzyme kinetics — plus 650+ exam-style questions and the advanced CCO problem sets, every answer worked out. Built for olympiad preparation, not for slideshows.'),
+        'Twenty-five interactive modules — quantum orbitals to enzyme kinetics — plus 850+ exam-style questions, 67 multi-part written problems and five full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.'),
       h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
         h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning'),
         h('button', {
