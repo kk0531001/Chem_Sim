@@ -116,6 +116,10 @@ local-only mode.
 
 ## Roadmap — toward "all of chemistry"
 
+> **For the current product roadmap — phases, sequencing, and open decisions —
+> see [ROADMAP.md](ROADMAP.md).** The list below is the original *simulation
+> engine* roadmap, kept for historical context; most of it has shipped.
+
 Each of these is an additive module on the same particle/bond core, in rough order
 of payoff:
 
