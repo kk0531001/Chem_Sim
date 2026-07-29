@@ -1,5 +1,5 @@
 import './style.css';
-import { initTabs, h, type TabsAPI } from './tabs/framework';
+import { initTabs, h, autoTypeset, type TabsAPI } from './tabs/framework';
 import { buildHome, TILE_HTML } from './home';
 import { buildMenuPage } from './menu';
 import { initRouter, navigate, onRouteChange, type Route } from './router';
@@ -150,6 +150,9 @@ showRoute(initRouter());
 brandEl.addEventListener('click', () => navigate({ kind: 'home' }));
 homeLinkEl.addEventListener('click', () => navigate({ kind: 'home' }));
 menuLinkEl.addEventListener('click', () => navigate({ kind: 'menu' }));
+
+// ---- LaTeX / mhchem typesetting (KaTeX) across app view, home, and menu ----
+autoTypeset(viewEl, home, menuPage);
 
 // ---- progress / account panel ----
 mountSidebarAccountPanel(document.getElementById('progress-panel')!);

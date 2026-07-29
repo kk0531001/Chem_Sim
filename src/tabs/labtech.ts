@@ -49,7 +49,7 @@ function makeDistillation(): HTMLElement {
     if (pw > 0 && po > 0 && mw > 0) {
       const orgPerWater = (po * mo) / (pw * mw);
       out.innerHTML =
-        `<span class="eq">boils when P_water + P_organic = P_total &nbsp;·&nbsp; mass ratio = (P·M) ratio</span>` +
+        `<span class="eq">boils when \\(P_{water} + P_{organic} = P_{total}\\) &nbsp;·&nbsp; mass ratio \\(= (P\\cdot M)\\) ratio</span>` +
         `If the mixture boils at P_total = ${pt} torr with P_organic = ${po} torr, then P_water = <b>${pw} torr</b>.<br>` +
         `mass(organic)/mass(water) in distillate = (P_org·M_org)/(P_water·M_water) = <b class="big">${orgPerWater.toFixed(3)}</b><br>` +
         `<span class="muted">Even a barely-volatile organic (small P) with a high M carries over appreciably. The mixture boils below 100 °C — gentle on heat-sensitive natural products.</span>`;
@@ -92,7 +92,7 @@ function makeExtraction(): HTMLElement {
       { xLabel: 'number of extractions (same total solvent)', yLabel: '% remaining', yMin: 0 });
     const single = fracRemaining(1), multi = fracRemaining(n);
     out.innerHTML =
-      `<span class="eq">fraction left after n equal extractions = [V_aq / (V_aq + K·(V_org/n))]ⁿ &nbsp;·&nbsp; K = [A]_org/[A]_aq</span>` +
+      `<span class="eq">fraction left after \\(n\\) equal extractions \\(= \\left[\\frac{V_{aq}}{V_{aq} + K(V_{org}/n)}\\right]^n\\) &nbsp;·&nbsp; \\(K = [A]_{org}/[A]_{aq}\\)</span>` +
       `One ${Vorg} mL extraction leaves <b>${(single * 100).toFixed(1)}%</b> in water; ${n} × ${(Vorg / n).toFixed(1)} mL leaves <b class="big">${(multi * 100).toFixed(1)}%</b>.<br>` +
       `<span class="muted">Splitting the same solvent into more, smaller portions always extracts more. In an acid/base extraction you can also switch a compound between layers by (de)protonating it (e.g. wash out RCOOH with NaHCO₃).</span>`;
   }
@@ -128,7 +128,7 @@ function makeStandardBuffer(): HTMLElement {
     const fA = ratio / (1 + ratio);
     const nTotal = Cbuf * (Vbuf / 1000);
     bOut.innerHTML =
-      `<span class="eq">pH = pKa + log([A⁻]/[HA])</span>` +
+      `<span class="eq">\\(\\text{pH} = \\text{p}K_a + \\log([\\text{A}^-]/[\\text{HA}])\\)</span>` +
       `[A⁻]/[HA] = 10^(pH−pKa) = <b>${ratio.toFixed(2)}</b> → mole fraction A⁻ = ${(fA * 100).toFixed(0)}%<br>` +
       `For ${Vbuf} mL of ${Cbuf} M total buffer: n(A⁻) = <b>${(nTotal * fA).toFixed(4)} mol</b>, n(HA) = <b>${(nTotal * (1 - fA)).toFixed(4)} mol</b>.<br>` +
       (Math.abs(pH - pKa) > 1
@@ -165,7 +165,7 @@ function makeChromatography(): HTMLElement {
         ? '<span class="trap">R_f too low (&lt;0.15) — too strongly retained; use a MORE polar solvent.</span>'
         : 'Good target: R_f ≈ 0.3–0.5 for TLC monitoring (well-separated, resolvable spots).';
     out.innerHTML =
-      `<span class="eq">R_f = (distance spot travelled) / (distance solvent front travelled)</span>` +
+      `<span class="eq">\\(R_f =\\) (distance spot travelled) / (distance solvent front travelled)</span>` +
       `R_f = ${spot.toFixed(1)} / ${front.toFixed(1)} = <b class="big">${rf.toFixed(2)}</b> &nbsp;(with ${polarity}% polar eluent)<br>` +
       advice +
       `<br><span class="muted">Normal-phase silica is polar: polar compounds stick (low R_f), non-polar ones run with the front. Raising eluent polarity raises every R_f. Visualize under UV (254 nm) or with a stain (KMnO₄, ninhydrin, I₂). R_f is characteristic in a fixed system — an ID handle.</span>`;
@@ -256,7 +256,7 @@ export const labTechTab: TabDef = {
 <h4>Filtration</h4>
 <ul><li>Gravity (fluted paper, hot funnel): keep a hot solution dissolved while removing solids. Vacuum (Büchner): fast collection + drying of a solid.</li></ul>
 <h4>Liquid–liquid extraction</h4>
-<span class="eq">K = [A]_org/[A]_aq &nbsp;·&nbsp; fraction left = [V_aq/(V_aq + K·V_org)]ⁿ</span>
+<span class="eq">\\(K = [A]_{org}/[A]_{aq}\\) &nbsp;·&nbsp; \\(\\text{fraction left} = \\left[V_{aq}/(V_{aq} + K V_{org})\\right]^n\\)</span>
 <ul><li>Several small extractions beat one big one. Acid/base extractions move a compound between layers by (de)protonation. Check densities to identify the layers; keep both until sure.</li></ul>
 <h4>Drying agents</h4>
 <ul><li>MgSO₄ (fast, neutral), Na₂SO₄ (mild), CaCl₂ (not with OH/NH), K₂CO₃ (basic), molecular sieves (very dry). Swirl until the solid "swims" freely, then filter.</li></ul>

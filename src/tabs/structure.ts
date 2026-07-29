@@ -14,7 +14,7 @@ function makeFormula(): HTMLElement {
     const mass = C * 12 + H * 1 + N * 14 + O * 16 + X * 35; // X≈Cl for parity demo
     const nRuleOdd = mass % 2 === 1;
     out.innerHTML =
-      `<span class="eq">DoU = (2C + 2 + N − H − X) / 2</span>` +
+      `<span class="eq">\\(\\text{DoU} = \\dfrac{2C + 2 + N - H - X}{2}\\)</span>` +
       `DoU = (2·${C} + 2 + ${N} − ${H} − ${X})/2 = <b class="big">${dou}</b> ` +
       (dou < 0 ? '<span class="trap">Negative → impossible formula (too many H). Check your counts.</span>'
         : dou === 0 ? '→ saturated (no rings or π bonds).'
@@ -165,7 +165,7 @@ export const structureTab: TabDef = {
       ),
       theory('Theory — structure determination', `
 <h4>Step 1 — molecular formula & DoU</h4>
-<span class="eq">DoU = (2C + 2 + N − H − X)/2</span>
+<span class="eq">\\(\\text{DoU} = \\dfrac{2C + 2 + N - H - X}{2}\\)</span>
 <ul><li>From MS (M⁺, isotopes, M+1 carbon count) or combustion analysis. Each ring/π bond = 1 DoU; 4 often means a benzene ring. Nitrogen rule: odd M⁺ ⇒ odd number of N.</li></ul>
 <h4>Step 2 — mass spectrometry</h4>
 <ul><li>M⁺ = molar mass; base peak = most abundant fragment. Isotopes: Br → 1:1 M/M+2, Cl → 3:1, S → M+2 ~4%. M+1 ≈ 1.1%×(#C).</li>

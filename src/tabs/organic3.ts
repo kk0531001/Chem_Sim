@@ -20,7 +20,7 @@ function makeRadicalSelectivity(): HTMLElement {
     const tot = wp + ws + wt || 1;
     const pct = (x: number) => ((x / tot) * 100).toFixed(1);
     out.innerHTML =
-      `<span class="eq">product % = (number of H of that type) × (per-H relative rate)</span>` +
+      `<span class="eq">\\(\\text{product \\%} = (\\text{number of H of that type}) \\times (\\text{per-H relative rate})\\)</span>` +
       `<table class="ref-table"><tr><th>site</th><th>#H</th><th>per-H rate</th><th>weight</th><th>% product</th></tr>` +
       `<tr><td>1° (primary)</td><td>${nP}</td><td>${r.p}</td><td>${wp.toFixed(0)}</td><td><b>${pct(wp)}%</b></td></tr>` +
       `<tr><td>2° (secondary)</td><td>${nS}</td><td>${r.s}</td><td>${ws.toFixed(0)}</td><td><b>${pct(ws)}%</b></td></tr>` +
@@ -118,7 +118,7 @@ export const organic3Tab: TabDef = {
 <h4>Protecting groups</h4>
 <ul><li>Block a reactive site, do chemistry elsewhere, then deprotect. Acetals (ketones, acid-labile), silyl ethers (OH, fluoride-labile), Boc/Cbz (amines, acid/H₂). Choose ORTHOGONAL sets so each can be removed independently.</li></ul>
 <h4>Radical mechanisms & selectivity</h4>
-<span class="eq">product % = (# H of that type) × (per-H relative rate)</span>
+<span class="eq">\\(\\text{product \\%} = (\\#\\,\\text{H of that type}) \\times (\\text{per-H relative rate})\\)</span>
 <ul><li>Chain: initiation → propagation (regenerates the radical) → termination. Radical stability 3° &gt; 2° &gt; 1° (allylic/benzylic extra by resonance).</li>
 <li>Bromination is selective (late, endothermic TS — Hammond); chlorination is nearly statistical. NBS → allylic/benzylic bromination.</li></ul>
 <h4>Rearrangements</h4>

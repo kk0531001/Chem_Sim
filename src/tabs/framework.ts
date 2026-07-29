@@ -2,6 +2,48 @@
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
 import { qid, isSolved, markSolved, solvedOf, onProgressChange } from '../progress';
+import 'katex/dist/katex.min.css';
+import 'katex/contrib/mhchem';
+import renderMathInElement from 'katex/contrib/auto-render';
+
+// Typeset LaTeX / mhchem (\ce{...}) inside an element. Delimiters: \( \) inline,
+// \[ \] and $$ $$ display. Safe on content with no math (no-op) and on detached
+// nodes. throwOnError keeps a malformed formula from blanking the whole page.
+export function typesetMath(el: HTMLElement): void {
+  try {
+    renderMathInElement(el, {
+      delimiters: [
+        { left: '\\[', right: '\\]', display: true },
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false },
+      ],
+      throwOnError: false,
+    });
+  } catch { /* ignore — never let math rendering break a tab */ }
+}
+
+// Auto-typeset a container and everything later inserted into it (reactive
+// .result panels rebuilt on slider drags, quiz explanations, lazily-mounted
+// tabs). Disconnects while typesetting so KaTeX's own DOM writes don't re-fire.
+export function autoTypeset(...roots: HTMLElement[]): void {
+  let scheduled = false;
+  const pending = new Set<HTMLElement>();
+  const flush = () => {
+    scheduled = false;
+    obs.disconnect();
+    for (const el of pending) if (el.isConnected) typesetMath(el);
+    pending.clear();
+    for (const r of roots) obs.observe(r, { childList: true, subtree: true });
+  };
+  const obs = new MutationObserver(muts => {
+    for (const m of muts) {
+      const t = (m.target.nodeType === 1 ? m.target : m.target.parentElement) as HTMLElement | null;
+      if (t) pending.add(t);
+    }
+    if (!scheduled) { scheduled = true; requestAnimationFrame(flush); }
+  });
+  for (const r of roots) { typesetMath(r); obs.observe(r, { childList: true, subtree: true }); }
+}
 
 export interface TabHandle {
   onShow?: () => void;
@@ -45,6 +87,7 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
       const def = defs.find(d => d.id === id)!;
       entry = { root, handle: def.mount(root) };
       roots.set(id, entry);
+      typesetMath(root);
     }
     entry.root.style.display = '';
     entry.handle?.onShow?.();

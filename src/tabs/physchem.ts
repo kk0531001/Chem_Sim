@@ -22,7 +22,7 @@ function makeVantHoff(): HTMLElement {
     ], { xLabel: '1000/T (K⁻¹)', yLabel: 'ln K',
       markers: [{ x: 1000 / T, y: lnKnow, label: `${T} K` }] });
     out.innerHTML =
-      `<span class="eq">ln K = −ΔH°/RT + ΔS°/R &nbsp; (slope of ln K vs 1/T = −ΔH°/R)</span>` +
+      `<span class="eq">\\(\\ln K = -\\Delta H^\\circ/RT + \\Delta S^\\circ/R\\) &nbsp; (slope of \\(\\ln K\\) vs \\(1/T\\) is \\(-\\Delta H^\\circ/R\\))</span>` +
       `At T = <b>${T} K</b>: ln K = ${lnKnow.toFixed(2)} → K = <b class="big">${Know < 1e-3 || Know > 1e4 ? Know.toExponential(2) : Know.toFixed(3)}</b><br>` +
       (dH < 0
         ? 'ΔH° &lt; 0 (exothermic): the line slopes <b>up</b> to the right, so K <b>falls</b> as T rises — heat is a product.'
@@ -56,7 +56,7 @@ function makeClausius(): HTMLElement {
         { xLabel: 'T (K)', yLabel: 'P (atm)',
           markers: [{ x: t1, y: p1, label: 'ref' }, { x: t2, y: p2, label: `${p2.toFixed(3)} atm` }] });
       out.innerHTML =
-        `<span class="eq">ln(P₂/P₁) = −(ΔH_vap/R)(1/T₂ − 1/T₁)</span>` +
+        `<span class="eq">\\(\\ln(P_2/P_1) = -(\\Delta H_{vap}/R)(1/T_2 - 1/T_1)\\)</span>` +
         `P₂ at ${t2} K = <b class="big">${p2.toFixed(4)} atm</b><br>` +
         `<span class="muted">Vapor pressure rises steeply (exponentially) with T. Set P₂ = 1 atm and solve for T₂ to get the normal boiling point.</span>`;
     }
@@ -80,7 +80,7 @@ function makeConcCell(): HTMLElement {
   function calc(): void {
     const E = (0.05916 / n) * Math.log10(cHigh / cLow);
     out.innerHTML =
-      `<span class="eq">E_cell = (0.0592/n)·log(C_cathode/C_anode) &nbsp; (E° = 0)</span>` +
+      `<span class="eq">\\(E_{cell} = (0.0592/n)\\log(C_{cathode}/C_{anode})\\) &nbsp; (\\(E^\\circ = 0\\))</span>` +
       `E_cell = (0.0592/${n})·log(${cHigh}/${cLow}) = <b class="big">${E.toFixed(4)} V</b><br>` +
       `The <b>concentrated</b> half-cell is the <b>cathode</b> (Mⁿ⁺ is reduced/plated there); the dilute side is the anode (metal dissolves). ` +
       `The cell runs until the two concentrations equalize (E → 0).<br>` +
@@ -125,7 +125,7 @@ function makeRealGas(): HTMLElement {
       { xs: [1, 400], ys: [1, 1], color: '#7c8798', dash: [4, 4], label: 'ideal (Z=1)' },
     ], { xLabel: 'P (bar)', yLabel: 'Z = PVm/RT', yMin: 0.5, yMax: 1.6 });
     out.innerHTML =
-      `<span class="eq">(P + a/Vm²)(Vm − b) = RT &nbsp;·&nbsp; Z = PVm/RT</span>` +
+      `<span class="eq">\\(\\left(P + a/V_m^2\\right)(V_m - b) = RT\\) &nbsp;·&nbsp; \\(Z = PV_m/RT\\)</span>` +
       `${gas.name}: a = ${gas.a} L²·bar/mol², b = ${gas.b} L/mol<br>` +
       'Dip below Z = 1 at moderate P → <b>attractions</b> (a) dominate; rise above 1 at high P → the <b>excluded volume</b> b dominates. ' +
       'Z → 1 for all gases as P → 0.<br>' +
@@ -158,7 +158,7 @@ function makeHeatCap(): HTMLElement {
   function calc(): void {
     const cv = m.cv, cp = cv + 1, gamma = cp / cv;
     out.innerHTML =
-      `<span class="eq">Cv = (f/2)R &nbsp;·&nbsp; Cp − Cv = R &nbsp;·&nbsp; γ = Cp/Cv</span>` +
+      `<span class="eq">\\(C_v = (f/2)R\\) &nbsp;·&nbsp; \\(C_p - C_v = R\\) &nbsp;·&nbsp; \\(\\gamma = C_p/C_v\\)</span>` +
       `${m.name}: Cv = ${cv}R = <b>${(cv * R).toFixed(1)} J/mol·K</b>, Cp = ${cp}R = <b>${(cp * R).toFixed(1)}</b>, γ = <b class="big">${gamma.toFixed(3)}</b><br>` +
       `<span class="muted">${m.note}. Equipartition gives ½R per active quadratic degree of freedom. Adiabatic reversible: PVγ = const.</span>`;
   }
@@ -166,7 +166,7 @@ function makeHeatCap(): HTMLElement {
     const dcp = Number(dCp.value), dh1 = Number(dH1.value), t1 = Number(T1.value), t2 = Number(T2.value);
     const dh2 = dh1 + (dcp / 1000) * (t2 - t1);
     kOut.innerHTML =
-      `<span class="eq">Kirchhoff: ΔH(T₂) = ΔH(T₁) + ΔCp·(T₂ − T₁)</span>` +
+      `<span class="eq">Kirchhoff: \\(\\Delta H(T_2) = \\Delta H(T_1) + \\Delta C_p\\,(T_2 - T_1)\\)</span>` +
       `ΔH(${t2} K) = ${dh1} + (${dcp}/1000)(${t2} − ${t1}) = <b class="big">${dh2.toFixed(2)} kJ/mol</b><br>` +
       `<span class="muted">Use this to shift a tabulated 298 K enthalpy to reaction temperature (ΔCp = Cp(products) − Cp(reactants)).</span>`;
   }
@@ -205,7 +205,7 @@ function makeCatalysis(): HTMLElement {
     ], { xLabel: 'reaction coordinate', yLabel: 'energy (kJ/mol)' });
     const ratio = Math.exp(((Ea - EaCat) * 1000) / (R * T));
     out.innerHTML =
-      `<span class="eq">k = A·e^(−Ea/RT) &nbsp;→&nbsp; k_cat/k = e^((Ea − Ea_cat)/RT)</span>` +
+      `<span class="eq">\\(k = A\\,e^{-E_a/RT}\\) &nbsp;→&nbsp; \\(k_{cat}/k = e^{(E_a - E_{a,cat})/RT}\\)</span>` +
       `Rate speed-up at ${T} K = e^((${Ea}−${EaCat})×1000 / (8.314×${T})) = <b class="big">${ratio.toExponential(2)}×</b><br>` +
       'The catalyst lowers <b>Ea</b> (new pathway) but leaves ΔH_rxn, ΔG and K unchanged — the two wells are at the same heights.<br>' +
       `<span class="muted">It lowers the barrier for forward AND reverse equally, so equilibrium is reached faster, never shifted.</span>`;
@@ -250,7 +250,7 @@ function makeComplexEq(): HTMLElement {
     const fracs = betas.map((b, i) => (b * Math.pow(L, i)) / denom);
     const dominant = fracs.indexOf(Math.max(...fracs));
     out.innerHTML =
-      `<span class="eq">βₙ = K₁K₂…Kₙ &nbsp;·&nbsp; αₙ = βₙ[L]ⁿ / Σ βⱼ[L]ʲ</span>` +
+      `<span class="eq">\\(\\beta_n = K_1 K_2 \\cdots K_n\\) &nbsp;·&nbsp; \\(\\alpha_n = \\beta_n[L]^n / \\sum_j \\beta_j[L]^j\\)</span>` +
       `log K₁–K₄ = ${logK.join(', ')}. At [NH₃] = ${L.toExponential(1)} M the dominant species is <b>${dominant === 0 ? 'Cu²⁺' : `Cu(NH₃)${dominant}²⁺`}</b> (α = ${fracs[dominant].toFixed(2)}).<br>` +
       `<span class="muted">Successive constants decrease (K₁ > K₂ > …) — statistical + charge/steric factors. Overall β₄ = 10^(${logK.reduce((a, b) => a + b, 0).toFixed(1)}). Raise [NH₃] (lower p[NH₃]) to push toward the deep-blue tetraammine.</span>`;
   }
@@ -275,31 +275,31 @@ export const physChemTab: TabDef = {
       ),
       theory('Theory — advanced physical chemistry', `
 <h4>Temperature dependence of K (van't Hoff)</h4>
-<span class="eq">ln K = −ΔH°/RT + ΔS°/R &nbsp;·&nbsp; ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁)</span>
+<span class="eq">\\(\\ln K = -\\Delta H^\\circ/RT + \\Delta S^\\circ/R\\) &nbsp;·&nbsp; \\(\\ln(K_2/K_1) = -(\\Delta H^\\circ/R)(1/T_2 - 1/T_1)\\)</span>
 <ul>
 <li>A plot of ln K vs 1/T is linear: slope = −ΔH°/R, intercept = ΔS°/R. Exothermic → K falls with T; endothermic → K rises.</li>
 <li>The same equation with Ksp explains why most salts (endothermic dissolution) get more soluble on heating.</li>
 </ul>
 <h4>Clausius–Clapeyron</h4>
-<span class="eq">ln(P₂/P₁) = −(ΔH_vap/R)(1/T₂ − 1/T₁)</span>
+<span class="eq">\\(\\ln(P_2/P_1) = -(\\Delta H_{vap}/R)(1/T_2 - 1/T_1)\\)</span>
 <ul>
 <li>Vapor pressure grows exponentially with T; the normal boiling point is where P = 1 atm.</li>
 <li>Assumes ΔH_vap constant and vapor ideal with negligible liquid volume. Trouton's rule: ΔS_vap ≈ 85 J/mol·K for many liquids.</li>
 </ul>
 <h4>Concentration cells</h4>
-<span class="eq">E = (RT/nF) ln(C_cathode/C_anode) = (0.0592/n) log(C_high/C_low) at 25 °C, E° = 0</span>
+<span class="eq">\\(E = (RT/nF)\\ln(C_{cathode}/C_{anode}) = (0.0592/n)\\log(C_{high}/C_{low})\\) at 25 °C, \\(E^\\circ = 0\\)</span>
 <ul>
 <li>Identical electrodes; EMF comes purely from the concentration (entropy) gradient. The concentrated side is reduced (cathode).</li>
 <li>Runs until the concentrations equalize. Basis of pH/ion-selective electrodes.</li>
 </ul>
 <h4>Real gases</h4>
-<span class="eq">(P + an²/V²)(V − nb) = nRT &nbsp;·&nbsp; Z = PV_m/RT</span>
+<span class="eq">\\(\\left(P + an^2/V^2\\right)(V - nb) = nRT\\) &nbsp;·&nbsp; \\(Z = PV_m/RT\\)</span>
 <ul>
 <li>a: intermolecular attraction (lowers P); b: excluded molecular volume. <span class="trap">Z &lt; 1 attractions dominate; Z &gt; 1 size dominates; Z → 1 as P → 0.</span></li>
 <li>Boyle temperature: a and b cancel, gas near-ideal over a wide low-P range. Critical constants: Tc = 8a/27Rb, Pc = a/27b².</li>
 </ul>
 <h4>Heat capacities</h4>
-<span class="eq">Cv = (f/2)R &nbsp;·&nbsp; Cp − Cv = R (ideal gas) &nbsp;·&nbsp; γ = Cp/Cv</span>
+<span class="eq">\\(C_v = (f/2)R\\) &nbsp;·&nbsp; \\(C_p - C_v = R\\) (ideal gas) &nbsp;·&nbsp; \\(\\gamma = C_p/C_v\\)</span>
 <ul>
 <li>Equipartition: ½R per active quadratic mode. Monatomic Cv = 3/2R (γ = 5/3); diatomic 5/2R at 300 K (γ = 7/5); vibration adds R at high T.</li>
 <li>Kirchhoff: ΔH(T₂) = ΔH(T₁) + ΔCp(T₂ − T₁). Adiabatic reversible: PVγ = const, TV^(γ−1) = const.</li>

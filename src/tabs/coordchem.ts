@@ -71,7 +71,7 @@ function makeElectronCount(): HTMLElement {
       if (n > 0) { total += n * L.e; terms += ` + ${n}×${L.name}(${L.e})`; }
     }
     out.innerHTML =
-      `<span class="eq">covalent (neutral) count: metal group e⁻ − charge + Σ ligand donations</span>` +
+      `<span class="eq">covalent (neutral) count: (metal group \\(e^-\\)) \\(-\\) charge \\(+ \\sum\\) ligand donations</span>` +
       `${terms} = <b class="big">${total} e⁻</b><br>` +
       (total === 18 ? '<b>18 electrons</b> — coordinatively saturated & typically stable (e.g. Fe(Cp)₂, Ni(CO)₄, Cr(CO)₆).'
         : total === 16 ? '16 electrons — common for square-planar d⁸ (Pt/Pd/Rh/Ir); a reactive open site for catalysis.'
@@ -169,7 +169,7 @@ export const coordChemTab: TabDef = {
 <h4>Isomerism</h4>
 <ul><li>Geometric (cis/trans, fac/mer), optical (Δ/Λ), linkage (ambidentate), ionization, coordination, hydrate.</li></ul>
 <h4>Organometallic — the 18-electron rule</h4>
-<span class="eq">covalent count: metal group e⁻ − charge + Σ ligand donations (CO 2, H/X/R 1, η⁵-Cp 5, η⁶-arene 6)</span>
+<span class="eq">covalent count: (metal group \\(e^-\\)) \\(-\\) charge \\(+ \\sum\\) ligand donations (\\(\\ce{CO}\\) 2, H/X/R 1, η⁵-Cp 5, η⁶-arene 6)</span>
 <ul><li>18 e⁻ = saturated/stable (Fe(Cp)₂, Ni(CO)₄, Cr(CO)₆). 16 e⁻ square-planar d⁸ are catalytically reactive.</li>
 <li>M–CO synergic bonding: σ-donation + π-backbonding into CO π* (lowers ν(CO), strengthens M–C). Oxidative addition +2 oxidation state / +2 e⁻; reductive elimination reverses it — the heart of homogeneous catalysis.</li></ul>`, true),
     );
