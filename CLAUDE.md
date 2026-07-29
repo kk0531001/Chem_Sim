@@ -112,7 +112,26 @@ with a reason stated in the commit/summary.
 
 - Solved questions are tracked by a stable content hash of the question text
   (`qid()`), cached in localStorage, and — when the user is signed in — synced
-  to a Supabase `solved` table (per-user, row-level security). Cloud sync is
+  to a Supabase `solved` table (per-user, row-level security).
+- ALONGSIDE that, `recordAttempt()` appends to an attempt log (every answer,
+  right or wrong) synced to an `attempts` table. All the progress statistics —
+  `accuracyByTopic`, `weakTopics`, `streakDays`, `wrongQuestionIds`,
+  `recentAttempts` — are derived reads over that log; add new stats as pure
+  functions there rather than storing more counters. Three invariants worth not
+  breaking: (1) the local attempt list is CAPPED (`MAX_ATTEMPTS`) because an
+  unbounded log passes the ~5 MB localStorage quota in under two years, so any
+  lifetime statistic must live in a bounded aggregate (`totalAttempts`,
+  `topicStats`) and never be computed by counting the array; (2) each attempt
+  carries a client-generated uuid and syncs by UPSERT, so a retried push cannot
+  duplicate rows; (3) `streakDays()` anchors its day-walk at local NOON to
+  survive daylight-saving transitions — anchoring at midnight silently
+  truncates streaks every spring-forward.
+- `remapProgressIds(map)` is the migration hook for giving questions explicit
+  ids (ROADMAP Phase A.2): it rewrites the solved set, the attempt log and the
+  outstanding-wrong set together. Editing a question's TEXT changes its `qid()`
+  and orphans progress, which is the bug that motivates the explicit ids — so
+  until that lands, avoid rewording shipped questions.
+- Cloud sync is
   OPTIONAL: absent VITE_SUPABASE_URL/ANON_KEY env vars, the app degrades to
   local-only and must never crash. Auth is magic-link or Google OAuth only
   (never handle passwords directly). The anon key is publishable/client-safe;

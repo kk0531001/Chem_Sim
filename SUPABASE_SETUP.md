@@ -39,6 +39,46 @@ create policy "users manage their own rows"
 This gives every signed-in user a private set of solved questions;
 row-level security means no one can read anyone else's rows.
 
+## 2b. Create the `attempts` table (run the SQL)
+
+`solved` records only successes. `attempts` records every answer, right or
+wrong — it's what quiz history, weak-topic tracking, streaks and personalised
+review are computed from. Same SQL Editor, same procedure:
+
+```sql
+create table if not exists public.attempts (
+  -- Client-generated uuid, NOT a serial: the app upserts on this key so a
+  -- retried or re-synced push can never duplicate an attempt.
+  id uuid primary key,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  question_id text not null,
+  topic text,
+  correct boolean not null,
+  chosen smallint,
+  answered_at timestamptz not null default now()
+);
+
+-- The app always reads "this user's most recent attempts", so index for it.
+create index if not exists attempts_user_time_idx
+  on public.attempts (user_id, answered_at desc);
+
+alter table public.attempts enable row level security;
+
+create policy "users manage their own attempts"
+  on public.attempts for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+```
+
+Unlike `solved` (one row per question), this table is append-only and grows
+with use, so expect many rows per question. That's intentional: an attempt log
+is the only thing that can answer "which topics am I weak at", because the
+wrong answers are the signal.
+
+This table is optional in the same way the rest of cloud sync is — without it
+(or without the env vars) the app still tracks attempts in localStorage and
+just doesn't sync them.
+
 ## 3. Get your two keys
 
 **Settings → API** (or **Project Settings → API**):
