@@ -120,16 +120,46 @@ export const equilibriumTab: TabDef = {
     const catIn = h('input', { type: 'number', value: '0.001', step: '0.0001' });
     const anIn = h('input', { type: 'number', value: '0.001', step: '0.0001' });
 
+    // Exact common-ion solubility: solve (m·s)^m · (C + n·s)^n = Ksp for s.
+    // The textbook shortcut drops the n·s the dissolving solid itself adds,
+    // which only holds while C >> s. Below that it diverges badly — PbCl2 at
+    // [Cl-] = 1e-4 M came out at ~1700 M against a true 1.6e-2 M — so solve
+    // the full expression instead. The left side is strictly increasing in s,
+    // and adding a common ion can never push s above its pure-water value, so
+    // [0, sPure] always brackets the root and bisection is safe.
+    function commonIonSolubility(ksp: number, m: number, n: number, C: number, sPure: number): number {
+      const f = (s: number) => Math.pow(m * s, m) * Math.pow(C + n * s, n) - ksp;
+      let lo = 0, hi = sPure;
+      for (let i = 0; i < 120; i++) {
+        const mid = (lo + hi) / 2;
+        if (f(mid) < 0) lo = mid; else hi = mid;
+      }
+      return (lo + hi) / 2;
+    }
+
     function kspCalc(): void {
       const { m, n, ksp, MM } = salt;
       const s = Math.pow(ksp / (Math.pow(m, m) * Math.pow(n, n)), 1 / (m + n));
       const C = Math.pow(10, logC);
-      const sCommon = Math.pow(ksp / Math.pow(C, n), 1 / m) / m;
+      const sCommon = commonIonSolubility(ksp, m, n, C, s);
+      const sApprox = Math.pow(ksp / Math.pow(C, n), 1 / m) / m;
+      // Show the shortcut alongside the exact answer, and say plainly when it
+      // has left its valid regime — knowing when an approximation breaks is
+      // itself the olympiad skill here.
+      const approxOk = Math.abs(sApprox - sCommon) / sCommon < 0.05;
+      const pow = (base: string, e: number) => (e === 1 ? base : `${base}<sup>${e}</sup>`);
+      const ns = n > 1 ? `${n}s` : 's';
+      const exactExpr = `${pow(m > 1 ? `(${m}s)` : '(s)', m)}${pow(`(C + ${ns})`, n)} = Ksp`;
       kspOut.innerHTML =
         `<b>${salt.name}</b>: ${salt.expr} = ${ksp.toExponential(1)}<br>` +
         `molar solubility in pure water: s = <b>${s.toExponential(2)} M</b> (${(s * MM * 1000).toPrecision(2)} mg/L)<br>` +
         `with [${salt.common}] = ${C.toExponential(1)} M already present: s = <b>${sCommon.toExponential(2)} M</b> ` +
-        `(${(sCommon / s) < 0.01 ? 'suppressed >100×' : `${(100 * sCommon / s).toPrecision(2)}% of pure-water value`})<br>` +
+        `(suppressed ${(s / sCommon).toPrecision(3)}×)<br>` +
+        `<span class="${approxOk ? 'muted' : 'trap'}">Textbook shortcut, assuming [${salt.common}] ≈ C: ${sApprox.toExponential(2)} M — ` +
+        (approxOk
+          ? `agrees here, because C ≫ s.`
+          : `<b>invalid here.</b> C is not ≫ s, so the ${ns} contributed by the dissolving solid can't be dropped. The figure above solves ${exactExpr} exactly.`) +
+        `</span><br>` +
         `<span class="muted">Common-ion effect = Le Chatelier on dissolution. The coefficient trap: for ${salt.name}, s is NOT √Ksp unless it's 1:1.</span>`;
       qCalc();
     }

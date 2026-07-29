@@ -4,6 +4,13 @@ const SPRING_K = 0.09;      // bond spring stiffness
 const SPRING_DAMP = 0.06;   // damping along the bond axis (stability)
 const REPULSE_K = 0.35;     // soft push when unbonded atoms overlap
 const MAX_SPEED = 12;
+// Fixed timestep turning accumulated force into a velocity change
+// (Δv = F/m · FORCE_DT), used by both the spring and repulsion passes.
+// Deliberately NOT the frame dt handed to stepMovement: these springs are
+// stiff, and letting a long or stuttering frame feed straight into the impulse
+// makes them blow up. Empirically tuned — raise it and bonds go rigid and
+// jittery, lower it and molecules turn floppy.
+const FORCE_DT = 12;
 
 // One integration step: springs, repulsion, thermostat, then Euler + walls.
 export function stepMovement(dt: number, W: number, H: number): void {
@@ -34,10 +41,10 @@ function applyBondSprings(): void {
     // Spring force plus damping of relative velocity along the bond axis.
     const relV = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
     const f = SPRING_K * stretch * bond.order + SPRING_DAMP * relV;
-    a.vx += (f * nx) / a.mass * 12;
-    a.vy += (f * ny) / a.mass * 12;
-    b.vx -= (f * nx) / b.mass * 12;
-    b.vy -= (f * ny) / b.mass * 12;
+    a.vx += (f * nx) / a.mass * FORCE_DT;
+    a.vy += (f * ny) / a.mass * FORCE_DT;
+    b.vx -= (f * nx) / b.mass * FORCE_DT;
+    b.vy -= (f * ny) / b.mass * FORCE_DT;
   }
 }
 
@@ -52,10 +59,10 @@ function applyRepulsion(): void {
       if (dist >= minDist || getBond(a.id, b.id)) continue;
       const push = REPULSE_K * (minDist - dist) / minDist;
       const nx = dx / dist, ny = dy / dist;
-      a.vx -= push * nx * 12 / a.mass;
-      a.vy -= push * ny * 12 / a.mass;
-      b.vx += push * nx * 12 / b.mass;
-      b.vy += push * ny * 12 / b.mass;
+      a.vx -= push * nx * FORCE_DT / a.mass;
+      a.vy -= push * ny * FORCE_DT / a.mass;
+      b.vx += push * nx * FORCE_DT / b.mass;
+      b.vy += push * ny * FORCE_DT / b.mass;
     }
   }
 }

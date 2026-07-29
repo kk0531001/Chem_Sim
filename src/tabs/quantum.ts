@@ -5,9 +5,13 @@ import { QUANTUM_QUIZ } from './questions1';
 
 
 // ---- hydrogen wavefunctions (a0 = 1, unnormalized — shape is what matters) ----
+// psi takes the two IN-PLANE coordinates of whichever slice the orbital is
+// drawn in (x–z for all but 3d_x²−y², which is degenerate in that slice — see
+// its entry below). Values are SIGNED: the viewer colours by sign, so these
+// must not be squared.
 type OrbitalId = '1s' | '2s' | '2pz' | '2px' | '3s' | '3pz' | '3dz2' | '3dxz' | '3dx2y2';
 
-const ORBITALS: Record<OrbitalId, { n: number; l: number; psi: (x: number, z: number) => number; desc: string }> = {
+const ORBITALS: Record<OrbitalId, { n: number; l: number; psi: (a: number, b: number) => number; desc: string; plane?: string }> = {
   '1s':     { n: 1, l: 0, psi: (x, z) => Math.exp(-r(x, z)), desc: 'spherical, no nodes' },
   '2s':     { n: 2, l: 0, psi: (x, z) => (2 - r(x, z)) * Math.exp(-r(x, z) / 2), desc: '1 radial node (sign flips at r = 2a₀)' },
   '2pz':    { n: 2, l: 1, psi: (x, z) => z * Math.exp(-r(x, z) / 2), desc: '1 angular node (xy-plane)' },
@@ -16,7 +20,11 @@ const ORBITALS: Record<OrbitalId, { n: number; l: number; psi: (x: number, z: nu
   '3pz':    { n: 3, l: 1, psi: (x, z) => { const rr = r(x, z); return rr === 0 ? 0 : (6 - rr) * z * Math.exp(-rr / 3); }, desc: '1 radial + 1 angular node' },
   '3dz2':   { n: 3, l: 2, psi: (x, z) => (3 * z * z - (x * x + z * z)) * Math.exp(-r(x, z) / 3), desc: 'two lobes + torus; 2 angular (conical) nodes' },
   '3dxz':   { n: 3, l: 2, psi: (x, z) => x * z * Math.exp(-r(x, z) / 3), desc: '4 lobes between axes; 2 angular nodes' },
-  '3dx2y2': { n: 3, l: 2, psi: (x, z) => x * x * Math.exp(-r(x, z) / 3), desc: '4 lobes on axes (x–y slice shown along x)' },
+  // Drawn in the x–y plane, unlike every other orbital here. Its angular part
+  // is x²−y², which in the x–z slice (y = 0) collapses to x² — non-negative
+  // everywhere, so that slice shows neither of the orbital's nodal planes nor
+  // its alternating lobe signs, i.e. exactly the features it exists to teach.
+  '3dx2y2': { n: 3, l: 2, plane: 'x–y', psi: (x, y) => (x * x - y * y) * Math.exp(-r(x, y) / 3), desc: '4 lobes ON the axes with alternating sign; 2 angular nodes (the planes x = ±y)' },
 };
 const r = (x: number, z: number) => Math.hypot(x, z);
 
@@ -31,9 +39,9 @@ function drawOrbital(canvas: HTMLCanvasElement, id: OrbitalId): void {
   const vals = new Float32Array(N * N);
   for (let j = 0; j < N; j++) {
     for (let i = 0; i < N; i++) {
-      const x = ((i / (N - 1)) * 2 - 1) * extent;
-      const z = ((j / (N - 1)) * 2 - 1) * extent;
-      const v = orb.psi(x, z);
+      const a = ((i / (N - 1)) * 2 - 1) * extent;   // horizontal in-plane axis
+      const b = ((j / (N - 1)) * 2 - 1) * extent;   // vertical in-plane axis
+      const v = orb.psi(a, b);
       vals[j * N + i] = v;
       maxA = Math.max(maxA, Math.abs(v));
     }
@@ -53,7 +61,7 @@ function drawOrbital(canvas: HTMLCanvasElement, id: OrbitalId): void {
   ctx.fillStyle = '#ffe27a';
   ctx.beginPath(); ctx.arc(N / 2, N / 2, 2, 0, 7); ctx.fill();
   ctx.fillStyle = '#5a6a7d'; ctx.font = '10px monospace';
-  ctx.fillText(`${extent * 2} a₀ across · x–z slice`, 6, N - 8);
+  ctx.fillText(`${extent * 2} a₀ across · ${orb.plane ?? 'x–z'} slice`, 6, N - 8);
 }
 
 // ---- energy levels / Rydberg ----
@@ -154,9 +162,10 @@ export const quantumTab: TabDef = {
       const o = ORBITALS[id as OrbitalId];
       orbDesc.textContent = `n=${o.n}, ℓ=${o.l} · radial nodes = n−ℓ−1 = ${o.n - o.l - 1} · angular nodes = ℓ = ${o.l} · ${o.desc}`;
     };
-    const orbCard = card('Hydrogen orbital viewer |ψ|² (blue = ψ>0, red = ψ<0)',
+    const orbCard = card('Hydrogen orbital viewer — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)',
       select('orbital', Object.keys(ORBITALS).map(k => ({ value: k, label: k.replace('z2', ' z²').replace('x2y2', ' x²−y²') })), drawOrb, '2pz'),
       orbCanvas, orbDesc,
+      h('p', { class: 'trap' }, 'This plots ψ itself, not |ψ|². The two colours are the SIGN of the wavefunction — and sign is the whole point: bonding vs antibonding overlap depends on it. |ψ|² would be positive everywhere and the nodes would be the only structure left. Squaring loses exactly the information you need for MO theory.'),
     );
     drawOrb('2pz');
 

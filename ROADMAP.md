@@ -97,33 +97,42 @@ engineering-quality signal you can point at.
 - [ ] Visible focus rings in [style.css](src/style.css) (check `:focus-visible`)
 - [ ] Verify contrast on `--panel-text` against `--panel`
 
-### 0.4 Correctness fixes (~1 hr, batch in one sitting)
+### 0.4 Correctness fixes — **[x] DONE**
 
-These are chemistry errors in a chemistry teaching tool, which makes them worse
+These were chemistry errors in a chemistry teaching tool, which makes them worse
 than ordinary bugs.
 
-- [ ] **`|ψ|²` mislabel** — [quantum.ts:157](src/tabs/quantum.ts) titles the card
-      `Hydrogen orbital viewer |ψ|² (blue = ψ>0, red = ψ<0)`. Those two halves
-      contradict each other: a squared quantity has no sign. The renderer plots
-      signed ψ. Retitle to `Hydrogen orbital viewer — ψ (signed amplitude)` and
-      keep the colour key.
-- [ ] **`3d_{x²−y²}` is drawn wrong** — [quantum.ts:19](src/tabs/quantum.ts) uses
-      `psi: (x, z) => x*x*exp(-r/3)`. That is strictly non-negative, so it shows
-      no nodal planes and no sign change — the exact features the orbital exists
-      to teach. The real angular part is `x² − y²`, invisible in the x–z slice.
-      Either render the x–y plane for this one orbital, or label it honestly as
-      an out-of-plane slice.
-- [ ] **Ksp common-ion blows up at low concentration** —
-      [equilibrium.ts:127](src/tabs/equilibrium.ts) computes
-      `sCommon = (Ksp / C^n)^(1/m) / m`, which ignores the salt's own
-      contribution. For PbCl₂ (Ksp 1.7×10⁻⁵) with [Cl⁻] = 10⁻⁴ M it reports
-      s ≈ 1700 M, against a true value near the pure-water 1.6×10⁻² M. Fix by
-      solving the full polynomial, or clamp to `min(s_pure, s_common)` and warn
-      when `C ≲ s_pure` that the approximation has left its valid regime. A
-      teaching tool that silently prints 1700 M teaches the wrong instinct.
-- [ ] **Magic `* 12`** — [movement.ts:37–58](src/movement.ts) has an unexplained
-      factor of 12 in four force accumulations. Name it (`const FORCE_SCALE = 12`)
-      with a one-line comment on where it came from.
+- [x] **`|ψ|²` mislabel** — the card read `Hydrogen orbital viewer |ψ|²
+      (blue = ψ>0, red = ψ<0)`; those halves contradict each other, since a
+      squared quantity has no sign. The renderer plots signed ψ. Retitled to
+      "ψ, signed amplitude", and added a `.trap` note on why the sign is the
+      point: bonding vs antibonding overlap depends on it, and squaring throws
+      away exactly the information MO theory needs.
+- [x] **`3d_{x²−y²}` drawn without its nodes** — was `psi: (x,z) => x*x*exp(-r/3)`,
+      strictly non-negative, so it showed no nodal planes and no sign
+      alternation: the very features the orbital exists to teach. Its angular
+      part `x²−y²` collapses to `x²` in the x–z slice, so the orbital record now
+      carries an optional `plane` and this one is drawn in **x–y**. Verified by
+      scanning a ring around the nucleus in the rendered canvas: **4 sign
+      changes at 46°/136°/226°/316°** (the x = ±y planes) where the old version
+      had none.
+- [x] **Ksp common-ion divergence** — `sCommon = (Ksp/C^n)^(1/m)/m` dropped the
+      `n·s` the dissolving solid itself contributes. PbCl₂ at [Cl⁻] = 10⁻⁴ M
+      reported **1.70×10³ M** against a true **1.62×10⁻² M** — a 10⁵× error.
+      Now bisects the full `(m·s)^m(C + n·s)^n = Ksp`; the left side is strictly
+      increasing in s and s can never exceed its pure-water value, so
+      `[0, s_pure]` always brackets the root. Checked over all 7 salts × the
+      full slider range: residuals at machine precision, monotone decreasing,
+      never exceeding `s_pure`.
+      **Turned into a teaching feature rather than just a fix:** the panel now
+      shows the textbook shortcut *beside* the exact answer and says plainly
+      when it has left its valid regime (`C ≫ s`). Knowing when an
+      approximation breaks is the olympiad skill here.
+- [x] **Magic `* 12`** — the unexplained factor in four force accumulations in
+      [movement.ts](src/movement.ts) is now `FORCE_DT`, documented as the fixed
+      force-integration timestep, deliberately decoupled from the frame `dt`
+      (these springs are stiff enough that a long frame fed straight into the
+      impulse blows them up). Pure rename, value unchanged.
 
 ### 0.5 Note the `innerHTML` policy (0 min now, saves you later)
 
