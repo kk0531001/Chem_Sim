@@ -182,7 +182,26 @@ Three consequences:
 - **Nothing can be counted.** Weak-topic tracking, streaks, recommended-next, and
   competition filtering are all aggregations over data that isn't being recorded.
 
-### A.2 The change — **[x] DONE**
+### A.2 The change — **ids DONE; the metadata half still open**
+
+> **Phase A is not finished.** The *defect* it existed to fix is fixed: progress
+> is keyed on permanent ids and no existing user lost history. What remains is
+> the metadata, and every piece of it is a prerequisite for a later phase:
+>
+> - [ ] **`tier: 1|2|3|4`** — not added. The plan below says make it required so
+>       `tsc` enumerates the gaps, but that means 919 errors at once and tiering
+>       needs a chemistry judgement per question, so it moved to **Phase C**,
+>       where that pass happens anyway.
+> - [ ] **`comps?: Comp[]`** — not added. Needed by **Phase F**; nothing needs it
+>       before then.
+> - [ ] **`misconception?: string`** — belongs to **Phase B.2**, not here.
+> - [ ] **`byTopic()` / `byTier()` / `byComp()` on the registry** — not built.
+>       `ALL_MC`, `ALL_FRQ`, `QUIZ_BANKS` and `auditCorpus()` exist, which was
+>       what the migration needed. The last two can't exist until `tier` and
+>       `comps` do. **Phase E** search wants these.
+> - [ ] **125 olympiad Part A questions have an id but no topic** — a mock paper
+>       spans the syllabus, so it isn't derivable. Excluded from per-topic stats
+>       until hand-tagged.
 
 Every question now carries an explicit permanent `id`. 919 of them, inserted by
 `scripts/backfill-ids.mjs` across 17 files; `id` is **required** on `QuizQ`,
