@@ -81,10 +81,24 @@ modules … 650+ exam-style questions". Actual counts are **25 modules, 854
 multiple-choice questions, and 67 multi-part written problems** (212 worked
 sub-parts). Copy and OG image now both say 25 / 850+ / 67 / 5 mock papers.
 
-### 0.3 Accessibility pass (1–2 hrs)
+### 0.3 Accessibility pass — **[x] DONE**
 
-Zero `aria` attributes today. Beyond being the right thing, it is a concrete
-engineering-quality signal you can point at.
+Zero `aria` and zero `role` attributes existed before this. All of the below
+landed; the notable judgement calls are recorded in the commit and in comments
+at each site.
+
+Two things worth knowing because they contradict what this section originally
+said. First, **the quiz is deliberately not a `role="radiogroup"`** — a radio
+group models a *revisable* selection with arrow-key movement and `aria-checked`,
+whereas here the first click is final and immediately graded. It is a group of
+buttons named by the question; what it actually needed was colour independence,
+since `.correct`/`.wrong` were green and red and nothing else. Second,
+`pills()` *is* the ARIA tabs pattern and now implements all of it including the
+roving tabindex — and its panels are all mounted with the inactive ones `hidden`,
+because `aria-controls` only means something if it resolves to an element in the
+document and three of every four tabs previously pointed at a detached id.
+
+Original checklist, for the record:
 
 - [ ] `aria-label` on every icon-only button — `#brand`, quiz option buttons,
       sandbox controls
@@ -168,7 +182,41 @@ Three consequences:
 - **Nothing can be counted.** Weak-topic tracking, streaks, recommended-next, and
   competition filtering are all aggregations over data that isn't being recorded.
 
-### A.2 The change
+### A.2 The change — **scaffolding [x], the write itself still pending**
+
+Landed: `src/content/topicIds.ts` (the canonical vocabulary),
+`scripts/backfill-ids.mjs` (the codemod, dry-run by default) and
+`src/content/README.md`. **The codemod has NOT been run.** Three things must
+happen in one commit when it is:
+
+1. Extend `QuizQ` (framework.ts), `BankMC` (bankPart1.ts) and `FRQ`
+   (bankPart2.ts) with `id`/`topic` — until then the write leaves 919
+   excess-property errors.
+2. Switch `quiz()` from `qid(q.q)` to `q.id`, and wire `recordAttempt`.
+3. Ship a `remapProgressIds()` call with the legacy-hash → new-id map, or every
+   existing user's history is orphaned. (The write alone is safe — it doesn't
+   touch prompt text — the window opens at step 2.)
+
+**Vocabulary decision:** two distinct vocabularies, deliberately not merged.
+`QuizQ.topic` is a `ModuleId` (`quantum`, `thermo1`, …), which each quiz bank
+maps to 1:1 so it backfills with zero judgement. The exam banks keep their
+existing coarser `ExamTopicId` (the 12 ids in CLAUDE.md) untouched — rewriting
+332 values to a different vocabulary would be a semantic change disguised as a
+refactor, and `qbank.ts` groups its UI by them. One hand-maintained
+`MODULE_EXAM_TOPICS` table bridges them; the reverse direction is derived.
+
+**True corpus counts** (structural, independently confirmed): **853
+multiple-choice** (587 quiz + 110 Part I + 31 Part III + 125 olympiad Part A)
+and **66 multi-part written problems** (212 worked sub-parts). Five quiz banks
+hold more than the documented 25: PHYSCHEM 27, ORGANIC3 26, COORDCHEM 26,
+LABTECH 29, STRUCTURE 29 — real extra questions, not a miscount.
+
+**Known gap:** the 125 olympiad Part A questions have no topic anywhere in the
+data, and a mock paper spans the whole syllabus, so it isn't derivable from
+file or position. They will get ids but no topic and be excluded from
+per-topic analytics until hand-tagged.
+
+Original plan:
 
 - [ ] Extend the type:
       ```ts
@@ -195,10 +243,32 @@ Three consequences:
 - [ ] Guard against duplicate ids and out-of-range `a` at module load (a cheap
       assert catches a whole class of content bugs).
 
-### A.3 Attempt tracking
+### A.3 Attempt tracking — **[x] DONE**
 
-Replace the binary solved-set with an attempt log. Everything in Phase 4 is a
-read of this table.
+`recordAttempt()` appends every answer alongside the existing solved set, with
+derived selectors (`accuracyByTopic`, `weakTopics`, `streakDays`,
+`wrongQuestionIds`, `recentAttempts`) and `remapProgressIds()` as the A.2
+migration hook. SQL in SUPABASE_SETUP.md §2b. Three findings worth carrying
+forward, all now enforced by comments in the code:
+
+- **The local log has to be capped.** At 149 bytes/row, 50 answers a day passes
+  the ~5 MB localStorage quota inside two years, and exceeding it throws on
+  every later write — progress would silently stop saving. So localStorage keeps
+  a 1000-row window and *bounded aggregates* carry the statistics. Any lifetime
+  statistic must come from an aggregate, never from counting the array.
+- **`streakDays()` anchors its day-walk at local noon.** Subtracting a flat 24 h
+  from local midnight lands on 23:00 the previous day across a spring-forward
+  boundary, skipping a calendar day. Tested in five timezones across both 2026
+  transitions: a midnight anchor turns a 10-day streak into 9 on every
+  spring-forward, including the southern-hemisphere October shifts.
+- **Attempts sync by upsert on a client-generated uuid**, because an append-only
+  table has no natural key to deduplicate on and a retried push would otherwise
+  duplicate rows.
+
+Remaining wiring (needs A.2's ids first): `quiz()` still calls `markSolved`
+only — it must also call `recordAttempt`, passing the question's `topic`.
+
+Original plan, for the record:
 
 - [ ] `attempts` table: `(user_id, question_id, correct, answered_at, chosen)`,
       same RLS pattern as `solved`. Keep `solved` as a derived view for now.
