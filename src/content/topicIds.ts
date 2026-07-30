@@ -262,6 +262,81 @@ export function bankForModule(m: QuizModuleId): QuizBankSpec | undefined {
 // ---------------------------------------------------------------------------
 // 6. Load-time integrity checks
 // ---------------------------------------------------------------------------
+// Competitions and difficulty tiers
+// ---------------------------------------------------------------------------
+
+/** The four exams the app trains for, in increasing order of demand. */
+export type Comp = 'ccc' | 'usnco' | 'cco' | 'icho';
+export const COMPS: readonly Comp[] = ['ccc', 'usnco', 'cco', 'icho'] as const;
+export const COMP_LABEL: Record<Comp, string> = {
+  ccc: 'Canadian Chemistry Contest',
+  usnco: 'U.S. National Chemistry Olympiad',
+  cco: 'Canadian Chemistry Olympiad',
+  icho: 'International Chemistry Olympiad',
+};
+
+/** `difficulty` in topics.ts uses these display labels; this is the bridge. */
+const COMP_OF_LABEL: Record<string, Comp> = { CCC: 'ccc', USNCO: 'usnco', CCO: 'cco', IChO: 'icho' };
+export const compRank = (c: Comp): number => COMPS.indexOf(c) + 1;
+
+/**
+ * Difficulty tiers, the Bronze→Platinum ladder from ROADMAP Phase C.
+ *
+ * 1 Bronze   — single concept, direct application
+ * 2 Silver   — two concepts combined
+ * 3 Gold     — three concepts, multi-step
+ * 4 Platinum — a full olympiad problem
+ */
+export type Tier = 1 | 2 | 3 | 4;
+export const TIER_LABEL: Record<Tier, string> = {
+  1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Platinum',
+};
+
+/**
+ * Which competitions a module's content is IN SCOPE for.
+ *
+ * `TopicMeta.difficulty` already lists the levels each module is pitched at, so
+ * this needs one mapping rather than 919 hand-tags. The semantics are an upward
+ * closure from the LOWEST level listed: content pitched at CCC is also fair game
+ * for a USNCO/CCO/IChO student (it's foundational), but CCO-level material is
+ * out of scope for CCC. That asymmetry is the whole point of a competition mode
+ * — it should narrow what you're shown, not just relabel it.
+ */
+export function compsForDifficulty(difficulty: readonly string[]): Comp[] {
+  const ranks = difficulty.map(d => COMP_OF_LABEL[d]).filter(Boolean).map(compRank);
+  if (ranks.length === 0) return [...COMPS];
+  const floor = Math.min(...ranks);
+  return COMPS.filter(c => compRank(c) >= floor);
+}
+
+/**
+ * Collapse either topic vocabulary onto the coarse exam one.
+ *
+ * Quiz banks tag by ModuleId ('aek', 'physchem'); the exam banks tag by the 12
+ * ExamTopicIds ('acids', 'thermo'). Left as-is, the same chemistry splits across
+ * two sets of buckets — `thermo1`/`thermo2` questions would be invisible to a
+ * query for `thermo`. Exam topics are tested FIRST so the three ids that spell
+ * identically in both ('stoich', 'bonding', 'equilibrium') resolve to
+ * themselves. Returns undefined for an unrecognised string rather than
+ * inventing a bucket.
+ *
+ * This is the single definition — the attempt log and the registry's topic index
+ * both use it, so statistics and search always agree on what a topic is.
+ */
+export function toExamTopic(t: string | undefined): ExamTopicId | undefined {
+  if (!t) return undefined;
+  if (isExamTopicId(t)) return t;
+  if (isModuleId(t) && t !== 'sandbox' && t !== 'qbank') return primaryExamTopicOf(t);
+  return undefined;
+}
+
+/** The most demanding level a module is pitched at — the base for its tier. */
+export function ceilingRank(difficulty: readonly string[]): number {
+  const ranks = difficulty.map(d => COMP_OF_LABEL[d]).filter(Boolean).map(compRank);
+  return ranks.length ? Math.max(...ranks) : 1;
+}
+
+// ---------------------------------------------------------------------------
 
 // Cheap and total: catches a copy-pasted prefix or a bank added to only one of
 // the two tables, at import time rather than in a user's progress data.

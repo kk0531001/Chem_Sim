@@ -182,26 +182,53 @@ Three consequences:
 - **Nothing can be counted.** Weak-topic tracking, streaks, recommended-next, and
   competition filtering are all aggregations over data that isn't being recorded.
 
-### A.2 The change — **ids DONE; the metadata half still open**
+### A.2 The change — **[x] DONE**
 
-> **Phase A is not finished.** The *defect* it existed to fix is fixed: progress
-> is keyed on permanent ids and no existing user lost history. What remains is
-> the metadata, and every piece of it is a prerequisite for a later phase:
->
-> - [ ] **`tier: 1|2|3|4`** — not added. The plan below says make it required so
->       `tsc` enumerates the gaps, but that means 919 errors at once and tiering
->       needs a chemistry judgement per question, so it moved to **Phase C**,
->       where that pass happens anyway.
-> - [ ] **`comps?: Comp[]`** — not added. Needed by **Phase F**; nothing needs it
->       before then.
-> - [ ] **`misconception?: string`** — belongs to **Phase B.2**, not here.
-> - [ ] **`byTopic()` / `byTier()` / `byComp()` on the registry** — not built.
->       `ALL_MC`, `ALL_FRQ`, `QUIZ_BANKS` and `auditCorpus()` exist, which was
->       what the migration needed. The last two can't exist until `tier` and
->       `comps` do. **Phase E** search wants these.
-> - [ ] **125 olympiad Part A questions have an id but no topic** — a mock paper
->       spans the syllabus, so it isn't derivable. Excluded from per-topic stats
->       until hand-tagged.
+Every question carries a permanent id, a topic, a difficulty tier and a
+competition scope, and the registry indexes all three.
+
+- [x] **`tier` (1 Bronze … 4 Platinum)** and **`comps`** — added as *optional
+      overrides*, with `tierOf()` / `compsOf()` deriving a value for every
+      question. See the note below on why derived rather than stored.
+- [x] **`byTopic()` / `byModule()` / `byTier()` / `byComp()` / `query()` /
+      `ladderFor()`** on the registry, all built once at load.
+- [x] **The 125 olympiad Part A questions are tagged.** `scripts/classify-paper-topics.mjs`
+      scores each question's text against per-topic keyword sets and prints the
+      matched evidence for review; 17 cases the keywords got wrong or couldn't
+      see are pinned in an explicit `OVERRIDES` table with a one-line reason
+      each. Idempotent, and it refuses to write while anything is unclassified.
+- `misconception?: string` is **not** here — it belongs to Phase B.2.
+
+**Why tier and comps are derived, not stored on 919 questions.** Hand-tiering
+919 items in one pass isn't something anyone does accurately, and a stored value
+that merely restates the default goes stale the moment a module's `difficulty`
+changes. The corpus already encodes difficulty *structurally*, so the derivation
+reads it off: the first five of every quiz bank are documented warm-ups →
+Bronze; a multi-part written problem is multi-step by construction → Gold, or
+Platinum for the CCO sets and Integrated Challenges; anything else is a
+single-answer MC scaled by its module's curated difficulty, **floored at Silver**
+(past the warm-ups every bank is exam-style, so a CCC module's questions aren't
+Bronze) and **capped at Gold** (a four-option MC cannot be "a full olympiad
+problem"). Overrides exist for where that's wrong.
+
+`comps` comes from `TopicMeta.difficulty` as an upward closure from the lowest
+level listed: CCC content is fair game for a CCO student, but CCO content is out
+of scope for CCC. That asymmetry is the point of a competition mode.
+
+**The resulting distribution is itself a finding, and it confirms this
+document's Phase C argument:**
+
+| Tier | Count |
+| --- | --- |
+| Bronze | 115 (exactly the 23 × 5 warm-ups) |
+| Silver | 550 |
+| Gold | 230 |
+| **Platinum** | **24** |
+
+Scope: CCC 536 · USNCO 764 · CCO 919 · IChO 919 (correctly nested). The corpus is
+overwhelmingly Silver and has **24 Platinum items across 919**. The gap is
+Gold/Platinum, exactly as Phase C predicted — so that phase is a *writing* task
+at the top of the ladder, not a tiering task.
 
 Every question now carries an explicit permanent `id`. 919 of them, inserted by
 `scripts/backfill-ids.mjs` across 17 files; `id` is **required** on `QuizQ`,

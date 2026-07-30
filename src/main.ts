@@ -31,7 +31,7 @@ import { physChemTab } from './tabs/physchem';
 import { biophysTab } from './tabs/biophys';
 import { qbankTab } from './tabs/qbank';
 import { initProgress } from './progress';
-import { auditCorpus, migrateLegacyProgress, CORPUS_COUNTS } from './content/registry';
+import { auditCorpus, migrateLegacyProgress, corpusBreakdown, CORPUS_COUNTS } from './content/registry';
 import { mountSidebarAccountPanel } from './authWidget';
 
 const DEFS = [
@@ -207,6 +207,7 @@ void initProgress().then(migrateLegacyProgress);
 // unanswerable. Both are invisible at runtime, so surface them in dev.
 if (import.meta.env.DEV) {
   const problems = auditCorpus();
-  if (problems.length) console.error('[content audit]', problems);
+  if (problems.length) console.error(`[content audit] ${problems.length} problem(s)`, problems.slice(0, 20));
   else console.info(`[content audit] clean — ${CORPUS_COUNTS.mc} MC + ${CORPUS_COUNTS.frq} written, all ids unique`);
+  console.info('[corpus]', corpusBreakdown());
 }

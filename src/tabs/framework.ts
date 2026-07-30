@@ -2,7 +2,7 @@
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
 import { isSolved, markSolved, recordAttempt, solvedOf, onProgressChange } from '../progress';
-import { isExamTopicId, isModuleId, primaryExamTopicOf } from '../content/topicIds';
+import { toExamTopic } from '../content/topicIds';
 import 'katex/dist/katex.min.css';
 import 'katex/contrib/mhchem';
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -148,6 +148,16 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
 export interface QuizQ {
   id: string;
   topic?: string;
+  /**
+   * Difficulty tier (1 Bronze … 4 Platinum) and the competitions this question
+   * is in scope for. Both are OPTIONAL OVERRIDES: `tierOf()` and `compsOf()` in
+   * src/content/registry.ts derive a value for every question from where it
+   * lives and its module's curated `difficulty`, so coverage is total without
+   * 919 hand-tags. Set these only where the derived answer is wrong — a stored
+   * value that merely restates the default is one more thing to go stale.
+   */
+  tier?: 1 | 2 | 3 | 4;
+  comps?: readonly ('ccc' | 'usnco' | 'cco' | 'icho')[];
   q: string;
   opts: string[];
   a: number;
@@ -240,7 +250,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
         // normalised to the coarse exam vocabulary so that a module-tagged
         // quiz and an exam-bank question about the same chemistry land in the
         // same bucket instead of two half-populated ones.
-        recordAttempt(ids[i], right, { topic: normalizeTopic(q.topic), chosen: j });
+        recordAttempt(ids[i], right, { topic: toExamTopic(q.topic), chosen: j });
         // The grading is over: keep the buttons focusable (so they can still be
         // read) but tell AT they no longer do anything, and spell out in text
         // what the red/green only shows visually.
@@ -280,24 +290,6 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
 
   render();
   return wrap;
-}
-
-/**
- * Collapse either topic vocabulary onto the coarse exam one, so the attempt
- * log is single-vocabulary and per-topic stats aggregate cleanly.
- *
- * Quiz banks tag by ModuleId ('aek', 'physchem'); the exam banks tag by the
- * 12 ExamTopicIds ('acids', 'thermo'). Left as-is they'd split the same
- * chemistry across two sets of buckets. Exam topics are checked first so the
- * three ids that spell identically in both ('stoich', 'bonding',
- * 'equilibrium') resolve to themselves. An unrecognised string returns
- * undefined rather than inventing a bucket.
- */
-function normalizeTopic(t: string | undefined): string | undefined {
-  if (!t) return undefined;
-  if (isExamTopicId(t)) return t;
-  if (isModuleId(t) && t !== 'sandbox' && t !== 'qbank') return primaryExamTopicOf(t);
-  return undefined;
 }
 
 // Append screen-reader-only text to an element, once.

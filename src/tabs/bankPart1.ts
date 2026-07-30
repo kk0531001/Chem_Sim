@@ -5,6 +5,8 @@
 export interface BankMC {
   id: string;        // explicit and permanent — see QuizQ in framework.ts
   topic: string;     // an ExamTopicId (the coarse 12), not a ModuleId
+  tier?: 1 | 2 | 3 | 4;   // optional override; see tierOf() in content/registry.ts
+  comps?: readonly ('ccc' | 'usnco' | 'cco' | 'icho')[];   // optional override
   q: string;
   opts: string[];
   a: number;

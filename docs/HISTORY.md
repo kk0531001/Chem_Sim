@@ -364,12 +364,37 @@ indexed view of the corpus — built for the migration, and what Phase C tiering
 and Phase E search will query. `auditCorpus()` runs in dev and fails loudly on a
 duplicated id or an answer index outside its `opts` range.
 
-**Phase A is not finished, and shouldn't be marked so.** The defect is fixed,
-but the *metadata* half of A.2 is still open: no `tier` (deferred to Phase C,
-where the per-question judgement happens), no `comps` (Phase F), no
-`byTopic`/`byTier`/`byComp` query surface (Phase E), and 125 olympiad Part A
-questions carry an id but no topic. See [ROADMAP.md](../ROADMAP.md) A.2 for the
-live list.
+### Stage 12b — The metadata half
+
+Ids alone fixed the defect but left the corpus unqueryable, so the same phase
+finished with difficulty tiers and competition scope.
+
+Both are **derived with optional overrides** rather than stored on 919
+questions: hand-tiering 919 items in one pass isn't accurate, and a stored copy
+of a default goes stale the moment a module's difficulty changes. The corpus
+already encodes difficulty structurally — documented warm-ups, multi-part
+written problems, module `difficulty` — so the derivation reads it off. `comps`
+is an upward closure from the lowest level a module is pitched at, which is what
+makes a competition mode *narrow* what you see instead of relabelling it.
+
+The 125 untagged olympiad questions were classified by scoring their text
+against per-topic keyword sets, with the matched evidence printed for review.
+Seventeen the keywords got wrong or couldn't see are pinned in an explicit
+override table with a reason each — including the systematic one worth
+remembering: `/mole/` matches "**mole**cule", which had filed *"which molecule
+is polar?"* under stoichiometry.
+
+Two bugs surfaced only because the numbers were checked afterwards. The topic
+index was keyed on the raw `topic` string, so `thermo1`/`thermo2` sat in
+different buckets from `thermo` and a query for thermodynamics silently missed
+50 module questions. And `ladderFor('coordchem', 'ccc')` returned 25 questions
+for a module that isn't on the CCC syllabus at all, by pooling exam-bank
+questions that merely shared its topic.
+
+The resulting distribution is itself the useful output — **Bronze 115, Silver
+550, Gold 230, Platinum 24** out of 919. The corpus is overwhelmingly Silver
+with 24 Platinum items total, which confirms Phase C's premise: the gap is at
+the top of the ladder, so that phase is a writing task, not a tiering task.
 
 ---
 

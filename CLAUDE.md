@@ -108,6 +108,30 @@ with a reason stated in the commit/summary.
   Chemistry content must be checked against textbook values (e.g. titration
   equivalence pH, E°cell, bond energies) before shipping.
 
+## The content model (src/content/)
+
+- Every question has an EXPLICIT PERMANENT `id` (919 of them), required on
+  `QuizQ`/`BankMC`/`FRQ`. Never renumber one and never derive it from text —
+  progress is keyed on it, so a changed id orphans a user's history. New
+  questions get ids from `scripts/backfill-ids.mjs` (idempotent, dry-run by
+  default).
+- **Two topic vocabularies, deliberately.** `QuizQ.topic` is a `ModuleId`
+  (`quantum`, `thermo1`); the exam banks use the coarser 12 `ExamTopicId`s.
+  `toExamTopic()` in content/topicIds.ts is the ONE collapse between them —
+  both the attempt log and the registry's topic index use it, so statistics and
+  search can't disagree about what a topic is. Never key an index on the raw
+  `topic` string: that splits `thermo1`/`thermo2` away from `thermo`.
+- **`tier` and `comps` are DERIVED** (`tierOf()`, `compsOf()` in
+  content/registry.ts) with optional per-question overrides. Don't bulk-store
+  them: a stored copy of the default goes stale when a module's `difficulty`
+  changes. `comps` is an upward closure from the lowest level in
+  `TopicMeta.difficulty` — CCC content is in scope for CCO, not vice versa.
+- src/content/registry.ts is the one flat view of the corpus (`ALL_MC`,
+  `ALL_FRQ`, `byTopic`, `byModule`, `byTier`, `byComp`, `query`, `ladderFor`).
+  Add a new bank there AND to `BANKS`/`QUIZ_BANKS`, or its questions silently
+  vanish from every filtered view — `auditCorpus()` catches that in dev, along
+  with duplicate ids and out-of-range answer indexes.
+
 ## Progress tracking (src/progress.ts)
 
 - Solved questions are tracked by a stable content hash of the question text
