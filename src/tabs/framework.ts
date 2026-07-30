@@ -1,7 +1,8 @@
 // Tab framework + shared DOM/plot helpers for the topic modules.
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
-import { qid, isSolved, markSolved, solvedOf, onProgressChange } from '../progress';
+import { isSolved, markSolved, recordAttempt, solvedOf, onProgressChange } from '../progress';
+import { isExamTopicId, isModuleId, primaryExamTopicOf } from '../content/topicIds';
 import 'katex/dist/katex.min.css';
 import 'katex/contrib/mhchem';
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -134,7 +135,24 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
 }
 
 // ---- quick-quiz widget: one question at a time, instant feedback ----
-export interface QuizQ { q: string; opts: string[]; a: number; why: string }
+/**
+ * `id` is EXPLICIT and PERMANENT — never derived from the question text.
+ * Progress used to be keyed by a hash of `q`, which meant fixing a typo
+ * silently orphaned every user's record for that question. Assign a new id
+ * from scripts/backfill-ids.mjs; never renumber an existing one.
+ *
+ * `topic` is a ModuleId and optional only because the 125 olympiad Part A
+ * questions span the whole syllabus and have no single topic. Everything else
+ * carries one, and per-topic statistics skip the ones that don't.
+ */
+export interface QuizQ {
+  id: string;
+  topic?: string;
+  q: string;
+  opts: string[];
+  a: number;
+  why: string;
+}
 
 let quizSeq = 0;
 
@@ -159,7 +177,9 @@ let quizSeq = 0;
  */
 export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   let i = 0, score = 0, answered = false;
-  const ids = qs.map(q => qid(q.q));
+  // Explicit ids, not qid(q.q). Keying progress on a hash of the prompt meant
+  // that fixing a typo silently orphaned every user's record for the question.
+  const ids = qs.map(q => q.id);
   const uid = `quiz-${++quizSeq}`;
   const progress = h('div', { class: 'quiz-progress' });
   const qEl = h('div', { class: 'quiz-q', id: `${uid}-q` });
@@ -215,6 +235,12 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
           b.classList.add('wrong');
           (optsEl.children[q.a] as HTMLElement).classList.add('correct');
         }
+        // Log the attempt whether it was right or wrong — the wrong ones are
+        // the entire point (weak topics, personalised review). Topics are
+        // normalised to the coarse exam vocabulary so that a module-tagged
+        // quiz and an exam-bank question about the same chemistry land in the
+        // same bucket instead of two half-populated ones.
+        recordAttempt(ids[i], right, { topic: normalizeTopic(q.topic), chosen: j });
         // The grading is over: keep the buttons focusable (so they can still be
         // read) but tell AT they no longer do anything, and spell out in text
         // what the red/green only shows visually.
@@ -254,6 +280,24 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
 
   render();
   return wrap;
+}
+
+/**
+ * Collapse either topic vocabulary onto the coarse exam one, so the attempt
+ * log is single-vocabulary and per-topic stats aggregate cleanly.
+ *
+ * Quiz banks tag by ModuleId ('aek', 'physchem'); the exam banks tag by the
+ * 12 ExamTopicIds ('acids', 'thermo'). Left as-is they'd split the same
+ * chemistry across two sets of buckets. Exam topics are checked first so the
+ * three ids that spell identically in both ('stoich', 'bonding',
+ * 'equilibrium') resolve to themselves. An unrecognised string returns
+ * undefined rather than inventing a bucket.
+ */
+function normalizeTopic(t: string | undefined): string | undefined {
+  if (!t) return undefined;
+  if (isExamTopicId(t)) return t;
+  if (isModuleId(t) && t !== 'sandbox' && t !== 'qbank') return primaryExamTopicOf(t);
+  return undefined;
 }
 
 // Append screen-reader-only text to an element, once.

@@ -18,6 +18,7 @@ export const CCO_SETS: ProblemSet[] = [
     blurb: 'Complexometric and redox titrations, gravimetry, activity, and error-aware quantitative analysis.',
     problems: [
       {
+        id: 'cco-ps1-001',
         topic: 'acids', title: 'Water hardness by EDTA',
         prompt: 'A 50.00 mL water sample is titrated with 0.01000 M EDTA. At pH 10 (total hardness) it requires 15.60 mL. A second 50.00 mL portion at pH 12 (Mg²⁺ masked as hydroxide) requires 9.20 mL.',
         parts: [
@@ -28,6 +29,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps1-002',
         topic: 'redox', title: 'Iron ore by dichromate',
         prompt: 'A 0.5000 g iron-ore sample is dissolved, all iron reduced to Fe²⁺, and titrated with 0.02000 M K₂Cr₂O₇, requiring 24.50 mL.<br>Cr₂O₇²⁻ + 6Fe²⁺ + 14H⁺ → 2Cr³⁺ + 6Fe³⁺ + 7H₂O',
         parts: [
@@ -37,6 +39,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps1-003',
         topic: 'stoich', title: 'Activity effect on solubility',
         prompt: 'Ksp(AgCl) = 1.8×10⁻¹⁰ (thermodynamic, in activities). Compare its solubility in pure water and in 0.10 M KNO₃. Use the Davies equation.',
         parts: [
@@ -52,6 +55,7 @@ export const CCO_SETS: ProblemSet[] = [
     blurb: 'Structure elucidation from IR/NMR/MS, and multistep synthetic reasoning.',
     problems: [
       {
+        id: 'cco-ps2-001',
         topic: 'organic', title: 'Structure from combined spectra',
         prompt: 'An unknown C₄H₈O₂ shows: MS M⁺ = 88, strong loss to m/z 43; IR strong band 1740 cm⁻¹, no broad O–H; ¹H NMR: δ 2.0 (s, 3H), δ 4.1 (q, 2H), δ 1.25 (t, 3H).',
         parts: [
@@ -61,6 +65,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps2-002',
         topic: 'organic', title: 'Isotope pattern and the nitrogen rule',
         prompt: 'A compound gives M⁺ = 93 with an M+2 peak about one-third the height of M⁺.',
         parts: [
@@ -70,6 +75,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps2-003',
         topic: 'organic', title: 'Multistep synthesis & pericyclic step',
         prompt: 'Design reasoning: convert cyclohexanone into bicyclo product via an intermediate diene, and separately justify a Diels–Alder step.',
         parts: [
@@ -85,6 +91,7 @@ export const CCO_SETS: ProblemSet[] = [
     blurb: 'Ligand-field analysis, crystal structures and structure–property reasoning in inorganic chemistry.',
     problems: [
       {
+        id: 'cco-ps3-001',
         topic: 'descriptive', title: 'Two iron complexes',
         prompt: 'Compare [Fe(H₂O)₆]³⁺ and [Fe(CN)₆]³⁻. H₂O is weak-field, CN⁻ is strong-field.',
         parts: [
@@ -94,6 +101,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps3-002',
         topic: 'bonding', title: 'Copper metal from its unit cell',
         prompt: 'Copper crystallizes FCC with edge length a = 361.5 pm; M(Cu) = 63.55 g/mol.',
         parts: [
@@ -103,6 +111,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps3-003',
         topic: 'descriptive', title: 'Radius ratio and structure choice',
         prompt: 'Ionic radii: Na⁺ 102 pm, Cl⁻ 181 pm, Cs⁺ 167 pm, Zn²⁺ 74 pm, S²⁻ 184 pm.',
         parts: [
@@ -118,6 +127,7 @@ export const CCO_SETS: ProblemSet[] = [
     blurb: 'Transition-state theory, enzyme kinetics, and quantitative bioenergetics.',
     problems: [
       {
+        id: 'cco-ps4-001',
         topic: 'kinetics', title: 'Activation parameters from Eyring',
         prompt: 'A reaction\'s rate constant is measured at several temperatures. An Eyring plot of ln(k/T) vs 1/T gives slope = −6.05×10³ K and intercept = 23.8.',
         parts: [
@@ -127,6 +137,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps4-002',
         topic: 'kinetics', title: 'Enzyme kinetics with an inhibitor',
         prompt: 'For an enzyme, v is measured vs [S]. Without inhibitor: V_max = 120 µM/min, K_M = 4.0 mM. With 5 mM of inhibitor I (K_i = 2.5 mM), the apparent K_M becomes 12 mM while V_max is unchanged.',
         parts: [
@@ -136,6 +147,7 @@ export const CCO_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'cco-ps4-003',
         topic: 'thermo', title: 'Coupling and the reach of ATP',
         prompt: 'ATP hydrolysis has ΔG°′ = −30.5 kJ/mol. Glutamine synthesis (Glu + NH₃ → Gln + H₂O) has ΔG°′ = +14.2 kJ/mol and is driven by coupling to ATP.',
         parts: [

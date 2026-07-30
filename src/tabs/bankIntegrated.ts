@@ -31,6 +31,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
     blurb: 'van\'t Hoff graph analysis, coupling ΔG°/K, decomposition temperature, and Le Chatelier reasoning.',
     problems: [
       {
+        id: 'int-thermo-eq-001',
         topic: 'thermo', title: 'ΔH° from the temperature dependence of K',
         prompt: 'For the equilibrium \\(\\ce{N2O4(g) <=> 2NO2(g)}\\), the equilibrium constant \\(K_p\\) was measured at four temperatures:'
           + '<table style="margin:8px 0;border-collapse:separate;border-spacing:16px 3px"><tr><td>T / K</td><td>298</td><td>320</td><td>340</td><td>360</td></tr>'
@@ -45,6 +46,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-thermo-eq-002',
         topic: 'thermo', title: 'Decomposition temperature of limestone',
         prompt: 'For \\(\\ce{CaCO3(s) <=> CaO(s) + CO2(g)}\\): \\(\\Delta H^\\circ = +178\\ \\text{kJ/mol}\\), \\(\\Delta S^\\circ = +161\\ \\text{J/mol·K}\\) (treat both as T-independent).',
         parts: [
@@ -55,6 +57,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-thermo-eq-003',
         topic: 'equilibrium', title: 'Solubility, temperature, and the common-ion effect',
         prompt: 'For \\(\\ce{PbCl2(s) <=> Pb^2+ + 2Cl-}\\), \\(K_{sp} = 1.6\\times10^{-5}\\) at 25 °C and \\(3.3\\times10^{-5}\\) at 50 °C.',
         parts: [
@@ -73,6 +76,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
     blurb: 'Track a multi-step synthesis and confirm each product from IR/NMR/MS; distinguish isomers spectroscopically.',
     problems: [
       {
+        id: 'int-org-spec-001',
         topic: 'organic', title: 'A three-step synthesis, confirmed spectroscopically',
         prompt: 'Toluene (\\(\\ce{C6H5CH3}\\)) is taken through: <b>Step 1</b> hot KMnO₄; <b>Step 2</b> SOCl₂; <b>Step 3</b> excess ethanol. Reason out each product and confirm with spectra.',
         parts: [
@@ -83,6 +87,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-org-spec-002',
         topic: 'organic', title: 'Unknown from formula, IR, NMR and MS',
         prompt: 'An unknown contains only C, H, O. Combustion gives 62.0% C, 10.4% H (rest O). MS: M⁺ = 116. IR: strong 1740 cm⁻¹, no broad O–H. ¹H NMR: \\(\\delta\\) 2.05 (s, 3H), \\(\\delta\\) 4.10 (t, 2H), \\(\\delta\\) 1.6 (m, 2H), \\(\\delta\\) 1.4 (m, 2H), \\(\\delta\\) 0.93 (t, 3H).',
         parts: [
@@ -93,6 +98,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-org-spec-003',
         topic: 'organic', title: 'Telling isomers apart by spectroscopy',
         prompt: 'Three compounds share the formula \\(\\ce{C3H6O}\\): propanal, acetone (propan-2-one), and prop-2-en-1-ol (allyl alcohol).',
         parts: [
@@ -111,6 +117,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
     blurb: 'Extract Ksp from electrode potentials, couple Nernst with acid/base and complexation, and read a titration curve.',
     problems: [
       {
+        id: 'int-echem-eq-001',
         topic: 'redox', title: 'Ksp of AgCl from electrode potentials',
         prompt: 'Standard reduction potentials: \\(\\ce{Ag+ + e- -> Ag}\\), \\(E^\\circ = +0.800\\) V; \\(\\ce{AgCl + e- -> Ag + Cl-}\\), \\(E^\\circ = +0.222\\) V.',
         parts: [
@@ -121,6 +128,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-echem-eq-002',
         topic: 'redox', title: 'Reading a redox titration curve',
         prompt: '50.00 mL of 0.1000 M \\(\\ce{Fe^2+}\\) is titrated with 0.1000 M \\(\\ce{Ce^4+}\\) (\\(\\ce{Fe^2+ + Ce^4+ -> Fe^3+ + Ce^3+}\\)). \\(E^\\circ(\\ce{Fe^3+/Fe^2+}) = 0.77\\) V, \\(E^\\circ(\\ce{Ce^4+/Ce^3+}) = 1.44\\) V. The measured electrode potential vs volume is shown.'
           + titrationPlot,
@@ -132,6 +140,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-echem-eq-003',
         topic: 'acids', title: 'Nernst meets pH: the quinhydrone-type electrode',
         prompt: 'A half-cell involves \\(\\ce{Q + 2H+ + 2e- -> QH2}\\) (quinone/hydroquinone), \\(E^\\circ = +0.699\\) V, with equal activities of Q and QH₂.',
         parts: [
@@ -150,6 +159,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
     blurb: 'Turn magnetic moments into electron counts and spin states, weigh CFSE vs pairing energy, and reason about colour.',
     problems: [
       {
+        id: 'int-cft-mag-001',
         topic: 'descriptive', title: 'From magnetic moment to spin state',
         prompt: 'Two iron(II) complexes are studied. \\(\\ce{[Fe(H2O)6]^2+}\\) has \\(\\mu_{eff}\\approx 5.3\\) BM; \\(\\ce{[Fe(CN)6]^4-}\\) has \\(\\mu_{eff}=0\\). Use the spin-only formula \\(\\mu = \\sqrt{n(n+2)}\\) BM.',
         parts: [
@@ -160,6 +170,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-cft-mag-002',
         topic: 'descriptive', title: 'Identifying complexes from a magnetic data table',
         prompt: 'Room-temperature magnetic moments (octahedral complexes):'
           + '<table style="margin:8px 0;border-collapse:separate;border-spacing:16px 3px"><tr><td>complex</td><td>A</td><td>B</td><td>C</td><td>D</td></tr>'
@@ -173,6 +184,7 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         ],
       },
       {
+        id: 'int-cft-mag-003',
         topic: 'descriptive', title: 'Jahn–Teller, colour, and the spectrochemical series',
         prompt: 'Consider \\(\\ce{[Cu(H2O)6]^2+}\\) (pale blue), \\(\\ce{[Cu(NH3)4(H2O)2]^2+}\\) (deep blue), and \\(\\ce{[CuCl4]^2-}\\) (yellow-green).',
         parts: [

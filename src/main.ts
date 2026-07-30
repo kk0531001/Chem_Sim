@@ -31,6 +31,7 @@ import { physChemTab } from './tabs/physchem';
 import { biophysTab } from './tabs/biophys';
 import { qbankTab } from './tabs/qbank';
 import { initProgress } from './progress';
+import { auditCorpus, migrateLegacyProgress, CORPUS_COUNTS } from './content/registry';
 import { mountSidebarAccountPanel } from './authWidget';
 
 const DEFS = [
@@ -197,4 +198,15 @@ autoTypeset(viewEl, home, menuPage);
 
 // ---- progress / account panel ----
 mountSidebarAccountPanel(document.getElementById('progress-panel')!);
-void initProgress();
+// The id migration has to run AFTER initProgress: it rewrites the stored keys,
+// so the local set (and the remote merge, when signed in) must be loaded first.
+void initProgress().then(migrateLegacyProgress);
+
+// Content sanity checks — a duplicated question id silently makes two questions
+// share one progress record, and an out-of-range answer index makes a question
+// unanswerable. Both are invisible at runtime, so surface them in dev.
+if (import.meta.env.DEV) {
+  const problems = auditCorpus();
+  if (problems.length) console.error('[content audit]', problems);
+  else console.info(`[content audit] clean — ${CORPUS_COUNTS.mc} MC + ${CORPUS_COUNTS.frq} written, all ids unique`);
+}

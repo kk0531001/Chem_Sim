@@ -182,20 +182,32 @@ Three consequences:
 - **Nothing can be counted.** Weak-topic tracking, streaks, recommended-next, and
   competition filtering are all aggregations over data that isn't being recorded.
 
-### A.2 The change — **scaffolding [x], the write itself still pending**
+### A.2 The change — **[x] DONE**
 
-Landed: `src/content/topicIds.ts` (the canonical vocabulary),
-`scripts/backfill-ids.mjs` (the codemod, dry-run by default) and
-`src/content/README.md`. **The codemod has NOT been run.** Three things must
-happen in one commit when it is:
+Every question now carries an explicit permanent `id`. 919 of them, inserted by
+`scripts/backfill-ids.mjs` across 17 files; `id` is **required** on `QuizQ`,
+`BankMC` and `FRQ`, so a missing one is a compile error rather than a silent
+gap. `quiz()` and the FRQ browser key progress on `q.id` instead of
+`qid(question text)`, and `src/content/registry.ts` is the one flat indexed view
+of the corpus (also what Phase C tiering and Phase E search will query).
 
-1. Extend `QuizQ` (framework.ts), `BankMC` (bankPart1.ts) and `FRQ`
-   (bankPart2.ts) with `id`/`topic` — until then the write leaves 919
-   excess-property errors.
-2. Switch `quiz()` from `qid(q.q)` to `q.id`, and wire `recordAttempt`.
-3. Ship a `remapProgressIds()` call with the legacy-hash → new-id map, or every
-   existing user's history is orphaned. (The write alone is safe — it doesn't
-   touch prompt text — the window opens at step 2.)
+Making `id` required paid for itself immediately: `qbank.ts` was re-mapping bank
+questions field-by-field (`({ q, opts, a, why }) => ({ q, opts, a, why })`),
+silently dropping the new fields — and it would have dropped any field added
+later. That was the only compile error the change produced.
+
+**Existing progress is migrated, not orphaned.** `migrateLegacyProgress()` in
+the registry builds the legacy-hash → explicit-id map from the current question
+text and calls `remapProgressIds()` once per browser. Verified by seeding a
+returning user's records under the old hashes and doing a real page reload: all
+records preserved, legacy keys gone, unrelated keys untouched, run-once flag set.
+A question whose text changed between a user answering it and the migration
+running won't match and is lost — unavoidable, and exactly the defect the
+explicit ids remove going forward.
+
+`auditCorpus()` runs in dev and fails loudly on the two content mistakes that
+are invisible at runtime but corrupt progress: a duplicated id (two questions
+sharing one record) and an `a` index outside its `opts` range.
 
 **Vocabulary decision:** two distinct vocabularies, deliberately not merged.
 `QuizQ.topic` is a `ModuleId` (`quantum`, `thermo1`, …), which each quiz bank

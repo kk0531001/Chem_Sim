@@ -10,7 +10,7 @@ import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
 import { INTEGRATED_SETS } from './bankIntegrated';
 import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
-import { qid, isSolved, markSolved, unmarkSolved } from '../progress';
+import { isSolved, markSolved, unmarkSolved } from '../progress';
 
 const TOPICS: { id: string; label: string }[] = [
   { id: 'all', label: 'All topics' },
@@ -41,7 +41,7 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
   );
   function show(): void {
     const f = items[idx];
-    const id = qid(f.title + '|' + f.prompt);
+    const id = f.id;   // explicit, not qid(title + '|' + prompt) — see QuizQ
     pos.textContent = `Problem ${idx + 1} of ${items.length} · ${topicLabel(f.topic)}`;
     const solveBtn = button('', () => { isSolved(id) ? unmarkSolved(id) : markSolved(id); syncSolveBtn(); });
     function syncSolveBtn(): void {
@@ -213,7 +213,11 @@ export const qbankTab: TabDef = {
       countNote.textContent = ` ${items.length} questions`;
       if (items.length === 0) { content.append(h('p', { class: 'muted' }, 'No questions for this topic in this part.')); return; }
       const title = part === '1' ? 'Part I style — one best answer' : 'Part III style — laboratory scenarios';
-      content.append(card(title, quiz(items.map(({ q, opts, a, why }) => ({ q, opts, a, why })))));
+      // BankMC is structurally a QuizQ now, so pass it straight through — the
+      // old field-by-field re-map silently dropped `id` (and would drop any
+      // field added later), which is exactly what the explicit ids exist to
+      // prevent.
+      content.append(card(title, quiz(items)));
     }
 
     root.append(

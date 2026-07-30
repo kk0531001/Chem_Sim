@@ -3,15 +3,17 @@
 // worked solution.
 
 export interface FRQ {
-  topic: string;
+  id: string;        // explicit and permanent — see QuizQ in framework.ts
+  topic: string;     // an ExamTopicId (the coarse 12), not a ModuleId
   title: string;
   prompt: string; // HTML — the stem / given data
-  parts: { q: string; a: string }[];
+  parts: { q: string; a: string }[];   // sub-parts deliberately have no ids
 }
 
 export const PART2: FRQ[] = [
   // ================= STOICHIOMETRY =================
   {
+    id: 'p2-stoich-001',
     topic: 'stoich',
     title: 'Combustion analysis of a sugar',
     prompt: 'A 0.300 g sample of a compound containing only C, H and O is burned completely, producing 0.440 g of CO₂ and 0.180 g of H₂O. A separate experiment gives a molar mass of about 180 g/mol.',
@@ -22,6 +24,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-stoich-002',
     topic: 'stoich',
     title: 'Sodium carbonate and acid',
     prompt: 'A 1.06 g sample of pure Na₂CO₃ (M = 106.0 g/mol) is dissolved in water and titrated with 0.500 M HCl to complete neutralization:<br>Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂',
@@ -34,6 +37,7 @@ export const PART2: FRQ[] = [
 
   // ================= STATES OF MATTER & GASES =================
   {
+    id: 'p2-states-001',
     topic: 'states',
     title: 'Identifying a gas from PVT data',
     prompt: 'A 0.500 g sample of a pure gas occupies 245 mL at 25.0 °C and 1.00 atm. (R = 0.08206 L·atm/mol·K)',
@@ -44,6 +48,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-states-002',
     topic: 'states',
     title: 'Hydrogen collected over water',
     prompt: 'Zinc reacts with excess hydrochloric acid: Zn + 2HCl → ZnCl₂ + H₂. The hydrogen is collected over water at 25.0 °C. The total pressure is 760.0 torr and the collected volume is 500.0 mL. (P°(H₂O, 25 °C) = 23.8 torr)',
@@ -56,6 +61,7 @@ export const PART2: FRQ[] = [
 
   // ================= THERMODYNAMICS =================
   {
+    id: 'p2-thermo-001',
     topic: 'thermo',
     title: 'Combustion calorimetry of ethanol',
     prompt: 'Burning 1.00 g of ethanol (C₂H₅OH, M = 46.07) under a simple can calorimeter raises the temperature of 500.0 g of water from 21.0 °C to 33.9 °C. (c = 4.18 J/g·K)',
@@ -66,6 +72,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-thermo-002',
     topic: 'thermo',
     title: 'Free energy and K for dinitrogen tetroxide',
     prompt: 'For N₂O₄(g) ⇌ 2NO₂(g): ΔH° = +57.2 kJ/mol and ΔS° = +175.8 J/mol·K, roughly independent of temperature.',
@@ -78,6 +85,7 @@ export const PART2: FRQ[] = [
 
   // ================= KINETICS =================
   {
+    id: 'p2-kinetics-001',
     topic: 'kinetics',
     title: 'Rate law from initial rates',
     prompt: 'For A + B → products:<br><table class="ref-table"><tr><th>[A]₀ (M)</th><th>[B]₀ (M)</th><th>rate (M/s)</th></tr><tr><td>0.10</td><td>0.10</td><td>2.0×10⁻⁴</td></tr><tr><td>0.20</td><td>0.10</td><td>8.0×10⁻⁴</td></tr><tr><td>0.10</td><td>0.20</td><td>4.0×10⁻⁴</td></tr></table>',
@@ -88,6 +96,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-kinetics-002',
     topic: 'kinetics',
     title: 'First-order decomposition',
     prompt: 'A compound decomposes by first-order kinetics with k = 0.0231 min⁻¹ at 60 °C.',
@@ -100,6 +109,7 @@ export const PART2: FRQ[] = [
 
   // ================= EQUILIBRIUM =================
   {
+    id: 'p2-equilibrium-001',
     topic: 'equilibrium',
     title: 'PCl₅ dissociation from total pressure',
     prompt: 'Pure PCl₅(g) is sealed in a flask at an initial pressure of 1.00 atm. At equilibrium (constant T), the TOTAL pressure is 1.40 atm.<br>PCl₅(g) ⇌ PCl₃(g) + Cl₂(g)',
@@ -110,6 +120,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-equilibrium-002',
     topic: 'equilibrium',
     title: 'Selective precipitation (the Mohr idea)',
     prompt: 'A solution is 0.010 M in both Cl⁻ and CrO₄²⁻. AgNO₃ is added slowly.<br>Ksp(AgCl) = 1.8×10⁻¹⁰ · Ksp(Ag₂CrO₄) = 1.1×10⁻¹²',
@@ -122,6 +133,7 @@ export const PART2: FRQ[] = [
 
   // ================= ACIDS & BASES =================
   {
+    id: 'p2-acids-001',
     topic: 'acids',
     title: 'Designing an acetate buffer',
     prompt: 'You have 1.00 L of 0.100 M acetic acid (pKa = 4.74) and solid NaOH. Target: a pH 5.00 buffer.',
@@ -132,6 +144,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-acids-002',
     topic: 'acids',
     title: 'Phosphoric acid, one proton at a time',
     prompt: 'H₃PO₄: Ka1 = 7.5×10⁻³, Ka2 = 6.2×10⁻⁸, Ka3 = 4.8×10⁻¹³. Consider a 0.100 M solution.',
@@ -144,6 +157,7 @@ export const PART2: FRQ[] = [
 
   // ================= ELECTROCHEMISTRY =================
   {
+    id: 'p2-redox-001',
     topic: 'redox',
     title: 'A silver–nickel cell, complete workup',
     prompt: 'Half-reactions: Ag⁺ + e⁻ → Ag (E° = +0.80 V); Ni²⁺ + 2e⁻ → Ni (E° = −0.26 V).',
@@ -154,6 +168,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-redox-002',
     topic: 'redox',
     title: 'Chrome plating by electrolysis',
     prompt: 'A part is plated with 25.0 g of chromium from a Cr³⁺ bath using a 10.0 A current. (M(Cr) = 52.0; F = 96 485 C/mol)',
@@ -166,6 +181,7 @@ export const PART2: FRQ[] = [
 
   // ================= ATOMIC STRUCTURE =================
   {
+    id: 'p2-atomic-001',
     topic: 'atomic',
     title: 'The hydrogen spectrum, quantitatively',
     prompt: 'Use Eₙ = −13.6/n² eV for the hydrogen atom.',
@@ -176,6 +192,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-atomic-002',
     topic: 'atomic',
     title: 'Reading a photoelectron spectrum',
     prompt: 'An element\'s PES shows four peaks. Binding energy falls left to right; relative areas are given:<br><table class="ref-table"><tr><th>peak</th><th>1</th><th>2</th><th>3</th><th>4</th></tr><tr><td>area</td><td>2</td><td>2</td><td>6</td><td>1</td></tr></table>',
@@ -188,6 +205,7 @@ export const PART2: FRQ[] = [
 
   // ================= BONDING =================
   {
+    id: 'p2-bonding-001',
     topic: 'bonding',
     title: 'Nitrous oxide, three ways',
     prompt: 'Dinitrogen monoxide has the connectivity N–N–O (16 valence electrons).',
@@ -198,6 +216,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-bonding-002',
     topic: 'bonding',
     title: 'The oxygen family by MO theory',
     prompt: 'Consider O₂, O₂⁺, O₂⁻ and O₂²⁻ using the MO diagram for period-2 diatomics (σ2p below π2p).',
@@ -210,6 +229,7 @@ export const PART2: FRQ[] = [
 
   // ================= DESCRIPTIVE & INORGANIC =================
   {
+    id: 'p2-descriptive-001',
     topic: 'descriptive',
     title: 'A four-cation qualitative analysis',
     prompt: 'A solution may contain Ag⁺, Ba²⁺, Fe³⁺ and Zn²⁺. Observations:<br>1. Adding dilute HCl gives a white precipitate; the filtrate is kept.<br>2. Adding dilute H₂SO₄ to the filtrate gives another white precipitate.<br>3. Adding excess aqueous NH₃ to the remaining solution gives a red-brown precipitate, and the liquid above it is colorless.',
@@ -220,6 +240,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-descriptive-002',
     topic: 'descriptive',
     title: 'Two cobalt complexes, two colors',
     prompt: 'Compare [Co(NH₃)₆]³⁺ and [CoF₆]³⁻. NH₃ is a strong-field ligand; F⁻ is weak-field.',
@@ -232,6 +253,7 @@ export const PART2: FRQ[] = [
 
   // ================= ORGANIC =================
   {
+    id: 'p2-organic-001',
     topic: 'organic',
     title: 'One substrate, two fates',
     prompt: '2-bromo-2-methylbutane, (CH₃)₂C(Br)CH₂CH₃, is treated under two different conditions.',
@@ -242,6 +264,7 @@ export const PART2: FRQ[] = [
     ],
   },
   {
+    id: 'p2-organic-002',
     topic: 'organic',
     title: 'A four-step synthesis from propene',
     prompt: 'Propene is carried through: (1) HBr; (2) NaOH(aq); (3) Na₂Cr₂O₇/H₂SO₄; (4) CH₃MgBr, then H₃O⁺.',
