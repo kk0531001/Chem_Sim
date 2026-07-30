@@ -53,6 +53,7 @@ const DEFS = [
 const VALID_IDS = new Set(DEFS.map(d => d.id));
 
 const appEl = document.getElementById('app')!;
+const mainEl = document.getElementById('app-main')!;
 const navEl = document.getElementById('nav-items')!;
 const viewEl = document.getElementById('view')!;
 const brandEl = document.getElementById('brand')!;
@@ -81,13 +82,19 @@ function updateTopicChrome(tabId: string): void {
   footerEl.replaceChildren();
   if (!topic) return;
 
-  // breadcrumb + this topic's own time/difficulty meta
+  // Breadcrumb as a labelled landmark wrapping an ordered list — the trail is a
+  // sequence, and aria-current="page" marks where you actually are. The "/"
+  // separators are gone from the DOM (CSS draws them now) so they aren't read
+  // out. The time/difficulty meta sits OUTSIDE the nav: it describes the topic,
+  // it isn't a step in the trail.
   crumbEl.append(
-    h('button', { class: 'crumb-link', onclick: () => navigate({ kind: 'home' }) }, 'Home'),
-    h('span', { class: 'crumb-sep' }, '/'),
-    h('button', { class: 'crumb-link', onclick: () => navigate({ kind: 'menu' }) }, topic.group),
-    h('span', { class: 'crumb-sep' }, '/'),
-    h('span', { class: 'crumb-current' }, topic.title),
+    h('nav', { class: 'crumb-nav', 'aria-label': 'Breadcrumb' },
+      h('ol', { class: 'crumb-list' },
+        h('li', {}, h('button', { type: 'button', class: 'crumb-link', onclick: () => navigate({ kind: 'home' }) }, 'Home')),
+        h('li', {}, h('button', { type: 'button', class: 'crumb-link', onclick: () => navigate({ kind: 'menu' }) }, topic.group)),
+        h('li', {}, h('span', { class: 'crumb-current', 'aria-current': 'page' }, topic.title)),
+      ),
+    ),
     h('span', { class: 'crumb-meta' },
       h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${topic.estMinutes} min`),
       ...difficultyBadges(topic.difficulty),
@@ -99,7 +106,11 @@ function updateTopicChrome(tabId: string): void {
   if (prereqs.length) {
     prereqEl.append(
       h('span', { class: 'prereq-label' }, 'Recommended first:'),
-      ...prereqs.map(p => h('button', { class: 'prereq-chip', onclick: () => navigate({ kind: 'topic', id: p.id }) }, p.title)),
+      ...prereqs.map(p => h('button', {
+        type: 'button', class: 'prereq-chip',
+        'aria-label': `Recommended first: ${p.title}`,
+        onclick: () => navigate({ kind: 'topic', id: p.id }),
+      }, p.title)),
     );
   }
 
@@ -108,10 +119,22 @@ function updateTopicChrome(tabId: string): void {
   const next = TOPICS[idx + 1];
   footerEl.append(
     prev
-      ? h('button', { class: 'topic-prev-btn', onclick: () => navigate({ kind: 'topic', id: prev.id }) }, `← ${prev.title}`)
+      ? h('button', {
+          type: 'button', class: 'topic-prev-btn',
+          // the "←" would be read as a bare arrow glyph, and "Chemical
+          // Equilibrium" alone doesn't say which direction it goes
+          'aria-label': `Previous lesson: ${prev.title}`,
+          onclick: () => navigate({ kind: 'topic', id: prev.id }),
+        }, `← ${prev.title}`)
       : h('span', {}),
     next
-      ? h('button', { class: 'next-lesson-card', onclick: () => navigate({ kind: 'topic', id: next.id }) },
+      ? h('button', {
+          type: 'button', class: 'next-lesson-card',
+          // collapses the card's icon + label + title + time + badges into one
+          // spoken name; the detail is still on screen
+          'aria-label': `Next lesson: ${next.title}, ${next.estMinutes} min`,
+          onclick: () => navigate({ kind: 'topic', id: next.id }),
+        },
           h('span', { class: 'next-lesson-icon', html: topicIconSVG(next.icon) }),
           h('span', { class: 'next-lesson-body' },
             h('span', { class: 'next-lesson-label' }, 'Next lesson'),
@@ -127,6 +150,12 @@ function updateTopicChrome(tabId: string): void {
   );
 }
 
+const BASE_TITLE = 'ChemPrep — Chemistry Olympiad Trainer';
+
+// Which topic we were last on, so a navigation can be told apart from a reload
+// or a resume (focus should move on the former only).
+let lastTopicId: string | null = null;
+
 function showRoute(route: Route): void {
   home.hidden = route.kind !== 'home';
   menuPage.hidden = route.kind !== 'menu';
@@ -134,6 +163,8 @@ function showRoute(route: Route): void {
   if (route.kind !== 'topic') {
     appEl.hidden = true;
     tabs?.suspend();
+    lastTopicId = null;
+    document.title = route.kind === 'menu' ? `All Topics — ChemPrep` : BASE_TITLE;
     return;
   }
   if (!VALID_IDS.has(route.id)) { navigate({ kind: 'home' }, true); return; }
@@ -142,6 +173,16 @@ function showRoute(route: Route): void {
   if (tabs.current() === route.id) tabs.resume();
   else tabs.show(route.id);
   updateTopicChrome(route.id);
+
+  // On a real page change in a JS-routed app nothing tells a screen reader that
+  // the content was replaced — the URL changes and the DOM swaps silently. Two
+  // fixes, both standard: rename the document, and move focus to the top of
+  // <main> so the next thing read is the new breadcrumb and lesson rather than
+  // wherever the old page's focus happened to be.
+  const topic = topicById(route.id);
+  document.title = topic ? `${topic.title} — ChemPrep` : BASE_TITLE;
+  if (lastTopicId && lastTopicId !== route.id) mainEl.focus({ preventScroll: true });
+  lastTopicId = route.id;
 }
 
 onRouteChange(showRoute);

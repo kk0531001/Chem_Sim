@@ -78,7 +78,9 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
       const prev = roots.get(currentId);
       prev?.handle?.onHide?.();
       if (prev) prev.root.style.display = 'none';
-      buttons.get(currentId)?.classList.remove('active');
+      const prevBtn = buttons.get(currentId);
+      prevBtn?.classList.remove('active');
+      prevBtn?.removeAttribute('aria-current');
     }
     let entry = roots.get(id);
     if (!entry) {
@@ -88,23 +90,39 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
       entry = { root, handle: def.mount(root) };
       roots.set(id, entry);
       typesetMath(root);
+      labelCanvases(root);
     }
     entry.root.style.display = '';
     entry.handle?.onShow?.();
-    buttons.get(id)?.classList.add('active');
+    labelCanvases(entry.root); // catches canvases the tab created after mount
+    const btn = buttons.get(id);
+    btn?.classList.add('active');
+    // the active item is the current PAGE (each topic has its own URL), not
+    // just a highlighted button — .active is a paint, aria-current is the fact
+    btn?.setAttribute('aria-current', 'page');
     currentId = id;
   }
 
+  // Sidebar items are grouped by chemistry domain. The group label is a real
+  // element and each run of items is a role="group" pointing at it, so the
+  // grouping is available to assistive tech and not just to the eye.
   let lastGroup = '';
+  let groupBox: HTMLElement = nav;
+  let groupIndex = 0;
   for (const def of defs) {
     const g = def.group ?? '';
     if (g && g !== lastGroup) {
-      nav.appendChild(h('div', { class: 'nav-group' }, g));
+      const labelId = `nav-group-${++groupIndex}`;
+      nav.appendChild(h('div', { class: 'nav-group', id: labelId }, g));
+      groupBox = h('div', { class: 'nav-group-items', role: 'group', 'aria-labelledby': labelId });
+      nav.appendChild(groupBox);
       lastGroup = g;
     }
-    const btn = h('button', { class: 'nav-item', onclick: () => (onSelect ?? show)(def.id) }, def.label);
+    const btn = h('button', {
+      type: 'button', class: 'nav-item', onclick: () => (onSelect ?? show)(def.id),
+    }, def.label);
     buttons.set(def.id, btn);
-    nav.appendChild(btn);
+    groupBox.appendChild(btn);
   }
 
   return {
@@ -118,44 +136,95 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
 // ---- quick-quiz widget: one question at a time, instant feedback ----
 export interface QuizQ { q: string; opts: string[]; a: number; why: string }
 
+let quizSeq = 0;
+
+/*
+ * Accessibility notes on the pattern used here, because the obvious choice is
+ * the wrong one.
+ *
+ * `role="radiogroup"` looks right and is wrong. A radio group models a
+ * *revisable* choice: arrow keys move between options, only one is in the tab
+ * order, and `aria-checked` tracks a selection the user can still change before
+ * committing it. This quiz has none of that — the first click is final, it is
+ * graded on the spot, and the option you pressed is not a "selection" but an
+ * answer already scored. Announcing "radio button, 2 of 4, not checked" would
+ * describe an interaction that does not exist here.
+ *
+ * So the options stay real <button>s (correct: each one is a distinct,
+ * immediate action) inside a `role="group"` named by the question, which is
+ * what gives the set its context. What the buttons then need is for the
+ * *result* to survive the loss of colour: `.correct` / `.wrong` are green and
+ * red backgrounds and nothing else, so each graded button also gets an
+ * .sr-only suffix, and the verdict is prepended to the live explanation.
+ */
 export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   let i = 0, score = 0, answered = false;
   const ids = qs.map(q => qid(q.q));
+  const uid = `quiz-${++quizSeq}`;
   const progress = h('div', { class: 'quiz-progress' });
-  const qEl = h('div', { class: 'quiz-q' });
+  const qEl = h('div', { class: 'quiz-q', id: `${uid}-q` });
+  // Progress + question move together and take focus after "Next question", so
+  // a screen reader reads "Question 7 of 25 · olympiad …" and then the new
+  // question. That is why the progress line needs no live region of its own —
+  // it is never announced out of context, and never mid-typing.
+  const head = h('div', { class: 'quiz-head', tabindex: -1 }, progress, qEl);
   const optsEl = h('div', { class: 'quiz-opts' });
-  const whyEl = h('div', { class: 'quiz-why' });
-  const nextBtn = button('Next question', () => { i++; render(); }, 'primary');
-  const wrap = h('div', { class: 'quiz' }, progress, qEl, optsEl, whyEl, nextBtn);
+  const whyEl = h('div', { class: 'quiz-why', 'aria-live': 'polite', 'aria-atomic': 'true' });
+  const nextBtn = button('Next question', () => { i++; render(true); }, 'primary');
+  const wrap = h('div', { class: 'quiz' }, head, optsEl, whyEl, nextBtn);
   onProgressChange(() => { if (i < qs.length) updateProgressLine(); });
 
-  function render(): void {
+  // Options are a named group while they are options; on the "Done" screen the
+  // container holds a single Restart button and must not claim to be one.
+  function setOptsGrouped(on: boolean): void {
+    if (on) {
+      optsEl.setAttribute('role', 'group');
+      optsEl.setAttribute('aria-labelledby', `${uid}-q`);
+    } else {
+      optsEl.removeAttribute('role');
+      optsEl.removeAttribute('aria-labelledby');
+    }
+  }
+
+  function render(moveFocus = false): void {
     answered = false;
     whyEl.innerHTML = '';
     whyEl.className = 'quiz-why';
     nextBtn.style.display = 'none';
     if (i >= qs.length) {
-      progress.textContent = '';
+      setProgress('');
       qEl.innerHTML = `Done — score <b>${score}/${qs.length}</b> ` +
         (score === qs.length ? '— perfect!' : score >= Math.ceil(qs.length * 0.7) ? '— solid!' : '— review the theory panel and retry.');
-      optsEl.replaceChildren(button('Restart quiz', () => { i = 0; score = 0; render(); }, 'primary'));
+      setOptsGrouped(false);
+      optsEl.replaceChildren(button('Restart quiz', () => { i = 0; score = 0; render(true); }, 'primary'));
+      if (moveFocus) head.focus();
       return;
     }
     const q = qs[i];
     updateProgressLine();
+    setOptsGrouped(true);
     qEl.innerHTML = q.q + (isSolved(ids[i]) ? ' <span class="solved-tag">✓ solved</span>' : '');
     optsEl.replaceChildren(...q.opts.map((o, j) => {
-      const b = h('button', { class: 'quiz-opt' }, o);
+      const b = h('button', { type: 'button', class: 'quiz-opt' }, o);
       b.addEventListener('click', () => {
         if (answered) return;
         answered = true;
-        if (j === q.a) { score++; b.classList.add('correct'); markSolved(ids[i]); }
+        const right = j === q.a;
+        if (right) { score++; b.classList.add('correct'); markSolved(ids[i]); }
         else {
           b.classList.add('wrong');
           (optsEl.children[q.a] as HTMLElement).classList.add('correct');
         }
-        whyEl.innerHTML = q.why;
-        whyEl.classList.add(j === q.a ? 'good' : 'bad');
+        // The grading is over: keep the buttons focusable (so they can still be
+        // read) but tell AT they no longer do anything, and spell out in text
+        // what the red/green only shows visually.
+        for (const el of Array.from(optsEl.children)) el.setAttribute('aria-disabled', 'true');
+        srSuffix(optsEl.children[q.a], right ? 'correct answer, your answer' : 'correct answer');
+        if (!right) srSuffix(b, 'your answer, incorrect');
+        // aria-live on whyEl announces this; leading with the verdict means the
+        // outcome is heard first and does not depend on the colour change.
+        whyEl.innerHTML = `<span class="sr-only">${right ? 'Correct. ' : 'Incorrect. '}</span>${q.why}`;
+        whyEl.classList.add(right ? 'good' : 'bad');
         typesetMath(whyEl);
         updateProgressLine();
         nextBtn.style.display = '';
@@ -166,17 +235,31 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
     // depending on the rAF-based observer (which can flash raw \( … \)).
     typesetMath(qEl);
     typesetMath(optsEl);
+    if (moveFocus) head.focus();
+  }
+
+  // Rewriting the text node is what triggers a live-region announcement, so
+  // only touch it when the string actually changed (onProgressChange can fire
+  // from a cloud sync with nothing new to say).
+  function setProgress(s: string): void {
+    if (progress.textContent !== s) progress.textContent = s;
   }
 
   function updateProgressLine(): void {
     if (i >= qs.length) return;
     const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · warm-up' : ' · olympiad';
     const done = solvedOf(ids);
-    progress.textContent = `Question ${i + 1} of ${qs.length}${tier} · score ${score} · ${done}/${qs.length} solved`;
+    setProgress(`Question ${i + 1} of ${qs.length}${tier} · score ${score} · ${done}/${qs.length} solved`);
   }
 
   render();
   return wrap;
+}
+
+// Append screen-reader-only text to an element, once.
+function srSuffix(el: Element, text: string): void {
+  if (el.querySelector('.sr-only')) return;
+  el.appendChild(h('span', { class: 'sr-only' }, ` — ${text}`));
 }
 
 // ---- hyperscript-style element builder ----
@@ -213,15 +296,26 @@ export function theory(title: string, html: string, open = false): HTMLElement {
   return d;
 }
 
+let ctlSeq = 0;
+
 export function slider(opts: {
   label: string; min: number; max: number; step?: number; value: number;
   fmt?: (v: number) => string; onInput: (v: number) => void;
 }): HTMLElement {
   const fmt = opts.fmt ?? ((v: number) => String(v));
+  const labelId = `ctl-${++ctlSeq}`;
   const valEl = h('span', { class: 'ctl-val' }, fmt(opts.value));
+  // Two things a bare range input gets wrong here:
+  //  - the wrapping <label> would fold the live value into the control's NAME,
+  //    so it renames itself on every drag; aria-labelledby pins the name to the
+  //    label text only.
+  //  - the slider announces its raw `value` (0.001) while the readout shows the
+  //    formatted quantity ("1.0 mM"); aria-valuetext makes AT read what is on
+  //    screen, units and all.
   const input = h('input', {
     type: 'range', min: opts.min, max: opts.max,
     step: opts.step ?? 1, value: opts.value, autocomplete: 'off',
+    'aria-labelledby': labelId, 'aria-valuetext': fmt(opts.value),
   });
   // The readout updates instantly (cheap); the heavy callback (canvas redraws,
   // innerHTML rebuilds) is coalesced to once per animation frame so fast drags
@@ -231,6 +325,7 @@ export function slider(opts: {
   input.addEventListener('input', () => {
     pending = Number(input.value);
     valEl.textContent = fmt(pending);
+    input.setAttribute('aria-valuetext', fmt(pending));
     if (raf === 0) {
       raf = requestAnimationFrame(() => {
         raf = 0;
@@ -239,7 +334,7 @@ export function slider(opts: {
     }
   });
   return h('label', { class: 'ctl' },
-    h('span', { class: 'ctl-label' }, opts.label), input, valEl);
+    h('span', { class: 'ctl-label', id: labelId }, opts.label), input, valEl);
 }
 
 export function select(
@@ -259,25 +354,109 @@ export function select(
 }
 
 export function button(label: string, onClick: () => void, cls = ''): HTMLButtonElement {
-  return h('button', { class: `btn ${cls}`, onclick: onClick }, label);
+  return h('button', { type: 'button', class: `btn ${cls}`, onclick: onClick }, label);
 }
 
+let pillSeq = 0;
+
 // Sub-navigation pills inside a tab; returns container with panels swapped.
+//
+// Unlike the quiz options, this one IS the ARIA tabs pattern — one of a set of
+// choices that swaps a panel and is freely revisable — so it gets the whole
+// pattern rather than half of it: tablist/tab/tabpanel roles, aria-selected,
+// a single tab stop with arrow-key movement between the pills (a roving
+// tabindex), and Home/End. Implementing the roles without the keyboard
+// behaviour would be worse than leaving them off, because it would promise a
+// interaction model the widget doesn't honour.
 export function pills(sections: { label: string; el: HTMLElement }[]): HTMLElement {
-  const bar = h('div', { class: 'pill-bar' });
+  const uid = `pills-${++pillSeq}`;
+  const bar = h('div', { class: 'pill-bar', role: 'tablist' });
   const body = h('div', {});
   const btns: HTMLButtonElement[] = [];
   sections.forEach((s, i) => {
-    const b = h('button', { class: 'pill', onclick: () => activate(i) }, s.label);
+    const b = h('button', {
+      type: 'button', class: 'pill', role: 'tab',
+      id: `${uid}-tab-${i}`, 'aria-controls': `${uid}-panel-${i}`,
+      'aria-selected': 'false', tabindex: -1,
+      onclick: () => activate(i),
+    }, s.label);
+    b.addEventListener('keydown', e => {
+      const last = sections.length - 1;
+      let to = -1;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') to = i === last ? 0 : i + 1;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') to = i === 0 ? last : i - 1;
+      else if (e.key === 'Home') to = 0;
+      else if (e.key === 'End') to = last;
+      if (to < 0) return;
+      e.preventDefault();
+      activate(to, true);
+    });
     btns.push(b);
     bar.appendChild(b);
   });
-  function activate(i: number): void {
-    btns.forEach((b, j) => b.classList.toggle('active', i === j));
-    body.replaceChildren(sections[i].el);
+  // Every panel is mounted up front with the inactive ones `hidden`, rather
+  // than swapped in one at a time. `aria-controls` only means something if it
+  // resolves to an element that is actually in the document, and a detached
+  // panel resolves to nothing — swapping would leave every unselected tab
+  // pointing at an id that isn't there. (Safe because style.css carries a
+  // `[hidden] { display: none !important }` guard, so a panel's own display
+  // rules can't un-hide it.)
+  sections.forEach((s, i) => {
+    s.el.id = `${uid}-panel-${i}`;
+    s.el.setAttribute('role', 'tabpanel');
+    s.el.setAttribute('aria-labelledby', `${uid}-tab-${i}`);
+    s.el.hidden = true;
+    body.appendChild(s.el);
+  });
+
+  function activate(i: number, moveFocus = false): void {
+    btns.forEach((b, j) => {
+      const on = i === j;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+    });
+    sections.forEach((s, j) => { s.el.hidden = j !== i; });
+    labelCanvases(sections[i].el);
+    if (moveFocus) btns[i].focus();
   }
   activate(0);
   return h('div', {}, bar, body);
+}
+
+// ---- text alternatives for <canvas> ----
+//
+// A <canvas> is opaque to assistive tech: whatever it paints, the element
+// exposes nothing. Most plots in the app go through plot() below, which knows
+// its own axes and series and labels itself precisely. This is the fallback for
+// the hand-drawn ones (orbital viewer, MO diagram, decay grid, gas box): name
+// them from the nearest preceding heading, which in this codebase is the
+// enclosing card's <h2> — the same words a sighted reader uses to identify the
+// figure. role="img" also stops AT from wandering into the element.
+function nearestHeading(el: Element): string | null {
+  let node: Element | null = el;
+  while (node) {
+    for (let s = node.previousElementSibling; s; s = s.previousElementSibling) {
+      if (/^H[1-6]$/.test(s.tagName)) {
+        const t = s.textContent?.trim();
+        if (t) return t;
+      }
+    }
+    if (node.classList.contains('tab-root')) break;
+    node = node.parentElement;
+  }
+  return null;
+}
+
+export function labelCanvases(root: HTMLElement): void {
+  for (const c of Array.from(root.querySelectorAll('canvas'))) {
+    // never override a label the tab (or plot()) set deliberately
+    if (c.hasAttribute('aria-label') || c.hasAttribute('aria-labelledby') ||
+        c.hasAttribute('aria-hidden')) continue;
+    const name = nearestHeading(c);
+    c.setAttribute('role', 'img');
+    c.setAttribute('aria-label', name ?? 'Figure');
+  }
 }
 
 // ---- tiny canvas plotting ----
@@ -322,9 +501,11 @@ export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts
   const Y = (y: number) => Hh - padB - ((y - yMin) / (yMax - yMin)) * (Hh - padT - padB);
 
   const MONO = '"SF Mono", Menlo, Consolas, monospace';
-  // grid + ticks
+  // grid + ticks. Tick labels are text rendered as an image, so they owe the
+  // same 4.5:1 as any other text: #64748f on the --panel background was 3.90:1,
+  // #8b9bb0 (the axis-label colour already used below) is 6.52:1.
   ctx.font = `10px ${MONO}`;
-  ctx.fillStyle = '#64748f';
+  ctx.fillStyle = '#8b9bb0';
   ctx.strokeStyle = '#161d2b';
   ctx.lineWidth = 1;
   for (let i = 0; i <= 5; i++) {
@@ -337,8 +518,10 @@ export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts
     ctx.textAlign = 'right';
     ctx.fillText(fmtTick(yv), padL - 5, Y(yv) + 3);
   }
-  // axes
-  ctx.strokeStyle = '#2b3750';
+  // axes — a graphical object you need in order to read the chart, so 3:1
+  // applies: #2b3750 was 1.55:1 on the panel, #55627a is 3.00:1. The fainter
+  // grid lines above are left alone; they're an aid, not load-bearing.
+  ctx.strokeStyle = '#55627a';
   ctx.beginPath(); ctx.moveTo(padL, padT); ctx.lineTo(padL, Hh - padB); ctx.lineTo(W - padR, Hh - padB); ctx.stroke();
   if (opts.xLabel) {
     ctx.textAlign = 'center'; ctx.fillStyle = '#8b9bb0';
@@ -398,6 +581,29 @@ export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts
       ly += 16;
     }
   }
+
+  // ---- text alternative ----
+  // Everything drawn above is invisible to assistive tech. The plot already
+  // knows what it is showing, so describe it from that: axes, ranges, series
+  // names and any called-out markers. Re-run on every redraw, so a slider drag
+  // keeps the description honest instead of leaving a stale one behind.
+  const parts: string[] = [];
+  parts.push(
+    opts.yLabel && opts.xLabel ? `Line chart of ${opts.yLabel} against ${opts.xLabel}.`
+      : opts.yLabel ? `Line chart of ${opts.yLabel}.`
+        : opts.xLabel ? `Line chart against ${opts.xLabel}.`
+          : 'Line chart.',
+  );
+  parts.push(
+    `Horizontal axis ${fmtTick(xMin)} to ${fmtTick(xMax)}, ` +
+    `vertical axis ${fmtTick(yMin)} to ${fmtTick(yMax)}.`,
+  );
+  const names = series.map(s => s.label).filter((l): l is string => !!l);
+  if (names.length) parts.push(`${names.length === 1 ? 'Series' : 'Series plotted'}: ${names.join(', ')}.`);
+  const marked = (opts.markers ?? []).map(m => m.label).filter((l): l is string => !!l);
+  if (marked.length) parts.push(`Marked: ${marked.join(', ')}.`);
+  canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', parts.join(' '));
 }
 
 function fmtTick(v: number): string {
@@ -439,8 +645,9 @@ export function miniPlot(
     out += `<text x="${X(xv).toFixed(1)}" y="${H - padB + 12}" fill="#8b9bb0" font-size="9" text-anchor="middle" font-family="monospace">${fmtTick(xv)}</text>`;
     out += `<text x="${(padL - 5).toFixed(1)}" y="${(Y(yv) + 3).toFixed(1)}" fill="#8b9bb0" font-size="9" text-anchor="end" font-family="monospace">${fmtTick(yv)}</text>`;
   }
-  out += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="#4a5670" stroke-width="1"/>`;
-  out += `<line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="#4a5670" stroke-width="1"/>`;
+  // axes: #4a5670 was 2.51:1 on the dark panels these render on (needs 3:1)
+  out += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H - padB}" stroke="#55627a" stroke-width="1"/>`;
+  out += `<line x1="${padL}" y1="${H - padB}" x2="${W - padR}" y2="${H - padB}" stroke="#55627a" stroke-width="1"/>`;
   for (const s of series) {
     const pts = s.xs.map((x, i) => `${X(x).toFixed(1)},${Y(s.ys[i]).toFixed(1)}`).join(' ');
     out += `<polyline points="${pts}" fill="none" stroke="${s.color ?? '#e8590c'}" stroke-width="2" stroke-linejoin="round"${s.dashed ? ' stroke-dasharray="4 4"' : ''}/>`;
@@ -449,7 +656,21 @@ export function miniPlot(
   }
   if (opts.xLabel) out += `<text x="${(padL + (W - padL - padR) / 2).toFixed(1)}" y="${H - 3}" fill="#a8b6c8" font-size="10" text-anchor="middle">${opts.xLabel}</text>`;
   if (opts.yLabel) { const cy = padT + (H - padT - padB) / 2; out += `<text x="12" y="${cy.toFixed(1)}" fill="#a8b6c8" font-size="10" text-anchor="middle" transform="rotate(-90 12 ${cy.toFixed(1)})">${opts.yLabel}</text>`; }
-  return `<svg viewBox="0 0 ${W} ${H}" style="max-width:360px;width:100%;height:auto;margin:8px 0" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+  // role="img" + a name: without it AT reads the loose <text> nodes inside —
+  // every tick value, in drawing order, with no indication they are axis
+  // labels. With it the graph is one described object.
+  const alt = attrEscape(
+    opts.yLabel && opts.xLabel ? `Line graph of ${opts.yLabel} against ${opts.xLabel}, `
+      + `horizontal axis ${fmtTick(xmin)} to ${fmtTick(xmax)}, vertical axis ${fmtTick(ymin)} to ${fmtTick(ymax)}.`
+      : `Line graph, horizontal axis ${fmtTick(xmin)} to ${fmtTick(xmax)}, `
+      + `vertical axis ${fmtTick(ymin)} to ${fmtTick(ymax)}.`,
+  );
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${alt}" style="max-width:360px;width:100%;height:auto;margin:8px 0" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+}
+
+// Minimal escaping for a value going into a double-quoted SVG attribute.
+function attrEscape(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
 export function linspace(a: number, b: number, n: number): number[] {

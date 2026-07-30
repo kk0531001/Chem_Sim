@@ -89,6 +89,13 @@ export function renderTopicCard(
   t: TopicMeta, onOpen: (id: string) => void, extraClass = '', style = '', showPrereqs = false,
 ): HTMLElement {
   const prereqTitles = t.prereqs.map(id => topicById(id)?.title).filter(Boolean);
+  // The whole card stays clickable for the mouse, but the card itself can't be
+  // the control: an <article onclick> is invisible to the keyboard and to AT,
+  // and it can't legally become a <button> either (its <h3> and <p> aren't
+  // allowed inside one). So "Open module" — which was a decorative <span> —
+  // becomes the real button, named with the module it opens rather than 25
+  // identical "Open module" labels. The card lifts on :focus-within so the
+  // keyboard gets the same affordance the mouse does.
   return h('article', { class: `topic-card${t.wide ? ' span2' : ''}${extraClass}`, style, onclick: () => onOpen(t.id) },
     h('div', { class: 'topic-card-top' },
       h('span', { class: 'topic-icon', html: topicIconSVG(t.icon) }),
@@ -103,6 +110,9 @@ export function renderTopicCard(
     showPrereqs && prereqTitles.length
       ? h('p', { class: 'topic-prereq-line' }, `Prerequisite${prereqTitles.length > 1 ? 's' : ''}: ${prereqTitles.join(', ')}`)
       : null,
-    h('span', { class: 'topic-open' }, 'Open module →'),
+    h('button', {
+      type: 'button', class: 'topic-open', 'aria-label': `Open module: ${t.title}`,
+      onclick: (e: Event) => { e.stopPropagation(); onOpen(t.id); },
+    }, 'Open module →'),
   );
 }

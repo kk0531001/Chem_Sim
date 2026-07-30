@@ -38,18 +38,24 @@
   </head>
   <body>
     <div id="app" hidden>
-      <aside id="sidenav">
-        <button id="brand" title="Back to home"></button>
-        <button id="menu-link">All Topics</button>
-        <nav id="nav-items"></nav>
-        <div id="progress-panel"></div>
-        <button id="home-link">Back to homepage</button>
+      <!-- 25 sidebar items sit before the lesson; give keyboard users a way past them -->
+      <a class="skip-link" href="#app-main">Skip to lesson content</a>
+      <aside id="sidenav" role="navigation" aria-label="Main">
+        <!-- #brand's label is injected as innerHTML (a decorative tile + wordmark),
+             so its name is set explicitly here rather than inferred from that markup -->
+        <button id="brand" type="button" title="Back to home" aria-label="ChemPrep — back to home"></button>
+        <button id="menu-link" type="button">All Topics</button>
+        <nav id="nav-items" aria-label="Topic modules"></nav>
+        <div id="progress-panel" role="group" aria-label="Progress and account"></div>
+        <button id="home-link" type="button">Back to homepage</button>
       </aside>
-      <main id="app-main">
+      <!-- tabindex=-1 makes <main> the skip-link target and the focus landing
+           point after a topic navigation (see updateTopicChrome in main.ts) -->
+      <main id="app-main" tabindex="-1">
         <div id="topic-crumb"></div>
         <div id="topic-prereq"></div>
         <div id="view"></div>
-        <div id="topic-footer"></div>
+        <nav id="topic-footer" aria-label="Lesson navigation"></nav>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>

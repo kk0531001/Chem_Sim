@@ -5,7 +5,11 @@ import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
 import { TOPICS, renderTopicCard } from './topics';
 
-export const TILE_HTML = `<span class="tile">Ch</span>`;
+// The tile is a logo mark, and it always sits immediately before the word
+// "ChemPrep" — so its "Ch" (plus the "25" the stylesheet adds via ::after) is
+// pure noise to a screen reader reading the wordmark. Hidden at the source, so
+// every place that embeds TILE_HTML gets it right.
+export const TILE_HTML = `<span class="tile" aria-hidden="true">Ch</span>`;
 
 // ---- static figure SVGs for the feature rows (dark panels, one accent) ----
 const FIG_TITRATION = `
@@ -47,7 +51,11 @@ const FIG_DECAY = `
 
 // ---- live hero simulation: H and O atoms bonding into water ----
 function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) => void } {
-  const canvas = h('canvas', { width: 520, height: 340 });
+  const canvas = h('canvas', {
+    width: 520, height: 340, role: 'img',
+    'aria-label': 'Animated simulation: white hydrogen atoms and orange oxygen '
+      + 'atoms drifting and bonding into water molecules under valence rules.',
+  });
   const ctx = canvas.getContext('2d')!;
   interface Atom { x: number; y: number; vx: number; vy: number; el: 'H' | 'O'; bonds: number[] }
   const atoms: Atom[] = [];
@@ -62,6 +70,15 @@ function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) =>
   const R = (a: Atom) => (a.el === 'H' ? 5 : 8);
   const MAXB = (a: Atom) => (a.el === 'H' ? 1 : 2);
   let running = false;
+
+  // WCAG 2.2.2: motion that starts on its own and runs indefinitely needs a way
+  // out, and this canvas has no pause control by design. Honour the OS setting
+  // instead — let the reaction play out to a settled frame (most H₂O has formed
+  // by then), then stop for good, so the figure still shows chemistry rather
+  // than an empty box.
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  const FRAME_BUDGET = 240;
+  let drawn = 0;
 
   function frame(): void {
     if (running) {
@@ -116,7 +133,9 @@ function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) =>
         ctx.fillStyle = a.el === 'H' ? '#f5f0e8' : '#e8590c';
         ctx.fill();
       }
+      drawn++;
     }
+    if (reduceMotion && drawn >= FRAME_BUDGET) return; // settle and freeze
     requestAnimationFrame(frame);
   }
   frame();
@@ -145,7 +164,7 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
       h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
       h('h1', { class: 'hero-in', style: 'transition-delay:.06s', html: 'The chemistry in this page is <em>actually running</em>.' }),
       h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
-        'Twenty-five interactive modules — quantum orbitals to enzyme kinetics — plus 850+ exam-style questions, 67 multi-part written problems and five full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.'),
+        'Twenty-five interactive modules — quantum orbitals to enzyme kinetics — plus 850+ exam-style questions, 66 multi-part written problems and five full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.'),
       h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
         h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning'),
         h('button', {

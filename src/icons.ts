@@ -1,8 +1,15 @@
 // Minimal line-art icon set (24x24, currentColor stroke) matching the Lab
 // Journal aesthetic — used on topic cards, meta rows, and page chrome.
 // No emoji anywhere: every visual glyph here is an inline SVG.
+//
+// Every icon here is DECORATIVE: it always sits next to the text it
+// illustrates (a topic title, a "45 min" reading, a "Next lesson" label), so
+// it carries no information of its own. `aria-hidden` keeps assistive tech
+// from announcing it twice, and `focusable="false"` stops legacy engines from
+// putting the <svg> in the tab order. Setting both here covers every call
+// site — topic cards, breadcrumb meta, next-lesson card — at once.
 const svg = (inner: string) =>
-  `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
 
 export const TOPIC_ICONS: Record<string, string> = {
   atom: svg(`
