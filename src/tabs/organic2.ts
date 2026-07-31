@@ -1,6 +1,7 @@
 // Organic II: alkene addition (Markovnikov), EAS directing effects,
 // carbonyl reaction map, molecular symmetry / point groups.
 import { h, card, theory, select, pills, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { ORGANIC2_QUIZ } from './questions2';
 
 
@@ -236,7 +237,7 @@ export const organic2Tab: TabDef = {
       { label: 'Carbonyls', el: makeCarbonyl() },
       { label: 'Aromaticity & conformation', el: makeAromaticity() },
       { label: 'Symmetry & inorganic', el: makeSymmetry() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(ORGANIC2_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(ORGANIC2_QUIZ, 5)), challengeLadder('organic2')) },
     ]));
   },
 };

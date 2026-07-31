@@ -1,6 +1,7 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
-import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { STOICH_QUIZ } from './questions1';
 
 
@@ -25,6 +26,25 @@ export const stoichTab: TabDef = {
     const controls = h('div', {});
     const barsBox = h('div', { class: 'bars' });
     const out = h('div', { class: 'result' });
+
+    const limMissions = missionLadder([
+      {
+        id: 'msn-stoich-01',
+        prompt: 'For the default reaction (N₂ + 3H₂ → 2NH₃), find amounts of N₂ and H₂ where <b>neither is left over</b> — a perfectly stoichiometric mixture.',
+        meter: () => {
+          const [ra, rb] = rx.reactants;
+          const rA = molA / ra.coef, rB = molB / rb.coef;
+          return { label: `${ra.f}: mol/coef = ${rA.toFixed(2)} · ${rb.f}: mol/coef = ${rB.toFixed(2)} — match these exactly`, pct: Math.max(0, 100 - Math.abs(rA - rB) / Math.max(rA, rB, 0.01) * 200) };
+        },
+        check: () => {
+          const [ra, rb] = rx.reactants;
+          const rA = molA / ra.coef, rB = molB / rb.coef;
+          return rx.name === REACTIONS[1].name && molA > 0.5 && molB > 0.5 && Math.abs(rA - rB) < 0.03;
+        },
+        hints: ['The mole RATIO you choose has to match the coefficient ratio exactly: 1 N₂ for every 3 H₂.', 'Try 2 mol N₂ and 6 mol H₂.'],
+        explain: 'Any pair of moles matching the coefficient ratio (2:6, 1:3, 5:15…) leaves nothing over — both bars empty out to exactly zero excess at the same time. Real industrial processes almost never run this exact "stoichiometric mixture": they deliberately feed in an excess of whichever reagent is cheaper, to drive the more expensive one as close to complete conversion as possible.',
+      },
+    ]);
 
     function recompute(): void {
       const [ra, rb] = rx.reactants;
@@ -52,6 +72,7 @@ export const stoichTab: TabDef = {
       out.innerHTML = `Limiting reagent: <b>${limiting.f}</b> · extent of reaction = ${extent.toFixed(3)} mol<br>` +
         `Yield: <b>${rx.products.map(p => `${(extent * p.coef).toFixed(2)} mol ${p.f}`).join(' + ')}</b> (${gramsProd})<br>` +
         `Excess left over: ${(molA - usedA).toFixed(2)} mol ${ra.f}, ${(molB - usedB).toFixed(2)} mol ${rb.f}`;
+      limMissions.tick();
     }
 
     function rebuildControls(): void {
@@ -63,7 +84,7 @@ export const stoichTab: TabDef = {
       recompute();
     }
 
-    const limCard = card('Limiting reagent visualizer',
+    const limCard = cardWithMissions('Limiting reagent visualizer', limMissions,
       select('reaction', REACTIONS.map(r => ({ value: r.name, label: r.name })), name => {
         rx = REACTIONS.find(r => r.name === name)!;
         rebuildControls();
@@ -89,17 +110,44 @@ export const stoichTab: TabDef = {
 
     const gIn = num(58.44), mmIn = num(58.44), vIn = num(250);
     const molOut = h('div', { class: 'result' });
+
+    const molMissions = missionLadder([
+      {
+        id: 'msn-stoich-02',
+        prompt: 'Using the molarity tool below, find a mass/volume combination that makes exactly <b>0.100 M</b> — any molar mass, any volume, your choice.',
+        meter: () => {
+          const g = Number(gIn.value), mm = Number(mmIn.value), v = Number(vIn.value);
+          if (!(g > 0 && mm > 0 && v > 0)) return { label: 'enter mass, molar mass and volume', pct: 0 };
+          const conc = (g / mm) / (v / 1000);
+          return { label: `current: ${conc.toFixed(4)} M · target 0.100 M`, pct: Math.max(0, 100 - Math.abs(conc - 0.100) / 0.100 * 100) };
+        },
+        check: () => {
+          const g = Number(gIn.value), mm = Number(mmIn.value), v = Number(vIn.value);
+          if (!(g > 0 && mm > 0 && v > 0)) return false;
+          const conc = (g / mm) / (v / 1000);
+          return Math.abs(conc - 0.100) / 0.100 < 0.02;
+        },
+        verify: true,
+        hints: [
+          'n = mass/molar mass, then concentration = n/(volume in liters). Pick a volume first, then solve backward for the mass.',
+          'For NaCl (M = 58.44) in 250 mL: you need 0.0250 mol, so mass ≈ 1.46 g.',
+        ],
+        explain: 'Many different (mass, molar mass, volume) triples all give 0.100 M — molarity only cares about the ratio of moles to liters, not the specific numbers that produced it. Solving "backward" from a target concentration to a required mass is the single most common lab-prep calculation there is.',
+      },
+    ]);
+
     const molCalc = () => {
       const g = Number(gIn.value), mm = Number(mmIn.value), v = Number(vIn.value);
       if (g > 0 && mm > 0 && v > 0) {
         const n = g / mm;
         molOut.innerHTML = `n = m/M = ${n.toFixed(4)} mol → concentration = n/V = <b>${(n / (v / 1000)).toFixed(3)} mol/L</b>`;
       }
+      molMissions.tick();
     };
     [gIn, mmIn, vIn].forEach(i => i.addEventListener('input', molCalc));
     molCalc();
 
-    const solCard = card('Solution chemistry tools',
+    const solCard = cardWithMissions('Solution chemistry tools', molMissions,
       h('h3', {}, 'Molarity: dissolve a solid'),
       h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'mass (g)'), gIn),
       h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'molar mass (g/mol)'), mmIn),
@@ -136,7 +184,7 @@ export const stoichTab: TabDef = {
     );
 
     root.append(
-      h('div', { class: 'cards' }, limCard, solCard, yieldCard, card('Quick quiz', quiz(STOICH_QUIZ, 5))),
+      h('div', { class: 'cards' }, limCard, solCard, yieldCard, card('Quick quiz', quiz(STOICH_QUIZ, 5)), challengeLadder('stoich')),
       theory('Theory & key equations — stoichiometry / reactions / solutions', `
 <h4>The mole highway</h4>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>

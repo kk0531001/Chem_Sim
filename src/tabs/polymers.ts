@@ -1,6 +1,7 @@
 // Polymers — monomer↔polymer explorer, MW/PDI/DP calculator, and the
 // addition-vs-condensation reference. (IChO area 12.)
 import { h, card, theory, select, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { POLYMERS_QUIZ } from './questions5';
 
 interface Poly { name: string; type: 'addition' | 'condensation'; monomer: string; link: string; use: string; byproduct: string }
@@ -72,7 +73,7 @@ export const polymersTab: TabDef = {
   group: 'Organic Chemistry',
   mount(root) {
     root.append(
-      h('div', { class: 'cards' }, makeExplorer(), makeMW(), card('Quick quiz', quiz(POLYMERS_QUIZ, 5))),
+      h('div', { class: 'cards' }, makeExplorer(), makeMW(), card('Quick quiz', quiz(POLYMERS_QUIZ, 5)), challengeLadder('polymers')),
       theory('Theory — polymers (IChO area 12)', `
 <h4>Two mechanisms</h4>
 <table><tr><th></th><th>addition (chain-growth)</th><th>condensation (step-growth)</th></tr>

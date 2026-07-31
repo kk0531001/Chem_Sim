@@ -1,6 +1,7 @@
 // Quantum mechanics & atomic structure: hydrogen orbital viewer,
 // energy levels / spectral series, electron configuration builder.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { QUANTUM_QUIZ } from './questions1';
 
 
@@ -274,7 +275,7 @@ export const quantumTab: TabDef = {
     setZ(26);
 
     root.append(
-      h('div', { class: 'cards' }, orbCard, radCard, lvlCard, cfgCard, card('Quick quiz', quiz(QUANTUM_QUIZ, 5))),
+      h('div', { class: 'cards' }, orbCard, radCard, lvlCard, cfgCard, card('Quick quiz', quiz(QUANTUM_QUIZ, 5)), challengeLadder('quantum')),
       theory('Theory & key equations — quantum / atomic structure', `
 <h4>Quantum numbers</h4>
 <ul>

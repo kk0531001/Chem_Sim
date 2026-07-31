@@ -2,6 +2,7 @@
 // ligand substitution (labile/inert + trans effect), the chelate/macrocyclic
 // effect, isomerism, and 18-electron counting.
 import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { COORDCHEM_QUIZ } from './questions6';
 
 // ---- Jahn-Teller predictor ----
@@ -154,6 +155,7 @@ export const coordChemTab: TabDef = {
       h('div', { class: 'cards' },
         makeHSAB(), makeJahnTeller(), makeSubstitution(), makeIsomerism(), makeElectronCount(),
         card('Quick quiz', quiz(COORDCHEM_QUIZ, 5)),
+        challengeLadder('coordchem'),
       ),
       theory('Theory — coordination & organometallic chemistry', `
 <h4>HSAB</h4>

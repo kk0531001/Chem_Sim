@@ -1,6 +1,7 @@
 // Acid-base (titration curves), electrochemistry (galvanic cells + Nernst),
 // kinetics (integrated rate laws + Arrhenius). Three pill sections.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, pills, plot, linspace, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { AEK_QUIZ } from './questions2';
 
 
@@ -506,7 +507,7 @@ export const aekTab: TabDef = {
       { label: 'Acid–Base & Titration', el: makeAcidBase() },
       { label: 'Electrochemistry', el: makeElectro() },
       { label: 'Kinetics', el: makeKinetics() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — all three topics', quiz(AEK_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — all three topics', quiz(AEK_QUIZ, 5)), challengeLadder('aek')) },
     ]));
   },
 };

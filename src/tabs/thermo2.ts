@@ -1,5 +1,6 @@
 // Thermodynamics II: entropy (microstates), Gibbs energy, ΔG° ↔ K.
 import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { THERMO2_QUIZ } from './questions1';
 
 
@@ -114,7 +115,7 @@ export const thermo2Tab: TabDef = {
     kCalc();
 
     root.append(
-      h('div', { class: 'cards' }, microCard, gibbsCard, kCard, card('Quick quiz', quiz(THERMO2_QUIZ, 5))),
+      h('div', { class: 'cards' }, microCard, gibbsCard, kCard, card('Quick quiz', quiz(THERMO2_QUIZ, 5)), challengeLadder('thermo2')),
       theory('Theory & key equations — entropy / Gibbs energy', `
 <h4>Second & third laws</h4>
 <span class="eq">ΔS<sub>univ</sub> = ΔS<sub>sys</sub> + ΔS<sub>surr</sub> &gt; 0 for spontaneous · ΔS<sub>surr</sub> = −ΔH<sub>sys</sub>/T</span>

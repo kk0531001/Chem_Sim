@@ -2,6 +2,7 @@
 // groups, radical mechanisms + selectivity, rearrangements, and an intro to
 // pericyclic reactions (Woodward–Hoffmann).
 import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { ORGANIC3_QUIZ } from './questions6';
 
 // ---- radical halogenation selectivity calculator ----
@@ -110,6 +111,7 @@ export const organic3Tab: TabDef = {
       h('div', { class: 'cards' },
         makeRetro(), makeProtecting(), makeRadicalSelectivity(), makeRearrangements(), makePericyclic(),
         card('Quick quiz', quiz(ORGANIC3_QUIZ, 5)),
+        challengeLadder('organic3'),
       ),
       theory('Theory — synthesis & advanced mechanisms', `
 <h4>Retrosynthesis</h4>

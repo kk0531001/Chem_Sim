@@ -559,7 +559,7 @@ export function h<K extends keyof HTMLElementTagNameMap>(
   return el;
 }
 
-export function card(title: string, ...children: (Node | string)[]): HTMLElement {
+export function card(title: string, ...children: (Node | string | null | undefined)[]): HTMLElement {
   return h('section', { class: 'card' }, h('h2', {}, title), ...children);
 }
 

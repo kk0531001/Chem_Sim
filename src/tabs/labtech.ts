@@ -2,6 +2,7 @@
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
 import { h, card, theory, slider, plot, linspace, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { LABTECH_QUIZ } from './questions7';
 
 // ---- recrystallization: solubility curve + recovery ----
@@ -245,6 +246,7 @@ export const labTechTab: TabDef = {
       h('div', { class: 'cards' },
         makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference(),
         card('Quick quiz', quiz(LABTECH_QUIZ, 5)),
+        challengeLadder('labtech'),
       ),
       theory('Theory — laboratory techniques', `
 <h4>Recrystallization</h4>

@@ -2,6 +2,7 @@
 // interpretation (isotopes, nitrogen rule, fragment losses), an IR functional-
 // group checklist, combined IR+NMR+MS unknowns, and reference tables.
 import { h, card, theory, slider, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { STRUCTURE_QUIZ } from './questions7';
 
 // ---- molecular formula / DoU analyzer ----
@@ -162,6 +163,7 @@ export const structureTab: TabDef = {
       h('div', { class: 'cards' },
         makeFormula(), makeMassSpec(), makeIRChecklist(), makeNMRRef(), makeCombined(),
         card('Quick quiz', quiz(STRUCTURE_QUIZ, 5)),
+        challengeLadder('structure'),
       ),
       theory('Theory — structure determination', `
 <h4>Step 1 — molecular formula & DoU</h4>

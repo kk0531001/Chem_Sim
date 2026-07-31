@@ -2,6 +2,7 @@
 // EDTA complexometric titration curve, Debye-Hückel activity, gravimetric
 // factor and back-titration calculators.
 import { h, card, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { ANALYTICAL_QUIZ } from './questions3';
 
 // α₄ (fraction of EDTA as Y⁴⁻) vs pH — standard textbook values.
@@ -173,7 +174,7 @@ export const analyticalTab: TabDef = {
   group: 'Laboratory Skills',
   mount(root) {
     root.append(
-      h('div', { class: 'cards' }, makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations(), card('Quick quiz', quiz(ANALYTICAL_QUIZ, 5))),
+      h('div', { class: 'cards' }, makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations(), card('Quick quiz', quiz(ANALYTICAL_QUIZ, 5)), challengeLadder('analytical')),
       theory('Theory — analytical & quantitative chemistry (CCO PS1)', `
 <h4>Complexometric (EDTA) titrations</h4>
 <span class="eq">K′ = α₄·K_f &nbsp; (conditional formation constant)</span>

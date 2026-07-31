@@ -1,6 +1,7 @@
 // Gases, IMFs, phase diagrams, solutions: kinetic gas box, Maxwell-Boltzmann,
 // interactive phase diagrams, colligative properties.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
+import { challengeLadder } from './challenge';
 import { GASES_QUIZ } from './questions2';
 
 
@@ -100,6 +101,24 @@ function makeMB(): HTMLElement {
   let T = 300, gasIdx = 2;
   const canvas = h('canvas', { width: 460, height: 250 });
   const out = h('div', { class: 'result' });
+  const CO2_IDX = 4;
+  const missions = missionLadder([
+    {
+      id: 'msn-gases-07',
+      prompt: 'Select <b>CO₂</b> (the heaviest gas here) and use temperature alone to push its v<sub>rms</sub> above <b>550 m/s</b>.',
+      meter: () => {
+        if (gasIdx !== CO2_IDX) return { label: 'select CO₂ above first', pct: 0 };
+        const vrms = Math.sqrt(3 * Rgas * T / GASES[CO2_IDX].M);
+        return { label: `v_rms = ${vrms.toFixed(0)} m/s · target > 550`, pct: (vrms / 550) * 100 };
+      },
+      check: () => gasIdx === CO2_IDX && Math.sqrt(3 * Rgas * T / GASES[CO2_IDX].M) > 550,
+      hints: [
+        'v_rms = √(3RT/M) — with CO₂ selected, M is fixed, so only T is left to push.',
+        'Try the top of the temperature slider.',
+      ],
+      explain: 'It takes real heat: even at 900 K, CO₂ only reaches ~714 m/s, while He at that same 900 K reaches ~2370 m/s purely from its tiny molar mass. That mass sensitivity (v<sub>rms</sub> ∝ 1/√M) is exactly why light gases like H₂ and He are the first to escape a planet\'s gravity over geological time, while heavier CO₂ and N₂ stick around — Earth\'s atmosphere is a mass filter.',
+    },
+  ]);
   function draw(): void {
     const M = GASES[gasIdx].M;
     const vs = linspace(0, 3000, 300);
@@ -115,8 +134,9 @@ function makeMB(): HTMLElement {
     out.innerHTML = `v<sub>p</sub> = √(2RT/M) = <b>${vp.toFixed(0)}</b> &lt; v̄ = √(8RT/πM) = <b>${vavg.toFixed(0)}</b> &lt; v<sub>rms</sub> = √(3RT/M) = <b>${vrms.toFixed(0)} m/s</b>` +
       `<br><span class="muted">Higher T: curve flattens and shifts right — total area stays 1. The high-speed tail is what feeds reactions (only molecules with E > Ea react).</span>` +
       `<br>Graham's law: rate₁/rate₂ = √(M₂/M₁). He effuses ${Math.sqrt(GASES[gasIdx].M / 0.004).toFixed(1)}× faster than ${GASES[gasIdx].name.split(' ')[0]}.`;
+    missions.tick();
   }
-  const el = card('Maxwell–Boltzmann speed distribution',
+  const el = cardWithMissions('Maxwell–Boltzmann speed distribution', missions,
     select('gas', GASES.map((g, i) => ({ value: String(i), label: g.name })), v => { gasIdx = Number(v); draw(); }, '2'),
     slider({ label: 'T (K)', min: 100, max: 900, step: 10, value: T, onInput: v => { T = v; draw(); } }),
     canvas, out,
@@ -388,7 +408,7 @@ export const gasesTab: TabDef = {
   mount(root): TabHandle {
     const gasBox = makeGasBox();
     root.append(
-      h('div', { class: 'cards' }, gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative(), card('Quick quiz', quiz(GASES_QUIZ, 5))),
+      h('div', { class: 'cards' }, gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative(), card('Quick quiz', quiz(GASES_QUIZ, 5)), challengeLadder('gases')),
       theory('Theory & key equations — gases / IMF / solutions', `
 <h4>Gas laws</h4>
 <span class="eq">PV = nRT (R = 0.08206 L·atm/mol·K = 8.314 J/mol·K) · P<sub>i</sub> = x<sub>i</sub>P<sub>total</sub> (Dalton) · rate ∝ 1/√M (Graham)</span>

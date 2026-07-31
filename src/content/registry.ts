@@ -137,7 +137,7 @@ export function compsOf(q: { id: string; comps?: readonly Comp[] }): readonly Co
 
 // ---- query indexes --------------------------------------------------------
 
-type Indexable = QuizQ | FRQ;
+export type Indexable = QuizQ | FRQ;
 const ALL: Indexable[] = [...ALL_MC, ...ALL_FRQ];
 
 function group<K extends string | number>(keyOf: (q: Indexable) => K[]): Map<K, Indexable[]> {

@@ -1,5 +1,6 @@
 // Thermodynamics I: first law, calorimetry, Hess's law, bond enthalpies.
 import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { THERMO1_QUIZ } from './questions1';
 
 
@@ -158,7 +159,7 @@ export const thermo1Tab: TabDef = {
     bhCalc();
 
     root.append(
-      h('div', { class: 'cards' }, calCard, hessCard, bondCard, bhCard, card('Quick quiz', quiz(THERMO1_QUIZ, 5))),
+      h('div', { class: 'cards' }, calCard, hessCard, bondCard, bhCard, card('Quick quiz', quiz(THERMO1_QUIZ, 5)), challengeLadder('thermo1')),
       theory('Theory & key equations — first law / enthalpy', `
 <h4>First law</h4>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>

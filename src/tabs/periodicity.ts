@@ -1,6 +1,7 @@
 // Periodicity — interactive trends explorer, Slater's-rules Z_eff calculator,
 // and the anomaly/amphoterism reference. (IChO area 4.)
-import { h, card, theory, select, plot, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, plot, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { PERIODICITY_QUIZ } from './questions5';
 
 // Period-2 and period-3 data: IE1 (kJ/mol), atomic radius (pm), EA (kJ/mol, +ve released),
@@ -67,8 +68,12 @@ function makeSlater(): HTMLElement {
   const out = h('div', { class: 'result' });
   // build config as [ (n, l-group, count) ] using Slater grouping: (1s)(2s2p)(3s3p)(3d)(4s4p)...
   function slater(z: number): { zeff: number; s: number; group: string } {
-    // fill order for grouping
-    const caps: [string, number][] = [['1s', 2], ['2s2p', 8], ['3s3p', 8], ['3d', 10], ['4s4p', 8]];
+    // Fill order for grouping — 4s BEFORE 3d (Madelung's (n+l) rule: 4s has
+    // n+l=4, 3d has n+l=5), matching quantum.ts's electronConfig(). Getting
+    // this order backwards was a real bug: for K (Z=19) and Ca (Z=20), it
+    // reported the outermost electron as "3d" with the wrong Zeff, when both
+    // are actually 4s¹/4s² with zero 3d electrons.
+    const caps: [string, number][] = [['1s', 2], ['2s2p', 8], ['3s3p', 8], ['4s4p', 8], ['3d', 10]];
     let e = z; const filled: [string, number][] = [];
     for (const [g, cap] of caps) { if (e <= 0) break; const n = Math.min(cap, e); filled.push([g, n]); e -= n; }
     const lastIdx = filled.length - 1;
@@ -98,14 +103,29 @@ function makeSlater(): HTMLElement {
     }
     return { zeff: z - s, s, group: lastG };
   }
+  const missions = missionLadder([
+    {
+      id: 'msn-per-01',
+      prompt: 'Check the Z<sub>eff</sub> of <b>Na</b>\'s valence electron, then switch to <b>K</b> — same group, 8 more protons. Is K\'s Z<sub>eff</sub> much bigger, much smaller, or about the same as Na\'s?',
+      meter: () => ({ label: `${ELEMS[Z - 1]}: Zeff = ${slater(Z).zeff.toFixed(2)} — check both Na and K before answering`, pct: 0 }),
+      choices: [
+        { label: 'Much bigger (8 more protons)', value: 'bigger' },
+        { label: 'Much smaller', value: 'smaller' },
+        { label: 'About the same', value: 'same' },
+      ],
+      validateChoice: v => v === 'same',
+      explain: 'Almost exactly the same: Z<sub>eff</sub>(Na, 3s) = 2.20 and Z<sub>eff</sub>(K, 4s) = 2.20. Each extra proton picked up going down a group is nearly cancelled by an extra full shell of core electrons shielding it (each core electron blocks 0.85–1.00 of a proton\'s charge). <span class="trap">Z<sub>eff</sub> on the valence electron stays roughly constant down a group</span> — it is the growing n (a bigger, higher-energy orbital, farther from the nucleus) that lowers ionization energy and raises atomic radius down a group, not a weakening nuclear pull.',
+    },
+  ]);
   function calc(): void {
     const { zeff, s, group } = slater(Z);
     out.innerHTML =
       `<b>${ELEMS[Z - 1]}</b> (Z = ${Z}) · outermost group ${group}<br>` +
       `screening constant S = <b>${s.toFixed(2)}</b> → Z_eff = Z − S = <b class="big">${zeff.toFixed(2)}</b><br>` +
       `<span class="muted">Slater: same-group electrons shield 0.35 (0.30 for 1s); the (n−1) shell 0.85; deeper shells 1.00. Rising Z_eff across a period is what drives radius↓, IE↑, EN↑.</span>`;
+    missions.tick();
   }
-  const el = card("Slater's rules — effective nuclear charge",
+  const el = cardWithMissions("Slater's rules — effective nuclear charge", missions,
     select('element', ELEMS.map((s, i) => ({ value: String(i + 1), label: `${s} (Z=${i + 1})` })), v => { Z = Number(v); calc(); }, String(Z)),
     out,
   );
@@ -137,7 +157,7 @@ export const periodicityTab: TabDef = {
   group: 'Foundations',
   mount(root) {
     root.append(
-      h('div', { class: 'cards' }, makeTrends(), makeSlater(), makeAnomalies(), card('Quick quiz', quiz(PERIODICITY_QUIZ, 5))),
+      h('div', { class: 'cards' }, makeTrends(), makeSlater(), makeAnomalies(), card('Quick quiz', quiz(PERIODICITY_QUIZ, 5)), challengeLadder('periodicity')),
       theory('Theory — periodicity (IChO area 4)', `
 <h4>The trends and their driver</h4>
 <span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>

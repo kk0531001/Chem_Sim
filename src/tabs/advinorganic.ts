@@ -1,5 +1,6 @@
 // Advanced (CCO) — Coordination/CFT + solid-state + descriptive inorganic.
 import { h, card, theory, slider, select, pills, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { INORGANIC_QUIZ } from './questions4';
 
 // ================= LFSE / CFT =================
@@ -127,7 +128,7 @@ export const advInorganicTab: TabDef = {
       { label: 'Crystal field (LFSE)', el: h('div', { class: 'cards' }, makeLFSE()) },
       { label: 'Solid state', el: h('div', { class: 'cards' }, makeSolidState()) },
       { label: 'Descriptive', el: makeDescriptive() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — advanced inorganic', quiz(INORGANIC_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — advanced inorganic', quiz(INORGANIC_QUIZ, 5)), challengeLadder('advinorganic')) },
     ]),
     theory('Theory — coordination, solid-state & descriptive (CCO PS3)', `
 <h4>Crystal / ligand field</h4>

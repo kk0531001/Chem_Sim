@@ -16,7 +16,7 @@ export const paper2: OlympiadPaper = {
     { id: 'mock2-a-008', topic: 'equilibrium', q: 'Adding \\(\\ce{NaCl}\\) to a saturated solution of \\(\\ce{AgCl}\\) causes the AgCl solubility to:', opts: ['increase', 'decrease', 'stay the same', 'double'], a: 1, why: 'Common-ion effect: added Cl⁻ shifts \\(\\ce{AgCl <=> Ag+ + Cl-}\\) left, lowering solubility.' },
     { id: 'mock2-a-009', topic: 'redox', q: 'How many moles of electrons are needed to deposit 1.0 mol of Al from \\(\\ce{Al^3+}\\)?', opts: ['1', '2', '3', '6'], a: 2, why: '\\(\\ce{Al^3+ + 3e- -> Al}\\) — 3 mol electrons per mol Al.' },
     { id: 'mock2-a-010', topic: 'redox', q: 'In the reaction \\(\\ce{2Fe^3+ + Sn^2+ -> 2Fe^2+ + Sn^4+}\\), the reducing agent is:', opts: ['Fe³⁺', 'Sn²⁺', 'Fe²⁺', 'Sn⁴⁺'], a: 1, why: 'Sn²⁺ is oxidized (loses electrons), so it is the reducing agent.' },
-    { id: 'mock2-a-011', topic: 'atomic', q: 'The ground-state electron configuration of \\(\\ce{Cu}\\) (Z = 29) is:', opts: ['[Ar]3d⁹4s²', '[Ar]3d¹⁰4s¹', '[Ar]3d¹⁰4s²', '[Ar]3d⁸4s²'], a: 1, why: 'A filled 3d¹⁰ is extra-stable, so Cu is [Ar]3d¹⁰4s¹ (one of the d-block exceptions).' },
+    { id: 'mock2-a-011', topic: 'atomic', q: 'The ground-state electron configuration of \\(\\ce{Cr}\\) (Z = 24) is:', opts: ['[Ar]3d⁴4s²', '[Ar]3d⁵4s¹', '[Ar]3d⁶', '[Ar]3d³4s²4p¹'], a: 1, why: 'A half-filled 3d⁵ is extra-stable, so Cr is [Ar]3d⁵4s¹ — the other classic d-block exception, alongside Cu\'s filled-shell case.' },
     { id: 'mock2-a-012', topic: 'atomic', q: 'Which species has the smallest radius?', opts: ['\\(\\ce{Na+}\\)', '\\(\\ce{Mg^2+}\\)', '\\(\\ce{F-}\\)', '\\(\\ce{O^2-}\\)'], a: 1, why: 'All are isoelectronic (10 e⁻); the highest nuclear charge (Mg, Z=12) pulls electrons in tightest.' },
     { id: 'mock2-a-013', topic: 'bonding', q: 'The bond order of \\(\\ce{O2}\\) from molecular-orbital theory is:', opts: ['1', '1.5', '2', '3'], a: 2, why: 'O₂ has bond order (8−4)/2 = 2, with two unpaired electrons (paramagnetic).' },
     { id: 'mock2-a-014', topic: 'bonding', q: 'The shape of the \\(\\ce{XeF4}\\) molecule is:', opts: ['tetrahedral', 'square planar', 'see-saw', 'octahedral'], a: 1, why: 'AX₄E₂ (6 domains, two lone pairs opposite) → square planar.' },
@@ -56,7 +56,7 @@ export const paper2: OlympiadPaper = {
     {
       id: 'mock2-b-003',
       topic: 'kinetics', title: 'B3 — Rate law from initial rates',
-      prompt: 'For \\(\\ce{A + B -> products}\\): doubling [A] doubles the rate; doubling [B] leaves the rate unchanged. When [A]=[B]=0.10 M the rate is 2.0×10⁻³ M/s.',
+      prompt: 'For \\(\\ce{A + B -> products}\\):<br><table class="ref-table"><tr><th>[A]₀ (M)</th><th>[B]₀ (M)</th><th>rate (M/s)</th></tr><tr><td>0.10</td><td>0.10</td><td>2.0×10⁻³</td></tr><tr><td>0.20</td><td>0.10</td><td>4.0×10⁻³</td></tr><tr><td>0.20</td><td>0.30</td><td>4.0×10⁻³</td></tr></table>',
       parts: [
         { q: '(a) Determine the rate law and overall order.', a: 'First order in A, zero order in B → rate = k[A]. Overall order = <b>1</b>.' },
         { q: '(b) Calculate the rate constant k with units.', a: 'k = rate/[A] = 2.0×10⁻³ / 0.10 = <b>2.0×10⁻² s⁻¹</b>.' },

@@ -499,7 +499,7 @@ checked separately (11 cases) because the pixi ticker can't be driven headlessly
 
 ---
 
-## Phase C — Question depth over question count (2–3 weeks)
+## Phase C — Question depth over question count (2–3 weeks) · **partially done**
 
 > "I'd rather have 300 amazing questions than 2,000 average questions."
 
@@ -507,7 +507,13 @@ Important reframe: **you already have ~1,000 items.** This phase is a *curation
 and upgrade* pass, not a writing sprint. The output is a smaller, better,
 tiered bank — deletion is a legitimate result.
 
-### C.1 Tier every question (uses `tier` from Phase A)
+**Status: C.3 shipped in full. C.1 shipped as a read-only audit, not the
+tag-and-prune pass originally scoped. C.2 shipped as a small, checked exemplar
+batch, not the full Gold/Platinum layer.** Explicitly NOT done: deleting or
+merging any existing question, and writing the remaining ~15 highest-impact
+Gold/Platinum items the audit below identifies.
+
+### C.1 Tier every question (uses `tier` from Phase A) — **[x] audited, not pruned**
 
 | Tier | Meaning | Example |
 | --- | --- | --- |
@@ -516,30 +522,392 @@ tiered bank — deletion is a legitimate result.
 | **Gold** | Three concepts, multi-step | "Given a titration curve, identify the acid and its Ka" |
 | **Platinum** | Full olympiad problem | "Unknown acid + titration curve + IR — identify it and justify" |
 
-- [ ] Tag all ~1,000 existing items
-- [ ] Expect a lopsided result — most existing questions are Bronze/Silver. That
-      distribution *is* the finding: the gap is Gold/Platinum.
-- [ ] Delete or merge weak duplicates. Target ~300–400 excellent items.
+`tier` was already derived for every question by Phase A ([registry.ts](src/content/registry.ts)'s
+`tierOf()`), so "tag all ~1,000 items" was already true going into this phase.
+What C.1 actually needed was a read of what that derivation produces —
+[scripts/audit-corpus.mjs](scripts/audit-corpus.mjs) transpiles every bank
+with the TypeScript compiler API (no bundler, no runtime deps — every
+inter-bank import is local and type-only except `bankIntegrated.ts`'s
+`miniPlot()`, which is stubbed) and reports:
 
-### C.2 Write the Gold/Platinum layer
+- [x] **Gold/Platinum coverage by exam topic** — the number that actually
+      matters, since the challenge ladder and `qbank.ts` pool by the coarse
+      `ExamTopicId`, not by module. Before this pass, three of the twelve
+      topics had **zero Platinum items** despite each having 50–95 questions:
+      **atomic** (2 Gold / 0 Platinum of 80), **states** (3/0 of 50), and
+      **lab** (44 Gold but 0 Platinum of 95 — lab had plenty of Gold-tier MC
+      from the CCO-pitched modules but no multi-part practical ever reached
+      Platinum). `bonding`, `stoich` and `equilibrium` were thin but not
+      empty (1 Platinum each, 2–5 Gold across ~50–55 questions). This is the
+      gap list C.2 worked from.
+- [x] **Near-duplicate detection** (Jaccard similarity on normalized question
+      text, within each topic bucket) — 28 candidate pairs at similarity
+      ≥0.55. Read through by hand: most are false positives from short,
+      low-word-count prompts (e.g. two different sig-fig arithmetic questions
+      that share only "correct sig figs"), and a few are the same *skill*
+      tested with different molecules across the Part I bank and the mock
+      papers (`p1-bonding-007` / `mock1-a-013`, both "which molecule is
+      polar?" with different option sets) — legitimate reuse of a concept
+      across separate practice banks, not a bug, but worth knowing about.
+      **Nothing was deleted or merged** — that judgment call was left for a
+      human pass, per the user's explicit instruction when this phase ran.
+- [x] **Thin-explanation heuristic** (`why` under 35 characters) — 11 hits,
+      almost all legitimate warm-ups or one-line arithmetic (`sto-001`:
+      "Molar mass of water?") rather than actual weak content.
+- [x] **Structural sanity** (duplicate ids, out-of-range answer index) — 0
+      problems; this is the same check Phase A's `auditCorpus()` already runs
+      in dev, confirmed clean here independently.
+- [ ] Tag all ~1,000 existing items — **N/A, already true** (see above; this
+      bullet described a state Phase A had already reached).
+- [ ] Delete or merge weak duplicates. Target ~300–400 excellent items — **not
+      done.** The audit surfaced candidates; removing content is a curation
+      decision for a human to make with the report in hand, not something to
+      automate.
+
+### C.2 Write the Gold/Platinum layer — **[x] 6 exemplars written, not the full layer**
 
 The distinguishing move: olympiads give you **evidence** and ask you to
 **reason**, where most sites give you numbers and ask you to compute.
 
-- [ ] Data-first stems — a titration curve, an IR trace, a kinetics table,
-      a cooling curve, and a question about what it *means*
-- [ ] Reuse `miniPlot()` from [framework.ts](src/tabs/framework.ts) for embedded
-      SVG figures (the FRQ browser sets `innerHTML` and cannot run canvas `plot()`)
-- [ ] Experimental-design prompts — "design a procedure to determine X"
-- [ ] "Explain what's happening" prompts with rubric-style model answers
-- [ ] Keep the standing rule: **all original**. Match format and difficulty of
-      real CCC/CCO/USNCO papers, never reproduce them; link only.
+Per the user's explicit scope for this pass — establish the quality bar with
+a handful of the *highest-impact* items rather than writing in bulk — six new
+Part II FRQs went into [bankPart2.ts](src/tabs/bankPart2.ts), chosen directly
+from the C.1 gap list:
 
-### C.3 Challenge mode (1–2 days — nearly free once C.1 is done)
+- [x] **The three zero-Platinum topics, one each:** `p2-atomic-003`
+      (identify an unknown period-3 element from an ionization-energy jump
+      AND a photoelectron spectrum — two independent techniques that each
+      pin down the answer alone, the redundancy being the point), `p2-states-003`
+      (a molar mass computed two independent ways lands on 44.0 g/mol, which
+      CO₂ and N₂O both share — the problem is realizing mass alone can't
+      resolve the tie and picking an independent test), `p2-lab-001` (a
+      gravimetric chloride determination with a planted coprecipitation
+      error: compute the naive result, explain why a large precipitant
+      excess is bad practice, correct the number, then redesign the
+      procedure). All three carry an explicit `tier: 4` override — a
+      deliberate use of the escape hatch documented on `QuizQ.tier`, since a
+      hand-authored Platinum-caliber problem in an otherwise Gold-shaped bank
+      (`p2-*` prefix) is exactly the sanctioned case for overriding the
+      derived tier.
+- [x] **Three Gold-tier additions for the thin topics:** `p2-bonding-003`
+      (a Born–Haber cycle for MgO, plus a check-your-model question — the
+      point-charge estimate for MgO agrees with experiment to ~2%, AgCl's
+      disagrees by ~15%, and explaining that gap is Fajans' rules), `p2-stoich-003`
+      (an antacid tablet by back-titration, with a "would this error read
+      high or low" trap around un-boiled dissolved CO₂), `p2-equilibrium-003`
+      (Kc for FeSCN²⁺ from Beer's-law calibration data plus an ICE table —
+      the analytical/equilibrium synthesis the roadmap's own example calls
+      for).
+- [x] Data-first stems, experimental-design prompts, and "explain what's
+      happening" reasoning parts — all six problems lean on at least one of
+      these, per the distinguishing move above.
+- [x] All original; no real exam content reproduced.
+- [ ] The remaining ~14–20 highest-impact gaps the audit identified — not
+      written. `atomic`, `states`, `bonding`, `stoich` and `equilibrium` each
+      still have only one Platinum item, and `lab` has only one against 44
+      Gold-tier questions; there is real room for more before this phase is
+      actually complete.
+- [ ] `miniPlot()`-embedded SVG figures — none of the six exemplars needed
+      one; still unused for Phase C content.
 
-- [ ] End-of-lesson ladder: Bronze → Silver → Gold → **Olympiad Challenge**,
-      pulling from the registry filtered by `topic` + `tier`
-- [ ] Unlock progressively; the Platinum item is the payoff, framed as such
+### C.3 Challenge mode — **[x] DONE**
+
+`ladderFor(module, comp)` already existed in [registry.ts](src/content/registry.ts)
+from Phase A's registry work but had no caller anywhere in the UI — this
+shipped that missing wiring, not new content.
+
+- [x] **`challengeLadder(moduleId)`** in [challenge.ts](src/tabs/challenge.ts):
+      one card, four tiers (Bronze → Silver → Gold → Platinum), pulled
+      straight from `ladderFor()` so it can never drift from `tierOf()` /
+      `compsOf()`. Mounted next to the "Quick quiz" card on all 23 topic tabs
+      that have a quiz bank.
+- [x] **Progressive unlock**: a tier is "solved" when every item in it has
+      `isSolved(id)` true (module MC via the existing `quiz()` widget; FRQ
+      items — which Gold and Platinum tiers often are — via a small
+      single-item renderer with its own "mark as solved" button, since the
+      Prev/Next FRQ browser in `qbank.ts` is built for paging through a large
+      set, not showing a tier's handful of items at once). Empty tiers (most
+      modules still have no Platinum of their own) are skipped rather than
+      dead-ending the ladder — it falls through to whichever next tier
+      actually has content.
+- [x] **Re-renders on any progress change**, not just local interaction: the
+      widget subscribes to `onProgressChange()`, so solving a tier's question
+      elsewhere (the exam question bank, a shared topic pool) still unlocks
+      the next rung here, matching how `ladderFor()` itself pools module and
+      topic questions together.
+- [x] The Platinum tier is visually and textually framed as the payoff
+      ("— the payoff" in its heading), per the roadmap's own wording.
+- [x] Verified live in the browser (equilibrium topic page): Bronze unlocked
+      and interactive, Silver/Gold/Platinum correctly locked behind it with
+      "Solve every Bronze question above to unlock." `tsc --noEmit` and
+      `npm run build` both clean; no console errors.
+
+### C.4 Topic-by-topic curation (ongoing)
+
+C.1/C.2 above were a corpus-wide pass. Going forward, Phase C continues as a
+**recurring per-topic workflow** — audit one topic in depth (weak/trivial/
+repetitive/ambiguous questions, missing misconceptions, Gold/Platinum gaps,
+missing experimental reasoning), upgrade it with a small batch of checked
+Gold/Platinum exemplars, review its simulation and lesson content for
+teaching quality, then verify. Deletions from the audit are never automatic —
+they're a human call with the report in hand.
+
+**Equilibrium — done.** [scripts/audit-corpus.mjs](scripts/audit-corpus.mjs)'s
+per-topic breakdown, plus a manual read of all 53 equilibrium-tagged
+questions (module quiz, Part I/II, mock papers, Integrated), found **no
+chemistry errors** — every calculation checked out, including the existing
+Platinum item's van't Hoff cycle. The gap was depth, not correctness: 6 Gold
+/ 1 Platinum of 53. Added 5 new Part II FRQs (`p2-equilibrium-004..007`, one
+Platinum) — reaching equilibrium from concentration-vs-time data, why the 5%
+rule depends on x/C₀ and not on K's absolute size, the Mohr endpoint computed
+quantitatively (residual [Cl⁻] ≈ 0.012% at the visible endpoint), and a
+coupled Ksp×Kf equilibrium (AgCl dissolving in NH₃) with a real experimental-
+safety trap about fulminating silver — bringing the topic to 9 Gold / 2
+Platinum of 57. [equilibrium.ts](src/tabs/equilibrium.ts) got one new
+mission (`msn-eq-07`, quantifying the Mohr endpoint on the existing
+mixing-check calculator — previously the only card in the tab with zero
+missions) and a caveat paragraph on the live sim: its forward/reverse rates
+happen to equal the stoichiometric coefficients because N₂O₄⇌2NO₂ genuinely
+is believed to be a single elementary step both ways, not because rate laws
+in general can be read off a balanced equation — a real, if subtle,
+over-generalization risk the sim didn't previously guard against. (One bug
+caught in verification: the caveat's first draft passed raw `<sub>` HTML as
+a plain string child, which `h()` renders as literal text rather than
+markup — fixed by using the `html:` attribute, the same pattern every other
+rich-text node in the codebase already uses.) `tsc --noEmit`, `npm run
+build`, and the duplicate-id/answer-index audit are all clean; the new
+mission and all five FRQs were exercised live in the browser.
+
+**States of Matter & Gases — done.** Manual read of all 51 states-tagged
+questions (module quiz, Part I/II, mock papers) found, again, **no chemistry
+errors** — every gas-law, Graham's-law, phase-diagram and colligative
+calculation checked out. [gases.ts](src/tabs/gases.ts) is the richest
+simulation file in the corpus (5 sub-cards, 6 pre-existing missions) and
+every formula was hand-verified: the Maxwell–Boltzmann distribution's
+prefactor, the phase diagram's Clausius–Clapeyron/linear-in-P fusion curves
+from the earlier Phase B fix (re-derived independently and still correct),
+and both Clausius–Clapeyron missions' target temperatures (Everest ≈71°C,
+autoclave ≈121°C) recomputed from scratch and matched to the displayed
+values.
+
+Added 4 new Part II FRQs (`p2-states-004..007`, one Platinum) targeting a
+real, previously self-acknowledged gap: ROADMAP's own Phase B.3 notes record
+that the "ideal vs. real gas" mission was dropped because "there is no van
+der Waals curve in the gas box, and adding one is a new simulation" — so
+`p2-states-004` fills that gap as a written problem instead (CO₂ at 1
+mol/0.500 L/300 K, ideal vs. van der Waals, and a part isolating which
+correction term — `a` or `b` — actually drives the ~25% deviation, since
+they push in opposite directions and that is not obvious in advance).
+The other three: `p2-states-005` derives ΔHvap from two vapor-pressure
+data points and predicts a normal boiling point (the same mathematical
+move as equilibrium's van't Hoff FRQs, applied to phase equilibrium
+instead of chemical equilibrium); `p2-states-006` walks through supercritical
+CO₂ decaffeination, including why the pressure-release step has to stay
+above Tc to avoid a discrete boiling step — a real engineering subtlety,
+verified by checking the release temperature (35°C) is deliberately kept
+above CO₂'s 31.1°C critical point; `p2-states-007` uses osmotic pressure to
+weigh a macromolecule (1.27×10⁶ g/mol) and computes what its freezing-point
+depression would have been (2.93×10⁻⁵°C — unmeasurably small), the standard
+reason osmometry is the practical technique for large solutes. States moved
+from 3 Gold/1 Platinum to 6 Gold/2 Platinum (of 55).
+
+One genuine mission gap found: the Maxwell–Boltzmann card had zero missions
+despite two sliders and real physics. Added `msn-gases-07` — push CO₂'s
+v<sub>rms</sub> above 550 m/s using temperature alone — which lands on a
+teaching point nothing else in the corpus covers: light gases (He, H₂)
+reach escape-relevant speeds far more easily than heavy ones at the same
+temperature, which is *why* Earth's atmosphere is depleted in hydrogen and
+helium over geological time. Verified live: selecting CO₂ and dragging T to
+900 K auto-completed the mission with the correct explanation text.
+`tsc --noEmit`, `npm run build`, and the duplicate-id/answer-index audit are
+all clean; all four new FRQs and the new mission were exercised in the
+browser.
+
+**Atomic Structure — done.** This one turned up an actual bug, not just a
+depth gap. Manual read of all 81 atomic-tagged questions (`quantum.ts` +
+`periodicity.ts` module quizzes, Part I/II, mock papers) found two genuine
+near-duplicate pairs — `p1-atomic-003`/`mock2-a-011` both asked for Cu's
+exception configuration, and `p1-atomic-004`/`mock1-a-012` both ranked IE1
+across Na/Mg/Al/Si — and, now that Phase A keys progress on explicit `id`
+rather than a hash of the question text, it's safe to reword a shipped
+question without orphaning anyone's progress. Revised the mock-paper copy of
+each pair to test a different fact under the same id: `mock2-a-011` now asks
+about Cr's analogous half-filled exception instead of repeating Cu, and
+`mock1-a-012` now tests the P→S ionization-energy dip (Al/Si/P/S) instead of
+repeating the Na/Mg/Al/Si ranking — which, pleasingly, is a fact the
+periodicity theory block and trends chart already reference by name but no
+question anywhere had actually tested.
+
+**The bug:** [periodicity.ts](src/tabs/periodicity.ts)'s Slater's-rules
+calculator filled `3d` before `4s4p` in its grouping order. For every
+element up to Ca (Z ≤ 20) — the calculator's entire range — this is
+backwards; real potassium and calcium are 4s¹/4s², not 3d¹/3d². Selecting K
+or Ca showed "outermost group 3d" with a fabricated Zeff, contradicting both
+real chemistry and this app's own `quantum.ts` electron-configuration
+builder two clicks away, which has always used the correct order. Fixed by
+reordering the fill sequence to match Madelung's rule; K now correctly shows
+group 4s4p with Zeff = 2.20 (verified against Na's Zeff, also 2.20 — the
+standard textbook value confirming the fix). Caught by tracing the fill
+logic by hand for Z=19/20 before trusting the tool's own output, not by
+eyeballing the UI.
+
+That same fixed calculator turned out to have zero missions on it, alongside
+periodicity.ts having no missions anywhere in the whole tab (unlike
+quantum.ts's four and gases.ts's now-seven) — and the fix itself surfaces a
+genuinely interesting, non-obvious result: Na's and K's valence-electron Zeff
+are nearly identical (2.20 vs 2.20) despite K having 8 more protons, because
+each added proton down a group is almost exactly cancelled by an added full
+shell of shielding. Added `msn-per-01` to teach exactly that — a real
+"driven by the newly-fixed tool" mission, verified live end to end.
+
+Added 3 new Part II FRQs (`p2-atomic-004..006`, one Platinum):
+`p2-atomic-004` gives two hydrogen emission wavelengths and asks the student
+to identify the series and predict a third line — the Platinum move is part
+(c), where assuming the Paschen series (n_f=3) for the given data produces a
+literal negative number under a square root, proving the assignment wrong
+rather than just asserting it. `p2-atomic-005` is the Slater's-rules
+resolution of the "4s fills first but ionizes first" paradox (Zeff(4s)=3.75
+vs Zeff(3d)=6.25 in Fe, hand-verified against the standard literature
+treatment of this exact question) — a direct answer to a fact `quantum.ts`'s
+own config-builder caption already states ("Cations lose 4s before 3d") but
+never explains. `p2-atomic-006` is the photoelectric effect done
+quantitatively (work function, stopping potential, threshold wavelength),
+which the corpus previously only tested conceptually. Atomic Structure moved
+from 2 Gold/1 Platinum to 4 Gold/2 Platinum (of 84) — still the thinnest
+topic in the corpus by count, so a strong next candidate to revisit.
+`tsc --noEmit`, `npm run build`, and the duplicate-id/answer-index audit are
+all clean; the Slater's-rules fix, the new mission, both revised mock
+questions, and all three new FRQs were exercised live in the browser.
+
+**Bonding & Structure — done.** Manual read of all 58 bonding-tagged
+questions found one more real duplicate: `p1-bonding-002` and `mock1-a-015`
+both asked for CO₂'s carbon hybridization, nearly word-for-word. Revised
+`mock1-a-015` to ask about formaldehyde's carbon (sp², not CO₂'s sp) instead
+of repeating the fact. Also added two missing `misconception` annotations to
+existing questions rather than writing new ones: `bon-013` (polar bonds vs.
+polar molecule — CCl₄/CO₂/BF₃/XeF₄ all have polar bonds but cancel by
+symmetry) and `bon-022` (the "π2p below σ2p" MO ordering is the exception for
+B₂/C₂/N₂ specifically, from s–p mixing, not a universal rule — it flips back
+at O₂).
+
+[bonding.ts](src/tabs/bonding.ts)'s VSEPR table and MO-diagram engine were
+both hand-verified extensively — every VSEPR angle/hybridization/example
+against the standard chart, and the MO bond-order/paramagnetism logic traced
+by hand for O₂, O₂⁻, B₂ and C₂ (all correct, including the unusually-written
+but correct Hund's-rule unpaired-electron formula). No errors found, but the
+whole tab had **zero missions** on either card despite bonding being the
+module every other Foundations topic depends on. Added two: `msn-bon-01` on
+the VSEPR card (find the two shape classes — AX₂E₃ and AX₄E₂ — that carry
+lone pairs yet are still nonpolar, a genuine counter-example to "lone pairs
+make things polar") and `msn-bon-02` on the MO card (of several even-electron
+diatomics, which one is paramagnetic anyway — O₂, the single most famous
+Lewis-theory failure). Both verified live, including wrong-then-right
+feedback on the MO mission.
+
+Added 2 new Part II FRQs (`p2-bonding-004..005`, one Platinum), both on
+molecules absent from the corpus until now: `p2-bonding-004` walks through
+CO's formal charges (−1 on carbon, +1 on oxygen — backwards from what
+electronegativity alone predicts), why that nearly cancels CO's dipole and
+even reverses its direction, and connects it to why CO binds hemoglobin
+through carbon and is toxic; `p2-bonding-005` uses ozone's two identical
+measured O–O bond lengths (127.8 pm each) as direct experimental proof of
+resonance delocalization, and asks students to justify O₃'s polarity from
+its bent shape despite the resonance averaging. Bonding moved from 3 Gold/1
+Platinum to 4 Gold/2 Platinum (of 58). `tsc --noEmit`, `npm run build`, and
+the duplicate-id/answer-index audit are all clean; both new missions and
+both new FRQs were exercised live in the browser.
+
+**Kinetics — done.** Unlike the other topics so far, kinetics has no
+dedicated module — it's folded into `aek.ts` (Acids, Redox & Kinetics) and
+its 23 questions are scattered across Part I, mock papers, Part II and CCO
+PS4, tagged `topic: 'kinetics'` individually rather than inherited from a
+module. Worth checking on exactly *because* it's easy for a shared tab to
+get shortchanged — it turned out not to be: it already had the best
+Gold/Platinum ratio of any topic before this pass (4/2 of 23), and manual
+read of all of it (MC, both existing Part II FRQs, both CCO PS4 problems,
+both mock-paper B-section FRQs) found **no chemistry errors**, including
+re-deriving the Eyring-plot and competitive-inhibition numbers in
+`cco-ps4-001/002` by hand.
+
+Found one near-duplicate in scenario phrasing rather than a straight
+content copy: `p1-kinetics-002` and `mock2-b-003` both used the same
+"doubling [A] doubles the rate; doubling [B] does nothing" framing — the FRQ
+adds real value beyond the MC (it also asks for *k* and a mechanistic
+interpretation), so this wasn't a pure duplicate to fix by rewriting the
+underlying fact, just overlapping wording. Reworded `mock2-b-003`'s prompt
+into a data table (matching `p2-kinetics-001`'s style) with the same
+first-order-in-A/zero-order-in-B result, removing the phrase-level overlap
+without changing what it tests.
+
+[aek.ts](src/tabs/aek.ts)'s kinetics section (`makeKinetics()`) was hand
+audited in full — the integrated rate law formulas, the mystery-data
+"determine the order from a table" mission (verified the buried second-order
+data: half-life exactly doubles, 12.5 s then 25 s, k = 0.08 M⁻¹s⁻¹), and the
+Arrhenius "rate doubles per 10°C" mission (Ea ≈ 53 kJ/mol at room
+temperature, and the explain text's claimed ×7 at 150 kJ/mol and ×1.3 at 20
+kJ/mol both check out exactly). All correct, and — a genuine first for this
+workflow — this simulation already had 5 missions covering its controls
+thoroughly, so no new mission was added here; the honest answer to "should
+another mission be added?" was no.
+
+Added 2 new Part II FRQs (`p2-kinetics-003..004`, one Platinum), both
+introducing techniques absent from the rest of the corpus: `p2-kinetics-003`
+derives N₂O₅'s real experimental first-order rate law from a proposed
+3-step mechanism via the **steady-state approximation** — a different
+technique from the pre-equilibrium method the existing theory block and
+`p1-kinetics-005` already cover, so it's new territory rather than a
+repeat, and ends by asking why a multi-step mechanism is chemically
+necessary at all rather than a single step matching the overall equation.
+`p2-kinetics-004` quantifies how much Ea a catalyst actually needs to lower
+to explain a given rate boost (assuming unchanged A), then corrects the
+intuitive-but-wrong objection that a "small" kJ/mol change can't explain a
+large-fold rate change (it can — k depends exponentially on Ea/RT, not
+linearly on Ea), and closes by showing a catalyst's *relative* speedup
+shrinks at higher temperature even with the same absolute ΔEa. Kinetics
+moved from 4 Gold/2 Platinum to 5 Gold/3 Platinum (of 25) — proportionally
+now the strongest-covered topic in the whole corpus. `tsc --noEmit`,
+`npm run build`, and the duplicate-id/answer-index audit are all clean; both
+new FRQs and the reworded mock question were exercised live in the browser.
+
+**Stoichiometry & Solutions — done.** Manual read of all 51 pre-existing
+stoich-tagged questions found the same pattern once more: one genuine
+duplicate, otherwise no chemistry errors. `sto-009` and `mock1-a-001` used
+the *exact same percentages* (40.0% C, 6.7% H, 53.3% O) for the same
+empirical-formula question. Reworded `mock1-a-001` to a different real
+compound — oxalic acid, 26.7% C / 2.2% H / 71.1% O, empirical formula CHO₂
+— rather than repeating CH₂O under different cosmetic wording.
+
+[stoich.ts](src/tabs/stoich.ts) — the limiting-reagent visualizer, the
+molarity/dilution calculators, and the %-yield tool — all checked out
+correctly (reaction molar masses, the mol/coefficient limiting-reagent
+logic, M₁V₁=M₂V₂, the >100%-yield trap). Like periodicity.ts and
+bonding.ts before this pass, it had **zero missions anywhere** — notable
+because this is the very first topic in the whole course (no prerequisites
+in `topics.ts`). Added two: `msn-stoich-01` on the limiting-reagent card
+(find mole amounts where *neither* reactant is left over — a perfectly
+stoichiometric mixture — which doubles as the setup for the real lesson,
+that industrial processes deliberately avoid this exact mixture by running
+one reagent in excess) and `msn-stoich-02` on the molarity calculator (hit
+a target concentration by solving backward for mass — deliberately
+open-ended, since many mass/volume/molar-mass triples all work and the
+point is the ratio, not memorizing one answer). Both verified live,
+including the open-ended one accepting a self-chosen mass.
+
+Added 2 new Part II FRQs (`p2-stoich-004..005`, one Platinum), both
+patterns absent from the rest of the corpus: `p2-stoich-004` determines a
+Zn/Mg alloy's composition from its total mass and the total moles of H₂
+produced with excess HCl — two equations, two unknowns, and the part (d)
+payoff is *why* the method works at all (same total mass, different molar
+masses, therefore different moles of gas per gram — that's the second
+independent equation). `p2-stoich-005` is "yields multiply, they don't
+average": a 3-step synthesis where naively averaging the step yields
+(84.3%) badly overstates the true compounding result (59.7%), a genuine and
+costly real-world synthesis-planning mistake. Stoichiometry moved from 6
+Gold/1 Platinum to 7 Gold/2 Platinum (of 53). `tsc --noEmit`, `npm run
+build`, and the duplicate-id/answer-index audit are all clean; both new
+missions and both new FRQs were exercised live in the browser.
+
+**Not yet done:** every other topic. Repeat this workflow one at a time.
 
 ---
 

@@ -1,5 +1,6 @@
 // Advanced (CCO) — Spectroscopy (IR / NMR / MS) + advanced organic synthesis.
 import { h, card, theory, select, pills, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { SPECTROSCOPY_QUIZ } from './questions3';
 
 // ================= IR =================
@@ -198,7 +199,7 @@ export const spectroscopyTab: TabDef = {
       { label: '¹H NMR', el: makeNMR() },
       { label: 'Mass spec', el: makeMS() },
       { label: 'Synthesis', el: makeSynthesis() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — spectroscopy & synthesis', quiz(SPECTROSCOPY_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — spectroscopy & synthesis', quiz(SPECTROSCOPY_QUIZ, 5)), challengeLadder('spectroscopy')) },
     ]));
   },
 };

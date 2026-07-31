@@ -2,6 +2,7 @@
 // concentration cells, real gases (van der Waals / Z), heat capacities +
 // Kirchhoff, catalysis energy profile, and coupled/complex equilibria.
 import { h, card, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { PHYSCHEM_QUIZ } from './questions6';
 
 const R = 8.314; // J/mol·K
@@ -272,6 +273,7 @@ export const physChemTab: TabDef = {
         makeVantHoff(), makeClausius(), makeConcCell(), makeRealGas(),
         makeHeatCap(), makeCatalysis(), makeComplexEq(),
         card('Quick quiz', quiz(PHYSCHEM_QUIZ, 5)),
+        challengeLadder('physchem'),
       ),
       theory('Theory — advanced physical chemistry', `
 <h4>Temperature dependence of K (van't Hoff)</h4>

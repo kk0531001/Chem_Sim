@@ -1,6 +1,7 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
 import { h, card, theory, slider, button, plot, pills, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { LABDATA_QUIZ } from './questions2';
 
 
@@ -278,7 +279,7 @@ export const labdataTab: TabDef = {
       { label: 'Uncertainty & Q-test', el: makeUncertainty() },
       { label: 'Qual. analysis', el: makeQualTests() },
       { label: 'Technique', el: makeTechnique() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(LABDATA_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(LABDATA_QUIZ, 5)), challengeLadder('labdata')) },
     ]));
   },
 };

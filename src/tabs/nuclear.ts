@@ -1,5 +1,6 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
 import { h, card, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle } from './framework';
+import { challengeLadder } from './challenge';
 import { NUCLEAR_QUIZ } from './questions2';
 
 
@@ -268,7 +269,7 @@ export const nuclearTab: TabDef = {
       { label: 'Nuclear', el: nuc.el },
       { label: 'Coordination', el: makeCoordination() },
       { label: 'Descriptive', el: makeDescriptive() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(NUCLEAR_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(NUCLEAR_QUIZ, 5)), challengeLadder('nuclear')) },
     ]));
     // pills swap DOM but the rAF loop lives on; gate on tab visibility
     return {

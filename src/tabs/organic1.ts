@@ -1,6 +1,7 @@
 // Organic I: substrate/mechanism decision engine (SN1/SN2/E1/E2),
 // pKa ladder, carbocation stability.
 import { h, card, theory, select, plot, linspace, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { ORGANIC1_QUIZ } from './questions2';
 
 
@@ -160,7 +161,7 @@ export const organic1Tab: TabDef = {
     );
 
     root.append(
-      h('div', { class: 'cards' }, deciderCard, ladderCard, cationCard, card('Quick quiz', quiz(ORGANIC1_QUIZ, 5))),
+      h('div', { class: 'cards' }, deciderCard, ladderCard, cationCard, card('Quick quiz', quiz(ORGANIC1_QUIZ, 5)), challengeLadder('organic1')),
       theory('Theory — organic bonding, stereochem quick hits, mechanism summary', `
 <h4>The four mechanisms at a glance</h4>
 <table><tr><th></th><th>rate law</th><th>stereo</th><th>substrate</th><th>needs</th></tr>

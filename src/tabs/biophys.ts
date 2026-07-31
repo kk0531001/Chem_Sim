@@ -1,5 +1,6 @@
 // Advanced (CCO) — Advanced thermo/kinetics + biochemistry.
 import { h, card, theory, slider, select, plot, linspace, pills, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { BIOPHYS_QUIZ } from './questions4';
 
 // ================= ENZYME KINETICS =================
@@ -150,7 +151,7 @@ export const biophysTab: TabDef = {
       { label: 'Eyring (TST)', el: h('div', { class: 'cards' }, makeEyring()) },
       { label: 'Boltzmann', el: h('div', { class: 'cards' }, makeBoltzmann()) },
       { label: 'Biochemistry', el: makeBiochem() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — physical & biochem', quiz(BIOPHYS_QUIZ, 5))) },
+      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — physical & biochem', quiz(BIOPHYS_QUIZ, 5)), challengeLadder('biophys')) },
     ]),
     theory('Theory — advanced thermo/kinetics & biochemistry (CCO PS4)', `
 <h4>Advanced kinetics</h4>

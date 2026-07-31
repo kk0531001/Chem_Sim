@@ -1,5 +1,6 @@
 // Chemical bonding: VSEPR geometry explorer + MO diagrams for diatomics.
-import { h, card, theory, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
+import { challengeLadder } from './challenge';
 import { BONDING_QUIZ } from './questions1';
 
 
@@ -131,14 +132,32 @@ export const bondingTab: TabDef = {
     // VSEPR card
     const shapeBox = h('div', {});
     const infoBox = h('div', { class: 'result' });
+    let curShape = 'AX₂E₂';
+    const vseprMissions = missionLadder([
+      {
+        id: 'msn-bon-01',
+        prompt: 'Most shapes with lone pairs on the central atom are polar. Find one of the <b>two</b> shape classes here that has lone pairs on the central atom yet is still NONPOLAR overall.',
+        meter: () => ({ label: `current: ${curShape} — ${VSEPR.find(v => v.code === curShape)!.polar}, ${VSEPR.find(v => v.code === curShape)!.lp} lone pair(s)`, pct: 0 }),
+        choices: [
+          { label: 'AX₂E₃ (linear, e.g. XeF₂)', value: 'AX₂E₃' },
+          { label: 'AX₃E (trigonal pyramidal, e.g. NH₃)', value: 'AX₃E' },
+          { label: 'AX₂E₂ (bent, e.g. H₂O)', value: 'AX₂E₂' },
+          { label: 'AX₄E₂ (square planar, e.g. XeF₄)', value: 'AX₄E₂' },
+        ],
+        validateChoice: v => v === 'AX₂E₃' || v === 'AX₄E₂',
+        explain: 'Both <b>AX₂E₃</b> (XeF₂, I₃⁻ — linear, 3 lone pairs) and <b>AX₄E₂</b> (XeF₄, ICl₄⁻ — square planar, 2 lone pairs) are nonpolar despite carrying lone pairs. <span class="trap">Lone pairs don\'t automatically make a molecule polar</span> — what matters is whether the overall arrangement (bonds AND lone pairs together) is symmetric enough for every dipole contribution to cancel. In both cases the lone pairs sit at symmetric, opposing positions rather than breaking the symmetry.',
+      },
+    ]);
     const setShape = (code: string) => {
+      curShape = code;
       const e = VSEPR.find(v => v.code === code)!;
       shapeBox.innerHTML = vseprSVG(e);
       infoBox.innerHTML = `<b>${e.code}</b> — electron geometry: <b>${e.eGeom}</b> · molecular shape: <b>${e.mGeom}</b><br>` +
         `bond angle: ${e.angle} · hybridization: ${e.hybrid}<br>examples: ${e.examples}<br>polarity: ${e.polar}` +
         (e.lp > 0 ? `<br><span class="muted">Lone pairs (yellow) repel more than bonds → they compress the bond angles.</span>` : '');
+      vseprMissions.tick();
     };
-    const vseprCard = card('VSEPR geometry explorer',
+    const vseprCard = cardWithMissions('VSEPR geometry explorer', vseprMissions,
       select('shape class', VSEPR.map(v => ({ value: v.code, label: `${v.code} — ${v.mGeom}` })), setShape, 'AX₂E₂'),
       shapeBox, infoBox,
     );
@@ -147,18 +166,36 @@ export const bondingTab: TabDef = {
     // MO card
     const moCanvas = h('canvas', { width: 380, height: 320 });
     const moOut = h('div', { class: 'result' });
+    let curMO = 'O₂';
+    const moMissions = missionLadder([
+      {
+        id: 'msn-bon-02',
+        prompt: 'Every species below has an EVEN number of valence electrons — normally a strong hint that all of them pair up. Which one is paramagnetic anyway — the single most famous example of Lewis theory failing where MO theory succeeds?',
+        meter: () => ({ label: `current: ${curMO}`, pct: 0 }),
+        choices: [
+          { label: 'O₂ (12 valence e⁻)', value: 'O₂' },
+          { label: 'F₂ (14 valence e⁻)', value: 'F₂' },
+          { label: 'N₂ (10 valence e⁻)', value: 'N₂' },
+          { label: 'C₂ (8 valence e⁻)', value: 'C₂' },
+        ],
+        validateChoice: v => v === 'O₂',
+        explain: '<b>O₂.</b> With an even electron count, a Lewis structure (O=O, all electrons in pairs) predicts diamagnetic — but O₂\'s last two electrons land in a doubly-degenerate π* pair, and Hund\'s rule puts one in each, unpaired, exactly like the p-orbital filling you already know from atoms. Liquid O₂ visibly clings to a magnet; nothing in Lewis theory can produce that, because Lewis theory has no concept of degenerate orbitals to spread electrons across in the first place.',
+      },
+    ]);
     const setMO = (label: string) => {
+      curMO = label;
       const sp = MO_SPECIES.find(s => s.label === label)!;
       moOut.innerHTML = moDiagram(moCanvas, sp);
+      moMissions.tick();
     };
-    const moCard = card('MO diagram — period 2 diatomics',
+    const moCard = cardWithMissions('MO diagram — period 2 diatomics', moMissions,
       select('species', MO_SPECIES.map(s => ({ value: s.label, label: s.label })), setMO, 'O₂'),
       moCanvas, moOut,
     );
     setMO('O₂');
 
     root.append(
-      h('div', { class: 'cards' }, vseprCard, moCard, card('Quick quiz', quiz(BONDING_QUIZ, 5))),
+      h('div', { class: 'cards' }, vseprCard, moCard, card('Quick quiz', quiz(BONDING_QUIZ, 5)), challengeLadder('bonding')),
       theory('Theory & key ideas — Lewis, VSEPR, valence bond, MO', `
 <h4>Lewis structures & formal charge</h4>
 <span class="eq">FC = valence e⁻ − nonbonding e⁻ − ½(bonding e⁻)</span>

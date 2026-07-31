@@ -1,6 +1,7 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, type TabDef, type TabHandle } from './framework';
+import { challengeLadder } from './challenge';
 import { EQUILIBRIUM_QUIZ } from './questions1';
 
 
@@ -130,6 +131,7 @@ export const equilibriumTab: TabDef = {
       ),
       eventOut,
       h('p', { class: 'muted' }, 'Only temperature changes K itself — concentration and volume changes just move Q, and the system chases K back.'),
+      h('p', { class: 'muted', html: 'This simulator\'s forward/reverse rates happen to equal the stoichiometric coefficients (rate<sub>f</sub> ∝ [N₂O₄], rate<sub>r</sub> ∝ [NO₂]²) because N₂O₄ ⇌ 2NO₂ really is believed to proceed as a single elementary step both ways — not because rate laws in general can be read off a balanced equation. For any reaction that happens in more than one step, the rate law has to come from experiment (see Kinetics).' }),
     );
 
     // ---- ICE solver ----
@@ -248,6 +250,30 @@ export const equilibriumTab: TabDef = {
         ],
         explain: 'This is why a gravimetric chloride determination is done with a deliberate <em>excess</em> of silver: the common ion drives the residual dissolved AgCl down by orders of magnitude, so what stays in solution is small enough to ignore when you weigh the precipitate. Push the excess much further, though, and AgCl starts redissolving as [AgCl₂]⁻ — an effect this simple K_sp model does not include.',
       },
+      {
+        id: 'msn-eq-07',
+        prompt: 'Switch the salt above to <b>Ag₂CrO₄</b>, then use the mixing-check calculator below: with the anion field (CrO₄²⁻) set to <b>0.010</b>, dial in the cation (Ag⁺) concentration at which the red Ag₂CrO₄ indicator is JUST about to precipitate (Q ≈ Ksp).',
+        meter: () => {
+          if (salt.name !== 'Ag₂CrO₄') return { label: 'select Ag₂CrO₄ above first', pct: 0 };
+          const an = Number(anIn.value), cat = Number(catIn.value);
+          if (!(an > 0 && cat > 0)) return { label: 'enter both concentrations below', pct: 0 };
+          const Q = cat * cat * an;
+          return { label: `Q = ${Q.toExponential(2)} vs Ksp = ${salt.ksp.toExponential(1)} · target Q ≈ Ksp`, pct: Math.min(100, (Q / salt.ksp) * 100) };
+        },
+        check: () => {
+          if (salt.name !== 'Ag₂CrO₄') return false;
+          const an = Number(anIn.value), cat = Number(catIn.value);
+          if (!(an > 0 && cat > 0) || Math.abs(an - 0.010) / 0.010 > 0.05) return false;
+          const Q = cat * cat * an;
+          return Math.abs(Q - salt.ksp) / salt.ksp < 0.15;
+        },
+        verify: true,
+        hints: [
+          'Q for Ag₂CrO₄ = [Ag⁺]²[CrO₄²⁻]. Set that equal to Ksp and solve for [Ag⁺].',
+          '[Ag⁺] ≈ 1.0×10⁻⁵ M when [CrO₄²⁻] = 0.010 M.',
+        ],
+        explain: 'At [Ag⁺] ≈ 1.05×10⁻⁵ M, Ag₂CrO₄ just reaches Q = Ksp. Compare that to AgCl\'s threshold under the same 0.010 M common-ion concentration: [Ag⁺] = Ksp/[Cl⁻] = 1.8×10⁻⁸ M — nearly <b>600× lower</b>. That gap is the whole Mohr-titration trick: essentially all the Cl⁻ has already precipitated as AgCl by the time enough Ag⁺ is around for the red Ag₂CrO₄ endpoint color to appear.',
+      },
     ]);
 
     function kspCalc(): void {
@@ -280,12 +306,16 @@ export const equilibriumTab: TabDef = {
     }
     function qCalc(): void {
       const cat = Number(catIn.value), an = Number(anIn.value);
-      if (!(cat > 0 && an > 0)) return;
+      if (!(cat > 0 && an > 0)) { kspMissions.tick(); return; }
       const Q = Math.pow(cat, salt.m) * Math.pow(an, salt.n);
       qOut.innerHTML = `Q = [cation]^${salt.m}[anion]^${salt.n} = <b>${Q.toExponential(2)}</b> vs Ksp = ${salt.ksp.toExponential(1)} → ` +
         (Q > salt.ksp ? '<b style="color:#ff8a6f">Q &gt; Ksp: precipitate forms</b> until Q falls to Ksp'
           : Q < salt.ksp ? '<b style="color:#7ae27a">Q &lt; Ksp: stays dissolved</b> (unsaturated)'
             : '<b>Q = Ksp: exactly saturated</b>');
+      // Mission 7 reads the cation/anion inputs directly, so its meter needs to
+      // repaint on every keystroke here too, not just when the salt/common-ion
+      // controls above trigger kspCalc().
+      kspMissions.tick();
     }
     [catIn, anIn].forEach(i => i.addEventListener('input', qCalc));
     const kspCard = cardWithMissions('Ksp — solubility equilibria', kspMissions,
@@ -301,7 +331,7 @@ export const equilibriumTab: TabDef = {
     kspCalc();
 
     root.append(
-      h('div', { class: 'cards' }, simCard, iceCard, kspCard, card('Quick quiz', quiz(EQUILIBRIUM_QUIZ, 5))),
+      h('div', { class: 'cards' }, simCard, iceCard, kspCard, card('Quick quiz', quiz(EQUILIBRIUM_QUIZ, 5)), challengeLadder('equilibrium')),
       theory('Theory & key equations — equilibrium (highest-volume olympiad topic)', `
 <h4>The law of mass action</h4>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>
