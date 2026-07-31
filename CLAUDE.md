@@ -59,7 +59,21 @@ with a reason stated in the commit/summary.
 - Tabs with animation loops must gate on visibility via the `TabHandle`
   onShow/onHide callbacks (see equilibrium.ts, gases.ts, nuclear.ts).
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
-  select, pills, plot, quiz) instead of hand-rolling DOM or canvas-axis code.
+  select, pills, plot, quiz, missionLadder) instead of hand-rolling DOM or
+  canvas-axis code.
+- **Simulation missions** (ROADMAP Phase B) go through `missionLadder(defs)` +
+  `cardWithMissions()` — one ladder per card, pinned above that card's controls,
+  never a bespoke implementation. Call the returned `tick()` from wherever the
+  card already recomputes (the slider `onInput` path, or the animation loop for
+  tabs that have one). Three rules that are easy to get wrong:
+  (1) mission ids are permanent and namespaced `msn-<tab>-<n>`, under the same
+  no-renumbering rule as question ids, because they write through `markSolved`
+  and count toward completion; (2) missions must NOT call `recordAttempt` — an
+  open-ended experiment is not a graded answer and would distort per-topic
+  accuracy; (3) before shipping a mission, confirm it is both **reachable** and
+  **not already satisfied by the card's default state** — replay the sim's own
+  maths offline rather than eyeballing it. Give every drive-the-sim mission a
+  `meter()`, or a continuous slider turns the goal into a guessing game.
 - Every topic tab has a quiz of 25 QuizQ entries (5 warm-ups, then 20
   CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions7.ts
   (questions3/4 = Advanced-CCO banks; questions5 = periodicity + polymers;

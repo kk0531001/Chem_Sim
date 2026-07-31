@@ -344,7 +344,7 @@ progress survives the migration intact.
 
 ---
 
-## Phase B — Make the simulations teach (2 weeks)
+## Phase B — Make the simulations teach — **[x] DONE**
 
 > "Not 'make prettier graphics.' Make them teach better."
 
@@ -352,57 +352,150 @@ Right now every simulation is *sliders with no goal*. A student moves a control,
 watches something change, and learns nothing unless they already knew what to
 look for. Missions invert that: state the goal, let them hunt for it.
 
-### B.1 A shared mission framework (2–3 days)
+### B.1 A shared mission framework — **[x] DONE**
 
-Per the `CLAUDE.md` rule that shared behaviour lives in `framework.ts`, this is
-one helper, not 12 bespoke implementations.
+`missionLadder(defs)` in [framework.ts](src/tabs/framework.ts) returns
+`{ el, tick }`; `cardWithMissions()` pins the strip directly above the controls
+of the card it belongs to. One helper, 21 missions, no bespoke implementations.
 
-- [ ] `mission({ prompt, check, hints, onSolve })` in
-      [framework.ts](src/tabs/framework.ts):
-      - `prompt` — the goal, in words
-      - `check(state) => boolean` — polled on the tab's existing animation tick
-      - `hints` — a ladder, revealed one at a time on request (never automatically)
-      - success state writes through to the same progress system as quizzes, so
-        missions count toward completion
-- [ ] Missions render as a strip above the sim controls, one active at a time,
-      with the goal always visible while the student experiments.
+Four things worth knowing, because they were decisions rather than defaults:
 
-### B.2 Misconception boxes (1 day)
+- **A mission is graded three different ways, not one.** `check()` polls live
+  sim state and auto-completes (the roadmap's original design), but a goal like
+  "why didn't the equilibrium move?" has no state to poll — the student has
+  already done the experiment and the question is what they concluded. Those get
+  `choices` or `numeric` instead, and `check` is optional as a result.
+- **`meter()` turned out to matter more than `check()`.** A pass/fail mission on
+  a continuous slider is a guessing game; a live proximity read-out
+  ("P/P₀ = 1.42 · target 2.00") makes it an experiment. Every drive-the-sim
+  mission has one.
+- **Missions write through `markSolved()`**, so they count toward completion
+  alongside quiz questions. Ids are namespaced `msn-*` and are permanent, under
+  the same rule as question ids. They deliberately do *not* call
+  `recordAttempt()` — a mission is an open-ended experiment, and scoring it as
+  a right/wrong answer would poison per-topic accuracy.
+- **Ladders unlock sequentially**, which is what lets a later mission build on
+  what an earlier one just demonstrated (the gases pair below is the clearest
+  case).
 
-There is already a `class="trap"` convention in the theory blocks, so this is a
-content-and-CSS extension of a pattern that exists, not new infrastructure.
+Also fixed here: `isSolved(id) && !solved[i]` could never be true, because
+`solved[]` is seeded from storage at construction — so a returning student's
+completed missions rendered with their controls still live and no completion
+message. Now painted from `solved[i]` itself.
 
-- [ ] `.misconception` block in [style.css](src/style.css) — visually distinct
-      from `.trap` (a trap is an exam gotcha; a misconception is a *wrong mental
-      model*). Per house style: inline SVG warning mark, **no emoji**.
-- [ ] Optional `misconception` field on `QuizQ`, surfaced after a wrong answer.
-- [ ] Write the canonical set. Starting list:
-      - Pressure shifts equilibrium **position**, it does not change **K**
-      - A catalyst does not change yield, only the time to reach it
-      - `ΔG°` is not `ΔG` — the sign of `ΔG°` does not decide spontaneity under
-        arbitrary conditions
-      - Electronegativity ≠ electron affinity
-      - Rate law exponents come from experiment, not stoichiometry
-      - Strong ≠ concentrated
-      - Entropy is not "disorder"
-      - Le Chatelier's "add inert gas at constant V" → nothing happens
+### B.1a Chemistry corrections found while writing the missions
 
-### B.3 Missions per simulation (1 week)
+Missions are checkable claims about the simulation, which is a much harsher
+test of a sim than a slider is. Writing them surfaced three defects in
+[gases.ts](src/tabs/gases.ts)'s phase diagram, all now fixed and verified
+against textbook values:
 
-2–4 each. Concrete, checkable, chemically meaningful.
+- **`classify()` contradicted its own drawn fusion line.** It short-circuited on
+  `T <= Tt` and returned SOLID at *every* pressure below the triple-point
+  temperature, erasing the high-pressure liquid region entirely — on the one
+  card whose caption is "ice is less dense than water, so pressure melts it".
+  The pressure-melting mission was unsolvable against it.
+- **The fusion line was linear in log P**, which put water's melting point at
+  **−2.7 °C at 1 atm**. Melting point shifts linearly in P, not log P
+  (−0.0074 °C/atm for water), so it is now anchored correctly at 0 °C.
+- **The vaporization curve was interpolated linearly in T**, putting water's
+  boiling point at **0.1 atm instead of 1 atm** — a 90% error. It is
+  Clausius–Clapeyron (log P linear in 1/T), anchored triple → normal bp →
+  critical so the drawn curve passes through all three labelled points. Now
+  within ~5% of tabulated vapor pressures from 25 °C to the critical point
+  (25 °C: 0.0297 vs 0.0313 atm; 200 °C: 14.7 vs 15.3 atm), and CO₂ at 0 °C
+  reads 34.5 atm against a true 34.9.
 
-- [ ] **Gases** — "Raise T until pressure doubles at fixed V." · "Find where the
-      ideal-gas line and the real-gas curve separate by 10%."
-- [ ] **Equilibrium** — "Build a buffer at pH 5.0 ± 0.1." · "Shift toward
-      products without touching temperature." · "Add inert gas at constant V and
-      explain why nothing moved."
-- [ ] **Thermo** — "Find conditions where ΔG goes negative." · "Find the
-      crossover T for this ΔH/ΔS pair."
-- [ ] **Kinetics / AEK** — "Determine the order from the concentration traces
-      alone." · "Halve the half-life."
-- [ ] **Sandbox** — "Get >80% H₂O." · "Dissociate the sample without adding
-      reactants." (temperature only)
-- [ ] **Quantum** — "Find every radial node in 3s." (after the 0.4 fixes land)
+Verified with a 13-case region harness across both substances (dry ice at 1 atm,
+liquid CO₂ above 5.1 atm, scCO₂, pressure-melted ice, steam at 150 °C).
+
+Two defaults also moved, because a mission that is already solved when the page
+loads is not a mission: the Ksp card opened with AgCl already suppressed **745×**
+against a 100× goal (now starts at 23.6×), and the Clausius–Clapeyron card
+opened at 0.33 atm, which *was* the Everest answer (now opens at 1 atm, on the
+normal boiling point).
+
+### B.2 Misconception boxes — **[x] DONE**
+
+`.misconception` in [style.css](src/style.css) is a blue-slate note with an
+inline SVG mark, deliberately distinct from all three colours already in play:
+`.trap` orange (an exam gotcha), `.quiz-why.bad` red (you got this one wrong),
+`.quiz-why.good` green. Optional `misconception` on `QuizQ`, surfaced under
+`why` only on a **wrong** answer — a student who already has the right model
+shouldn't be handed the wrong one to read.
+
+All eight canonical items written, on ten questions:
+
+| Misconception | Questions |
+| --- | --- |
+| Pressure shifts **position**, not **K** | `equ-023`, `equ-007` |
+| A catalyst changes the *time*, not the *yield* | `equ-003`, `aek-019` |
+| `ΔG°` is not `ΔG` | `th2-008` |
+| Electronegativity ≠ electron affinity | `per-019` |
+| Rate-law exponents come from experiment | `aek-010` |
+| Strong ≠ concentrated | `aek-001` |
+| Entropy is not "disorder" | `th2-001` |
+| Inert gas at constant V → nothing happens | `equ-006` |
+
+Each states the *wrong mental model* and why it fails, rather than restating the
+right answer — `why` already does that. Where a claim needed a number it was
+checked first: the "strong ≠ concentrated" box originally claimed 15 M acetic
+acid reaches pH 1.2 (it is 1.78, and at 15 M the activity coefficients make the
+simple calculation untrustworthy anyway), so it now contrasts 1 M acetic acid
+(pH 2.4) with 0.001 M HCl (pH 3.0) — the weak acid being the more acidic
+solution, computed exactly.
+
+One rendering bug fixed: `.misconception` is a flex row, so the bare text nodes
+and inline `<em>`/`<b>` tags in the copy each became a separate flex item and
+stacked into narrow columns. The text is now wrapped in a single `<span>`, the
+same shape `.mission-success` already used.
+
+### B.3 Missions per simulation — **[x] DONE**
+
+**21 missions across 6 tabs and 11 cards.**
+
+| Tab | Missions |
+| --- | --- |
+| **Gases** (6) | Double P with temperature alone · why 27→54 °C *doesn't* double it · pressure-melt ice · put CO₂ in the supercritical region · boil water at 71 °C (Everest) · autoclave at 2 atm |
+| **Equilibrium** (6) | Exceed 50% NO₂ without touching T · add argon at constant V · get K above 0.80 · break the 5% approximation · pH up *and* % ionization up · suppress AgCl 100× |
+| **Thermo II** (2) | Read the crossover T off the graph · build an entropy-driven reaction crossing at 800 K |
+| **Acids/Redox/Kinetics** (8) | Reach the equivalence point · choose the indicator · Henderson–Hasselbalch ratio at pH 5.0 · exceed buffer capacity · halve the half-life · t½ vs [A]₀ · **determine the order of an unknown run from data alone** · find Eₐ for "rate doubles per 10 °C" |
+| **Quantum** (4) | Count 3s radial nodes · find the 1-radial/1-angular orbital · emit the 486 nm line · set up a UV absorption |
+| **Sandbox** (2) | Make H₂O the most common molecule · dissociate it with temperature alone |
+
+Every drive-the-sim mission was checked to be **reachable and not pre-solved**,
+by replaying the simulation's own integrator offline rather than by eyeballing
+it. Two examples of that paying off: the equilibrium ladder's first goal
+confirmed that "+0.5 M N₂O₄" *lowers* the NO₂ fraction (45.7% → 40.0%) while
+expanding raises it (→ 56.2%) — so the mission had to be written against the
+fraction, not the concentration, and that contrast became the payoff text. And
+`Eₐ = 53 kJ/mol` is the *only* slider position that satisfies the Arrhenius
+mission (52 → ×1.977, 53 → ×2.003, 54 → ×2.029 against a ±0.02 window).
+
+Two deviations from the list above, both because the sim didn't support the
+original:
+
+- **"Where ideal and real gas separate by 10%"** — there is no van der Waals
+  curve in the gas box, and adding one is a new simulation rather than a
+  mission. Replaced with three goals the existing cards *do* support, including
+  the Kelvin-vs-Celsius pair, which targets a more common error anyway.
+- **"Get >80% H₂O"** in the sandbox is now "make H₂O the most common molecule".
+  An 80% threshold is meaningless without saying 80% *of what*, and any fixed
+  count is hostage to which preset is loaded; "outnumbers everything else" is
+  the claim that survives a different atom budget.
+
+**"Determine the order from the traces alone"** needed a genuine unknown, so the
+kinetics card carries a data table whose order is withheld — second order,
+k = 0.08, chosen so the successive half-lives are 12.5 s then 25 s. The doubling
+is readable straight off the table, which is the actual exam skill; the
+explanation then confirms it by tabulating 1/[A] as a straight line.
+
+Verification: `tsc --noEmit` clean, production build clean, no console errors on
+any tab. Mission mechanics exercised in the browser end-to-end — auto-check,
+wrong-then-right on a choices mission, a numeric mission correctly *rejecting*
+the right number while the sim is in the wrong state, sequential unlocking, and
+progress persisting across a reload. The sandbox's two predicates were unit-
+checked separately (11 cases) because the pixi ticker can't be driven headlessly.
 
 ---
 

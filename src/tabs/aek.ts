@@ -1,6 +1,6 @@
 // Acid-base (titration curves), electrochemistry (galvanic cells + Nernst),
 // kinetics (integrated rate laws + Arrhenius). Three pill sections.
-import { h, card, theory, slider, select, pills, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, pills, plot, linspace, quiz, type TabDef } from './framework';
 import { AEK_QUIZ } from './questions2';
 
 
@@ -92,7 +92,31 @@ function makeAcidBase(): HTMLElement {
       `<br>Indicator choice: phenolphthalein (pink dashes, 8.2–10) fits weak-acid/strong-base; methyl orange (orange dashes, 3.1–4.4) fits strong-acid titrations.` +
       (!strong ? `<br>Buffer region: flat zone around ½-equivalence where pH = pKa ± 1 (max buffer capacity at pH = pKa).` : '');
     liveUpdate();
+    titrMissions.tick();
   }
+
+  const titrMissions = missionLadder([
+    {
+      id: 'msn-aek-01',
+      prompt: 'Keep the <b>weak acid</b> at pK<sub>a</sub> 4.74 and open the buret until you are exactly at the <b>equivalence point</b>.',
+      meter: () => ({ label: strong ? 'switch back to the weak acid' : `${(vbFrac * 200).toFixed(1)}% of the way to equivalence · pH ${pHat(vbFrac * 2 * Veq()).toFixed(2)}`, pct: strong ? 0 : Math.max(0, 100 - Math.abs(vbFrac * 200 - 100) * 4) }),
+      check: () => !strong && Math.abs(pKa - 4.74) < 0.03 && Math.abs(vbFrac - 0.5) < 0.0026,
+      hints: ['Equivalence is where the moles of added base equal the moles of acid you started with — 100% on the buret readout, not the middle of the slider\'s travel.'],
+      explain: 'At equivalence every HA has become A⁻. The pH there is <b>8.72</b>, not 7 — A⁻ is the conjugate base of a weak acid, so it hydrolyses and leaves the solution basic.',
+    },
+    {
+      id: 'msn-aek-02',
+      prompt: 'You are standing at that equivalence point. A lab partner reaches for <b>methyl orange</b> (range 3.1–4.4). Which indicator should actually be used here?',
+      choices: [
+        { label: 'Phenolphthalein (8.2–10)', value: 'phen' },
+        { label: 'Methyl orange (3.1–4.4)', value: 'mo' },
+        { label: 'Either — both change colour', value: 'both' },
+      ],
+      validateChoice: v => v === 'phen',
+      explain: 'Phenolphthalein. An indicator has to change colour <em>on the steep part of the curve, straddling the equivalence pH</em> — here 8.72. Methyl orange would finish changing near pH 4, far out in the buffer region where the curve is nearly flat, so it would signal an endpoint after only about half the acid had been neutralised. <span class="trap">The indicator is chosen from the equivalence pH, never from habit.</span>',
+      hints: ['Compare each indicator\'s range with the pH you just measured at equivalence.'],
+    },
+  ]);
 
   const controls = h('div', {},
     select('acid type', [
@@ -116,7 +140,9 @@ function makeAcidBase(): HTMLElement {
     { name: 'NH₄⁺ / NH₃', pka: 9.25 },
     { name: 'HCO₃⁻ / CO₃²⁻', pka: 10.33 },
   ];
-  let targetPH = 5.0;
+  // Opens on physiological pH, where the tool picks the phosphate pair that
+  // actually buffers blood — and leaves the pH-5.0 mission something to do.
+  let targetPH = 7.4;
   const designOut = h('div', { class: 'result' });
   function designCalc(): void {
     const best = SYSTEMS.reduce((a, b) => Math.abs(a.pka - targetPH) <= Math.abs(b.pka - targetPH) ? a : b);
@@ -129,6 +155,7 @@ function makeAcidBase(): HTMLElement {
       `[base]/[acid] = 10^(pH−pKa) = <b>${ratio.toPrecision(3)}</b><br>` +
       `Recipe for 1 L of 0.20 M total buffer: <b>${base.toFixed(3)} mol conjugate base + ${(total - base).toFixed(3)} mol acid</b><br>` +
       `<span class="muted">Or: start with ${total.toFixed(2)} mol of the acid and add ${base.toFixed(3)} mol NaOH — partial neutralization makes the same buffer.</span>`;
+    bufMissions.tick();
   }
   let addX = 0.01;
   const shockOut = h('div', { class: 'result' });
@@ -144,8 +171,29 @@ function makeAcidBase(): HTMLElement {
         : `<b class="trap">buffer capacity exceeded — one component is used up!</b>`) +
       `<br>same addition to pure water: pH 7.00 → <b>${water.toFixed(2)}</b>` +
       `<br><span class="muted">The buffer math is just moles: strong base converts HA → A⁻ one-for-one, then Henderson–Hasselbalch.</span>`;
+    bufMissions.tick();
   }
-  const bufferCard = card('Buffer designer & shock test',
+  const bufMissions = missionLadder([
+    {
+      id: 'msn-aek-03',
+      prompt: 'Design a buffer at <b>pH 5.0</b>. Set the target there, then work out the <b>[base]/[acid] ratio</b> Henderson–Hasselbalch requires for the pair the tool selects.',
+      numeric: { label: '[base]/[acid]', placeholder: 'e.g. 0.75', step: 0.01, validate: n => Math.abs(targetPH - 5.0) < 0.05 && Math.abs(n - 1.82) < 0.12 },
+      hints: [
+        'pH = pKₐ + log([A⁻]/[HA]). Solve it for the ratio.',
+        'The tool picks acetate, pKₐ 4.74. So the ratio is 10^(5.00 − 4.74).',
+      ],
+      explain: '10^(5.00 − 4.74) = 10^0.26 ≈ <b>1.82</b>, so you need slightly more base than acid. Two things worth noticing: the ratio is what sets the pH, <em>not</em> the absolute concentrations — diluting this buffer 10× leaves the pH essentially unchanged while gutting its capacity. And a buffer is strongest at pH = pKₐ, where the ratio is 1, so acetate is a good but not perfect choice for pH 5.0.',
+    },
+    {
+      id: 'msn-aek-04',
+      prompt: 'Now break it. Using the shock test below, add enough strong base to <b>exceed the buffer\'s capacity</b> entirely.',
+      meter: () => ({ label: `${addX >= 0 ? `+${addX.toFixed(3)} mol NaOH` : `${(-addX).toFixed(3)} mol HCl`} · the buffer holds 0.100 mol of each`, pct: Math.min(100, (Math.abs(addX) / 0.10) * 100) }),
+      check: () => Math.abs(addX) >= 0.10,
+      explain: 'Past 0.100 mol the acid component is entirely consumed, there is nothing left to neutralise further additions, and the pH runs away exactly as unbuffered water would. <span class="trap">Capacity is set by the number of MOLES of each component, not by the pH the buffer holds.</span> That is why a buffer\'s concentration matters even though its pH does not depend on it.',
+    },
+  ]);
+
+  const bufferCard = cardWithMissions('Buffer designer & shock test', bufMissions,
     slider({ label: 'target pH', min: 2.5, max: 11.5, step: 0.1, value: targetPH, fmt: v => v.toFixed(1), onInput: v => { targetPH = v; designCalc(); } }),
     designOut,
     h('h3', {}, 'Hit the buffer with strong acid/base'),
@@ -156,7 +204,7 @@ function makeAcidBase(): HTMLElement {
   shockCalc();
 
   return h('div', { class: 'cards' },
-    card('Titration simulator: acid + NaOH', controls, curveCanvas, liveOut, out),
+    cardWithMissions('Titration simulator: acid + NaOH', titrMissions, controls, curveCanvas, liveOut, out),
     bufferCard,
     theory('Acid–base essentials', `
 <span class="eq">pH = −log[H⁺] · pH + pOH = 14 (25 °C) · K<sub>a</sub>K<sub>b</sub> = K<sub>w</sub> · pK<sub>a</sub> + pK<sub>b</sub> = 14</span>
@@ -309,10 +357,62 @@ const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
 
 // ================= KINETICS =================
 function makeKinetics(): HTMLElement {
-  let order: 0 | 1 | 2 = 1, k = 0.15, A0 = 1.0;
+  const K0 = 0.15, A00 = 1.0;
+  let order: 0 | 1 | 2 = 1, k = K0, A0 = A00;
   const cCanvas = h('canvas', { width: 460, height: 230 });
   const linCanvas = h('canvas', { width: 460, height: 230 });
   const out = h('div', { class: 'result' });
+  const halfLife = () => (order === 0 ? A0 / (2 * k) : order === 1 ? Math.LN2 / k : 1 / (k * A0));
+
+  // A run with the order deliberately withheld. Second order, k = 0.08, so the
+  // successive half-lives are 12.5 s then 25 s — the doubling is the tell, and
+  // it is readable straight off the table without any curve fitting.
+  const MYSTERY = [0, 10, 20, 40, 60, 80].map(t => ({ t, A: 1 / (1 + 0.08 * t) }));
+  const mysteryTable = h('div', {
+    html: '<h3>Unknown sample — what order is it?</h3>'
+      + '<table class="ref-table"><tr><th>t (s)</th>'
+      + MYSTERY.map(p => `<th>${p.t}</th>`).join('')
+      + '</tr><tr><td>[A] (M)</td>'
+      + MYSTERY.map(p => `<td>${p.A.toFixed(3)}</td>`).join('')
+      + '</tr></table><p class="muted">Reading an order off raw data is the single most common kinetics task on an olympiad paper. Don\'t guess from the shape of the decay — every order looks like "a curve going down". Test something quantitative.</p>',
+  });
+
+  const kinMissions = missionLadder([
+    {
+      id: 'msn-aek-05',
+      prompt: 'Leave the order at <b>1</b> and <b>halve the half-life</b> from its starting value of 4.62 s.',
+      meter: () => ({ label: order === 1 ? `t½ = ${halfLife().toFixed(2)} s · target 2.31 s` : 'set the order back to 1', pct: order === 1 ? Math.max(0, 100 - Math.abs(halfLife() - 2.31) * 30) : 0 }),
+      check: () => order === 1 && Math.abs(halfLife() - Math.LN2 / (2 * K0)) < 0.05,
+      hints: ['For first order, t½ = 0.693/k. Only one control appears in that expression.'],
+      explain: 'Double k, from 0.15 to 0.30 s⁻¹. Notice what you did <em>not</em> have to touch: [A]₀ is absent from t½ = 0.693/k entirely.',
+    },
+    {
+      id: 'msn-aek-06',
+      prompt: 'Still at first order, drag <b>[A]₀</b> across its whole range and watch t½. What happens to it?',
+      choices: [
+        { label: 'Nothing — t½ is unchanged', value: 'same' },
+        { label: 'It doubles when [A]₀ doubles', value: 'up' },
+        { label: 'It halves when [A]₀ doubles', value: 'down' },
+      ],
+      validateChoice: v => v === 'same',
+      explain: 'Unchanged — and that independence is the <b>signature of first order</b>. It is why radioactive decay has a quotable half-life at all. Zero order (t½ = [A]₀/2k) and second order (t½ = 1/k[A]₀) both depend on concentration, in opposite directions.',
+    },
+    {
+      id: 'msn-aek-07',
+      prompt: 'Now the real thing. The table below is a run whose order was <b>not</b> recorded. Determine it from the data alone.',
+      choices: [
+        { label: 'Zero order', value: '0' },
+        { label: 'First order', value: '1' },
+        { label: 'Second order', value: '2' },
+      ],
+      validateChoice: v => v === '2',
+      hints: [
+        'Find how long the first half of the sample took to disappear (1.000 → 0.500). Then find how long the NEXT half took (0.500 → 0.250).',
+        'The first half-life is about 12.5 s and the second about 25 s. Constant would mean first order. Shrinking would mean zero order. What does doubling mean?',
+      ],
+      explain: 'Second order. The half-life <b>doubles</b> each time, which only 1/[A] = 1/[A]₀ + kt produces — each successive half-life is twice the last, so the tail drags on far longer than a first-order decay. Confirm it by tabulating 1/[A]: 1.00, 1.80, 2.60, 4.20, 5.80, 7.40 — a straight line of slope 0.08, so k = 0.08 M⁻¹s⁻¹.',
+    },
+  ]);
 
   function conc(t: number): number {
     if (order === 0) return Math.max(0, A0 - k * t);
@@ -327,7 +427,7 @@ function makeKinetics(): HTMLElement {
     const lin = order === 0 ? ts.map(conc) : order === 1 ? ts.map(t => Math.log(conc(t))) : ts.map(t => 1 / conc(t));
     plot(linCanvas, [{ xs: ts, ys: lin, color: '#7ae27a', label: order === 0 ? '[A]' : order === 1 ? 'ln[A]' : '1/[A]' }],
       { xLabel: 't (s)', yLabel: order === 0 ? '[A] — linear!' : order === 1 ? 'ln[A] — linear!' : '1/[A] — linear!' });
-    const tHalf = order === 0 ? A0 / (2 * k) : order === 1 ? Math.LN2 / k : 1 / (k * A0);
+    const tHalf = halfLife();
     out.innerHTML =
       `<table class="ref-table"><tr><th>order</th><th>rate law</th><th>integrated</th><th>linear plot</th><th>t½</th></tr>` +
       `<tr><td>0</td><td>rate = k</td><td>[A] = [A]₀ − kt</td><td>[A] vs t</td><td>[A]₀/2k</td></tr>` +
@@ -337,28 +437,46 @@ function makeKinetics(): HTMLElement {
       (order === 1 ? 'Half-life independent of concentration — the radioactive-decay signature.' :
         order === 2 ? 'Half-life doubles each half-life — decays with a long tail.' :
           'Concentration hits zero at t = [A]₀/k.');
+    kinMissions.tick();
   }
 
   // Arrhenius
   let Ea = 75, T1 = 298, T2 = 308;
   const arrOut = h('div', { class: 'result' });
+  const rateRatio = () => Math.exp((-Ea * 1000 / 8.314) * (1 / T2 - 1 / T1));
+
+  const arrMissions = missionLadder([
+    {
+      id: 'msn-aek-08',
+      prompt: 'Everyone repeats that "reaction rates double for every 10 °C". Leave T₁ at 298 K and T₂ at 308 K, and find the activation energy that makes that <b>exactly</b> true.',
+      meter: () => ({ label: T1 === 298 && T2 === 308 ? `Eₐ = ${Ea} kJ/mol → rate ×${rateRatio().toFixed(2)} · target ×2.00` : 'put T₁ back to 298 K and T₂ to 308 K', pct: T1 === 298 && T2 === 308 ? Math.max(0, 100 - Math.abs(rateRatio() - 2) * 120) : 0 }),
+      check: () => T1 === 298 && T2 === 308 && Math.abs(rateRatio() - 2) < 0.02,
+      hints: [
+        'Set ln(k₂/k₁) = ln 2 and solve the Arrhenius expression for Eₐ.',
+        'It lands somewhere in the low fifties of kJ/mol.',
+      ],
+      explain: 'About <b>53 kJ/mol</b> — and that is the whole basis of the rule of thumb. It is not a law, it is one particular activation energy at one particular temperature. Now drag Eₐ to 150 kJ/mol and the same 10 °C gives roughly ×7; drop it to 20 kJ/mol and you get ×1.3. <span class="trap">The same 10 °C also matters far less at high temperature: the rule quietly assumes you are near room temperature.</span>',
+    },
+  ]);
+
   const arrCalc = () => {
-    const ratio = Math.exp((-Ea * 1000 / 8.314) * (1 / T2 - 1 / T1));
+    const ratio = rateRatio();
     arrOut.innerHTML =
       `<span class="eq">ln(k₂/k₁) = −(E<sub>a</sub>/R)(1/T₂ − 1/T₁)</span>` +
       `k(${T2} K) / k(${T1} K) = <b class="big">${ratio.toFixed(2)}×</b><br>` +
       `<span class="muted">The "rate doubles per 10 °C" rule of thumb is exactly true only when E<sub>a</sub> ≈ 53 kJ/mol near room T. Plot ln k vs 1/T → slope = −E<sub>a</sub>/R.</span>`;
+    arrMissions.tick();
   };
 
   const el = h('div', { class: 'cards' },
-    card('Integrated rate laws — find the order from the straight line',
+    cardWithMissions('Integrated rate laws — find the order from the straight line', kinMissions,
       select('order', [{ value: '0', label: '0th order' }, { value: '1', label: '1st order' }, { value: '2', label: '2nd order' }],
         v => { order = Number(v) as 0 | 1 | 2; draw(); }, '1'),
       slider({ label: 'k', min: 0.02, max: 1, step: 0.01, value: k, fmt: v => v.toFixed(2), onInput: v => { k = v; draw(); } }),
       slider({ label: '[A]₀ (M)', min: 0.2, max: 2, step: 0.1, value: A0, fmt: v => v.toFixed(1), onInput: v => { A0 = v; draw(); } }),
-      cCanvas, linCanvas, out,
+      cCanvas, linCanvas, out, mysteryTable,
     ),
-    card('Arrhenius: temperature sensitivity',
+    cardWithMissions('Arrhenius: temperature sensitivity', arrMissions,
       slider({ label: 'Ea (kJ/mol)', min: 10, max: 200, step: 1, value: Ea, onInput: v => { Ea = v; arrCalc(); } }),
       slider({ label: 'T₁ (K)', min: 250, max: 400, step: 1, value: T1, onInput: v => { T1 = v; arrCalc(); } }),
       slider({ label: 'T₂ (K)', min: 250, max: 400, step: 1, value: T2, onInput: v => { T2 = v; arrCalc(); } }),

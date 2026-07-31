@@ -1,6 +1,6 @@
 // Quantum mechanics & atomic structure: hydrogen orbital viewer,
 // energy levels / spectral series, electron configuration builder.
-import { h, card, theory, slider, select, plot, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, quiz, type TabDef } from './framework';
 import { QUANTUM_QUIZ } from './questions1';
 
 
@@ -157,12 +157,43 @@ export const quantumTab: TabDef = {
     // orbital viewer
     const orbCanvas = h('canvas', { width: 320, height: 320 });
     const orbDesc = h('p', { class: 'muted' });
+    let curOrb: OrbitalId = '2pz';
+
+    const orbMissions = missionLadder([
+      {
+        id: 'msn-qua-01',
+        prompt: 'Select <b>3s</b> in the viewer and count its <b>radial nodes</b> — the spheres where the wavefunction changes sign.',
+        numeric: { label: 'radial nodes in 3s', placeholder: '0', step: 1, validate: n => curOrb === '3s' && n === 2 },
+        hints: [
+          'Radial nodes = n − ℓ − 1. For 3s, n = 3 and ℓ = 0.',
+          'On the picture, count how many times the colour flips as you travel straight outward from the nucleus.',
+        ],
+        explain: '<b>2.</b> n − ℓ − 1 = 3 − 0 − 1. Travelling outward from the nucleus the sign goes blue → red → blue, so you cross two spherical surfaces where ψ = 0. This is exactly why 3s penetrates so close to the nucleus and sits below 3p in a multi-electron atom.',
+      },
+      {
+        id: 'msn-qua-02',
+        prompt: 'Now find the orbital in this list with <b>exactly one radial node and exactly one angular node</b>. Select it.',
+        meter: () => {
+          const o = ORBITALS[curOrb];
+          return { label: `${curOrb}: ${o.n - o.l - 1} radial, ${o.l} angular · want 1 and 1`, pct: ((o.n - o.l - 1 === 1 ? 50 : 0) + (o.l === 1 ? 50 : 0)) };
+        },
+        check: () => curOrb === '3pz',
+        hints: [
+          'One angular node means ℓ = 1, so it is a p orbital. One radial node then needs n − ℓ − 1 = 1.',
+          'n − 1 − 1 = 1 gives n = 3.',
+        ],
+        explain: '<b>3p.</b> The angular node is the flat plane through the nucleus that every p orbital has; the radial node is the spherical shell that splits each lobe into an inner and an outer piece. Total nodes always come to n − 1 = 2. <span class="trap">A common slip is counting the nucleus itself as a node, or forgetting that the two are different kinds of surface.</span>',
+      },
+    ]);
+
     const drawOrb = (id: string) => {
-      drawOrbital(orbCanvas, id as OrbitalId);
-      const o = ORBITALS[id as OrbitalId];
+      curOrb = id as OrbitalId;
+      drawOrbital(orbCanvas, curOrb);
+      const o = ORBITALS[curOrb];
       orbDesc.textContent = `n=${o.n}, ℓ=${o.l} · radial nodes = n−ℓ−1 = ${o.n - o.l - 1} · angular nodes = ℓ = ${o.l} · ${o.desc}`;
+      orbMissions.tick();
     };
-    const orbCard = card('Hydrogen orbital viewer — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)',
+    const orbCard = cardWithMissions('Hydrogen orbital viewer — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)', orbMissions,
       select('orbital', Object.keys(ORBITALS).map(k => ({ value: k, label: k.replace('z2', ' z²').replace('x2y2', ' x²−y²') })), drawOrb, '2pz'),
       orbCanvas, orbDesc,
       h('p', { class: 'trap' }, 'This plots ψ itself, not |ψ|². The two colours are the SIGN of the wavefunction — and sign is the whole point: bonding vs antibonding overlap depends on it. |ψ|² would be positive everywhere and the nodes would be the only structure left. Squaring loses exactly the information you need for MO theory.'),
@@ -195,8 +226,38 @@ export const quantumTab: TabDef = {
     const lvlCanvas = h('canvas', { width: 460, height: 300 });
     const lvlOut = h('div', { class: 'result' });
     let ni = 3, nf = 2;
-    const redraw = () => { lvlOut.innerHTML = levelDiagram(lvlCanvas, ni, nf); };
-    const lvlCard = card('Energy levels & spectral lines (Rydberg)',
+    const lambdaNm = () => {
+      const E = (n: number) => -13.606 / (n * n);
+      return 1239.8 / Math.abs(E(Math.max(ni, nf)) - E(Math.min(ni, nf)));
+    };
+
+    const lvlMissions = missionLadder([
+      {
+        id: 'msn-qua-03',
+        prompt: 'The diagram opens on the red 656 nm line. Find the transition that emits the <b>blue-green 486 nm</b> Balmer line instead.',
+        meter: () => ({ label: `n=${ni} → n=${nf} · λ = ${lambdaNm().toFixed(0)} nm · target 486 nm`, pct: Math.max(0, 100 - Math.abs(lambdaNm() - 486) / 3) }),
+        check: () => ni === 4 && nf === 2,
+        hints: [
+          'Balmer means the electron lands on n = 2. Emission means it starts higher up.',
+          '656 nm was 3 → 2. A bluer photon carries more energy, so it must fall from further away.',
+        ],
+        explain: '<b>4 → 2.</b> The Balmer series all end on n = 2; going 3 → 2, 4 → 2, 5 → 2 gives 656, 486 and 434 nm — red, blue-green, violet. The lines crowd together toward the short-wavelength end because the levels themselves converge as −13.6/n².',
+      },
+      {
+        id: 'msn-qua-04',
+        prompt: 'Now set up an <b>absorption</b> that takes an ultraviolet photon (λ below 380 nm).',
+        meter: () => ({ label: `${nf > ni ? 'absorption' : 'emission'} · λ = ${lambdaNm().toFixed(0)} nm · want absorption below 380 nm`, pct: (nf > ni ? 50 : 0) + (lambdaNm() < 380 ? 50 : 0) }),
+        check: () => nf > ni && lambdaNm() < 380,
+        hints: [
+          'Absorption means the electron ends up HIGHER than it started — so the final n must exceed the initial n.',
+          'Only transitions involving n = 1 are energetic enough to be ultraviolet. Start there.',
+        ],
+        explain: 'Anything starting from n = 1 — the <b>Lyman</b> series, 122 nm and shorter. This is why cold hydrogen gas is invisible to the eye but opaque in the UV: at room temperature essentially every atom sits in n = 1, so the only absorptions available are Lyman ones. Balmer <em>absorption</em> lines need the n = 2 level populated first, which takes a stellar atmosphere.',
+      },
+    ]);
+
+    const redraw = () => { lvlOut.innerHTML = levelDiagram(lvlCanvas, ni, nf); lvlMissions.tick(); };
+    const lvlCard = cardWithMissions('Energy levels & spectral lines (Rydberg)', lvlMissions,
       slider({ label: 'initial n', min: 1, max: 6, value: ni, onInput: v => { ni = v; redraw(); } }),
       slider({ label: 'final n', min: 1, max: 6, value: nf, onInput: v => { nf = v; redraw(); } }),
       lvlCanvas, lvlOut,

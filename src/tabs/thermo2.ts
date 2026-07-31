@@ -1,5 +1,5 @@
 // Thermodynamics II: entropy (microstates), Gibbs energy, ΔG° ↔ K.
-import { h, card, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef } from './framework';
 import { THERMO2_QUIZ } from './questions1';
 
 
@@ -38,10 +38,42 @@ export const thermo2Tab: TabDef = {
     const gibbsCanvas = h('canvas', { width: 440, height: 260 });
     const gibbsOut = h('div', { class: 'result' });
     let dH = -92, dS = -199; // Haber process defaults (kJ, J/K)
+    const crossT = () => (dS !== 0 ? (dH * 1000) / dS : NaN);
+
+    const gibbsMissions = missionLadder([
+      {
+        id: 'msn-th2-01',
+        prompt: 'The sliders start on the Haber process (ΔH = −92 kJ/mol, ΔS = −199 J/mol·K). Read the graph and give the <b>crossover temperature</b> — the T where ΔG changes sign — to the nearest 10 K.',
+        // Checked against the CURRENT slider state, not a frozen 462 K, so a
+        // student who explores first and answers second isn't marked wrong.
+        numeric: { label: 'crossover T (K)', placeholder: 'e.g. 350', step: 1, validate: n => Math.abs(n - crossT()) <= 15 },
+        hints: [
+          'ΔG = ΔH − TΔS. Crossover is where ΔG = 0.',
+          'Rearranged, T = ΔH/ΔS — but mind the units: ΔH is in kJ and ΔS is in J.',
+        ],
+        explain: '<b>T = ΔH/ΔS = (−92 000 J)/(−199 J/K) ≈ 462 K</b> (189 °C). Below that the exothermic term wins and ammonia synthesis is spontaneous; above it the entropy penalty of 4 gas moles → 2 takes over. Industry runs at ~700 K anyway, where ΔG° is <em>un</em>favourable, because at 462 K the rate is hopeless — and then recovers the yield with 200 atm of pressure. Thermodynamics says what is possible, not what is practical.',
+      },
+      {
+        id: 'msn-th2-02',
+        prompt: 'Now build the opposite case: a reaction that is <b>non-spontaneous when cold and spontaneous when hot</b>, crossing over near <b>800 K</b>.',
+        meter: () => {
+          const t = crossT();
+          const right = dH > 0 && dS > 0;
+          return { label: right ? `entropy-driven, crossover at ${t.toFixed(0)} K · target 800 K` : 'need ΔH > 0 and ΔS > 0', pct: right ? Math.max(0, 100 - Math.abs(t - 800) / 4) : 0 };
+        },
+        check: () => dH > 0 && dS > 0 && Math.abs(crossT() - 800) < 40,
+        hints: [
+          'Which of the four ΔH/ΔS sign combinations is spontaneous only at high T?',
+          'Both positive. Then pick a pair whose ratio ΔH/ΔS is about 800 — e.g. ΔH = +160 kJ with ΔS = +200 J/K.',
+        ],
+        explain: 'ΔH > 0, ΔS > 0 — endothermic but entropy-producing, so the −TΔS term only wins once T is large enough. This is the thermal decomposition pattern: CaCO₃ → CaO + CO₂ has ΔH ≈ +178 kJ and ΔS ≈ +161 J/K, crossing over near 1100 K, which is why a lime kiln has to be run red-hot.',
+      },
+    ]);
+
     const drawGibbs = () => {
       const Ts = linspace(1, 1500, 200);
       const dGs = Ts.map(T => dH - (T * dS) / 1000);
-      const Tcross = dS !== 0 ? (dH * 1000) / dS : NaN;
+      const Tcross = crossT();
       plot(gibbsCanvas, [
         { xs: Ts, ys: dGs, color: '#6fc3ff', label: 'ΔG (kJ/mol)' },
         { xs: [1, 1500], ys: [0, 0], color: '#5a6a7d', dash: [4, 4] },
@@ -56,8 +88,9 @@ export const thermo2Tab: TabDef = {
       else regime = `spontaneous at HIGH T (above ${Tcross > 0 ? Tcross.toFixed(0) + ' K' : '—'}) — entropy-driven`;
       gibbsOut.innerHTML = `ΔG = ΔH − TΔS → <b>${regime}</b><br>` +
         `<span class="muted">Defaults are the Haber process (N₂+3H₂→2NH₃): exothermic but entropy-negative (4 gas mol → 2), so it "wants" low T — but low T is too slow, hence 450 °C + catalyst + high P as the industrial compromise.</span>`;
+      gibbsMissions.tick();
     };
-    const gibbsCard = card('ΔG = ΔH − TΔS explorer',
+    const gibbsCard = cardWithMissions('ΔG = ΔH − TΔS explorer', gibbsMissions,
       slider({ label: 'ΔH (kJ/mol)', min: -300, max: 300, step: 2, value: dH, onInput: v => { dH = v; drawGibbs(); } }),
       slider({ label: 'ΔS (J/mol·K)', min: -400, max: 400, step: 2, value: dS, onInput: v => { dS = v; drawGibbs(); } }),
       gibbsCanvas, gibbsOut,

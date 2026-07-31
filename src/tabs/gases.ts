@@ -1,6 +1,6 @@
 // Gases, IMFs, phase diagrams, solutions: kinetic gas box, Maxwell-Boltzmann,
 // interactive phase diagrams, colligative properties.
-import { h, card, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
 import { GASES_QUIZ } from './questions2';
 
 
@@ -8,11 +8,42 @@ const Rgas = 8.314, R_atm = 0.08206;
 
 // ---- gas particle box ----
 function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
-  let n = 1.0, T = 300, V = 20; // mol, K, L
+  // The missions are written against this starting state, so it is named rather
+  // than inlined — moving a default silently changes what the goals mean.
+  const N0 = 1.0, T0 = 300, V0 = 20; // mol, K, L
+  let n = N0, T = T0, V = V0;
+  const P = () => (n * R_atm * T) / V;
+  const P0 = (N0 * R_atm * T0) / V0; // 1.231 atm
   const canvas = h('canvas', { width: 460, height: 260 });
   const out = h('div', { class: 'result' });
   const pts: { x: number; y: number; vx: number; vy: number }[] = [];
   let visible = false;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-gases-01',
+      prompt: 'Hold n and V exactly where they are and use temperature alone to bring the pressure to <b>double</b> its starting value.',
+      meter: () => ({ label: `P/P₀ = ${(P() / P0).toFixed(2)}  ·  target 2.00`, pct: (P() / P0 / 2) * 100 }),
+      check: () => Math.abs(n - N0) < 1e-6 && Math.abs(V - V0) < 1e-6 && Math.abs(P() / P0 - 2) < 0.02,
+      hints: [
+        'With n and V pinned, PV = nRT has only two movable quantities left. Which two?',
+        'P ∝ T — but T here is the ABSOLUTE temperature, and the gas starts at 300 K.',
+      ],
+      explain: 'At fixed n and V, P ∝ T (Gay-Lussac), so doubling the pressure means doubling the <em>absolute</em> temperature: 300 K → 600 K.',
+    },
+    {
+      id: 'msn-gases-02',
+      prompt: 'That took 300 K → 600 K, which on the Celsius scale is 27 °C → <b>327 °C</b>. So why doesn\'t heating 27 °C → 54 °C double the pressure too?',
+      choices: [
+        { label: '54 °C is only 327 K — a 9% rise', value: 'abs' },
+        { label: 'P is not really proportional to T', value: 'noprop' },
+        { label: 'The volume changes as it heats', value: 'vol' },
+      ],
+      validateChoice: v => v === 'abs',
+      explain: 'The proportionality is to absolute temperature. 54 °C is 327 K, only 1.09× of 300 K, so the pressure rises 9% — not 100%. Celsius has an arbitrary zero, so ratios taken in °C are meaningless.',
+      hints: ['Convert both Celsius temperatures to kelvin and take their ratio.'],
+    },
+  ]);
 
   function resync(): void {
     const count = Math.round(n * 60);
@@ -24,9 +55,9 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
       const sp = s * (0.5 + Math.random());
       p.vx = Math.cos(ang) * sp; p.vy = Math.sin(ang) * sp;
     }
-    const P = (n * R_atm * T) / V;
-    out.innerHTML = `P = nRT/V = (${n.toFixed(1)} × 0.0821 × ${T}) / ${V} = <b class="big">${P.toFixed(2)} atm</b>` +
+    out.innerHTML = `P = nRT/V = (${n.toFixed(1)} × 0.0821 × ${T}) / ${V} = <b class="big">${P().toFixed(2)} atm</b>` +
       `<br><span class="muted">Smaller box (higher P at same T): more wall collisions per second. Hotter: faster particles AND harder hits — P ∝ T at fixed V.</span>`;
+    missions.tick();
   }
 
   function frame(): void {
@@ -51,7 +82,7 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
   frame();
   resync();
 
-  const el = card('Kinetic molecular theory: the gas box (PV = nRT)',
+  const el = cardWithMissions('Kinetic molecular theory: the gas box (PV = nRT)', missions,
     slider({ label: 'n (mol)', min: 0.2, max: 3, step: 0.1, value: n, fmt: v => v.toFixed(1), onInput: v => { n = v; resync(); } }),
     slider({ label: 'T (K)', min: 50, max: 1000, step: 10, value: T, onInput: v => { T = v; resync(); } }),
     slider({ label: 'V (L)', min: 5, max: 50, step: 1, value: V, onInput: v => { V = v; resync(); } }),
@@ -99,32 +130,87 @@ function makePhase(): HTMLElement {
   let substance: 'water' | 'co2' = 'water';
   const canvas = h('canvas', { width: 460, height: 300 });
   const out = h('div', { class: 'result' });
-  // temp in °C, P on log10(atm) axis from -4 to 3
+  // temp in °C, P on log10(atm) axis from -4 to 3.
+  // `dTdP` is the fusion-line slope in °C per atm — NEGATIVE for water (the
+  // whole point of the card) and positive for everything else. `boil` is the
+  // normal boiling point, present only for substances that have one at 1 atm:
+  // CO₂'s triple point is above 1 atm, so it sublimes instead.
   const DATA = {
-    water: { triple: [0.01, 0.006], critical: [374, 218], tMin: -80, tMax: 450, slNeg: true },
-    co2: { triple: [-56.6, 5.11], critical: [31.1, 72.8], tMin: -140, tMax: 60, slNeg: false },
+    water: { triple: [0.01, 0.006], critical: [374, 218], boil: [100, 1], tMin: -80, tMax: 450, dTdP: -0.0074 },
+    co2: { triple: [-56.6, 5.11], critical: [31.1, 72.8], boil: null, tMin: -140, tMax: 60, dTdP: 0.030 },
   };
   let pt: [number, number] = [25, 0]; // T °C, log10 P
+  const K = (T: number) => T + 273.15;
 
   function boundaries(sub: 'water' | 'co2') {
     const d = DATA[sub];
     const [Tt, Pt] = d.triple, [Tc, Pc] = d.critical;
     const lt = Math.log10(Pt), lc = Math.log10(Pc);
-    // sublimation: below triple; vaporization: triple→critical; fusion: near-vertical
     const subl = (T: number) => lt + (T - Tt) * 0.045;
-    const vap = (T: number) => lt + ((T - Tt) / (Tc - Tt)) * (lc - lt);
-    const fusT = (lp: number) => Tt + (lp - lt) * (d.slNeg ? -1.2 : 1.6); // T of S/L line at logP
+    // Vaporization follows Clausius–Clapeyron — log P linear in 1/T, not in T.
+    // Interpolating linearly in T put water's boiling point at 0.1 atm instead
+    // of 1 atm. Anchored triple → normal bp → critical, so the drawn curve
+    // passes exactly through all three labelled points; that keeps it within
+    // ~5% of tabulated vapor pressures from 25 °C to the critical point.
+    const seg = (T: number, T1: number, l1: number, T2: number, l2: number) =>
+      l1 + ((1 / K(T1) - 1 / K(T)) / (1 / K(T1) - 1 / K(T2))) * (l2 - l1);
+    const vap = (T: number) => {
+      if (!d.boil) return seg(T, Tt, lt, Tc, lc);
+      const [Tb, Pb] = d.boil, lb = Math.log10(Pb);
+      return T <= Tb ? seg(T, Tt, lt, Tb, lb) : seg(T, Tb, lb, Tc, lc);
+    };
+    // Fusion is steep but NOT vertical, and it is linear in P, not in log P:
+    // melting point shifts ~0.0074 °C per atm for water. The old log-P form
+    // put ice's melting point at −2.7 °C at 1 atm.
+    const fusT = (lp: number) => Tt + d.dTdP * (Math.pow(10, lp) - Pt);
     return { subl, vap, fusT, Tt, lt, Tc, lc };
   }
 
+  // Ordered by pressure relative to the triple point, because below it only
+  // solid and gas exist. The previous ordering short-circuited on T <= Tt and
+  // returned SOLID at every pressure, which erased the high-pressure liquid
+  // region — i.e. it contradicted the pressure-melting behaviour this very
+  // card is about.
   function classify(T: number, lp: number): string {
     const b = boundaries(substance);
-    if (T > b.Tc && lp > b.lc) return 'SUPERCRITICAL FLUID';
-    if (T <= b.Tt) return lp > b.subl(T) ? 'SOLID' : 'GAS';
-    if (T < b.fusT(lp) && lp > b.lt) return 'SOLID';
-    if (T > b.Tc) return 'GAS';
+    if (lp <= b.lt) return T <= b.Tt && lp > b.subl(T) ? 'SOLID' : 'GAS';
+    if (T < b.fusT(lp)) return 'SOLID';
+    if (T > b.Tc) return lp > b.lc ? 'SUPERCRITICAL FLUID' : 'GAS';
     return lp > b.vap(T) ? 'LIQUID' : 'GAS';
   }
+
+  const missions = missionLadder([
+    {
+      id: 'msn-gases-03',
+      prompt: 'Ice skating, explained. With <b>H₂O</b> selected, drag the red point to somewhere the water is <b>LIQUID even though it is colder than 0 °C</b>.',
+      meter: () => {
+        if (substance !== 'water') return { label: 'switch the substance to H₂O first', pct: 0 };
+        const cold = pt[0] < -0.5, liq = classify(pt[0], pt[1]) === 'LIQUID';
+        return { label: `${pt[0].toFixed(1)} °C, ${Math.pow(10, pt[1]).toPrecision(2)} atm → ${classify(pt[0], pt[1])}`, pct: (cold ? 50 : 0) + (liq ? 50 : 0) };
+      },
+      check: () => substance === 'water' && pt[0] < -0.5 && classify(pt[0], pt[1]) === 'LIQUID',
+      hints: [
+        'Below 0 °C the only way out of the solid region is to change the pressure, not the temperature.',
+        'Look at which way the green solid–liquid line leans as you go up the pressure axis. Follow it.',
+        'Go to the top of the pressure axis — a few hundred atm — and then creep left past the green line.',
+      ],
+      explain: 'Water\'s solid–liquid line has a <b>negative</b> slope, so raising the pressure on ice melts it. That happens because ice is <em>less</em> dense than liquid water — pressure favours the denser phase, and here the denser phase is the liquid. Almost every other substance does the opposite.',
+    },
+    {
+      id: 'msn-gases-04',
+      prompt: 'Decaffeinated coffee is made with supercritical CO₂. Switch to <b>CO₂</b> and put the point in the <b>supercritical fluid</b> region.',
+      meter: () => {
+        if (substance !== 'co2') return { label: 'switch the substance to CO₂ first', pct: 0 };
+        return { label: `${pt[0].toFixed(0)} °C, ${Math.pow(10, pt[1]).toPrecision(2)} atm → ${classify(pt[0], pt[1])}`, pct: classify(pt[0], pt[1]) === 'SUPERCRITICAL FLUID' ? 100 : 35 };
+      },
+      check: () => substance === 'co2' && classify(pt[0], pt[1]) === 'SUPERCRITICAL FLUID',
+      hints: [
+        'Supercritical means past the critical point in BOTH variables at once.',
+        'CO₂\'s critical point is 31 °C and 72.8 atm — you need to be hotter and higher than that.',
+      ],
+      explain: 'Past the critical point the liquid–gas boundary simply ends: there is no longer any distinction between the two, so no meniscus and no boiling. scCO₂ has gas-like diffusivity with liquid-like solvent power, dissolves caffeine, and leaves no residue when the pressure is released — which is why it replaced dichloromethane in decaf.',
+    },
+  ]);
 
   function draw(): void {
     const d = DATA[substance];
@@ -178,6 +264,7 @@ function makePhase(): HTMLElement {
     out.innerHTML = `At <b>${pt[0].toFixed(0)} °C</b> and <b>${Math.pow(10, pt[1]).toPrecision(2)} atm</b>: <b class="big">${phase}</b>` +
       (substance === 'water' ? '<br><span class="muted">Water\'s solid–liquid line leans LEFT (negative slope): ice is less dense than water, so pressure melts it. Almost unique.</span>'
         : '<br><span class="muted">CO₂\'s triple point is above 1 atm → at ambient pressure it sublimes (dry ice) and liquid CO₂ can\'t exist below 5.1 atm.</span>');
+    missions.tick();
   }
 
   function setFromEvent(ev: MouseEvent): void {
@@ -195,7 +282,7 @@ function makePhase(): HTMLElement {
   canvas.addEventListener('mousemove', e => { if (dragging) setFromEvent(e); });
   window.addEventListener('mouseup', () => { dragging = false; });
 
-  const el = card('Phase diagram — click/drag the red point',
+  const el = cardWithMissions('Phase diagram — click/drag the red point', missions,
     select('substance', [{ value: 'water', label: 'H₂O (negative-slope fusion line)' }, { value: 'co2', label: 'CO₂ (dry ice, sublimes)' }],
       v => { substance = v as 'water' | 'co2'; pt = substance === 'water' ? [25, 0] : [-40, 0]; draw(); }, 'water'),
     canvas, out,
@@ -212,14 +299,40 @@ const LIQUIDS = [
   { name: 'benzene', dH: 30.7, bp: 353.2 },
 ];
 function makeCC(): HTMLElement {
-  let liq = LIQUIDS[0], Tc = 25, Pext = 0.33;
+  // Starts at 1 atm so the readout opens on the normal boiling point — the
+  // number the missions below then push away from.
+  let liq = LIQUIDS[0], Tc = 25, Pext = 1.00;
   const canvas = h('canvas', { width: 460, height: 240 });
   const out = h('div', { class: 'result' });
+  // Boiling point at the current external pressure, in K.
+  const boilT = () => 1 / (1 / liq.bp - (Rgas * Math.log(Pext)) / (liq.dH * 1000));
+
+  const missions = missionLadder([
+    {
+      id: 'msn-gases-05',
+      prompt: 'On the summit of Everest water boils at about <b>71 °C</b> — too cool to brew tea properly. With <b>water</b> selected, find the external pressure that does that.',
+      meter: () => ({ label: liq.name === 'water' ? `boils at ${(boilT() - 273.15).toFixed(1)} °C  ·  target 71 °C` : 'select water first', pct: liq.name === 'water' ? Math.max(0, 100 - Math.abs(boilT() - 344.15) * 3) : 0 }),
+      check: () => liq.name === 'water' && Math.abs(boilT() - 344.15) < 1.5,
+      hints: [
+        'A liquid boils when its vapor pressure equals the pressure pushing down on it. So the question is: what is water\'s vapor pressure at 71 °C?',
+        'You are looking for a pressure well below 1 atm — roughly a third of it.',
+      ],
+      explain: 'About <b>0.33 atm</b>. Boiling is not "reaching 100 °C" — it is the vapor pressure catching up with the external pressure. Thin air means the catch-up happens sooner, so summit water boils cool and food takes far longer to cook.',
+    },
+    {
+      id: 'msn-gases-06',
+      prompt: 'Now go the other way. A laboratory autoclave sterilises at <b>2 atm</b>. Set the external pressure there and read off the temperature water boils at.',
+      meter: () => ({ label: liq.name === 'water' ? `${Pext.toFixed(2)} atm → boils at ${(boilT() - 273.15).toFixed(1)} °C` : 'select water first', pct: liq.name === 'water' ? Math.min(100, (Pext / 2) * 100) : 0 }),
+      check: () => liq.name === 'water' && Pext >= 1.95,
+      explain: 'About <b>121 °C</b> — and that is exactly why autoclaves are pressurised. Steam at 121 °C kills bacterial spores that survive at 100 °C indefinitely. A domestic pressure cooker does the same thing at a milder ~1.8 atm to cut cooking times.',
+    },
+  ]);
+
   function calc(): void {
     const T = Tc + 273.15;
     // ln(P/1 atm) = −ΔH/R · (1/T − 1/Tb)
     const P = Math.exp((-liq.dH * 1000 / Rgas) * (1 / T - 1 / liq.bp));
-    const Tbp = 1 / (1 / liq.bp - (Rgas * Math.log(Pext)) / (liq.dH * 1000));
+    const Tbp = boilT();
     const Ts = linspace(Math.max(233, liq.bp - 120), liq.bp + 40, 200);
     const Ps = Ts.map(t => Math.exp((-liq.dH * 1000 / Rgas) * (1 / t - 1 / liq.bp)));
     plot(canvas, [
@@ -235,8 +348,9 @@ function makeCC(): HTMLElement {
       `vapor pressure at ${Tc.toFixed(0)} °C = <b>${P < 0.01 ? P.toExponential(2) : P.toFixed(3)} atm</b> (${(P * 760).toFixed(0)} torr)<br>` +
       `boiling point at ${Pext.toFixed(2)} atm = <b>${(Tbp - 273.15).toFixed(1)} °C</b>` +
       `<br><span class="muted">A liquid boils when its vapor pressure reaches the external pressure. 0.33 atm ≈ Everest summit — water boils at ~71 °C there, too cool for good tea. Plot ln P vs 1/T for a straight line with slope −ΔH<sub>vap</sub>/R.</span>`;
+    missions.tick();
   }
-  const el = card('Clausius–Clapeyron: vapor pressure & boiling',
+  const el = cardWithMissions('Clausius–Clapeyron: vapor pressure & boiling', missions,
     select('liquid', LIQUIDS.map(l => ({ value: l.name, label: `${l.name} (ΔHvap ${l.dH} kJ/mol)` })), v => { liq = LIQUIDS.find(l => l.name === v)!; calc(); }, liq.name),
     slider({ label: 'T (°C)', min: -20, max: 150, step: 1, value: Tc, onInput: v => { Tc = v; calc(); } }),
     slider({ label: 'external P (atm)', min: 0.05, max: 2, step: 0.01, value: Pext, fmt: v => v.toFixed(2), onInput: v => { Pext = v; calc(); } }),

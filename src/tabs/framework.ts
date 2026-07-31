@@ -162,6 +162,8 @@ export interface QuizQ {
   opts: string[];
   a: number;
   why: string;
+  /** Wrong-answer mental-model correction — shown below `why` when the student misses. */
+  misconception?: string;
 }
 
 let quizSeq = 0;
@@ -259,7 +261,14 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
         if (!right) srSuffix(b, 'your answer, incorrect');
         // aria-live on whyEl announces this; leading with the verdict means the
         // outcome is heard first and does not depend on the colour change.
-        whyEl.innerHTML = `<span class="sr-only">${right ? 'Correct. ' : 'Incorrect. '}</span>${q.why}`;
+        let whyHtml = `<span class="sr-only">${right ? 'Correct. ' : 'Incorrect. '}</span>${q.why}`;
+        if (!right && q.misconception) {
+          // The text goes in ONE span: .misconception is a flex row, so any
+          // bare text nodes and inline tags in the copy would each become a
+          // separate flex item and stack up as narrow columns.
+          whyHtml += `<div class="misconception" role="note">${MISCON_ICON}<span><strong>Common misconception:</strong> ${q.misconception}</span></div>`;
+        }
+        whyEl.innerHTML = whyHtml;
         whyEl.classList.add(right ? 'good' : 'bad');
         typesetMath(whyEl);
         updateProgressLine();
@@ -290,6 +299,235 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
 
   render();
   return wrap;
+}
+
+// ---- interactive simulation missions ----
+const CHECK_ICON = '<svg class="mission-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.5 11.5 3 8l1.1-1.1 2.4 2.4 5.4-5.4L13 5.1z"/></svg>';
+const MISCON_ICON = '<svg class="miscon-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 3a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Zm-.75 2.5h1.5v4.5h-1.5V7.5Z"/></svg>';
+
+export interface MissionMeter {
+  label: string;
+  pct: number; // 0–100 proximity to goal
+}
+
+export interface MissionDef {
+  id: string;
+  prompt: string;
+  hints?: string[];
+  explain?: string;
+  /** Live feedback while the student experiments (progress bar + label). */
+  meter?: () => MissionMeter | null;
+  /**
+   * Reads the simulation's live state. Optional because a `choices` or
+   * `numeric` mission asks the student to interpret what the sim shows rather
+   * than to drive it to a particular state, so it has nothing to poll.
+   */
+  check?: () => boolean;
+  /** If true, the student must click "Check my setup" — no auto-complete on tick. */
+  verify?: boolean;
+  /** Pick-one challenge (e.g. reaction order, phase name). */
+  choices?: { label: string; value: string }[];
+  validateChoice?: (value: string) => boolean;
+  /** Typed numeric answer (e.g. node count, crossover T). */
+  numeric?: { label: string; placeholder?: string; step?: number; validate: (n: number) => boolean };
+}
+
+export interface MissionLadderHandle {
+  el: HTMLElement;
+  tick: () => void;
+}
+
+/** Sequential mission ladder — one shared helper for every simulation tab. */
+export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
+  const solved = defs.map(d => isSolved(d.id));
+  const hintIdx = defs.map(() => 0);
+  const announce = h('div', { class: 'sr-only', 'aria-live': 'polite', 'aria-atomic': 'true' });
+  const wrap = h('div', { class: 'mission-ladder', role: 'region', 'aria-label': 'Missions' }, announce);
+
+  interface Row {
+    def: MissionDef;
+    root: HTMLElement;
+    meterWrap: HTMLElement;
+    meterBar: HTMLElement;
+    meterLabel: HTMLElement;
+    hintBox: HTMLElement;
+    feedback: HTMLElement;
+    success: HTMLElement;
+    verifyBtn: HTMLButtonElement | null;
+    choiceBar: HTMLElement | null;
+    numInput: HTMLInputElement | null;
+  }
+  const rows: Row[] = [];
+
+  function firstOpen(): number {
+    const i = solved.findIndex(s => !s);
+    return i < 0 ? defs.length : i;
+  }
+
+  // Show a row as complete and retire its controls. Split out from setSolved
+  // because a mission can also become solved WITHOUT being solved here — a
+  // second tab, or a cloud sync landing, fires onProgressChange instead.
+  function paintSolved(i: number): void {
+    const r = rows[i];
+    r.success.innerHTML = `${CHECK_ICON}<span><strong>Mission complete.</strong> ${defs[i].explain ?? ''}</span>`;
+    r.success.hidden = false;
+    r.meterWrap.hidden = true;
+    typesetMath(r.success);
+    if (r.verifyBtn) r.verifyBtn.disabled = true;
+    if (r.choiceBar) for (const b of r.choiceBar.querySelectorAll('button')) b.disabled = true;
+    if (r.numInput) r.numInput.disabled = true;
+  }
+
+  function setSolved(i: number): void {
+    if (solved[i]) return;
+    solved[i] = true;
+    markSolved(defs[i].id);
+    paintSolved(i);
+    announce.textContent = `Mission complete: ${defs[i].prompt.replace(/<[^>]+>/g, '')}`;
+    refreshLocks();
+  }
+
+  // Redraw one row's proximity meter. Separated from tick() so unlocking a
+  // mission can fill its meter immediately — otherwise a newly opened mission
+  // shows an empty bar until the student next touches a control, which on a
+  // slider-driven tab means it looks broken until they guess what to move.
+  function paintMeter(i: number): void {
+    const r = rows[i];
+    if (solved[i] || i > firstOpen()) { r.meterWrap.hidden = true; return; }
+    const m = r.def.meter?.();
+    if (!m) { r.meterWrap.hidden = true; return; }
+    r.meterBar.style.width = `${Math.max(0, Math.min(100, m.pct))}%`;
+    r.meterLabel.textContent = m.label;
+    r.meterWrap.hidden = false;
+  }
+
+  function refreshLocks(): void {
+    const open = firstOpen();
+    rows.forEach((r, i) => {
+      r.root.classList.toggle('mission-locked', !solved[i] && i > open);
+      r.root.classList.toggle('mission-active', !solved[i] && i === open);
+      r.root.classList.toggle('mission-solved', solved[i]);
+      paintMeter(i);
+    });
+  }
+
+  function wrongFeedback(i: number, msg: string): void {
+    const r = rows[i];
+    r.feedback.textContent = msg;
+    r.root.classList.add('mission-shake');
+    setTimeout(() => r.root.classList.remove('mission-shake'), 400);
+  }
+
+  defs.forEach((def, i) => {
+    const meterWrap = h('div', { class: 'mission-meter-wrap' },
+      h('div', { class: 'mission-meter-track' }, h('div', { class: 'mission-meter-fill' })),
+      h('span', { class: 'mission-meter-label' }, ''),
+    );
+    const meterBar = meterWrap.querySelector('.mission-meter-fill') as HTMLElement;
+    const meterLabel = meterWrap.querySelector('.mission-meter-label') as HTMLElement;
+    const hintBox = h('div', { class: 'mission-hint', hidden: '' });
+    const feedback = h('div', { class: 'mission-feedback', 'aria-live': 'polite' });
+    const success = h('div', { class: 'mission-success', hidden: '' });
+    const actions = h('div', { class: 'mission-actions' });
+
+    let verifyBtn: HTMLButtonElement | null = null;
+    let choiceBar: HTMLElement | null = null;
+    let numInput: HTMLInputElement | null = null;
+
+    if (def.verify || (!def.choices && !def.numeric)) {
+      verifyBtn = button(def.verify ? 'Check my setup' : 'Check answer', () => {
+        if (solved[i] || i > firstOpen()) return;
+        feedback.textContent = '';
+        if (def.check?.()) setSolved(i);
+        else wrongFeedback(i, 'Not quite — adjust the controls and try again.');
+      }, 'mission-check');
+      actions.appendChild(verifyBtn);
+    }
+
+    if (def.choices?.length) {
+      choiceBar = h('div', { class: 'mission-choices', role: 'group' });
+      for (const c of def.choices) {
+        const cb = button(c.label, () => {
+          if (solved[i] || i > firstOpen()) return;
+          feedback.textContent = '';
+          if (def.validateChoice?.(c.value)) setSolved(i);
+          else wrongFeedback(i, 'That choice doesn\'t match what the sim shows — try again.');
+        }, 'mission-choice');
+        choiceBar.appendChild(cb);
+      }
+      actions.appendChild(choiceBar);
+    }
+
+    if (def.numeric) {
+      numInput = h('input', {
+        type: 'number', class: 'mission-num', step: def.numeric.step ?? 1,
+        placeholder: def.numeric.placeholder ?? '', autocomplete: 'off',
+        'aria-label': def.numeric.label,
+      });
+      const numBtn = button('Submit', () => {
+        if (solved[i] || i > firstOpen()) return;
+        feedback.textContent = '';
+        const n = Number(numInput!.value);
+        if (!Number.isFinite(n)) { wrongFeedback(i, 'Enter a number.'); return; }
+        if (def.numeric!.validate(n)) setSolved(i);
+        else wrongFeedback(i, 'That value doesn\'t match — count again or re-read the prompt.');
+      }, 'mission-check');
+      actions.appendChild(h('label', { class: 'mission-num-row' },
+        h('span', { class: 'ctl-label' }, def.numeric.label), numInput, numBtn));
+    }
+
+    if (def.hints?.length) {
+      actions.appendChild(button('Hint', () => {
+        if (solved[i] || i > firstOpen()) return;
+        const hi = hintIdx[i];
+        if (hi >= def.hints!.length) return;
+        hintBox.hidden = false;
+        hintBox.appendChild(h('p', {}, `Hint ${hi + 1}: ${def.hints![hi]}`));
+        hintIdx[i]++;
+        typesetMath(hintBox);
+      }, 'mission-hint-btn'));
+    }
+
+    const promptEl = h('div', { class: 'mission-prompt', html: `<span class="mission-badge">Mission ${i + 1}</span> ${def.prompt}` });
+    const root = h('div', { class: 'mission-strip' },
+      promptEl, meterWrap, actions, hintBox, feedback, success,
+    );
+    rows.push({ def, root, meterWrap, meterBar, meterLabel, hintBox, feedback, success, verifyBtn, choiceBar, numInput });
+    wrap.appendChild(root);
+  });
+
+  // Progress can also arrive from elsewhere — a cloud sync completing after
+  // sign-in, or the same mission solved in another open tab.
+  onProgressChange(() => {
+    defs.forEach((d, i) => {
+      if (!solved[i] && isSolved(d.id)) { solved[i] = true; paintSolved(i); }
+    });
+    refreshLocks();
+  });
+
+  function tick(): void {
+    const open = firstOpen();
+    rows.forEach((r, i) => {
+      paintMeter(i);
+      if (solved[i] || i > open) return;
+      if (!r.def.verify && !r.def.choices && !r.def.numeric && r.def.check?.()) setSolved(i);
+    });
+  }
+
+  typesetMath(wrap);
+  // Paint the missions this student already finished in an earlier session.
+  // `solved` was read from storage at the top, so the test is on `solved[i]`
+  // itself — testing `isSolved(id) && !solved[i]` can never fire, which left a
+  // returning student looking at a solved mission with its controls still live.
+  solved.forEach((s, i) => { if (s) paintSolved(i); });
+  refreshLocks();
+  tick();
+  return { el: wrap, tick };
+}
+
+/** Card with missions pinned above the simulation controls. */
+export function cardWithMissions(title: string, missions: MissionLadderHandle, ...children: (Node | string)[]): HTMLElement {
+  return h('section', { class: 'card' }, h('h2', {}, title), missions.el, ...children);
 }
 
 // Append screen-reader-only text to an element, once.
