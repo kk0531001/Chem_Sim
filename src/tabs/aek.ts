@@ -258,11 +258,17 @@ function makeElectro(): HTMLElement {
   const out = h('div', { class: 'result' });
   const nernstOut = h('div', { class: 'result' });
 
-  function recompute(): void {
+  // Hoisted out of recompute() so the missions can read the same live cell the
+  // readout describes, rather than recomputing it from the couples themselves.
+  const cellPair = () => {
     const cat = c1.E >= c2.E ? c1 : c2;
     const an = c1.E >= c2.E ? c2 : c1;
-    const E0 = cat.E - an.E;
-    const n = lcm(cat.n, an.n);
+    return { cat, an, E0: cat.E - an.E, n: lcm(cat.n, an.n) };
+  };
+  const cellE = () => { const { E0, n } = cellPair(); return E0 - (0.0592 / n) * logQ; };
+
+  function recompute(): void {
+    const { cat, an, E0, n } = cellPair();
     const dG = -n * 96485 * E0 / 1000;
     out.innerHTML =
       `Cathode (reduction): <b>${cat.label}</b> · Anode (oxidation): <b>${an.label}</b><br>` +
@@ -270,10 +276,30 @@ function makeElectro(): HTMLElement {
       `n = ${n} e⁻ · ΔG° = −nFE° = <b>${dG.toFixed(0)} kJ/mol</b> · K = 10^(${(n * E0 / 0.0592).toFixed(1)})<br>` +
       `Cell diagram: ${an.ox} | ${an.red} ‖ ${cat.red} | ${cat.ox}<br>` +
       `<span class="muted">Electrons flow anode → cathode through the wire; anions flow toward the anode in the salt bridge. "An Ox, Red Cat."</span>`;
-    const E = E0 - (0.0592 / n) * logQ;
+    const E = cellE();
     nernstOut.innerHTML = `Nernst: E = E° − (0.0592/n)·log Q = ${E0.toFixed(2)} − (0.0592/${n})·(${logQ}) = <b>${E.toFixed(3)} V</b>` +
       `<br>${logQ > 0 ? 'Products built up → E drops below E°.' : logQ < 0 ? 'Reactant-rich → E above E°.' : 'Standard conditions → E = E°.'} Battery dies when Q = K (E = 0).`;
+    cellMissions.tick();
   }
+
+  const cellMissions = missionLadder([
+    {
+      id: 'msn-aek-09',
+      prompt: 'Kill a battery with concentration alone. Build a <b>real</b> cell (E° of at least 0.15 V) and then use the log Q slider to drive its actual voltage <b>down to zero or below</b>. The Zn/Cu cell it opens on cannot be killed — part of the mission is working out which pairs can.',
+      meter: () => {
+        const { E0 } = cellPair();
+        if (E0 < 0.15) return { label: `E° = ${E0.toFixed(2)} V — pick two different couples with E° ≥ 0.15 V`, pct: 0 };
+        const E = cellE();
+        return { label: `E° = ${E0.toFixed(2)} V · E = ${E.toFixed(3)} V · target ≤ 0`, pct: Math.max(0, Math.min(100, (1 - E / E0) * 100)) };
+      },
+      check: () => cellPair().E0 >= 0.15 && cellE() <= 0,
+      hints: [
+        'The slider reaches log Q = 8. How much voltage can (0.0592/n)·8 actually cancel?',
+        'At n = 2 that is only 0.24 V, so you need a cell whose E° is under about 0.24 V. Two of the listed pairs qualify — try Fe²⁺/Fe against Ni²⁺/Ni.',
+      ],
+      explain: 'E = 0 is the definition of a <b>flat battery</b>: it is the point where Q has climbed all the way to K and there is no thermodynamic push left, even though plenty of reactants remain in the cell. The reason so few pairs on this list can be killed within log Q = 8 is the same fact from the other direction — log K = nE°/0.0592, so the Zn/Cu cell has K = 10³⁷, and you would have to build up Zn²⁺ over Cu²⁺ by a factor of 10³⁷ to stop it. <span class="trap">A large E° is not just "more voltage"; it is an exponentially more complete reaction.</span> That is exactly why a good battery holds a nearly constant voltage until it is almost entirely spent, rather than fading in proportion to how much charge you have drawn.',
+    },
+  ]);
 
   // ---- Faraday electrolysis calculator ----
   const PLATE = [
@@ -296,8 +322,28 @@ function makeElectro(): HTMLElement {
       `mol product = mol e⁻ / ${plate.n} = ${mol.toPrecision(3)} mol → <b class="big">${(mol * plate.M).toPrecision(3)} g</b>` +
       (plate.gas ? ` = <b>${(mol * 22.7).toPrecision(3)} L at STP</b> (22.7 L/mol at 1 bar; 22.4 at 1 atm)` : '') +
       `<br><span class="muted">Same charge deposits DIFFERENT moles of different metals — divide by the electron count n. Ag (n=1) plates 3× the moles of Al (n=3).</span>`;
+    farMissions.tick();
   }
-  const faradayCard = card('Electrolysis / Faraday calculator',
+  const plateMass = () => ((amps * mins * 60) / 96485 / plate.n) * plate.M;
+  const farMissions = missionLadder([
+    {
+      id: 'msn-aek-10',
+      prompt: 'A plating line has to lay down <b>1.00 g of copper in exactly 10 minutes</b> (±2%). Select the copper bath, set the time, and find the current that does it.',
+      meter: () => {
+        if (plate.name !== 'Cu from Cu²⁺') return { label: 'select the Cu from Cu²⁺ bath', pct: 0 };
+        if (mins !== 10) return { label: `time is ${mins} min — the mission asks for 10`, pct: 0 };
+        const m = plateMass();
+        return { label: `${m.toFixed(3)} g in 10 min · target 1.00 g`, pct: Math.max(0, 100 - Math.abs(m - 1) * 200) };
+      },
+      check: () => plate.name === 'Cu from Cu²⁺' && mins === 10 && Math.abs(plateMass() - 1.0) <= 0.02,
+      hints: [
+        'Work backwards: grams → moles of Cu → moles of electrons → coulombs → amps.',
+        '1.00 g / 63.55 = 0.01573 mol Cu, ×2 electrons = 0.03147 mol e⁻, ×96485 = 3036 C. Over 600 s that is about 5.1 A.',
+      ],
+      explain: 'About <b>5.1 A</b>. Everything in electroplating is this one chain — grams → moles → moles of electrons → coulombs → amps — and the only place it can go wrong is forgetting that copper needs <em>two</em> electrons per atom. Two consequences worth carrying: current sets the <b>rate</b> and total charge sets the <b>amount</b>, so doubling the current halves the time for the same deposit; and in a real bath you cannot simply keep raising the current, because past a limiting value the copper ions near the surface are consumed faster than they can diffuse in, and the deposit turns from a smooth bright layer into a rough, powdery, poorly adherent one. Plating quality is a rate problem, not just a stoichiometry problem.',
+    },
+  ]);
+  const faradayCard = cardWithMissions('Electrolysis / Faraday calculator', farMissions,
     select('product', PLATE.map(p => ({ value: p.name, label: `${p.name} (n=${p.n})` })), v => { plate = PLATE.find(p => p.name === v)!; farCalc(); }, plate.name),
     slider({ label: 'current (A)', min: 0.1, max: 20, step: 0.1, value: amps, fmt: v => v.toFixed(1), onInput: v => { amps = v; farCalc(); } }),
     slider({ label: 'time (min)', min: 1, max: 240, step: 1, value: mins, onInput: v => { mins = v; farCalc(); } }),
@@ -333,7 +379,23 @@ function makeElectro(): HTMLElement {
         : `<b>No species disproportionates</b> here (each right-hand potential ≤ the left). The reverse — comproportionation — may instead be favourable.`) +
       `<br><span class="muted">Rule: a species disproportionates when E°(species→more reduced) &gt; E°(more oxidized→species). Cu⁺ is the classic case: 2Cu⁺ → Cu + Cu²⁺.</span>`;
   }
-  const latCard = card('Latimer diagram & disproportionation',
+  // The card states the weighting rule in its own caption but nothing in the
+  // corpus ever made anyone use it — and manganese is the case where a plain
+  // average visibly fails, because the two steps carry 3 and 2 electrons.
+  const latMissions = missionLadder([
+    {
+      id: 'msn-aek-11',
+      prompt: 'Switch to <b>Manganese (acid)</b>. The diagram gives you MnO₄⁻ → MnO₂ (3 electrons) and MnO₂ → Mn²⁺ (2 electrons). Combine them to get E° for the <b>non-adjacent</b> couple MnO₄⁻/Mn²⁺, in volts.',
+      numeric: { label: 'E°(MnO₄⁻/Mn²⁺) in V', placeholder: 'e.g. 1.23', step: 0.01, validate: n => Math.abs(n - 1.51) <= 0.03 },
+      hints: [
+        'Potentials are intensive, so they do not add — but ΔG° = −nFE° does. Add the ΔG° values and convert back.',
+        'E° = (n₁E₁ + n₂E₂)/(n₁ + n₂) = (3 × 1.70 + 2 × 1.23)/5. The plain average, 1.465 V, is not the answer.',
+      ],
+      explain: '(3 × 1.70 + 2 × 1.23)/5 = 7.56/5 = <b>1.51 V</b> — and you can check it without leaving this tab: the galvanic cell builder two cards up lists MnO₄⁻/Mn²⁺ at exactly +1.51 V. The plain average would have given 1.465 V, wrong by 45 mV, which at n = 5 is a factor of 40 in K.<br>The reason for the weighting is that free energies are additive and potentials are not: ΔG°<sub>total</sub> = ΔG°₁ + ΔG°₂ becomes −(n₁+n₂)FE°<sub>total</sub> = −n₁FE°₁ − n₂FE°₂, and F cancels. <span class="trap">Whenever you are tempted to add or average potentials, convert to ΔG° first — that is also why you never multiply E° by a stoichiometric coefficient.</span>',
+    },
+  ]);
+
+  const latCard = cardWithMissions('Latimer diagram & disproportionation', latMissions,
     select('element series', LATIMERS.map(l => ({ value: l.name, label: l.name })), v => { lat = LATIMERS.find(l => l.name === v)!; latCalc(); }, lat.name),
     latOut,
     h('p', { class: 'muted' }, 'Potentials are intensive — to get E° for a non-adjacent couple, weight by electron count: E° = Σ(nᵢE°ᵢ)/Σnᵢ, never a plain average.' ),
@@ -341,7 +403,7 @@ function makeElectro(): HTMLElement {
   latCalc();
 
   const el = h('div', { class: 'cards' },
-    card('Galvanic cell builder',
+    cardWithMissions('Galvanic cell builder', cellMissions,
       select('half-cell 1', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c1 = COUPLES.find(c => c.label === v)!; recompute(); }, c1.label),
       select('half-cell 2', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c2 = COUPLES.find(c => c.label === v)!; recompute(); }, c2.label),
       out,

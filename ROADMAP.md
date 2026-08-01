@@ -1174,10 +1174,85 @@ rather than trusted: the exact [H⁺] at 10⁻⁶ M, and the whole of the pK′
 explanation in `p2-acids-005(d)`, whose first draft had the hydration correction
 running in the wrong direction.
 
-**Not yet done:** redox, descriptive, organic. Repeat this workflow one at a
-time. `redox` is the natural next one — 5 Gold/3 Platinum of 31, and it shares
-`aek.ts` with the acid–base card just corrected, whose electrochemistry section
-has had no audit and carries no missions at all.
+**Electrochemistry & Redox — done.** The first topic in this workflow where the
+audit found **no errors at all** — and the finding is worth recording as a
+negative result rather than glossed over. Every one of the 14 standard
+potentials in `aek.ts`'s `COUPLES` table matches the literature; the galvanic
+builder's electron count is the LCM of the two half-reactions (right, and not
+obvious); ΔG° = −nFE°, log K = nE°/0.0592 and the Nernst term are all correct;
+the Faraday calculator is right including the 22.7 L/mol molar volume at 1 bar;
+and all four Latimer series were checked species by species against tabulated
+values, with their disproportionation verdicts confirmed against real chemistry
+(Cu⁺ yes, H₂O₂ yes, Cl₂ in base yes — the bleach reaction — MnO₂ in acid no).
+Reading the 31 tagged questions turned up no chemistry errors either. One
+cosmetic oddity noted and left alone: the `Couple` type's `ox`/`red` fields hold
+the reduced and oxidised species respectively, i.e. backwards from their names —
+but every use is internally consistent, so the rendered cell diagrams are
+correct and renaming a field on a working structure is churn.
+
+What redox actually lacked was **missions**: three cards, none of them with one,
+the last unmissioned section in a tab whose other two sections have four and
+four. Added one per card:
+
+- `msn-aek-09` (galvanic builder) — kill a battery with concentration alone:
+  build a real cell (E° ≥ 0.15 V) and drive E to zero with the log Q slider.
+  The Zn/Cu default *cannot* be killed, and working out why is the mission:
+  log K = nE°/0.0592 makes K = 10³⁷ there, so exactly two of the available
+  pairs (Fe/Ni at 0.18 V and I₂/Fe³⁺ at 0.23 V) fall within the slider's reach.
+  Both routes were checked offline before shipping.
+- `msn-aek-10` (Faraday calculator) — plate 1.00 g of copper in exactly ten
+  minutes, which needs ≈5.1 A. The payoff is the distinction the calculator
+  cannot show on its own: current sets the *rate*, total charge sets the
+  *amount*, and past a limiting current the deposit degrades because ions cannot
+  diffuse in fast enough.
+- `msn-aek-11` (Latimer card) — the same "tool with no question" gap the Q-test
+  had in the lab pass. The card's caption states the electron-weighting rule and
+  nothing in the corpus ever used it, so the mission asks for E°(MnO₄⁻/Mn²⁺)
+  from the 3-electron and 2-electron steps: (3 × 1.70 + 2 × 1.23)/5 = **1.51 V**,
+  which is exactly the value sitting in the galvanic builder's own couple list
+  two cards up. The plain average, 1.465 V, is outside the accepted window —
+  verified live that it is rejected.
+
+Added 3 new Part II FRQs (`p2-redox-003..005`, one Platinum), all on ground the
+topic's existing questions never touched:
+
+- `p2-redox-003` (Platinum) — a full six-species Latimer diagram for manganese
+  in acid: combine non-adjacent couples two ways, identify **both** species that
+  disproportionate (MnO₄²⁻ and Mn³⁺) from the diagram alone, and write the
+  balanced equation for the manganate disproportionation that turns green
+  K₂MnO₄ into purple MnO₄⁻ plus brown MnO₂ the moment it is acidified.
+- `p2-redox-004` — pH-dependence of a redox potential, which the corpus never
+  addressed despite testing the Nernst equation five separate times.
+  E(MnO₄⁻/Mn²⁺) = 1.51 − 0.0947·pH, so permanganate falls from 1.51 V to 0.85 V
+  at pH 7 and its margin over Fe³⁺/Fe²⁺ (pH-independent, no protons in the
+  equation) collapses from 0.74 V to 0.08 V. Part (d) explains the standard lab
+  rule quantitatively: at 1.51 V permanganate sits above Cl₂/Cl⁻ at 1.36 V, so
+  acidifying with HCl gives a titre that reads high — which is why the procedure
+  says sulfuric acid.
+- `p2-redox-005` — the chlor-alkali cell, where **thermodynamics loses to
+  kinetics**: water oxidises at 1.23 V and chloride at 1.36 V, yet the cell makes
+  chlorine, because oxygen evolution's overpotential reverses the order of the
+  actual onset potentials. Then the industrial arithmetic — 914 kg Cl₂ and
+  1032 kg NaOH per day at 30 kA and 96% current efficiency, in a fixed 1:2 mole
+  ratio no plant can adjust — and 2420 kWh per tonne against a thermodynamic
+  minimum of 1660, i.e. 68% voltage efficiency, with the rest going to the
+  overpotential from part (c).
+
+Also rewrote `mock1-a-009`, which duplicated `p1-redox-003` (both "subtract two
+E° values"), into a balance in **basic** solution — a skill the corpus only ever
+tested in acid. Redox moved from 5 Gold/3 Platinum to 7 Gold/4 Platinum (of 34).
+
+`tsc --noEmit`, the build and the audit are clean, no console errors, and all
+three missions (including the Latimer one rejecting the plain average), all
+three FRQs and the rewritten mock question were exercised live. One rendering
+bug caught in that pass: `.ref-table th` is uppercase-styled, which is right for
+word headings and mangles formulas — the Latimer diagram rendered "MnO₄²⁻" as
+"MNO₄²⁻", fixed by using `<td><b>` for those cells. The `.table-scroll` wrapper
+added during the acids pass earned its keep immediately, holding this
+eleven-cell diagram inside its card.
+
+**Not yet done:** descriptive and organic — the two largest topics left (101 and
+190 questions). Repeat this workflow one at a time.
 
 ---
 

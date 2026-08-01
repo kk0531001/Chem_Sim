@@ -453,6 +453,49 @@ export const PART2: FRQ[] = [
     ],
   },
 
+  {
+    id: 'p2-redox-003',
+    topic: 'redox',
+    tier: 4, // combining non-adjacent couples by ΔG° additivity, predicting two disproportionations from the same diagram, and writing the balanced reaction they imply
+    title: 'Reading a Latimer diagram: manganese in acid',
+    prompt: 'The Latimer diagram for manganese in acidic solution (all potentials in volts, each between the species it joins):<br>' +
+      '<div class="table-scroll"><table class="ref-table"><tr>' +
+      // <td><b>, not <th>: .ref-table th is uppercase-styled, which is right for
+      // word headings and wrong for formulas — it renders MnO₄²⁻ as MNO₄²⁻.
+      '<td><b>MnO₄⁻</b></td><td>—1e⁻, +0.56→</td><td><b>MnO₄²⁻</b></td><td>—2e⁻, +2.27→</td><td><b>MnO₂</b></td><td>—1e⁻, +0.95→</td><td><b>Mn³⁺</b></td><td>—1e⁻, +1.51→</td><td><b>Mn²⁺</b></td><td>—2e⁻, −1.18→</td><td><b>Mn</b></td>' +
+      '</tr></table></div>',
+    parts: [
+      { q: '(a) Calculate E° for the non-adjacent couple MnO₄⁻/MnO₂, and state the rule you used.', a: 'Potentials are intensive and do <b>not</b> add; free energies do. Adding ΔG° for the two steps: −(n₁+n₂)FE° = −n₁FE°₁ − n₂FE°₂, so E° = (n₁E°₁ + n₂E°₂)/(n₁+n₂).<br>E°(MnO₄⁻/MnO₂) = (1 × 0.56 + 2 × 2.27)/3 = 5.10/3 = <b>+1.70 V</b>, matching the tabulated value for that couple.' },
+      { q: '(b) Now find E°(MnO₄⁻/Mn²⁺), and use it to check your method against a value you already know.', a: 'Five electrons in total, chaining all four steps down to Mn²⁺:<br>E° = (1×0.56 + 2×2.27 + 1×0.95 + 1×1.51)/5 = 7.56/5 = <b>+1.51 V</b>.<br>That is exactly the standard potential quoted for MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O in every table — an independent confirmation that the electron-weighted combination is right. A plain average of the same four numbers gives 1.32 V, and of the two-step route in (a), 1.465 V; both are wrong.' },
+      { q: '(c) Which species in this diagram are unstable with respect to disproportionation? Justify each from the diagram alone.', a: 'A species disproportionates when the potential on its <b>right</b> (its reduction) exceeds the potential on its <b>left</b> (its own formation by reduction of the species above it) — that combination makes the self-reaction spontaneous.<br><b>MnO₄²⁻</b>: right 2.27 > left 0.56 ✓ unstable.<br><b>Mn³⁺</b>: right 1.51 > left 0.95 ✓ unstable.<br>MnO₂: right 0.95 < left 2.27 — stable. Mn²⁺: right −1.18 < left 1.51 — stable, which is why Mn²⁺ is the ordinary end point of permanganate reductions in acid.' },
+      { q: '(d) Write the balanced equation for the disproportionation of the manganate ion MnO₄²⁻ in acid, and calculate E°cell for it.', a: 'Manganese(VI) goes both up to Mn(VII) and down to Mn(IV): two ions lose one electron each, one gains two.<br><b>3MnO₄²⁻ + 4H⁺ → 2MnO₄⁻ + MnO₂(s) + 2H₂O</b> (check: Mn 3 = 3; O 12 = 8 + 2 + 2; charge −6 + 4 = −2 = 2(−1)).<br>E°cell = E°(reduction half, MnO₄²⁻→MnO₂) − E°(oxidation half, MnO₄⁻→MnO₄²⁻) = 2.27 − 0.56 = <b>+1.71 V</b>, strongly spontaneous.<br>This is why potassium manganate(VI) is only handled in strong alkali: the deep green K₂MnO₄ solution turns purple with a brown precipitate the moment it is acidified — MnO₄⁻ and MnO₂ appearing together in the flask.' },
+    ],
+  },
+  {
+    id: 'p2-redox-004',
+    topic: 'redox',
+    title: 'An oxidising agent you can tune with pH',
+    prompt: 'MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O, E° = +1.51 V. Take [MnO₄⁻] = [Mn²⁺] = 1 M throughout, and use E = E° − (0.0592/n)·log Q at 25 °C.',
+    parts: [
+      { q: '(a) Show that the potential of this couple falls by about 0.095 V per pH unit.', a: 'Q = [Mn²⁺]/([MnO₄⁻][H⁺]⁸) = 1/[H⁺]⁸ under the stated conditions, so log Q = −8 log[H⁺] = 8·pH.<br>E = 1.51 − (0.0592/5)(8·pH) = <b>1.51 − 0.0947·pH</b>.<br>The eight protons are doing the work: a half-reaction that consumes H⁺ is pushed backwards as H⁺ is removed, and dividing by n = 5 leaves 8/5 × 0.0592 V per pH unit.' },
+      { q: '(b) Evaluate E at pH 0, 7 and 14, and comment on what happens to permanganate as an oxidant.', a: 'pH 0 → <b>1.51 V</b>; pH 7 → 1.51 − 0.663 = <b>0.85 V</b>; pH 14 → <b>0.18 V</b>.<br>Permanganate goes from one of the strongest practical oxidising agents to a mild one across the pH range. In practice the product changes too: in neutral or alkaline solution MnO₄⁻ is reduced only as far as brown MnO₂ rather than colourless Mn²⁺, which is precisely why redox titrations with permanganate are run in strongly acidic solution — you need both the driving force and a clean, colourless, single product.' },
+      { q: '(c) Fe³⁺ + e⁻ → Fe²⁺ has E° = +0.77 V and involves no H⁺. Compare the two couples at pH 0 and pH 7 and state the general principle.', a: 'At pH 0 permanganate (1.51 V) beats the iron couple (0.77 V) by 0.74 V — the basis of the classic MnO₄⁻/Fe²⁺ titration. At pH 7 the margin has shrunk to 0.85 − 0.77 = 0.08 V, essentially nothing.<br>The principle: <b>only half-reactions that involve H⁺ or OH⁻ are pH-sensitive</b>. Fe³⁺/Fe²⁺ has no protons in its equation, so its potential is (to this level of treatment) flat with pH, while oxo-anions such as MnO₄⁻, Cr₂O₇²⁻ and NO₃⁻ weaken sharply as acid is removed. Choosing the pH is therefore a way of selecting <em>which</em> species an oxidant will and will not attack — the idea a Pourbaix diagram maps out systematically.' },
+      { q: '(d) A student acidifies a permanganate titration with hydrochloric acid instead of sulfuric acid, and gets a titre that is too high. Explain, using potentials.', a: 'Cl₂ + 2e⁻ → 2Cl⁻ has E° = +1.36 V. At pH 0 permanganate sits at 1.51 V, comfortably above it, so MnO₄⁻ oxidises chloride to chlorine in a side reaction that consumes titrant without touching the analyte — the titre reads <b>high</b> and the result is overstated. (The effect is worse than the 0.15 V margin suggests, because Fe²⁺ present in the flask catalyses the induced oxidation of chloride.)<br>Sulfuric acid is used instead because sulfate is already fully oxidised and cannot be attacked. Nitric acid is equally unsuitable, for the opposite reason: it is itself an oxidant and would attack the analyte. <span class="trap">"Acidify the solution" is never a free move — the acid\'s anion is a reagent too.</span>' },
+    ],
+  },
+  {
+    id: 'p2-redox-005',
+    topic: 'redox',
+    title: 'The chlor-alkali cell: thermodynamics loses to kinetics',
+    prompt: 'A membrane chlor-alkali cell electrolyses concentrated brine, producing Cl₂ at the anode and H₂ plus NaOH at the cathode. It runs at <b>30 000 A</b> for 24 hours at a cell voltage of about <b>3.2 V</b>, with a current efficiency of 96%.<br>(F = 96 485 C/mol; M: Cl₂ 70.90, NaOH 40.00, H₂ 2.016)',
+    parts: [
+      { q: '(a) Write the electrode reactions and the overall cell reaction, and give the mole ratio of the three products.', a: 'Anode: 2Cl⁻ → Cl₂ + 2e⁻. Cathode: 2H₂O + 2e⁻ → H₂ + 2OH⁻ (the Na⁺ crossing the membrane pairs with that OH⁻ to give the caustic soda product).<br>Overall: <b>2NaCl + 2H₂O → Cl₂ + H₂ + 2NaOH</b>, so Cl₂ : H₂ : NaOH = <b>1 : 1 : 2</b> by mole.<br>That ratio is fixed by the electron count and cannot be adjusted, which is a genuine commercial constraint: a plant cannot make caustic soda without making an equivalent amount of chlorine, so the two markets have to be balanced against each other.' },
+      { q: '(b) Calculate the daily output of Cl₂ and of NaOH.', a: 'Q = It = 30 000 × 86 400 = 2.592×10⁹ C → n(e⁻) = 2.592×10⁹/96 485 = 26 864 mol.<br>At 100%: n(Cl₂) = 13 432 mol → 952.3 kg; n(NaOH) = 26 864 mol → 1074.6 kg.<br>At 96% current efficiency: <b>914 kg Cl₂ and 1032 kg NaOH</b> per day (with 26.0 kg of hydrogen alongside). The missing 4% went into side reactions — chiefly some O₂ at the anode and the small amount of hydroxide that leaks back through the membrane and is oxidised.' },
+      { q: '(c) Water is oxidised at +1.23 V and chloride at +1.36 V, so thermodynamics says the anode should give oxygen, not chlorine. Explain why the cell produces chlorine anyway.', a: 'Two effects, both pushing the same way. First, <b>overpotential</b>: oxygen evolution is kinetically sluggish — a four-electron process going through adsorbed intermediates — and needs several tenths of a volt beyond its thermodynamic value on any practical anode, while chlorine evolution is a fast two-electron process with a small overpotential. That reverses the order of the two <em>actual</em> onset potentials. Second, <b>concentration</b>: the brine is near-saturated, roughly 5 M in Cl⁻, and the Nernst term shifts the chloride couple down by about 0.04 V.<br>The general lesson is that an electrolysis product is decided by which reaction is fastest at the working potential, not by which is most favourable at equilibrium. <span class="trap">Predicting electrolysis products from a table of E° alone will get brine, and much else, wrong.</span>' },
+      { q: '(d) Calculate the electrical energy consumed per tonne of chlorine, compare it with the thermodynamic minimum (E°cell = −2.19 V for the overall reaction), and say where the difference goes.', a: 'Per mole of Cl₂, 2 mol of electrons pass: energy = nFV = 2 × 96 485 × 3.2 = 618 kJ. One tonne is 10⁶/70.90 = 14 104 mol, so E = 8.72×10⁶ kJ = <b>2420 kWh per tonne of Cl₂</b>, which is close to real membrane-cell figures.<br>The thermodynamic minimum, at 2.19 V, is 1660 kWh/tonne — so the cell is about <b>68% voltage-efficient</b>. The extra 1.0 V is spent on the anode and cathode overpotentials (part (c)\'s kinetic cost, now appearing as an energy bill) plus ohmic losses in the electrolyte, the membrane and the hardware. At national scale this is why chlor-alkali plants are sited where electricity is cheap, and why a tenth of a volt of overpotential is worth serious research money.' },
+    ],
+  },
+
   // ================= ATOMIC STRUCTURE =================
   {
     id: 'p2-atomic-001',
