@@ -1,7 +1,7 @@
 // Laboratory Skills — practical techniques: recrystallization, the distillation
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
-import { h, card, theory, slider, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { LABTECH_QUIZ } from './questions7';
 
@@ -29,7 +29,9 @@ function makeRecryst(): HTMLElement {
       `<br><span class="muted">Ideal solvent: high hot / low cold solubility; impurities either stay dissolved cold or are removed by hot filtration (+ charcoal for colour).</span>`;
   }
   const el = card('Recrystallization — solubility & % recovery',
-    slider({ label: 'hot solubility (g/100 mL)', min: 5, max: 60, step: 1, value: sHot, onInput: v => { sHot = v; draw(); } }),
+    // Clamped against each other: hot < cold would draw a solubility curve that
+    // FALLS with temperature, which is not the chemistry this card is about.
+    slider({ label: 'hot solubility (g/100 mL)', min: 5, max: 60, step: 1, value: sHot, onInput: v => { sHot = Math.max(v, sCold); draw(); } }),
     slider({ label: 'cold solubility (g/100 mL)', min: 0.5, max: 20, step: 0.5, value: sCold, fmt: v => v.toFixed(1), onInput: v => { sCold = Math.min(v, sHot); draw(); } }),
     slider({ label: 'solvent volume (mL)', min: 20, max: 200, step: 5, value: vol, onInput: v => { vol = v; draw(); } }),
     slider({ label: 'mass to purify (g)', min: 1, max: 40, step: 1, value: mass, onInput: v => { mass = v; draw(); } }),
@@ -157,6 +159,22 @@ function makeStandardBuffer(): HTMLElement {
 function makeChromatography(): HTMLElement {
   let spot = 3.2, front = 5.0, polarity = 30; // cm, cm, % polar eluent
   const out = h('div', { class: 'result' });
+
+  // The eluent slider used to be inert: it relabelled the readout without
+  // moving the spot, which is exactly the causal claim the caption makes
+  // ("raising eluent polarity raises every R_f"). It now drives the plate.
+  //
+  // Model: retention factor k = (1 − R_f)/R_f, and log k falls linearly with
+  // the % polar modifier (the linear-solvent-strength relation), S ≈ 0.025 per
+  // percentage point — a factor of 10 in k per 40 points of modifier, which is
+  // the right order for silica/hexane–ethyl acetate. The compound's retention
+  // is anchored on whatever was last MEASURED (spot, front, φ), so setting the
+  // sliders to a real plate re-anchors the model instead of fighting it.
+  const S = 0.025;
+  const kFromPlate = () => (spot > 0.05 ? (front - spot) / spot : 1e4);
+  let kRef = kFromPlate(), phiRef = polarity;
+  const reanchor = () => { kRef = kFromPlate(); phiRef = polarity; };
+
   function calc(): void {
     const rf = front > 0 ? spot / front : 0;
     // qualitative: more polar eluent pushes spots up (higher Rf) on normal-phase silica
@@ -169,12 +187,56 @@ function makeChromatography(): HTMLElement {
       `<span class="eq">\\(R_f =\\) (distance spot travelled) / (distance solvent front travelled)</span>` +
       `R_f = ${spot.toFixed(1)} / ${front.toFixed(1)} = <b class="big">${rf.toFixed(2)}</b> &nbsp;(with ${polarity}% polar eluent)<br>` +
       advice +
-      `<br><span class="muted">Normal-phase silica is polar: polar compounds stick (low R_f), non-polar ones run with the front. Raising eluent polarity raises every R_f. Visualize under UV (254 nm) or with a stain (KMnO₄, ninhydrin, I₂). R_f is characteristic in a fixed system — an ID handle.</span>`;
+      `<br><span class="muted">Normal-phase silica is polar: polar compounds stick (low R_f), non-polar ones run with the front. Raising eluent polarity raises every R_f — move the eluent slider and watch the spot climb. Visualize under UV (254 nm) or with a stain (KMnO₄, ninhydrin, I₂). R_f is characteristic in a fixed system — an ID handle.</span>`;
+    tlcMissions.tick();
   }
-  const el = card('Chromatography — TLC, column & method choice',
-    slider({ label: 'spot distance (cm)', min: 0, max: 6, step: 0.1, value: spot, fmt: v => v.toFixed(1), onInput: v => { spot = Math.min(v, front); calc(); } }),
-    slider({ label: 'solvent front (cm)', min: 1, max: 8, step: 0.1, value: front, fmt: v => v.toFixed(1), onInput: v => { front = v; calc(); } }),
-    slider({ label: 'eluent polarity (% polar)', min: 0, max: 100, step: 5, value: polarity, fmt: v => `${v}%`, onInput: v => { polarity = v; calc(); } }),
+
+  const spotCtl = slider({
+    label: 'spot distance (cm)', min: 0, max: 6, step: 0.1, value: spot, fmt: v => v.toFixed(1),
+    onInput: v => { spot = Math.min(v, front); reanchor(); calc(); },
+  });
+  // Written to directly when the eluent moves the spot, rather than dispatching
+  // a synthetic input event: the slider's own callback is rAF-coalesced, so a
+  // round trip would paint one frame of stale R_f on every eluent change.
+  const spotInput = spotCtl.querySelector('input') as HTMLInputElement;
+  const spotVal = spotCtl.querySelector('.ctl-val') as HTMLElement;
+  const setSpot = (v: number) => {
+    spot = Math.max(0, Math.min(front, Math.round(v * 10) / 10));
+    spotInput.value = String(spot);
+    spotInput.setAttribute('aria-valuetext', spot.toFixed(1));
+    spotVal.textContent = spot.toFixed(1);
+  };
+
+  const tlcMissions = missionLadder([
+    {
+      id: 'msn-lbt-01',
+      prompt: 'The plate as loaded runs at <b>R_f = 0.64</b> in 30% polar eluent — too far up to resolve it from a close-running impurity. Without touching the plate, change the <b>eluent</b> until the spot sits in the useful <b>0.30–0.50</b> window.',
+      meter: () => {
+        const rf = front > 0 ? spot / front : 0;
+        return { label: `R_f = ${rf.toFixed(2)} · target 0.30–0.50`, pct: Math.max(0, Math.min(100, 100 - Math.abs(rf - 0.40) * 250)) };
+      },
+      check: () => { const rf = front > 0 ? spot / front : 0; return polarity < 30 && rf >= 0.30 && rf <= 0.50; },
+      hints: [
+        'On normal-phase silica the stationary phase is the polar one. Which way must the eluent go to make the compound stick MORE?',
+        'Less polar eluent → lower R_f. Somewhere around 10–20% polar lands in the window.',
+      ],
+      explain: 'A <b>less</b> polar eluent (≈10–20%) drops the R_f into the window. The logic is a competition: silica is polar and holds the compound; the eluent pulls it off by competing for those same polar sites. A stronger (more polar) eluent competes better, so everything runs higher. That is why a TLC is optimised by changing the <em>solvent</em>, not the plate — and why the target is 0.3–0.5 rather than "as high as possible". Near R_f = 0.9 every compound is bunched against the front and nothing separates; near 0.1 the spots are streaky and slow. The 0.3–0.5 window is also what you transfer to a column: a compound at R_f ≈ 0.35 on TLC elutes in a convenient number of column volumes in the same solvent system.',
+    },
+  ]);
+
+  const el = cardWithMissions('Chromatography — TLC, column & method choice', tlcMissions,
+    spotCtl,
+    slider({ label: 'solvent front (cm)', min: 1, max: 8, step: 0.1, value: front, fmt: v => v.toFixed(1), onInput: v => { front = v; spot = Math.min(spot, front); reanchor(); calc(); } }),
+    slider({
+      label: 'eluent polarity (% polar)', min: 0, max: 100, step: 5, value: polarity, fmt: v => `${v}%`,
+      onInput: v => {
+        polarity = v;
+        const k = kRef * Math.pow(10, -S * (polarity - phiRef));
+        setSpot((1 / (1 + k)) * front);
+        reanchor();
+        calc();
+      },
+    }),
     out,
     h('table', { class: 'ref-table', html: `
 <tr><th>method</th><th>separates by</th><th>use</th></tr>

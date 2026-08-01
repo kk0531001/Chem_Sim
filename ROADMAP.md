@@ -997,9 +997,102 @@ mission failing at N = 102 and completing at N = 104, all three new FRQs
 rendering with their KaTeX and `.trap` markup intact, the rewritten
 `mock4-b-001` and `mock1-a-024`, and `phy-011` now scoring 0.0592 V as correct.
 
-**Not yet done:** acids, redox, descriptive, organic, lab. Repeat this workflow
-one at a time. `lab` is the strongest next candidate — 44 Gold but a single
-Platinum across 96 questions, the most lopsided distribution left.
+**Laboratory — done.** The most lopsided topic in the corpus going in: 44 Gold
+against a single Platinum in 96 questions, and — the real finding — **exactly
+one multi-part written problem in the entire lab corpus** (`p2-lab-001`). Lab
+is the one topic where an olympiad actually hands you a procedure and a page of
+data, and 95 of its 96 items were one-line multiple choice. Manual read of all
+of them (`labdata`, `labtech` and `analytical` module quizzes, 11 Part III
+scenarios, 5 mock-paper items) plus a formula-by-formula check of all three
+simulation files.
+
+**The bug:** [labdata.ts](src/tabs/labdata.ts)'s qualitative-test table had the
+ceric ammonium nitrate test **backwards** — listed as "red → amber" when the
+reagent is amber and turns *red* on an alcohol. A student running the test
+would have read a positive result as a negative one. Everything else in that
+table (Tollens, Fehling's, 2,4-DNP, iodoform, Lucas, Baeyer, FeCl₃) checked out,
+as did the flame colours and the halide precipitates.
+
+**An inert control, which is its own kind of wrong.**
+[labtech.ts](src/tabs/labtech.ts)'s TLC card had an "eluent polarity" slider
+that changed nothing but the label text, sitting directly under a caption
+asserting that "raising eluent polarity raises every R_f". The card told a
+causal story and then refused to demonstrate it — the exact failure Phase B
+exists to fix, hiding inside a tab that otherwise looks finished. The slider
+now drives the plate, using the linear-solvent-strength relation (log k falls
+linearly with % modifier, S ≈ 0.025/point) anchored on whatever spot/front the
+student last measured, so setting the sliders to a real plate re-anchors the
+model rather than fighting it. Verified across the range: 30% → R_f 0.64,
+15% → 0.42, 5% → 0.28, 70% → 0.94 (which correctly trips the card's own
+"R_f too high" warning). Also clamped the recrystallization card's hot-solubility
+slider against its cold one — the pair could be crossed into a solubility curve
+that *falls* with temperature.
+
+`lbt-027` was a definitional repeat of `lbd-004` ("accuracy vs precision")
+sitting in a CCO-pitched bank where `tierOf()` counts it as Gold. It now asks
+whether a suspect titre may be discarded by the Q-test — filling a genuine hole,
+since [labdata.ts](src/tabs/labdata.ts) ships a **Q-test calculator that no
+question in the corpus referenced**.
+
+Added 3 new Part II FRQs (`p2-lab-002..004`, one Platinum), quadrupling the
+topic's written-problem count from 1 to 4:
+
+- `p2-lab-002` — standardising NaOH against KHP, then propagating the
+  uncertainty (the buret's 0.164% swamps the balance's 0.039%, so the answer
+  is 0.1027 ± 0.0002 M and a fifth figure would be a lie), then the payoff:
+  undried KHP carrying 0.4% moisture biases the result high by **more than
+  twice** the random uncertainty just computed so carefully — and that bias
+  propagates undiminished into every solution the NaOH is later used on.
+- `p2-lab-003` (Platinum) — a spectrophotometric determination where nothing is
+  clean: the calibration line has a real intercept (and forcing it through zero
+  is explicitly the wrong fix, since that smears the offset into the slope), the
+  sample reads A = 1.42 and must be diluted, and the triplicate results hit a
+  Q-test at 0.947 against a critical 0.941 — a rejection so marginal the
+  solution says so. Part (d) is the instrument reasoning the corpus never had:
+  at A = 1.42 stray light makes high absorbances read systematically *low*, so
+  the raw number is not merely imprecise but biased.
+- `p2-lab-004` — recrystallization arithmetic with a trap worth more than the
+  arithmetic: minimum solvent gives 90.0% recovery, 3× the solvent gives 70.0%,
+  and a classmate who ice-crashes the flask "recovers" 4.7 g — more than the
+  theoretical maximum, because the excess is occluded solvent and trapped
+  impurity. Confirmed by a melting point that is depressed and broadened, which
+  leads into what a melting point does and does not prove (purity, not identity
+  — hence the mixed melting point).
+
+Lab moved from 44 Gold/1 Platinum to 46 Gold/2 Platinum (of 99).
+
+Three new missions; both `labdata.ts` and `labtech.ts` had none:
+
+- `msn-lbd-01` (Beer's law) — the unknown reads A = 1.40, off the top of the
+  range; dilute 10.00 → 50.00 mL, re-read 0.28, report the *original*
+  concentration. The numeric window is deliberately wide enough to survive the
+  card's own regenerated calibration noise while still rejecting the answer of
+  a student who forgets the ×5.
+- `msn-lbd-02` (Q-test) — the card opens on 10.1, 10.2, 10.3, 10.9, where the
+  obvious outlier gives Q = 0.750 against Q_crit = 0.765 and therefore **stays
+  in the average**. The two "keep" options differ only in their reason, so
+  guessing the verdict is not enough.
+- `msn-lbt-01` (TLC) — bring an R_f of 0.64 into the 0.30–0.50 window by
+  changing the eluent alone, which only became possible once the slider was
+  made real.
+
+`tsc --noEmit`, `npm run build` and the audit are clean, no console errors.
+Verified live: the eluent slider moving the spot in both directions with the
+predicted magnitudes, all three missions (including wrong-then-right on both
+graded ones), the four lab FRQs rendering with their data tables, and the
+rewritten `lbt-027`. Two numeric claims written into the FRQ solutions were
+caught and corrected during that check by recomputing them rather than trusting
+the draft — the Q-test boundary value in `p2-lab-003(c)` and the direction of
+the moisture bias in `p2-lab-002(c)`.
+
+**Also noted, not acted on:** `analytical.ts` carries its own TLC R_f card,
+duplicating `labtech.ts`'s — two calculators for the same quantity in the same
+nav group. Merging is a content-deletion call, which this workflow leaves to a
+human with the report in hand.
+
+**Not yet done:** acids, redox, descriptive, organic. Repeat this workflow one
+at a time. `acids` is the strongest next candidate — 4 Gold/2 Platinum across
+57 questions, now the thinnest Gold layer of any topic.
 
 ---
 

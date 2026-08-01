@@ -1,6 +1,6 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
-import { h, card, theory, slider, button, plot, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { LABDATA_QUIZ } from './questions2';
 
@@ -51,8 +51,25 @@ function makeBeer(): HTMLElement {
       `<span class="muted">A = 1 → 10% transmitted; A = 2 → 1%. Measure at λmax: maximum sensitivity and the flattest response to wavelength error.</span>`;
   }
 
+  // The answer is read off THIS card's own fitted line, which carries fresh
+  // noise on every regenerate, so the window is wide enough to survive any
+  // calibration the button can produce (±1% on the slope, ±0.01 on the
+  // intercept) while still rejecting a forgotten ×5 dilution factor.
+  const beerMissions = missionLadder([
+    {
+      id: 'msn-lbd-01',
+      prompt: 'Your unknown reads <b>A = 1.40</b> — far off the top of the calibration range, where the reading cannot be trusted. So you dilute it: <b>10.00 mL made up to 50.00 mL</b>, and the diluted sample reads <b>A = 0.28</b>. Use this card\'s calibration line to report the concentration of the <b>original</b> solution, in units of 10⁻³ M.',
+      numeric: { label: 'original conc (×10⁻³ M)', placeholder: 'e.g. 0.50', step: 0.01, validate: n => n >= 1.38 && n <= 1.62 },
+      hints: [
+        'Set the slider to the diluted sample\'s absorbance and read the concentration the fit gives.',
+        'That is the concentration of the DILUTED solution. 10.00 mL → 50.00 mL is a dilution factor of 5, so the original was five times more concentrated.',
+      ],
+      explain: 'A = 0.28 sits on the line at c ≈ 3.0×10⁻⁴ M, and the dilution factor 50.00/10.00 = 5 puts the original at <b>≈ 1.5×10⁻³ M</b>. Two things make this the standard move rather than a workaround. First, at A = 1.40 only 4% of the light reaches the detector, so the measurement is dominated by detector noise and stray light — and stray light biases high absorbances <em>low</em>, so the raw reading is not merely imprecise but systematically wrong. Second, the dilution is done with a pipet and a volumetric flask (±0.02 and ±0.08 mL), which adds well under 1% uncertainty — far cheaper than the error you are removing. <span class="trap">Never extrapolate a calibration line past its highest standard. Bring the sample to the line instead of stretching the line to the sample.</span>',
+    },
+  ]);
+
   const el = h('div', { class: 'cards' },
-    card('Beer\'s law: calibration curve → unknown',
+    cardWithMissions('Beer\'s law: calibration curve → unknown', beerMissions,
       slider({ label: 'unknown\'s A', min: 0.05, max: 1.5, step: 0.01, value: unknownA, fmt: v => v.toFixed(2), onInput: v => { unknownA = v; draw(); } }),
       button('new calibration data (fresh noise)', regenerate, 'primary'),
       canvas, out,
@@ -223,6 +240,27 @@ function makeUncertainty(): HTMLElement {
   vals.addEventListener('input', qCalc);
   qCalc();
 
+  // A choices mission, not a drive-the-sim one: the student has to commit to a
+  // verdict before reading the calculator's, and the interesting part is the
+  // reason, not the number — so the two "keep" options differ only in why.
+  const qMissions = missionLadder([
+    {
+      id: 'msn-lbd-02',
+      prompt: 'The card starts with four replicate titres: <b>10.1, 10.2, 10.3, 10.9 mL</b>. The last one is plainly the odd one out — your lab partner wants to drop it before averaging. Work out the Q-test yourself, then decide.',
+      choices: [
+        { label: 'Reject 10.9 — it is far from the others', value: 'reject-eyeball' },
+        { label: 'Keep 10.9 — Q = 0.75 does not reach Q_crit = 0.765', value: 'keep-q' },
+        { label: 'Keep 10.9 — the Q-test can never reject with only 4 points', value: 'keep-never' },
+      ],
+      validateChoice: v => v === 'keep-q',
+      hints: [
+        'Q = (gap between the suspect and its nearest neighbour) / (total range of the data).',
+        'gap = 10.9 − 10.3 = 0.6; range = 10.9 − 10.1 = 0.8. Compare Q = 0.75 with Q_crit(90%, n = 4) = 0.765.',
+      ],
+      explain: 'Q = 0.6/0.8 = <b>0.750</b>, just under the critical 0.765 — so the value <b>stays in</b>, and the mean you report is 10.375 mL, not 10.20 mL. This is the whole point of having a test. "It looks wrong" is not a reason; a value that offends you is exactly the value you are most likely to discard for the wrong reasons, and a lab report that quietly deletes it is falsifying data. Two things worth carrying away: the test is weak at n = 4 (with only four points, an outlier has to be extreme to fail it — collect more replicates rather than arguing about one), and a value that survives the test but you still distrust should be investigated in the lab, not deleted at the desk — a lost drop, an air bubble or a misread meniscus is a <em>documented</em> reason to discard a run, and that reason belongs in the notebook.',
+    },
+  ]);
+
   return h('div', { class: 'cards' },
     card('Uncertainty propagation',
       h('p', { class: 'muted' }, 'Compute A·B/C with its uncertainty:'),
@@ -231,7 +269,7 @@ function makeUncertainty(): HTMLElement {
       h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'C ± δC'), C, dC),
       propOut,
     ),
-    card('Q-test for outliers',
+    cardWithMissions('Q-test for outliers', qMissions,
       h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'values (comma-sep)'), vals),
       qOut,
     ),
@@ -253,7 +291,7 @@ function makeQualTests(): HTMLElement {
 <tr><td>Baeyer (cold dilute KMnO₄)</td><td>purple → brown MnO₂</td><td>alkene (also oxidizable groups)</td></tr>
 <tr><td>FeCl₃</td><td>violet/blue color</td><td>phenol</td></tr>
 <tr><td>NaHCO₃</td><td>effervescence (CO₂)</td><td>carboxylic acid</td></tr>
-<tr><td>Ceric ammonium nitrate</td><td>red → amber</td><td>alcohol</td></tr>` }),
+<tr><td>Ceric ammonium nitrate</td><td>amber → red</td><td>alcohol</td></tr>` }),
       h('p', { class: 'muted' }, 'Strategy: 2,4-DNP first confirms a carbonyl, then Tollens/iodoform narrows aldehyde vs methyl ketone. Bromine water and Baeyer both flag unsaturation; combine tests to pin the group.'),
     ),
     card('Cation / anion & gas tests',
