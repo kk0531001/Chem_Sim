@@ -1,5 +1,5 @@
 // Thermodynamics I: first law, calorimetry, Hess's law, bond enthalpies.
-import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { THERMO1_QUIZ } from './questions1';
 
@@ -29,7 +29,7 @@ const HESS: { name: string; target: string; steps: HessStep[]; answer: number }[
       { eq: 'H₂ + ½O₂ → H₂O(l)', dH: -285.8, op: 'combustion of H₂' },
       { eq: '2CO₂ + H₂O → C₂H₂ + 5/2 O₂', dH: +1299.6, op: 'combustion of C₂H₂ reversed' },
     ],
-    answer: +226.7,
+    answer: +226.8,
   },
   {
     name: 'Formation of methane',
@@ -64,8 +64,31 @@ export const thermo1Tab: TabDef = {
     let mA = 100, tA = 95, mB = 200, tB = 20;
     const calOut = h('div', { class: 'result' });
     const calCanvas = h('canvas', { width: 420, height: 120 });
+    const finalT = () => (mA * sA.c * tA + mB * sB.c * tB) / (mA * sA.c + mB * sB.c);
+    // The mission's setup conditions, checked in one place so the meter and the
+    // pass/fail test can never disagree about what "set it up like this" means.
+    const calSetUp = () => sA.name === 'lead' && tA >= 95 && mA >= 400 && sB.name === 'water' && tB <= 20;
+
+    const calMissions = missionLadder([
+      {
+        id: 'msn-th1-01',
+        prompt: 'Water is a thermal sponge. Set substance 1 to <b>lead at 100 °C</b> with a mass of <b>at least 400 g</b>, substance 2 to <b>water at 20 °C</b> — and still keep the final temperature <b>below 25 °C</b>. Nearly half a kilogram of boiling-hot metal, and the water barely notices.',
+        meter: () => {
+          if (!calSetUp()) return { label: 'set ≥ 400 g of lead at 100 °C against water at ≤ 20 °C', pct: 0 };
+          const Tf = finalT();
+          return { label: `T_final = ${Tf.toFixed(1)} °C · target below 25 °C`, pct: Math.max(0, Math.min(100, 100 - (Tf - 25) * 8)) };
+        },
+        check: () => calSetUp() && finalT() < 25,
+        hints: [
+          'You control the water mass too — and it is the water\'s heat capacity that is doing the work here.',
+          'c(water)/c(lead) = 4.18/0.128 ≈ 33. One gram of water soaks up as much heat per degree as 33 g of lead, so make the water heavy: 400 g of lead at 100 °C needs only about 185 g of water to stay under 25 °C.',
+        ],
+        explain: 'Heat capacity, not mass, decides who wins a thermal argument. With 400 g of lead (mc = 51 J/K) against 300 g of water (mc = 1254 J/K), the water outweighs the lead <em>thermally</em> by 25× even though it is lighter on the balance — so the mixture settles almost exactly at the water\'s starting temperature. This is why water, not a metal, is the coolant in car engines and nuclear reactors, why a lead sinker at 100 °C is far less dangerous than 100 °C water, and why coastal cities have milder climates than inland ones: the ocean absorbs enormous amounts of heat for a very small change in its own temperature.',
+      },
+    ]);
+
     function calRedraw(): void {
-      const Tf = (mA * sA.c * tA + mB * sB.c * tB) / (mA * sA.c + mB * sB.c);
+      const Tf = finalT();
       const q = mA * sA.c * (Tf - tA); // heat gained by A (negative if A cools)
       calOut.innerHTML =
         `T<sub>final</sub> = (m₁c₁T₁ + m₂c₂T₂)/(m₁c₁ + m₂c₂) = <b class="big">${Tf.toFixed(1)} °C</b><br>` +
@@ -85,8 +108,9 @@ export const thermo1Tab: TabDef = {
       block(160, tB, sB.name, 120);
       block(320, Tf, 'mixed', 80);
       ctx.fillStyle = '#7d8fa3'; ctx.fillText('→', 302, 64);
+      calMissions.tick();
     }
-    const calCard = card('Calorimetry: mix two substances (q = mcΔT)',
+    const calCard = cardWithMissions('Calorimetry: mix two substances (q = mcΔT)', calMissions,
       select('substance 1', SUBSTANCES.map(s => ({ value: s.name, label: `${s.name} (c=${s.c})` })), v => { sA = SUBSTANCES.find(s => s.name === v)!; calRedraw(); }, sA.name),
       slider({ label: 'mass 1 (g)', min: 10, max: 500, value: mA, onInput: v => { mA = v; calRedraw(); } }),
       slider({ label: 'T₁ (°C)', min: 0, max: 100, value: tA, onInput: v => { tA = v; calRedraw(); } }),
@@ -128,7 +152,24 @@ export const thermo1Tab: TabDef = {
         `<div class="result">ΔH ≈ Σ(broken) − Σ(formed) = ${sumB} − ${sumF} = <b class="big">${sumB - sumF > 0 ? '+' : ''}${sumB - sumF} kJ/mol</b></div>` +
         `<p class="muted">Estimates only (~±10%): tabulated bond energies are averages over many molecules. Exothermic = the new bonds are stronger than the old ones.</p>`;
     };
-    const bondCard = card('ΔH from bond enthalpies',
+    // A numeric mission, not a drive-the-sim one: the card has no slider to
+    // move, and the question is what the discrepancy MEANS, not what state to
+    // reach. Accepts 78–98 kJ so that ΔH_vap taken at 100 °C (40.7 → 81 kJ) and
+    // at 25 °C (44 → 88 kJ) are both marked right.
+    const bondMissions = missionLadder([
+      {
+        id: 'msn-th1-02',
+        prompt: 'Select <b>CH₄ + 2O₂ → CO₂ + 2H₂O</b>. The bond sum gives about −798 kJ/mol, but every data book lists methane\'s enthalpy of combustion as <b>−890 kJ/mol</b>. Almost the whole 92 kJ gap is one physical process that the bond-enthalpy method structurally cannot see. How much energy (in kJ) does that process release, for this reaction as written?',
+        numeric: { label: 'energy released (kJ)', placeholder: 'e.g. 40', step: 1, validate: n => n >= 78 && n <= 98 },
+        hints: [
+          'Bond enthalpies are tabulated for gas-phase species only. Which product is not a gas at 25 °C?',
+          'The bond sum has produced two moles of water VAPOUR. The data-book value is quoted with liquid water. ΔH_vap(H₂O) ≈ 44 kJ/mol at 25 °C.',
+        ],
+        explain: '<b>≈ 88 kJ — the condensation of 2 mol of water</b> (2 × 44 kJ/mol at 25 °C). Bond enthalpies only ever describe gas-phase molecules, so the −798 kJ/mol estimate is really the enthalpy of combustion to <em>steam</em>; the tabulated −890 kJ/mol collects the extra heat given up when that steam condenses. −798 − 88 = −886, and the residual 4 kJ is the averaging error the card already warns about — real gas-phase combustion of methane is −802 kJ/mol. This is not a technicality: it is the difference between the <b>higher and lower heating value</b> of a fuel. A condensing domestic boiler is called that precisely because it recovers this 88 kJ, which is why its efficiency can be quoted above 100% — the figure is being measured against the lower (steam) value.',
+      },
+    ]);
+
+    const bondCard = cardWithMissions('ΔH from bond enthalpies', bondMissions,
       select('reaction', BOND_RXNS.map(r => ({ value: r.name, label: r.name })), setBondRxn, BOND_RXNS[0].name),
       bondBox,
     );
@@ -154,7 +195,7 @@ export const thermo1Tab: TabDef = {
       slider({ label: 'EA nonmetal (kJ/mol)', min: 200, max: 400, step: 1, value: bhEA, onInput: v => { bhEA = v; bhCalc(); } }),
       slider({ label: 'ΔH_f salt (kJ/mol)', min: -700, max: -200, step: 1, value: bhHf, onInput: v => { bhHf = v; bhCalc(); } }),
       bhOut,
-      h('p', { class: 'muted' }, 'Defaults are NaCl (U ≈ −786 kJ/mol). The cycle is just Hess\'s law drawn as a loop — the unmeasurable lattice energy falls out of the measurable steps.'),
+      h('p', { class: 'muted' }, 'Defaults are NaCl, whose measured steps return U ≈ −788 kJ/mol. The cycle is just Hess\'s law drawn as a loop — the unmeasurable lattice energy falls out of the measurable steps.'),
     );
     bhCalc();
 

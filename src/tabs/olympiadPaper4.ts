@@ -36,11 +36,11 @@ export const paper4: OlympiadPaper = {
     {
       id: 'mock4-b-001',
       topic: 'thermo', title: 'B1 — Gibbs free energy and spontaneity',
-      prompt: 'For \\(\\ce{N2O4(g) -> 2NO2(g)}\\): ΔH° = +57.2 kJ/mol, ΔS° = +176 J/mol·K.',
+      prompt: 'The contact process oxidises sulfur dioxide over a vanadium(V) oxide catalyst:<br>\\(\\ce{2SO2(g) + O2(g) -> 2SO3(g)}\\), ΔH° = −197.8 kJ/mol, ΔS° = −188 J/mol·K.',
       parts: [
-        { q: '(a) Calculate ΔG° at 298 K and state whether the reaction is spontaneous.', a: 'ΔG° = 57.2 − 298(0.176) = 57.2 − 52.4 = <b>+4.8 kJ/mol</b> → non-spontaneous under standard conditions at 298 K.' },
-        { q: '(b) Estimate the temperature at which ΔG° = 0.', a: 'T = ΔH°/ΔS° = 57200/176 = <b>325 K (52 °C)</b>; above this the dissociation becomes spontaneous.' },
-        { q: '(c) Relate ΔG° at 298 K to K.', a: 'ΔG° = −RT ln K → ln K = −4800/(8.314×298) = −1.94 → K = <b>0.14</b> (products slightly disfavoured, consistent with ΔG° > 0).' },
+        { q: '(a) Calculate ΔG° at 298 K and state whether the reaction is spontaneous.', a: 'ΔG° = ΔH° − TΔS° = −197.8 − 298(−0.188) = −197.8 + 56.0 = <b>−141.8 kJ/mol</b> → strongly spontaneous under standard conditions. Convert ΔS° from J to kJ first.' },
+        { q: '(b) Estimate the temperature above which the reaction is no longer spontaneous.', a: 'ΔG° = 0 at T = ΔH°/ΔS° = 197800/188 = <b>1052 K (779 °C)</b>. Both terms are negative, so this is the (−,−) case: spontaneous BELOW the crossover, non-spontaneous above it.' },
+        { q: '(c) Calculate K at 298 K, and explain why industry nevertheless runs the converter at about 700 K.', a: 'ln K = −ΔG°/RT = 141800/(8.314×298) = 57.2 → K ≈ <b>7×10²⁴</b> — essentially complete conversion at room temperature, on paper. In practice the 298 K rate is negligible: the reaction needs ~700 K and a V₂O₅ catalyst to run at a useful speed, accepting a lower (but still high) equilibrium yield. <span class="trap">Thermodynamics says how far, kinetics says how fast</span> — the same compromise as the Haber process.' },
       ],
     },
     {

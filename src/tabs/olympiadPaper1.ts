@@ -30,7 +30,7 @@ export const paper1: OlympiadPaper = {
     { id: 'mock1-a-021', topic: 'acids', q: 'The most suitable indicator for titrating a weak acid with a strong base is:', opts: ['methyl orange', 'phenolphthalein', 'bromophenol blue', 'methyl red'], a: 1, why: 'The equivalence point is basic (pH > 7), matching phenolphthalein\'s range (~8.2–10).' },
     { id: 'mock1-a-022', topic: 'states', q: 'For equal molality, which solute gives the greatest freezing-point depression?', opts: ['glucose', 'NaCl', 'CaCl₂', 'urea'], a: 2, why: 'ΔTf ∝ i·m; CaCl₂ gives i = 3 ions, the most of these.' },
     { id: 'mock1-a-023', topic: 'thermo', q: 'The sign of ΔS for the process \\(\\ce{2NO2(g) -> N2O4(g)}\\) is:', opts: ['positive', 'negative', 'zero', 'undefined'], a: 1, why: '2 mol gas → 1 mol gas decreases disorder, so ΔS < 0.' },
-    { id: 'mock1-a-024', topic: 'thermo', q: 'A reaction is spontaneous at all temperatures when:', opts: ['ΔH > 0, ΔS > 0', 'ΔH < 0, ΔS > 0', 'ΔH < 0, ΔS < 0', 'ΔH > 0, ΔS < 0'], a: 1, why: 'ΔG = ΔH − TΔS is negative at every T only when ΔH < 0 and ΔS > 0.' },
+    { id: 'mock1-a-024', topic: 'thermo', q: 'For \\(\\ce{2CO(g) + O2(g) -> 2CO2(g)}\\) at 298 K, the quantity ΔH − ΔU is about:', opts: ['−2.5 kJ', '+2.5 kJ', 'zero', '−7.4 kJ'], a: 0, why: 'ΔH = ΔU + Δn(gas)RT. Only GAS moles count: Δn = 2 − 3 = −1, so ΔH − ΔU = (−1)(8.314)(298) = −2478 J ≈ −2.5 kJ. Gas moles shrink, so the surroundings do work on the system and ΔH lies below ΔU.' },
     { id: 'mock1-a-025', topic: 'atomic', q: 'The maximum number of electrons that can occupy the n = 3 shell is:', opts: ['6', '8', '18', '32'], a: 2, why: 'Capacity = 2n² = 2(3²) = 18.' },
   ],
   partB: [

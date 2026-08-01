@@ -14,7 +14,28 @@ export const thermo2Tab: TabDef = {
     // ---- microstates ----
     const microCanvas = h('canvas', { width: 440, height: 240 });
     const microOut = h('div', { class: 'result' });
+    let microN = 40;
+    // log10 of W(even split) = ln(N!/((N/2)!)²)/ln10 — computed in logs because
+    // W itself overflows a double well before the slider's maximum N.
+    const evenSplitLog10 = () =>
+      (lnFactorial(microN) - 2 * lnFactorial(Math.round(microN / 2))) / Math.LN10;
+
+    const microMissions = missionLadder([
+      {
+        id: 'msn-th2-03',
+        prompt: 'Push N up until the even split beats the all-on-the-left arrangement by more than <b>10³⁰</b> microstates. How few molecules does that actually take?',
+        meter: () => ({ label: `W(even split) ≈ 10^${evenSplitLog10().toFixed(1)} · target 10^30`, pct: Math.max(0, Math.min(100, (evenSplitLog10() / 30) * 100)) }),
+        check: () => evenSplitLog10() > 30,
+        hints: [
+          'W(even split) roughly doubles for every extra pair of molecules, so it climbs by a factor of 10 about every 3.3 molecules.',
+          'Around N ≈ 104. Far fewer than you would guess.',
+        ],
+        explain: 'It takes only about <b>104 molecules</b>. Just over a hundred particles, and the spread-out arrangement already outnumbers the all-on-one-side arrangement by a factor of 10³⁰ — larger than the number of atoms in a human body. And 104 is nothing: a single breath holds ~10²² molecules, for which the exponent is not 30 but of order 10²¹. That is the real content of the second law. It forbids nothing outright — the gas <em>could</em> collect itself in one half of the room — but the odds run against it by a number with sextillions of digits, so it has never once been observed. <span class="trap">Entropy increases because overwhelmingly more states look "mixed" than "sorted", not because a force pushes the molecules apart.</span>',
+      },
+    ]);
+
     const drawMicro = (N: number) => {
+      microN = N;
       const ks = linspace(0, N, N + 1);
       const lnW = ks.map(k => lnFactorial(N) - lnFactorial(Math.round(k)) - lnFactorial(N - Math.round(k)));
       const maxLnW = Math.max(...lnW);
@@ -28,8 +49,9 @@ export const thermo2Tab: TabDef = {
         `W(all ${N} on left) = <b>${wAll}</b> microstate · W(even split) ≈ <b>${wHalf.toExponential(2)}</b> microstates<br>` +
         `S = k<sub>B</sub> ln W → spreading out wins by a factor of ${wHalf.toExponential(1)}.` +
         ` Gases expand, mix, and never un-mix — <b>not</b> because of forces, but because the spread-out arrangement has astronomically more microstates.`;
+      microMissions.tick();
     };
-    const microCard = card('Entropy = counting microstates (S = k ln W)',
+    const microCard = cardWithMissions('Entropy = counting microstates (S = k ln W)', microMissions,
       slider({ label: 'N molecules', min: 4, max: 200, step: 2, value: 40, onInput: drawMicro }),
       microCanvas, microOut,
     );

@@ -907,7 +907,99 @@ Gold/1 Platinum to 7 Gold/2 Platinum (of 53). `tsc --noEmit`, `npm run
 build`, and the duplicate-id/answer-index audit are all clean; both new
 missions and both new FRQs were exercised live in the browser.
 
-**Not yet done:** every other topic. Repeat this workflow one at a time.
+**Thermodynamics — done.** The largest topic in the corpus (135 questions
+before this pass) and the second to turn up a genuine defect. Manual read of
+everything tagged `thermo` — the `thermo1`/`thermo2` module quizzes, the
+`physchem`/`biophys` banks that also map onto this exam topic, Part I, Part
+III, both Part II FRQs, five mock-paper items plus three mock B-section FRQs,
+the two Integrated problems and `cco-ps4-003` — plus a hand-check of every
+formula in [thermo1.ts](src/tabs/thermo1.ts) and [thermo2.ts](src/tabs/thermo2.ts)
+(all three Hess cycles, all three bond-enthalpy reactions, the Born–Haber
+solve, the microstate counting, the Gibbs crossover and the ΔG°↔K converter —
+all correct).
+
+**The bug:** `phy-011` had the **wrong answer keyed**. The question spells out
+its own arithmetic — E = (0.0592/2)·log(1.0/0.01) — which is 0.0592 V, and the
+`why` text derived exactly that, but `a` pointed at 0.0296 V. A student doing
+the calculation correctly was told they were wrong, and then shown an
+explanation that agreed with them. Fixed to `a: 0`, with the distractor set
+rebuilt (0.0148 V replaces the now-duplicated value) and the `why` rewritten to
+name the two slips — dropping n = 2, and forgetting log 100 = 2 — that happen
+to cancel and produce the keyed-in wrong answer. This is the class of error
+`auditCorpus()` structurally *cannot* catch: the index is in range, it is just
+pointing at the wrong option. Only reading the chemistry finds it.
+
+Two real duplicates, both fixed by rewriting the copy rather than deleting it:
+`mock1-a-024` repeated `th2-025` with **the same four options in the same
+order** (which is why the Jaccard scan missed it — the stems are worded
+differently), and `mock4-b-001` repeated `p2-thermo-002` almost part for part
+(same N₂O₄ ⇌ 2NO₂ system, same ΔH°/ΔS°, same ΔG° → T → K sequence).
+`mock1-a-024` now computes ΔH − ΔU = Δn(gas)RT for 2CO + O₂ → 2CO₂, a
+calculation nothing in the corpus had ever asked for numerically; `mock4-b-001`
+becomes the contact process (ΔH° = −197.8 kJ/mol, ΔS° = −188 J/mol·K → ΔG° =
+−141.8 kJ/mol, crossover 1052 K, K ≈ 7×10²⁴), which is the (−,−) sign case and
+the *opposite* of the case `p2-thermo-002` teaches. Also fixed: `th2-020`'s
+`why` contained a garbled half-edit ("589 vs… well, O₃ 239 > O₂ 205"), and
+thermo1.ts's Born–Haber caption claimed NaCl gives U ≈ −786 kJ/mol while its
+own calculator returns −788 — the value `mock5-b-003` uses.
+
+Added 3 new Part II FRQs (`p2-thermo-003..005`, **two Platinum**), each using a
+technique the corpus mentioned but never exercised:
+
+- `p2-thermo-003` (Platinum) — a bomb calorimeter standardised against benzoic
+  acid, then used on octane, then the ΔU → ΔH conversion. The corpus said
+  "bomb measures ΔU, coffee-cup measures ΔH" in three places and never once
+  made anyone convert between them. The trap is Δn(gas) = 8 − 12.5 = −4.5: the
+  nine waters are *liquid* in a sealed bomb at 25 °C and contribute nothing.
+  Verified end to end — 10.50 kJ/°C, ΔU = −5458 kJ/mol, ΔH = −5469 against a
+  literature −5470.
+- `p2-thermo-004` — Kirchhoff's law, which both the thermo1 theory block and
+  `phy-018` name but no question had ever used. ΔCp = −45.46 J/mol·K moves the
+  Haber ΔH° from −92.2 kJ/mol at 298 K to −110.5 at reactor temperature, ~20%
+  more heat to remove than the table value suggests, and part (d) turns that
+  back on the van't Hoff assumption that ΔH° is T-independent.
+- `p2-thermo-005` (Platinum) — supercooled water freezing at −10 °C. ΔS_univ =
+  +0.81 J/mol·K at 263 K and −0.80 at 283 K, from Kirchhoff-corrected ΔH and
+  ΔS, and then the payoff: ΔG computed independently gives −213 J and +227 J,
+  which are exactly −TΔS_univ. The point of the problem is that **ΔG is not a
+  separate criterion** — it is the second law rewritten so only system
+  properties appear, which is why it works only at constant T and P.
+
+Thermo moved from 48 Gold/3 Platinum to 49 Gold/5 Platinum (of 138).
+
+Three new missions. thermo1.ts had **four cards and no missions at all** —
+the fourth tab in a row (after periodicity, bonding and stoich) to be in that
+state, and by some distance the most-visited of them:
+
+- `msn-th1-01` (calorimetry) — put ≥ 400 g of lead at 100 °C against water at
+  20 °C and *still* keep the mixture below 25 °C. Maxing the lead slider is
+  not enough (500 g of lead against the default 200 g of water lands at 25.7 °C
+  and fails); the student has to raise the water mass, which is the whole
+  lesson. Payoff: mc for 400 g of lead is 51 J/K against 1254 J/K for 300 g of
+  water — the lighter substance wins thermally by 25×.
+- `msn-th1-02` (bond enthalpies) — a numeric mission asking where the 92 kJ
+  gap between the bond-sum estimate (−798) and the data-book value (−890) comes
+  from. Answer ≈ 88 kJ, the condensation of 2 mol of water, because bond
+  enthalpies are gas-phase quantities and therefore silently compute combustion
+  to *steam*. That is the higher/lower heating value distinction, and the reason
+  a condensing boiler can be quoted at over 100% efficiency. Accepts 78–98 kJ so
+  ΔH_vap taken at either 25 °C or 100 °C is marked right.
+- `msn-th2-03` (microstates) — push N until the even split outnumbers the
+  all-on-one-side arrangement by 10³⁰. It takes **104 molecules**, which is the
+  striking part; a single breath holds ~10²², for which the exponent is of
+  order 10²¹. Checked offline first: N = 102 gives 10²⁹·⁶ and must *not* pass,
+  N = 104 gives 10³⁰·², and the default N = 40 sits at 10¹¹·¹.
+
+`tsc --noEmit`, `npm run build` and the duplicate-id/answer-index audit are all
+clean, with no console errors. Verified live in the browser: both thermo1
+missions (including wrong-then-right on the numeric one), the microstates
+mission failing at N = 102 and completing at N = 104, all three new FRQs
+rendering with their KaTeX and `.trap` markup intact, the rewritten
+`mock4-b-001` and `mock1-a-024`, and `phy-011` now scoring 0.0592 V as correct.
+
+**Not yet done:** acids, redox, descriptive, organic, lab. Repeat this workflow
+one at a time. `lab` is the strongest next candidate — 44 Gold but a single
+Platinum across 96 questions, the most lopsided distribution left.
 
 ---
 
