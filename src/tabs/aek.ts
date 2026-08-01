@@ -23,12 +23,24 @@ function makeAcidBase(): HTMLElement {
       return 7;
     }
     const Ka = Math.pow(10, -pKa);
-    if (Vb === 0) {
-      const c = na / Vt;
-      const x = (-Ka + Math.sqrt(Ka * Ka + 4 * Ka * c)) / 2;
+    if (nb < na) {
+      // Exact pre-equivalence treatment, NOT Henderson–Hasselbalch.
+      //
+      // H–H assumes [HA] and [A⁻] equal the amounts you mixed, which fails
+      // wherever [H⁺] is not small compared with them — and at the very start of
+      // the titration [A⁻]mixed → 0, so it fails completely: the old code drew
+      // 0.10 M acetic acid starting at pH 0.34 instead of its true 2.87, a
+      // spurious cliff at the left edge of every weak-acid curve.
+      //
+      // Solving [H⁺]² + (Ka + C_A)[H⁺] − Ka·C_HA = 0 covers the whole region
+      // including Vb = 0, and agrees with H–H to 4 decimals mid-buffer. Written
+      // in the rationalised form 2ac/(b + √(b²+4ac)) because the plain
+      // quadratic root subtracts two nearly equal numbers near equivalence.
+      const cHA = (na - nb) / Vt, cA = nb / Vt;
+      const b = Ka + cA;
+      const x = (2 * Ka * cHA) / (b + Math.sqrt(b * b + 4 * Ka * cHA));
       return -Math.log10(x);
     }
-    if (nb < na) return pKa + Math.log10(nb / (na - nb)); // buffer region
     if (nb === na) {
       const c = na / Vt;
       const Kb = Kw / Ka;

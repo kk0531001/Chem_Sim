@@ -1090,9 +1090,94 @@ duplicating `labtech.ts`'s — two calculators for the same quantity in the same
 nav group. Merging is a content-deletion call, which this workflow leaves to a
 human with the report in hand.
 
-**Not yet done:** acids, redox, descriptive, organic. Repeat this workflow one
-at a time. `acids` is the strongest next candidate — 4 Gold/2 Platinum across
-57 questions, now the thinnest Gold layer of any topic.
+**Acids & Bases — done.** 4 Gold/2 Platinum of 57 going in, the thinnest Gold
+layer in the corpus. Manual read of everything tagged `acids` (the `aek` module
+quiz, 10 Part I, 4 Part III, 2 Part II, 14 mock-paper items, `cco-ps1-001` and
+`int-echem-eq-003`) found no chemistry errors in the questions — but a real one
+in the simulation.
+
+**The bug: the titration curve was drawn wrong for every weak acid.** The
+pre-equivalence branch of `pHat()` in [aek.ts](src/tabs/aek.ts) used
+Henderson–Hasselbalch, which assumes [HA] and [A⁻] are just the amounts you
+mixed. That fails wherever [H⁺] is not small compared with them — and at the
+start of a titration [A⁻]<sub>mixed</sub> → 0, so it fails completely: the app
+drew 0.10 M acetic acid starting at **pH 0.34** instead of its true **2.87**,
+a spurious cliff at the left edge of every weak-acid curve, on the most-visited
+simulation in the app. (The *live readout* at V = 0 was right, because a
+separate special case handled exactly zero — so the number and the graph
+disagreed with each other.) Replaced with the exact solution of
+[H⁺]² + (K<sub>a</sub> + C<sub>A</sub>)[H⁺] − K<sub>a</sub>C<sub>HA</sub> = 0,
+which covers the whole region including V = 0 and agrees with H–H to four
+decimals mid-buffer, written in the rationalised form 2ac/(b + √(b²+4ac))
+because the plain quadratic root subtracts two nearly equal numbers near
+equivalence. Verified in the browser: the curve now starts at 2.87, and the
+half-equivalence (pH = pK<sub>a</sub> = 4.74) and equivalence (8.72) markers are
+unmoved.
+
+Three genuine duplicates, all "mock paper repeats a module warm-up with the
+same numbers", rewritten under their existing ids to test facts nothing else
+covered: `mock2-a-006` (was the conjugate base of HSO₄⁻, identical to
+`p1-acids-001`) now asks about the **levelling effect** — a classic that was
+entirely absent from the corpus, including why ranking HCl/HBr/HClO₄ requires a
+differentiating solvent; `mock2-a-007` (was the pH of a 0.10 M weak acid with
+Ka = 10⁻⁵, identical to `aek-012` down to the numbers) now computes the pH of
+0.10 M NaF from K<sub>b</sub> = K<sub>w</sub>/K<sub>a</sub>, a hydrolysis
+calculation the corpus only ever asked qualitatively; `mock1-a-006` (was the pH
+of 0.010 M HCl, identical to `aek-001`) now asks what tenfold dilution does to a
+buffer's pH *and* its capacity — the same ratio-versus-moles distinction as the
+strong-vs-concentrated misconception box.
+
+Added 3 new Part II FRQs (`p2-acids-003..005`, one Platinum):
+
+- `p2-acids-003` (Platinum) — **the problem this phase's own tier table names as
+  the Platinum example** ("unknown acid + titration curve — identify it and
+  justify"), and which the corpus did not have. An 11-point pH/volume data set:
+  find the equivalence point (and why "where pH = 7" is wrong — this curve
+  crosses 7 at 24.96 mL, before equivalence), get M = 180.2 g/mol, get
+  pK<sub>a</sub> = 3.50 from half-equivalence, and identify aspirin against a
+  five-acid table. The equivalence pH is then computed independently from
+  K<sub>b</sub> and lands on 8.01, the measured value — three agreeing
+  measurements is what makes it an identification rather than a guess. Part (e)
+  is the sting: with methyl orange the endpoint reads ~22.2 mL, giving
+  M ≈ 203 g/mol — within 2% of ibuprofen, so the wrong indicator yields a
+  *plausible wrong identification from the same table*.
+- `p2-acids-004` — the exact treatment of 10⁻⁸ M HCl. The corpus asserted "pH
+  6.98, not 8" as a trap in three places and never derived it. Charge balance →
+  quadratic → 6.98, then the number that makes it click: **90.5% of the H⁺ came
+  from water**, and a closing part on where the correction stops mattering
+  (~10⁻⁶ M, where water contributes 1%).
+- `p2-acids-005` — blood's bicarbonate buffer, which works well at 1.3 units
+  from its pK<sub>a</sub> because it is an **open** system. Same 2.0 mmol/L acid
+  load costs 0.46 pH units closed and 0.04 open, computed both ways. Part (d)
+  unpacks two nested layers of apparent constant: 6.1 vs the tabulated 6.35
+  (37 °C and ionic strength 0.15 M), and why even 6.35 is not H₂CO₃'s
+  pK<sub>a</sub> — it is written against *total* dissolved CO₂, of which only
+  ~1/400 is hydrated, so the true value is near 3.6.
+
+Acids moved from 4 Gold/2 Platinum to 6 Gold/3 Platinum (of 60).
+
+**No new mission, deliberately.** The acid–base tab already carries four
+(equivalence point, indicator choice, Henderson–Hasselbalch ratio, exceeding
+buffer capacity) covering every control on both cards — the second time this
+workflow's honest answer to "should another mission be added?" has been no.
+
+One layout bug found and fixed in verification: the 11-column data table spilled
+outside its card, because `.ref-table` is `width: 100%` with no escape hatch.
+Added `.table-scroll` to [style.css](src/style.css) — a wrapper that scrolls the
+*table* inside the card rather than letting the page scroll — and applied it.
+Any future wide table gets the same treatment.
+
+`tsc --noEmit`, `npm run build` and the audit are clean, no console errors, and
+the curve fix, both rewritten mock questions and all three FRQs were exercised
+live. Two solution numbers were recomputed and corrected during that check
+rather than trusted: the exact [H⁺] at 10⁻⁶ M, and the whole of the pK′
+explanation in `p2-acids-005(d)`, whose first draft had the hydration correction
+running in the wrong direction.
+
+**Not yet done:** redox, descriptive, organic. Repeat this workflow one at a
+time. `redox` is the natural next one — 5 Gold/3 Platinum of 31, and it shares
+`aek.ts` with the acid–base card just corrected, whose electrochemistry section
+has had no audit and carries no missions at all.
 
 ---
 

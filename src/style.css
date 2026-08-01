@@ -1196,6 +1196,12 @@ body { overflow: hidden; }
   letter-spacing: 0.6px;
 }
 .ref-table tr:hover td { background: var(--paper); }
+/* A table with many columns — a titration data set, a candidate list — is wider
+   than its card and spills out of it, because .ref-table is width:100% with no
+   escape. Wrap such a table in .table-scroll and the TABLE scrolls sideways
+   inside the card instead of the page doing it. */
+.table-scroll { overflow-x: auto; max-width: 100%; }
+.table-scroll > .ref-table { width: auto; min-width: 100%; }
 /* tables that appear INSIDE dark readouts */
 .result .ref-table td, .result .ref-table th { border-color: var(--panel-border); }
 .result .ref-table th { background: var(--panel-2); color: #9aa4b0; }
