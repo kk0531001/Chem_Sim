@@ -143,8 +143,6 @@ function makeBiochem(): HTMLElement {
 
 export const biophysTab: TabDef = {
   id: 'biophys',
-  label: 'Physical & Biochem',
-  group: 'Physical Chemistry',
   mount(root) {
     root.append(pills([
       { label: 'Enzyme kinetics', el: h('div', { class: 'cards' }, makeMM()) },

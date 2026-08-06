@@ -93,8 +93,6 @@ function officialPapersPanel(): HTMLElement {
 
 export const qbankTab: TabDef = {
   id: 'qbank',
-  label: 'Question Bank',
-  group: 'Practice',
   mount(root) {
     let part: '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' = '1';
     let topic = 'all';

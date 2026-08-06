@@ -156,8 +156,6 @@ function makeNMRRef(): HTMLElement {
 
 export const structureTab: TabDef = {
   id: 'structure',
-  label: 'Structure Determination',
-  group: 'Spectroscopy',
   mount(root) {
     root.append(
       h('div', { class: 'cards' },

@@ -56,8 +56,6 @@ const BOND_RXNS: { name: string; broken: [string, number][]; formed: [string, nu
 
 export const thermo1Tab: TabDef = {
   id: 'thermo1',
-  label: 'Thermo I',
-  group: 'Physical Chemistry',
   mount(root) {
     // ---- calorimetry mixer ----
     let sA = SUBSTANCES[3], sB = SUBSTANCES[0];

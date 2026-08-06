@@ -301,8 +301,6 @@ function makeReference(): HTMLElement {
 
 export const labTechTab: TabDef = {
   id: 'labtech',
-  label: 'Lab Techniques',
-  group: 'Laboratory Skills',
   mount(root) {
     root.append(
       h('div', { class: 'cards' },

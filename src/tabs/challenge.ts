@@ -6,10 +6,9 @@
 import { h, card, quiz, button, typesetMath, type QuizQ } from './framework';
 import type { FRQ } from './bankPart2';
 import { ladderFor, type Indexable } from '../content/registry';
-import type { Tier } from '../content/topicIds';
+import { TIER_LABEL, type Tier } from '../content/topicIds';
 import { isSolved, markSolved, unmarkSolved, onProgressChange } from '../progress';
 
-const TIER_LABEL: Record<Tier, string> = { 1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Platinum' };
 const TIER_CLASS: Record<Tier, string> = { 1: 'tier-bronze', 2: 'tier-silver', 3: 'tier-gold', 4: 'tier-platinum' };
 const TIERS: Tier[] = [1, 2, 3, 4];
 

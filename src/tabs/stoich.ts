@@ -17,8 +17,6 @@ const REACTIONS: Reaction[] = [
 
 export const stoichTab: TabDef = {
   id: 'stoich',
-  label: 'Stoichiometry',
-  group: 'Foundations',
   mount(root) {
     // ---- limiting reagent ----
     let rx = REACTIONS[1];

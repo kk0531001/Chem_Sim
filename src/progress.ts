@@ -13,6 +13,19 @@ import { createClient, type SupabaseClient, type User } from '@supabase/supabase
 
 const LS_KEY = 'chemprep_solved_v1';
 const LS_ATTEMPTS = 'chemprep_attempts_v1';
+const LS_MIGRATED = 'chemprep_idmigration_v1';
+
+// The one-time text-hash -> explicit-id rename (registry.ts's
+// migrateLegacyProgress) needs the WHOLE question corpus in memory to build its
+// map — half a megabyte that a first-time visitor has nothing to migrate with.
+// The flag lives here, beside the keys it guards, so main.ts can ask whether the
+// work is needed before importing the registry at all.
+export function needsIdMigration(): boolean {
+  try { return !localStorage.getItem(LS_MIGRATED); } catch { return false; }
+}
+export function markIdMigrationDone(): void {
+  try { localStorage.setItem(LS_MIGRATED, new Date().toISOString()); } catch { /* ignore */ }
+}
 
 // The local attempt log is CAPPED. At 149 bytes/row a committed student
 // (50/day) would pass the ~5 MB localStorage quota in under two years, and

@@ -104,8 +104,6 @@ function makePericyclic(): HTMLElement {
 
 export const organic3Tab: TabDef = {
   id: 'organic3',
-  label: 'Organic III — Synthesis',
-  group: 'Organic Chemistry',
   mount(root) {
     root.append(
       h('div', { class: 'cards' },

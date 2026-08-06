@@ -126,8 +126,6 @@ function moDiagram(canvas: HTMLCanvasElement, sp: MOSpecies): string {
 
 export const bondingTab: TabDef = {
   id: 'bonding',
-  label: 'Bonding & MO',
-  group: 'Foundations',
   mount(root) {
     // VSEPR card
     const shapeBox = h('div', {});

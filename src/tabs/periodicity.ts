@@ -153,8 +153,6 @@ function makeAnomalies(): HTMLElement {
 
 export const periodicityTab: TabDef = {
   id: 'periodicity',
-  label: 'Periodicity',
-  group: 'Foundations',
   mount(root) {
     root.append(
       h('div', { class: 'cards' }, makeTrends(), makeSlater(), makeAnomalies(), card('Quick quiz', quiz(PERIODICITY_QUIZ, 5)), challengeLadder('periodicity')),

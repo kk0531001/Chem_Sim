@@ -9,7 +9,7 @@
 //
 // Importing every bank here is deliberate and costs nothing today: the build
 // already emits a single chunk containing all of them.
-import { qid, remapProgressIds } from '../progress';
+import { qid, remapProgressIds, needsIdMigration, markIdMigrationDone } from '../progress';
 import type { QuizQ } from '../tabs/framework';
 import type { FRQ } from '../tabs/bankPart2';
 import {
@@ -270,8 +270,6 @@ export function auditCorpus(): string[] {
 
 // ---- one-time progress migration -------------------------------------------
 
-const MIGRATED_KEY = 'chemprep_idmigration_v1';
-
 /**
  * Move progress from the old text-hash keys onto the new explicit ids.
  *
@@ -291,17 +289,13 @@ const MIGRATED_KEY = 'chemprep_idmigration_v1';
  * explicit ids remove going forward.
  */
 export function migrateLegacyProgress(): void {
-  try {
-    if (localStorage.getItem(MIGRATED_KEY)) return;
-  } catch {
-    return; // storage unavailable — nothing persisted to migrate
-  }
+  if (!needsIdMigration()) return;
   const map: Record<string, string> = {};
   for (const q of ALL_MC) map[qid(q.q)] = q.id;
   // qbank's FRQ browser hashed title + '|' + prompt
   for (const f of ALL_FRQ) map[qid(f.title + '|' + f.prompt)] = f.id;
 
   const moved = remapProgressIds(map);
-  try { localStorage.setItem(MIGRATED_KEY, new Date().toISOString()); } catch { /* ignore */ }
+  markIdMigrationDone();
   if (moved > 0) console.info(`[progress] migrated ${moved} record(s) to explicit question ids`);
 }

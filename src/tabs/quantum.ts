@@ -152,8 +152,6 @@ function configHTML(Z: number): string {
 
 export const quantumTab: TabDef = {
   id: 'quantum',
-  label: 'Quantum',
-  group: 'Foundations',
   mount(root) {
     // orbital viewer
     const orbCanvas = h('canvas', { width: 320, height: 320 });

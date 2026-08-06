@@ -5,7 +5,7 @@ import { NUCLEAR_QUIZ } from './questions2';
 
 
 // ================= NUCLEAR =================
-function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void } {
+function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; destroy: () => void } {
   const GRID = 22;
   let alive: boolean[] = [];
   let tHalf = 8, tElapsed = 0, running = false, visible = false;
@@ -13,6 +13,7 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void } {
   const gridCanvas = h('canvas', { width: 308, height: 308 });
   const curveCanvas = h('canvas', { width: 440, height: 220 });
   const out = h('div', { class: 'result' });
+  let frameId: number | null = null;
 
   function reset(): void {
     alive = new Array(GRID * GRID).fill(true);
@@ -63,7 +64,7 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void } {
       }
       if (alive.every(a => !a)) running = false;
     }
-    requestAnimationFrame(frame);
+    frameId = requestAnimationFrame(frame);
   }
   frame();
   reset();
@@ -102,7 +103,11 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void } {
 <li><span class="trap">After n half-lives, fraction left = (½)ⁿ — even for weird n like 2.5 (use 2^−n).</span></li>
 </ul>`),
   );
-  return { el, setVisible: v => { visible = v; } };
+  return {
+    el,
+    setVisible: v => { visible = v; },
+    destroy: () => { if (frameId !== null) cancelAnimationFrame(frameId); },
+  };
 }
 
 // ================= COORDINATION =================
@@ -261,8 +266,6 @@ function makeDescriptive(): HTMLElement {
 
 export const nuclearTab: TabDef = {
   id: 'nuclear',
-  label: 'Nuclear & Coord.',
-  group: 'Inorganic Chemistry',
   mount(root): TabHandle {
     const nuc = makeNuclear();
     root.append(pills([
@@ -275,6 +278,7 @@ export const nuclearTab: TabDef = {
     return {
       onShow() { nuc.setVisible(true); },
       onHide() { nuc.setVisible(false); },
+      onDestroy() { nuc.destroy(); },
     };
   },
 };

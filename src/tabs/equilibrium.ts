@@ -7,8 +7,6 @@ import { EQUILIBRIUM_QUIZ } from './questions1';
 
 export const equilibriumTab: TabDef = {
   id: 'equilibrium',
-  label: 'Equilibrium',
-  group: 'Physical Chemistry',
   mount(root): TabHandle {
     // ---- live sim: N2O4 (A) ⇌ 2 NO2 (B) ----
     let kf = 0.30, kr = 0.60; // K = kf/kr = 0.5
@@ -16,6 +14,7 @@ export const equilibriumTab: TabDef = {
     const histT: number[] = [], histA: number[] = [], histB: number[] = [];
     let t = 0;
     let visible = true;
+    let frameId: number | null = null;
     const simCanvas = h('canvas', { width: 480, height: 250 });
     const qkOut = h('div', { class: 'result' });
     const eventOut = h('p', { class: 'muted' }, 'Watch [N₂O₄] fall and [NO₂] rise until forward and reverse rates match.');
@@ -107,7 +106,7 @@ export const equilibriumTab: TabDef = {
         step();
         draw();
       }
-      requestAnimationFrame(loop);
+      frameId = requestAnimationFrame(loop);
     }
 
     const note = (msg: string) => { eventOut.textContent = msg; };
@@ -359,6 +358,7 @@ export const equilibriumTab: TabDef = {
     return {
       onShow() { visible = true; },
       onHide() { visible = false; },
+      onDestroy() { if (frameId !== null) cancelAnimationFrame(frameId); },
     };
   },
 };

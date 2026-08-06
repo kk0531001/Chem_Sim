@@ -69,8 +69,6 @@ function makeMW(): HTMLElement {
 
 export const polymersTab: TabDef = {
   id: 'polymers',
-  label: 'Polymers',
-  group: 'Organic Chemistry',
   mount(root) {
     root.append(
       h('div', { class: 'cards' }, makeExplorer(), makeMW(), card('Quick quiz', quiz(POLYMERS_QUIZ, 5)), challengeLadder('polymers')),

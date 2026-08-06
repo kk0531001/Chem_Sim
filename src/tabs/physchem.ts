@@ -265,8 +265,6 @@ function makeComplexEq(): HTMLElement {
 
 export const physChemTab: TabDef = {
   id: 'physchem',
-  label: 'Advanced Physical',
-  group: 'Physical Chemistry',
   mount(root) {
     root.append(
       h('div', { class: 'cards' },

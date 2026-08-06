@@ -574,8 +574,6 @@ function makeKinetics(): HTMLElement {
 
 export const aekTab: TabDef = {
   id: 'aek',
-  label: 'Acids · Redox · Kinetics',
-  group: 'Physical Chemistry',
   mount(root) {
     root.append(pills([
       { label: 'Acid–Base & Titration', el: makeAcidBase() },

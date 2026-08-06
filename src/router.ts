@@ -1,21 +1,29 @@
-// Minimal client-side router: three page kinds, real URLs via the History
+import { topicById, topicBySlug } from './topics';
+
+// Minimal client-side router: page kinds, real URLs via the History
 // API. Netlify needs a SPA fallback (public/_redirects) so deep links and
 // refreshes on /topic/:id resolve to index.html.
-export type Route = { kind: 'home' } | { kind: 'menu' } | { kind: 'topic'; id: string };
+export type Route =
+  | { kind: 'home' }
+  | { kind: 'menu' }
+  | { kind: 'topic'; id: string }
+  | { kind: 'notfound'; path: string };
 
 export function parseRoute(pathname: string): Route {
   const clean = pathname.replace(/\/+$/, '') || '/';
   if (clean === '/') return { kind: 'home' };
   if (clean === '/menu') return { kind: 'menu' };
-  const m = clean.match(/^\/topic\/([a-z0-9]+)$/i);
-  if (m) return { kind: 'topic', id: m[1] };
-  return { kind: 'home' };
+  const m = clean.match(/^\/topic\/([a-z0-9-]+)$/i);
+  const topic = m && topicBySlug(m[1].toLowerCase());
+  if (topic) return { kind: 'topic', id: topic.id };
+  return { kind: 'notfound', path: pathname };
 }
 
-function routeToPath(route: Route): string {
+export function routeToPath(route: Route): string {
   if (route.kind === 'home') return '/';
   if (route.kind === 'menu') return '/menu';
-  return `/topic/${route.id}`;
+  if (route.kind === 'notfound') return route.path;
+  return `/topic/${topicById(route.id)?.slug ?? route.id}`;
 }
 
 type Listener = (route: Route) => void;

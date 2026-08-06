@@ -11,8 +11,6 @@ import { h, missionLadder } from './framework';
 
 export const sandboxTab: TabDef = {
   id: 'sandbox',
-  label: 'Sandbox',
-  group: 'Playground',
   mount(root: HTMLElement): TabHandle {
     root.classList.add('sandbox-root');
     const stage = h('div', { id: 'stage' });
@@ -73,9 +71,14 @@ export const sandboxTab: TabDef = {
 
     let appRef: Application | null = null;
     let visible = true;
+    let destroyed = false;
 
     (async () => {
       const app = await initRender(stage);
+      if (destroyed) {
+        app.destroy({ removeView: true }, true);
+        return;
+      }
       appRef = app;
       buildUI(paneHost); // starts empty — pick a preset or add atoms
 
@@ -99,6 +102,11 @@ export const sandboxTab: TabDef = {
     return {
       onShow() { visible = true; appRef?.ticker.start(); },
       onHide() { visible = false; appRef?.ticker.stop(); },
+      onDestroy() {
+        destroyed = true;
+        appRef?.destroy({ removeView: true }, true);
+        appRef = null;
+      },
     };
   },
 };

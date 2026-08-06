@@ -6,13 +6,21 @@ This is the working plan. It is ordered by **impact ÷ effort**, and it deviates
 from the phase numbering in the original feedback in two places — both noted
 inline, both because a dependency was hiding in the ordering.
 
+**Phase D is the product-polish pass and the launch gate.** It was inserted
+after C once the corpus work was underway, which pushed the four unstarted
+feature phases down one letter (old D–H are now E–I; their headings record the
+rename). Nothing in them changed but the letter.
+
 Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 ---
 
 ## Where the project actually is today
 
-Verified against the source, not from memory:
+Verified against the source, not from memory. **This table is the snapshot from
+the day the roadmap was written** — the accessibility and SEO rows were the
+argument for Phase 0.3 and 0.2 and are no longer true. It is kept because the
+two corrections below follow from it; for current state, read Phase D.
 
 | Thing | State |
 | --- | --- |
@@ -235,7 +243,7 @@ Every question now carries an explicit permanent `id`. 919 of them, inserted by
 `BankMC` and `FRQ`, so a missing one is a compile error rather than a silent
 gap. `quiz()` and the FRQ browser key progress on `q.id` instead of
 `qid(question text)`, and `src/content/registry.ts` is the one flat indexed view
-of the corpus (also what Phase C tiering and Phase E search will query).
+of the corpus (also what Phase C tiering and Phase F search will query).
 
 Making `id` required paid for itself immediately: `qbank.ts` was re-mapping bank
 questions field-by-field (`({ q, opts, a, why }) => ({ q, opts, a, why })`),
@@ -602,11 +610,26 @@ from the C.1 gap list:
       happening" reasoning parts — all six problems lean on at least one of
       these, per the distinguishing move above.
 - [x] All original; no real exam content reproduced.
-- [ ] The remaining ~14–20 highest-impact gaps the audit identified — not
-      written. `atomic`, `states`, `bonding`, `stoich` and `equilibrium` each
-      still have only one Platinum item, and `lab` has only one against 44
-      Gold-tier questions; there is real room for more before this phase is
-      actually complete.
+- [~] The remaining ~14–20 highest-impact gaps the audit identified.
+      **`atomic` done** — it was the worst ratio in the corpus (4 Gold / 2
+      Platinum of 84) and the two modules feeding it, `quantum` and
+      `periodicity`, had no depth ladder at all above Silver. Four new Part II
+      FRQs, `p2-atomic-007..010`, take it to **7 Gold / 3 Platinum of 88**:
+      radiocarbon dating with an unsubtracted counter background (the age reads
+      ~740 years too *young*, and the reference activity is already corrected —
+      so the correction goes on one side of the ratio only); mass defect and
+      the electron bookkeeping that quietly cancels for β⁻ and for the ⁵⁶Fe
+      binding energy but costs 2mₑc² for β⁺ (²²Na: 2.843 MeV from atomic masses
+      → 1.820 MeV measured positron endpoint) — `tier: 4`; the group-13
+      ionization anomalies (Ga above Al by Slater, Z_eff 3.50 → 5.00; Tl above
+      In by lanthanide contraction plus the relativistic 6s) with the Zr/Hf
+      molar-volume payoff; and isotope abundances from a mass spectrum, with
+      the 2pq cross-term and the M/M+2 test that separates one Cl (32%) from
+      one Br (97%). The three nuclear items are the first in the corpus —
+      `nuclear` maps to `atomic` and had contributed no Gold at all.
+      Still open: `bonding` (4 Gold of 58), `states` (6 of 55), `stoich`
+      (7 of 53), `kinetics` (a 25-item pool overall), and `lab`'s single
+      Platinum against 46 Gold.
 - [ ] `miniPlot()`-embedded SVG figures — none of the six exemplars needed
       one; still unused for Phase C content.
 
@@ -1256,7 +1279,290 @@ eleven-cell diagram inside its card.
 
 ---
 
-## Phase D — Progress, visible (1 week) · *originally "Phase 4"*
+## Who does what, from here on
+
+Phase D is the first phase run by two authors, so the boundary has to be written
+down or it will be crossed silently.
+
+| Author | Owns | Never touches |
+| --- | --- | --- |
+| **Codex (engineering)** | Routing, the tab framework, CSS and layout, the sidebar, the homepage shell, build/perf, filters, audit scripts, accessibility plumbing | The *text* of any question, `why`, `misconception`, mission copy, theory block, or worked solution |
+| **Claude (content)** | Every question and its distractors, `why`, `misconception`, mission definitions and hints, theory prose, worked solutions, chemistry-value checks, references | Refactors that move files or rename the interfaces in `particle.ts` / `framework.ts` |
+
+Two rules that make the split safe:
+
+1. **Codex may add a field; only Claude may fill it with chemistry.** If D.4
+   introduces `refs` or `intro` on `TopicMeta`, Codex ships the type, the
+   renderer and an empty array — not placeholder prose that reads as finished
+   and never gets revisited.
+2. **No question id is ever renumbered, by either author** (Phase A.2). A
+   mechanical refactor that renumbers ids to "tidy" them destroys user history
+   and is the one change that cannot be undone from the app side.
+
+---
+
+## Phase D — Product polish (2–3 weeks) · **the launch gate**
+
+> "This is the stage where good software becomes great software. Not 'fix bugs'
+> — a polish pass, so that every page feels like it belongs in the same
+> application."
+
+Correct framing, and it goes here rather than after the feature phases: E, F and
+G all *add* surface. Polishing 25 modules is cheaper than polishing 25 modules
+plus a dashboard, a search index and four competition modes.
+
+Three items on the reviewer's list are already owned by later phases. Build them
+once, there, not twice:
+
+| Reviewer item | Owner |
+| --- | --- |
+| 11 Search | **F** (client-side index over the registry) |
+| 12 Progress bars, mastery, streak, bookmarks, review list | **E** (display layer over the attempt log) |
+| 13 Competition relevance per topic | **G** (`comps` is a filter, never a copy) |
+| 14 SEO, sitemap, canonical, structured data | **I.1** — *except* the canonical-URL work, which D.0 forces early |
+
+### D.0 The "18 of 24 pages are broken" report — **[ ] P0, ~2 hours**
+
+The reviewer's *observation* is real and the *diagnosis* is wrong, so fix the
+right thing. There is no mount failure, no lazy-`import()` rejection, no PixiJS
+init crash: tabs are **statically** imported in [main.ts](src/main.ts) and
+`mount()` is synchronous, so no chunk-load path exists to fail.
+
+What actually happens, in eight lines of [router.ts](src/router.ts):
+
+```ts
+const m = clean.match(/^\/topic\/([a-z0-9]+)$/i);   // no hyphen in the class
+if (m) return { kind: 'topic', id: m[1] };
+return { kind: 'home' };                            // silent, and no URL rewrite
+```
+
+The topic ids are the internal short names — `thermo1`, `aek`, `labdata`,
+`organic1`, `coordchem` — not slugified titles. So `/topic/thermodynamics-i`
+fails the character class, falls through to `{ kind: 'home' }`, and
+[main.ts:160](src/main.ts) renders the homepage while the URL stays exactly as
+typed. The handful of pages that "worked" are the ones whose guessed slug
+happened to equal the real id (`quantum`, `equilibrium`, `bonding`,
+`periodicity`, `spectroscopy`, `polymers`). Same symptom, entirely different
+cause — and note the second silent path at [main.ts:171](src/main.ts): a
+*valid-charset* unknown id (`/topic/thermo9`) `replaceState`s to `/` with no
+explanation either.
+
+- [ ] Add `slug` to `TopicMeta` — the human-readable canonical URL
+      (`thermodynamics-i`, `acids-redox-kinetics`, `lab-and-data`), plus
+      `aliases: string[]` carrying the current bare id. `topics.ts` stays the
+      single source; the router resolves slug → id through it.
+- [ ] `parseRoute` accepts `[a-z0-9-]+` and gains a fourth kind: `notfound`.
+      **A path that isn't a real topic must never resolve to `home`.**
+- [ ] A real 404 view: "There's no topic at this URL", the nearest matches by
+      string distance, and links to `/menu` and `/`. Renders inside the app
+      shell, not the homepage.
+- [ ] Legacy `/topic/thermo1` → `replaceState` to `/topic/thermodynamics-i`, so
+      every page has exactly one canonical URL. This is also the `<link
+      rel="canonical">` I.1 will need, which is why it comes early.
+- [ ] Unit-test `parseRoute` against the full `TOPICS` list plus a fixture of
+      wrong guesses (`thermodynamics-i`, `THERMO1`, `/topic/`, `/topic/x/y`).
+      Cheap, and it is the exact class of bug that survives eyeballing.
+
+### D.1 Fault tolerance in the tab layer — **[ ] ~1 hour**
+
+The reviewer's remedy is right even though the premise was wrong: `initTabs` in
+[framework.ts:91](src/tabs/framework.ts) calls `def.mount(root)` with no guard.
+Today one throw in one module propagates out of `showRoute` and leaves an empty
+`<div class="tab-root">` with the sidebar item highlighted — the same "looks
+loaded, isn't" failure, just from a different direction. It has not bitten yet
+because every mount is synchronous; **D.10 makes them async, and then it will.**
+
+- [ ] `try/catch` around `def.mount()` → render a `tab-error` card (module name,
+      the message, a Retry that discards the cached root and re-mounts) and
+      `console.error` the original.
+- [ ] Distinguish *no tab selected* from *tab failed*. Homepage content is never
+      the fallback for a failed mount.
+- [ ] Add optional `onDestroy()` to `TabHandle` and call it on retry — Pixi
+      canvases and `requestAnimationFrame` loops otherwise leak per attempt.
+      `onShow`/`onHide` already exist and stay as they are.
+
+### D.2 Navigation — sections, not a 25-item list — **[ ]**
+
+Worth separating what the reviewer asked for from what is already true. The
+domain taxonomy they proposed (Physical / Organic / Inorganic / Analytical /
+Laboratory / Question Bank) **already exists** in `topics.ts` and `DEFS`; there
+is no "Advanced Physical" bucket to break apart. The defect is presentational:
+all eight groups render permanently expanded, so the sidebar is 25 buttons deep
+and the grouping is invisible.
+
+- [ ] Collapsible groups in `initTabs` — native `<details>`/`<summary>` (free
+      keyboard and screen-reader semantics, no JS focus management to get
+      wrong), one open by default: the one containing the active topic.
+- [ ] Persist open/closed state in `localStorage`; the active group always
+      auto-expands on navigation regardless of stored state.
+- [ ] Mobile: the sidebar becomes a drawer under ~900 px, closing on selection.
+- [ ] Item count per group in the summary row ("Physical Chemistry · 7").
+
+**On splitting Organic into eleven modules** (Stereochemistry, Alkenes,
+Carbonyls, …): don't. It contradicts this document's own filter — *depth in the
+25 that exist beats a 26th* — and it would fragment three coherent quiz banks
+into eleven thin ones. The underlying want is navigability, so serve that
+instead: give each module in-page section anchors, and let the collapsed
+sidebar group expand to show *sections within a module* rather than new modules.
+Same discoverability, no content fragmentation, no new question banks to fill.
+
+### D.3 Homepage order — **[ ]**
+
+Current order is hero → stats → "Why it works" (01) → topic grid (02) → end.
+Target, from the reviewer, with the sections that don't exist yet marked:
+
+| # | Section | State |
+| --- | --- | --- |
+| 1 | Hero | exists |
+| 2 | Why ChemSim | exists ("Why it works") — renumber |
+| 3 | Interactive demo | **new** — one live sim above the fold-and-a-half, not a screenshot |
+| 4 | Learning paths | **new**, but the data lands in **F**. Ship the section reading from a `PATHS` array; three hand-written paths are enough to launch |
+| 5 | Competition modes | **new** — static explainer of CCC/USNCO/CCO/IChO scope until **G** makes it interactive |
+| 6 | Topic categories | exists (the grid) — group it by domain instead of one flat run |
+| 7 | Question statistics | exists (`stats`) — move down, and drive it from `CORPUS_COUNTS` rather than hard-coded numbers |
+| 8 | Footer | exists |
+
+Testimonials stay out until there are real ones. A fabricated testimonial is the
+single fastest way to lose a student's trust in the chemistry.
+
+### D.4 The page contract — **[ ] the biggest item in the phase**
+
+"Every topic contains: introduction, theory, simulation, missions, misconception
+boxes, quiz, gold/platinum challenge, references." Measured against the source
+today, that contract is met by roughly a third of the site:
+
+| Block | Coverage now |
+| --- | --- |
+| Theory + quiz (25 Q) | 25 / 25 |
+| Simulation | most, but several advanced modules are prose-only |
+| **Missions** | **12 / 25 tabs** — absent from organic1–3, polymers, nuclear, coordchem, advinorganic, analytical, spectroscopy, structure, physchem, biophys |
+| **Misconception boxes** | **12 questions of ~590** — B.2 shipped the mechanism and eight canonical items, not coverage |
+| **Reset button** | **3 tabs** (sandbox, equilibrium, nuclear) |
+| **References** | **0 / 25** |
+| Gold/Platinum challenge | C.2 wrote 6 exemplars; the full layer is C.2's open work |
+
+- [ ] `topicPage()` scaffold in `framework.ts` that renders the eight blocks in a
+      fixed order with fixed heading levels, so a module cannot silently omit
+      one. Existing tabs migrate to it one at a time.
+- [ ] `auditTopicPages()` alongside `auditCorpus()` — dev-time console error
+      listing every module missing a block. This repo's audit pattern already
+      works; extend it rather than tracking coverage in a spreadsheet.
+- [ ] **Content backfill (Claude):** missions for the 13 tabs without them,
+      one misconception on every question whose distractor encodes a real wrong
+      model (target ≥ 150, not all 590 — a box on an arithmetic slip is noise),
+      an `intro` paragraph per module, references per module.
+- [ ] **Chrome backfill (Codex):** reset button on every sim, objectives line
+      and hints on every mission card, consistent `.trap` / `.note` /
+      `.misconception` usage.
+
+### D.5 References — **[ ]**
+
+Greenfield: nothing in `src/tabs/` mentions a textbook today.
+
+- [ ] `refs: Ref[]` on `TopicMeta` — `{ text, chapter?, href? }` — rendered by
+      one shared `references()` helper. Data in `topics.ts`, per the
+      single-source rule.
+- [ ] Per module: 2–4 of Atkins · Zumdahl · Clayden · Shriver & Atkins · Levine,
+      with the specific chapter, plus links to the official IChO / USNCO / CCC
+      problem archives.
+- [ ] **Links only to past papers, never reproduction** — the same copyright
+      rule that governs `bankOlympiad.ts`'s `OFFICIAL_PAPERS`.
+
+### D.6 Simulation hardening — **[ ]**
+
+"What happens if a student intentionally tries to break this?" Run every sim
+against the same list and record the pass in a table, the way C.4 records
+per-topic curation:
+
+- [ ] Numerical: NaN/Infinity guards on every division and `log`, clamped
+      slider ranges, no runaway integration at extreme parameters
+- [ ] Physical: T → 0 K, [A] → 0, pH 0 and 14, infinite dilution, single
+      particle, zero particles — each either behaves or is out of range
+- [ ] Presentation: units on every axis and readout, legends, sensible defaults,
+      responsive canvas, `prefers-reduced-motion` honoured
+- [ ] Missions: reachable, **not already satisfied by the default state**, and
+      every drive-the-sim mission has a `meter()` (the existing B.1 rule —
+      re-verify it for the D.4 backfill)
+- [ ] Reset returns the card to its documented initial state, including the
+      mission ladder's live meters (solved missions stay solved)
+
+### D.7 Visual and typographic consistency — **[ ]**
+
+- [ ] Spacing scale as CSS custom properties; one card style; lighter rules and
+      softer shadows; larger section titles
+- [ ] Heading hierarchy fixed by `topicPage()` (D.4) rather than per-tab
+- [ ] Equation, table, list and callout spacing set once in `style.css`
+- [ ] Hover and collapse transitions ≤ 150 ms, all behind
+      `prefers-reduced-motion`
+- [ ] Break long theory into **concept → visualization → example → summary**;
+      no block of prose longer than ~120 words without a figure or an equation
+
+### D.8 Question bank navigation — **[ ]**
+
+The registry already answers these queries (`byTopic`, `byTier`, `byComp`,
+`query`); this is a UI over indexes that exist.
+
+- [ ] Two-level browse: domain → topic → tier (Bronze/Silver/Gold/Platinum)
+- [ ] Filters: competition · difficulty · topic · completed · **bookmarked** ·
+      **incorrect** · unattempted. The last three read Phase E state — ship the
+      first four now and leave the wiring behind a capability check.
+- [ ] Filter state in the URL query string, so a filtered view is shareable
+
+### D.9 Error audit — **[ ] `scripts/audit-content.mjs`**
+
+- [ ] Near-duplicate question detection (`auditCorpus` catches duplicate *ids*,
+      not two questions that ask the same thing in different words)
+- [ ] Missing `why`; mission without hints; answer index out of range
+- [ ] Unit and significant-figure check on every numeric answer
+- [ ] KaTeX parse failures collected at build time, not discovered in the browser
+- [ ] Tables that overflow their card (`.table-scroll` missing)
+- [ ] Dead code, unused assets, console errors on every route
+
+### D.10 Performance — **[ ]**
+
+Today's build is a **single 1.74 MB JS chunk**: all 25 tabs are statically
+imported by `main.ts`, so a student opening one topic downloads all of them,
+Pixi included.
+
+- [ ] `DEFS` entries become `() => import('./tabs/thermo1')`. This makes `mount`
+      async — which is exactly why **D.1 lands first**, and why a loading
+      skeleton (not homepage content) must render while the chunk arrives.
+- [ ] Pixi confined to the sandbox chunk
+- [ ] KaTeX fonts preloaded and subset; check whether every shipped face is used
+- [ ] Budget: first topic page under 400 kB of JS
+
+### D.11 Accessibility, second pass — **[ ]**
+
+Phase 0.3 did the first. The new surfaces need the same treatment:
+
+- [ ] Collapsible nav, 404 view, filters and skeletons: keyboard reachable,
+      labelled, focus visible
+- [ ] Contrast audit on the dark instrument panels (the canvases sit at the edge
+      of AA on `--panel`)
+- [ ] Responsive tables everywhere, not only where an overflow was noticed
+- [ ] `prefers-reduced-motion` respected by the homepage scroll-reveal and every
+      sim animation
+
+### D.12 Launch readiness — **[ ] the gate**
+
+Phase D is finished when every line is true, checked against the source rather
+than from memory:
+
+- [ ] Every URL resolves to the page it names, or to a 404 that says so
+- [ ] Every topic has all eight blocks of the D.4 contract
+- [ ] Every simulation has missions, a reset, and survives D.6
+- [ ] Every question has been read once since it was written, with units and
+      answer key verified
+- [ ] Navigation is two clicks deep from anywhere
+- [ ] No console errors on any route; `tsc --noEmit` and the audits clean
+- [ ] **You would personally use this to prepare for the CCC, CCO or USNCO**
+
+Then, and only then, Phase I.2's feedback loops go in and the site goes to 25
+real students.
+
+---
+
+## Phase E — Progress, visible (1 week) · *was "Phase 4", then Phase D*
 
 Accounts already exist. This is the **display layer** over Phase A's attempt log —
 which is why it must come after A, and why it's one week rather than three.
@@ -1273,7 +1579,7 @@ which is why it must come after A, and why it's one week rather than three.
 
 ---
 
-## Phase E — Smarter learning (1–2 weeks) · *originally "Phase 5"*
+## Phase F — Smarter learning (1–2 weeks) · *was "Phase 5", then Phase E*
 
 Every item here is a query against the Phase A registry.
 
@@ -1292,7 +1598,7 @@ Every item here is a query against the Phase A registry.
 
 ---
 
-## Phase F — Competition modes (1 week) · *originally "Phase 6"*
+## Phase G — Competition modes (1 week) · *was "Phase 6", then Phase F*
 
 > "Support multiple Olympiads without duplicating lessons."
 
@@ -1310,17 +1616,17 @@ duplication. A mode is a **filter over shared content**, never a second copy.
 
 ---
 
-## Phase G — Explanations (1 week, gated) · *originally "Phase 7"*
+## Phase H — Explanations (1 week, gated) · *was "Phase 7", then Phase G*
 
 Run the phases in the order given; **do not skip to the AI step.**
 
-- [ ] **G.1 — Handwritten alternate explanations.** A second `why2` on the
+- [ ] **H.1 — Handwritten alternate explanations.** A second `why2` on the
       questions students most often miss (Phase A's attempt log tells you which
       ones — that data does not exist until then, which is the whole argument for
       writing this by hand first).
-- [ ] **G.2 — Misconception explanations.** Already covered in B.2.
-- [ ] **G.3 — "Explain differently" button.** Gate on a real, observed request
-      rate from G.1 usage.
+- [ ] **H.2 — Misconception explanations.** Already covered in B.2.
+- [ ] **H.3 — "Explain differently" button.** Gate on a real, observed request
+      rate from H.1 usage.
 
 **Engineering note:** this is the only phase that adds a backend and a recurring
 cost. An API key cannot ship in a Vite client bundle — it would be extracted
@@ -1328,13 +1634,13 @@ within a day of the repo or the deployed JS being read. It needs a Netlify
 Function proxying the request, plus rate limiting per user, or the first person
 who finds it runs up your bill. That is a real week of work and a real monthly
 cost, for a feature whose demand is currently unmeasured. **Everything in Phases
-B and C beats it on impact per hour.** Revisit after users exist.
+B, C and D beats it on impact per hour.** Revisit after users exist.
 
 ---
 
-## Phase H — Discoverability and users (ongoing) · *originally "Phase 8"*
+## Phase I — Discoverability and users (ongoing) · *was "Phase 8", then Phase H*
 
-### H.1 Make the site crawlable (half day)
+### I.1 Make the site crawlable (half day)
 
 `#app` starts `hidden` and every page is JS-constructed, so a crawler or a
 no-JS visitor sees an empty document. Phase 0.2's OG tags fix link *unfurling*;
@@ -1348,7 +1654,7 @@ this fixes *search*. They are different problems and both are worth solving.
 - [ ] `<noscript>` summary with the topic list
 - [ ] `sitemap.xml` + `robots.txt` generated from `TOPICS`
 
-### H.2 Feedback loops — build before recruiting users
+### I.2 Feedback loops — build before recruiting users
 
 There is no point getting 50 users if nothing captures what they hit.
 
@@ -1357,7 +1663,7 @@ There is no point getting 50 users if nothing captures what they hit.
 - [ ] Lightweight, privacy-respecting analytics: which topics get opened, which
       get abandoned, which questions get skipped
 
-### H.3 Reach (after H.1 and H.2 are live)
+### I.3 Reach (after I.1 and I.2 are live)
 
 - [ ] Chemistry teachers, olympiad Discords, relevant subreddits, school clubs
 - [ ] "CCC Study Guide" / "USNCO Study Guide" landing pages — real search demand,
@@ -1375,11 +1681,11 @@ Adjusted for what already exists and for the Phase A dependency.
 | **1** | Phase 0 (week 1) → Phase A. Unglamorous; unblocks everything after it. |
 | **2** | Phase B — missions and misconceptions. Biggest jump in *felt* quality. |
 | **3** | Phase C — tier, cut, and write Gold/Platinum. Plus challenge mode. |
-| **4** | Phase D + H.1/H.2, then recruit the first 25–50 users. |
-| **5** | Fix what they complain about. Phase E if the feedback points there. |
-| **6** | Phase F, then ChemPrep 2.0. |
+| **4** | **Phase D — product polish.** D.0/D.1 first (they are hours, not days), then the page contract. |
+| **5** | Finish D (content backfill is the long pole) → D.12 gate → Phase E + I.1/I.2, then recruit the first 25–50 users. |
+| **6** | Fix what they complain about. Phase F or G, whichever the feedback points at. |
 
-Phase G stays parked unless month 4–5 feedback demands it.
+Phase H stays parked unless the month 5–6 feedback demands it.
 
 ---
 
@@ -1393,7 +1699,7 @@ Phase G stays parked unless month 4–5 feedback demands it.
 Two things this filter should be pointed at first, because they are the ones
 most likely to eat time without returning any:
 
-- **Phase G's AI explanations** — real backend, real cost, unmeasured demand.
+- **Phase H's AI explanations** — real backend, real cost, unmeasured demand.
 - **Any new topic module.** Coverage is close to complete at 25. Depth in the
   25 that exist beats a 26th.
 

@@ -8,8 +8,6 @@ const R = 8.314; // J/mol·K
 
 export const thermo2Tab: TabDef = {
   id: 'thermo2',
-  label: 'Thermo II',
-  group: 'Physical Chemistry',
   mount(root) {
     // ---- microstates ----
     const microCanvas = h('canvas', { width: 440, height: 240 });

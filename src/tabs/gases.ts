@@ -8,7 +8,7 @@ import { GASES_QUIZ } from './questions2';
 const Rgas = 8.314, R_atm = 0.08206;
 
 // ---- gas particle box ----
-function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
+function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void; destroy: () => void } {
   // The missions are written against this starting state, so it is named rather
   // than inlined — moving a default silently changes what the goals mean.
   const N0 = 1.0, T0 = 300, V0 = 20; // mol, K, L
@@ -19,6 +19,7 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
   const out = h('div', { class: 'result' });
   const pts: { x: number; y: number; vx: number; vy: number }[] = [];
   let visible = false;
+  let frameId: number | null = null;
 
   const missions = missionLadder([
     {
@@ -78,7 +79,7 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
         ctx.beginPath(); ctx.arc(4 + p.x * (boxW - 8), 4 + p.y * (Hh - 8), 2.5, 0, 7); ctx.fill();
       }
     }
-    requestAnimationFrame(frame);
+    frameId = requestAnimationFrame(frame);
   }
   frame();
   resync();
@@ -89,7 +90,11 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void } {
     slider({ label: 'V (L)', min: 5, max: 50, step: 1, value: V, onInput: v => { V = v; resync(); } }),
     canvas, out,
   );
-  return { el, setVisible: v => { visible = v; } };
+  return {
+    el,
+    setVisible: v => { visible = v; },
+    destroy: () => { if (frameId !== null) cancelAnimationFrame(frameId); },
+  };
 }
 
 // ---- Maxwell-Boltzmann ----
@@ -403,8 +408,6 @@ function makeColligative(): HTMLElement {
 
 export const gasesTab: TabDef = {
   id: 'gases',
-  label: 'Gases & Phases',
-  group: 'Physical Chemistry',
   mount(root): TabHandle {
     const gasBox = makeGasBox();
     root.append(
@@ -434,6 +437,7 @@ export const gasesTab: TabDef = {
     return {
       onShow() { gasBox.setVisible(true); },
       onHide() { gasBox.setVisible(false); },
+      onDestroy() { gasBox.destroy(); },
     };
   },
 };

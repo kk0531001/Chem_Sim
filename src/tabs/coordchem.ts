@@ -148,8 +148,6 @@ function makeIsomerism(): HTMLElement {
 
 export const coordChemTab: TabDef = {
   id: 'coordchem',
-  label: 'Coordination & Organometallic',
-  group: 'Inorganic Chemistry',
   mount(root) {
     root.append(
       h('div', { class: 'cards' },

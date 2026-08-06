@@ -716,6 +716,58 @@ body { overflow: hidden; }
 .prereq-chip:hover { border-color: var(--accent); }
 
 #view { flex: 1; overflow: hidden; position: relative; min-width: 0; background: var(--paper); }
+#notfound { flex: 1; min-width: 0; overflow: hidden; background: var(--paper-2); }
+
+.notfound-view {
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px clamp(28px, 8vw, 120px);
+  background: var(--paper-2);
+}
+.notfound-kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--accent-dark);
+}
+.notfound-view h1 { font-family: var(--serif); font-size: clamp(32px, 5vw, 50px); line-height: 1.05; }
+.notfound-copy { max-width: 620px; color: var(--ink-dim); font-size: 16px; line-height: 1.6; }
+.notfound-path {
+  color: var(--ink);
+  background: var(--paper-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 2px 5px;
+  overflow-wrap: anywhere;
+}
+.notfound-suggestions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.notfound-suggestions h2 { font-family: var(--serif); font-size: 20px; }
+.notfound-topic, .notfound-primary, .notfound-secondary {
+  font: inherit;
+  font-weight: 600;
+  border-radius: 7px;
+  cursor: pointer;
+}
+.notfound-topic {
+  color: var(--accent-dark);
+  background: none;
+  border: none;
+  padding: 3px 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.notfound-topic:hover { color: var(--accent-darker); }
+.notfound-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.notfound-primary { color: white; background: var(--accent-dark); border: 1px solid var(--accent-dark); padding: 10px 15px; }
+.notfound-primary:hover { background: var(--accent-darker); border-color: var(--accent-darker); }
+.notfound-secondary { color: var(--ink-dim); background: transparent; border: 1px solid var(--rule-2); padding: 10px 15px; }
+.notfound-secondary:hover { border-color: var(--ink-dim); color: var(--ink); }
 
 #topic-footer {
   flex-shrink: 0;
@@ -854,6 +906,22 @@ body { overflow: hidden; }
   max-width: 100%;
   margin-top: 6px;
 }
+
+.tab-error {
+  max-width: 680px;
+  margin: 40px auto;
+  padding: 28px;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(28, 30, 33, 0.04);
+}
+.tab-error h2 { font-family: var(--serif); font-size: 24px; margin-bottom: 12px; }
+.tab-error-message { color: var(--ink-dim); font-family: var(--mono); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.tab-error-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 22px; }
+.tab-error-menu-link { color: var(--accent-dark); font-weight: 600; }
+.tab-error-menu-link:hover { color: var(--accent-darker); }
 
 /* ---- controls ---- */
 .ctl { display: flex; align-items: center; gap: 10px; margin: 9px 0; font-size: 13px; }

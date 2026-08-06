@@ -49,13 +49,25 @@ export function autoTypeset(...roots: HTMLElement[]): void {
 export interface TabHandle {
   onShow?: () => void;
   onHide?: () => void;
+  onDestroy?: () => void;
 }
 
+/**
+ * `label` and `group` are the SIDEBAR's copy of a module's name, deliberately
+ * shorter than its `TopicMeta.title` ("Bonding & MO" vs "Bonding, VSEPR & MO
+ * Theory"). They live in the LAZY table in main.ts, not here, because a tab
+ * file's own module is only fetched when the tab is first opened — reading a
+ * label off it would mean loading all 25 modules to draw the nav. Both are
+ * optional so a tab module can export a bare `{ id, mount }`.
+ *
+ * `mount` may return a promise: that is how a lazily-imported tab reports its
+ * handle. initTabs keeps its error boundary either way.
+ */
 export interface TabDef {
   id: string;
-  label: string;
+  label?: string;
   group?: string;
-  mount: (root: HTMLElement) => TabHandle | void;
+  mount: (root: HTMLElement) => TabHandle | void | Promise<TabHandle | void>;
 }
 
 export interface TabsAPI {
@@ -69,15 +81,42 @@ export interface TabsAPI {
 // host can route through the History API — keeping the URL and the topic chrome
 // (breadcrumb + prev/next footer) in sync. Falls back to a plain tab swap.
 export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, onSelect?: (id: string) => void): TabsAPI {
-  const roots = new Map<string, { root: HTMLElement; handle: TabHandle | void }>();
+  interface TabEntry {
+    root: HTMLElement;
+    handle?: TabHandle;
+    failed?: boolean;
+  }
+  const roots = new Map<string, TabEntry>();
   const buttons = new Map<string, HTMLButtonElement>();
   let currentId: string | null = null;
+
+  function runLifecycle(id: string, phase: 'onShow' | 'onHide' | 'onDestroy', handle?: TabHandle): void {
+    try {
+      handle?.[phase]?.();
+    } catch (err) {
+      console.error(`[tab] ${phase} failed: ${id}`, err);
+    }
+  }
+
+  function renderTabError(def: TabDef, id: string, err: unknown, retry: () => void): HTMLElement {
+    const message = document.createElement('p');
+    message.className = 'tab-error-message';
+    message.textContent = err instanceof Error ? err.message : String(err);
+    return h('section', { class: 'tab-error', role: 'alert', 'aria-labelledby': `tab-error-${id}` },
+      h('h2', { id: `tab-error-${id}` }, `Couldn't load ${def.label}`),
+      message,
+      h('div', { class: 'tab-error-actions' },
+        button('Retry', retry, 'primary'),
+        h('a', { href: '/menu', class: 'tab-error-menu-link' }, 'Back to all topics'),
+      ),
+    );
+  }
 
   function show(id: string): void {
     if (id === currentId) return;
     if (currentId) {
       const prev = roots.get(currentId);
-      prev?.handle?.onHide?.();
+      runLifecycle(currentId, 'onHide', prev?.handle);
       if (prev) prev.root.style.display = 'none';
       const prevBtn = buttons.get(currentId);
       prevBtn?.classList.remove('active');
@@ -88,14 +127,67 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
       const root = h('div', { class: 'tab-root' });
       view.appendChild(root);
       const def = defs.find(d => d.id === id)!;
-      entry = { root, handle: def.mount(root) };
-      roots.set(id, entry);
-      typesetMath(root);
-      labelCanvases(root);
+      const retry = () => {
+        const failed = roots.get(id);
+        runLifecycle(id, 'onDestroy', failed?.handle);
+        roots.delete(id);
+        failed?.root.remove();
+        currentId = null;   // show() early-returns on id === currentId
+        show(id);
+      };
+      // A lazily-imported tab resolves its handle a network round-trip later,
+      // so failure can arrive as a rejection rather than a throw. Both land in
+      // the same error card — an import that 404s after a redeploy must not
+      // leave a blank panel.
+      const failMount = (err: unknown): void => {
+        console.error(`[tab] mount failed: ${id}`, err);
+        const e = roots.get(id);
+        if (!e) return;                          // retried or destroyed meanwhile
+        e.failed = true;
+        e.handle = undefined;
+        e.root.replaceChildren(renderTabError(def, id, err, retry));
+        buttons.get(id)?.classList.remove('active');
+        buttons.get(id)?.removeAttribute('aria-current');
+      };
+      const settle = (handle: TabHandle | void): void => {
+        const e = roots.get(id);
+        if (!e || e.failed) return;
+        e.handle = handle ?? undefined;
+        typesetMath(e.root);
+        labelCanvases(e.root);
+        // show() already ran its onShow before the module landed, with nothing
+        // to call. Fire it now if this tab is still the one on screen.
+        if (currentId === id) runLifecycle(id, 'onShow', e.handle);
+      };
+      try {
+        const mounted = def.mount(root);
+        if (mounted instanceof Promise) {
+          entry = { root };
+          roots.set(id, entry);
+          mounted.then(settle, failMount);
+        } else {
+          entry = { root, handle: mounted ?? undefined };
+          roots.set(id, entry);
+          typesetMath(root);
+          labelCanvases(root);
+        }
+      } catch (err) {
+        entry = { root };
+        roots.set(id, entry);
+        failMount(err);
+      }
     }
-    entry.root.style.display = '';
-    entry.handle?.onShow?.();
-    labelCanvases(entry.root); // catches canvases the tab created after mount
+    const activeEntry = entry!;
+    activeEntry.root.style.display = '';
+    // Track the failed tab as current anyway. Leaving currentId null here means
+    // the NEXT show() skips its hide-the-previous branch entirely, and the error
+    // card stays on screen stacked above the tab you navigated to. What a failed
+    // tab must not do is claim the sidebar (no .active, no aria-current) or run
+    // onShow — not "leave no trace of being displayed".
+    currentId = id;
+    if (activeEntry.failed) return;
+    runLifecycle(id, 'onShow', activeEntry.handle);
+    labelCanvases(activeEntry.root); // catches canvases the tab created after mount
     const btn = buttons.get(id);
     btn?.classList.add('active');
     // the active item is the current PAGE (each topic has its own URL), not
@@ -128,8 +220,8 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
 
   return {
     show,
-    suspend() { if (currentId) roots.get(currentId)?.handle?.onHide?.(); },
-    resume() { if (currentId) roots.get(currentId)?.handle?.onShow?.(); },
+    suspend() { if (currentId) runLifecycle(currentId, 'onHide', roots.get(currentId)?.handle); },
+    resume() { if (currentId) runLifecycle(currentId, 'onShow', roots.get(currentId)?.handle); },
     current: () => currentId,
   };
 }

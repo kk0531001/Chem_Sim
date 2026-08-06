@@ -170,8 +170,6 @@ function makeSeparations(): HTMLElement {
 
 export const analyticalTab: TabDef = {
   id: 'analytical',
-  label: 'Analytical & Quant.',
-  group: 'Laboratory Skills',
   mount(root) {
     root.append(
       h('div', { class: 'cards' }, makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations(), card('Quick quiz', quiz(ANALYTICAL_QUIZ, 5)), challengeLadder('analytical')),
