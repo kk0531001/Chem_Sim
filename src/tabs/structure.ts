@@ -1,7 +1,7 @@
 // Spectroscopy — structure determination: degrees of unsaturation, mass-spec
 // interpretation (isotopes, nitrogen rule, fragment losses), an IR functional-
 // group checklist, combined IR+NMR+MS unknowns, and reference tables.
-import { h, card, theory, slider, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { STRUCTURE_QUIZ } from './questions7';
 
@@ -9,8 +9,38 @@ import { STRUCTURE_QUIZ } from './questions7';
 function makeFormula(): HTMLElement {
   let C = 4, H = 8, N = 0, O = 1, X = 0;
   const out = h('div', { class: 'result' });
+  let lastDou = 0;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-str-01',
+      prompt: 'Build the formula of a compound with <b>4 degrees of unsaturation</b> that contains <b>exactly one nitrogen</b> — the composition of a simple aromatic amine.',
+      meter: () => ({ label: `C${C}H${H}N${N}O${O} → DoU ${lastDou}  ·  target DoU 4 with one N`, pct: N === 1 ? Math.max(0, 100 - Math.abs(lastDou - 4) * 25) : 0 }),
+      check: () => N === 1 && lastDou === 4,
+      hints: [
+        'Four degrees of unsaturation is the signature of a benzene ring: three π bonds plus the ring itself.',
+        'Start from benzene, C₆H₆, then replace one hydrogen with –NH₂. Count the atoms that leaves you.',
+      ],
+      explain: 'Aniline is <b>C₆H₇N</b>: DoU = (2×6 + 2 + 1 − 7)/2 = 8/2 = 4 ✓. Notice what nitrogen did to the arithmetic — it added +1 to the numerator, because a trivalent atom can carry one more hydrogen than the carbon skeleton alone accounts for. Halogens do the opposite (−1, they are monovalent like H), and oxygen does nothing at all. That is why a molecular formula alone puts a hard bound on the structure before any spectrum is consulted: DoU 4 or more almost always means an aromatic ring, and DoU 0 rules out every ring and every double bond at once.',
+    },
+    {
+      id: 'msn-str-02',
+      prompt: 'Now drag the <b>oxygen</b> slider from end to end and watch the DoU readout. It never moves. Why is oxygen absent from the formula?',
+      choices: [
+        { label: 'Oxygen is divalent, so inserting it into a chain costs no hydrogens', value: 'divalent' },
+        { label: 'Oxygen is too electronegative to form π bonds', value: 'eneg' },
+        { label: 'Oxygen atoms are not counted by mass spectrometry', value: 'ms' },
+        { label: 'It is an approximation that fails for more than two oxygens', value: 'approx' },
+      ],
+      validateChoice: v => v === 'divalent',
+      explain: 'Oxygen forms two bonds, exactly like the CH₂ unit it can replace — so slotting an oxygen into a skeleton (C–C → C–O–C) changes neither the number of hydrogens the molecule can hold nor its ring-and-π-bond count. Ethanol C₂H₆O and ethane C₂H₆ have the same DoU of 0. Compare the others: nitrogen is trivalent and lets the molecule carry one <i>extra</i> hydrogen (+1), a halogen is monovalent and takes the place of one hydrogen (−1). <span class="trap">The rule is about <b>valence</b>, not about the element — sulfur behaves like oxygen and is likewise ignored, and phosphorus behaves like nitrogen. If you remember why oxygen drops out, you never have to memorise which atoms appear in the formula.</span>',
+      hints: ['Compare ethane C₂H₆ with ethanol C₂H₆O. What happened to the hydrogen count when the oxygen went in?'],
+    },
+  ]);
+
   function draw(): void {
     const dou = (2 * C + 2 + N - H - X) / 2;
+    lastDou = dou;
     // nominal mass (most abundant isotopes)
     const mass = C * 12 + H * 1 + N * 14 + O * 16 + X * 35; // X≈Cl for parity demo
     const nRuleOdd = mass % 2 === 1;
@@ -23,8 +53,9 @@ function makeFormula(): HTMLElement {
             : `→ ${dou} ring(s) and/or π bond(s).`) +
       `<br>Nominal mass ≈ <b>${mass}</b>. Nitrogen rule: an ${nRuleOdd ? 'ODD' : 'EVEN'} M⁺ mass ⇒ ${N % 2 === 1 ? 'consistent with an ODD number of N (✓)' : 'zero or an EVEN number of N (✓)'}.<br>` +
       `<span class="muted">Each ring or π bond removes 2 H from the saturated C_nH_(2n+2) formula. Oxygen doesn\'t affect DoU; N adds +1, halogen subtracts 1 in the numerator.</span>`;
+    missions.tick();
   }
-  const el = card('Molecular formula → degrees of unsaturation',
+  const el = cardWithMissions('Molecular formula → degrees of unsaturation', missions,
     slider({ label: 'carbons (C)', min: 1, max: 20, step: 1, value: C, onInput: v => { C = v; draw(); } }),
     slider({ label: 'hydrogens (H)', min: 0, max: 42, step: 1, value: H, onInput: v => { H = v; draw(); } }),
     slider({ label: 'nitrogens (N)', min: 0, max: 4, step: 1, value: N, onInput: v => { N = v; draw(); } }),
@@ -40,13 +71,31 @@ function makeFormula(): HTMLElement {
 function makeMassSpec(): HTMLElement {
   let m1 = 4.4; // M+1 % relative to M
   const cOut = h('div', { class: 'result' });
+  let lastC = 0;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-str-03',
+      prompt: 'An unknown has M⁺ = 106 and an M+1 peak <b>7.7%</b> as tall as M. Set the slider to that reading, then work out the molecular formula from the carbon count and the mass.',
+      meter: () => ({ label: `M+1 = ${m1.toFixed(1)}% → ${lastC} carbon(s)  ·  target reading 7.7%`, pct: Math.max(0, 100 - Math.abs(m1 - 7.7) * 25) }),
+      check: () => Math.abs(m1 - 7.7) < 0.05,
+      hints: [
+        'Each carbon contributes about 1.1% to the M+1 peak, so divide the observed percentage by 1.1.',
+        'Seven carbons weigh 84, leaving 22 of the molecular mass of 106 for hydrogen and any heteroatom.',
+      ],
+      explain: '7.7/1.1 = <b>7 carbons</b>, which weigh 84 and leave 22. That cannot be 22 hydrogens — C₇H₂₂ is impossible — so a heteroatom is present: one oxygen (16) plus 6 H gives <b>C₇H₆O</b>, mass 106 ✓. Its DoU is (14 + 2 − 6)/2 = <b>5</b>: a benzene ring (4) plus one more π bond, and the compound is benzaldehyde. Two independent numbers from one spectrum — the mass and the isotope ratio — pinned the formula before any IR or NMR was consulted. <span class="trap">Had you assumed all 106 was hydrocarbon you would have tried C₈H₁₀, but eight carbons would have given an M+1 near 8.8%. The M+1 peak is what rules that out, and it is the only routine MS measurement that counts carbons directly. It degrades for large molecules, though: at 30 carbons the M+1 is a 33% peak whose height is hard to measure to the precision the division needs.</span>',
+    },
+  ]);
+
   function cCalc(): void {
     const nC = Math.round(m1 / 1.1);
+    lastC = nC;
+    missions.tick();
     cOut.innerHTML =
       `M+1 ≈ 1.1% × (number of C). Observed M+1 = ${m1.toFixed(1)}% → about <b class="big">${nC} carbon(s)</b>.<br>` +
       `<span class="muted">Each ¹³C (1.1% natural abundance) adds one mass unit — a rough carbon count from the isotope peak.</span>`;
   }
-  const el = card('Mass spectrometry toolkit',
+  const el = cardWithMissions('Mass spectrometry toolkit', missions,
     h('h3', {}, 'Carbon count from the M+1 peak'),
     slider({ label: 'M+1 intensity (% of M)', min: 0, max: 22, step: 0.1, value: m1, fmt: v => v.toFixed(1), onInput: v => { m1 = v; cCalc(); } }),
     cOut,

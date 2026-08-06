@@ -1454,10 +1454,139 @@ case (a bulky base on a *secondary* substrate, and –NO₂ as a deactivator tha
 directs meta). Near-duplicate pairs corpus-wide: 26 → 23. Organic moved from
 89 Gold/6 Platinum to 93/7 (of 195).
 
-**Not yet done:** organic part 2 — `spectroscopy` and `structure`, the two
-structure-determination modules. Same derived-Gold illusion, no missions, and
-the only existing depth is in `cco-ps2-*` and `int-org-spec-*`, which sit in
-different banks from the module quizzes.
+**Organic, part 2 — spectroscopy & structure — done. Phase C.4 is now complete;
+every exam topic has had a curation pass.**
+
+This pass found something the previous eleven did not: a defect at the level of
+the **module split**, not the question. `spectroscopy` and `structure` are two
+separate modules teaching substantially the same material, and their banks had
+drifted into testing the same facts in different words. Eight pairs, none of
+which `auditCorpus` could see, because the two questions live in different
+files and share almost no tokens:
+
+| fact | spectroscopy | structure |
+| --- | --- | --- |
+| nitrogen rule | `spe-009` | `str-008` |
+| M/M+2 1:1 ⇒ Br | `spe-010` | `str-009` |
+| loss of 15 ⇒ CH₃ | `spe-017` | `str-012` |
+| broad 2500–3300 ⇒ COOH | `spe-007` | `str-014` |
+| triplet+quartet ⇒ ethyl | `spe-012` | `str-018` |
+| ¹³C counts inequivalent C | `spe-011` | `str-021` |
+| J is field-independent | `spe-015` | `str-022` |
+| C=O near 1715 | `spe-004` | `str-003` |
+
+Plus three questions in SPECTROSCOPY_QUIZ that were not spectroscopy at all and
+re-asked `organic3`: `spe-021` (Diels–Alder s-cis, identical to `og3-023`),
+`spe-023` (TBS removed by fluoride, identical to `og3-009`) and `spe-024`
+(retrosynthesis disconnections, identical to `og3-001`/`og3-006`). And a third
+degrees-of-unsaturation calculation, `str-023`, alongside `str-006` and
+`str-007` — this one the audit *did* flag, at 0.60.
+
+**The fix was to give the two modules different jobs**, since deleting a module
+is a product decision and not mine to make (see "Deletions from the audit are
+never automatic" in C.1). The line drawn: **spectroscopy teaches the
+techniques** — what each measures, its instrument-level caveats, its newer
+capabilities — and **structure teaches deduction** — given data, identify the
+compound. Nine questions rewritten along that line, each replaced with material
+absent from the whole corpus rather than merely reworded:
+
+- spectroscopy gained ³J and the cis/trans alkene coupling (`spe-021`), why
+  ¹³C integrals are untrustworthy — uneven NOE plus long quaternary T₁
+  (`spe-023`), and exact-mass formula determination, C₃H₈O at 60.0575 against
+  C₂H₄O₂ at 60.0211 (`spe-024`).
+- structure gained the nitrogen rule used as a *constraint* alongside an IR
+  observation (`str-008`), a 1:2:1 cluster meaning two bromines (`str-009`), the
+  McLafferty rearrangement and what an even-mass fragment implies (`str-012`),
+  telling 1- from 2-bromopropane by signal count (`str-018`), counting ¹³C
+  signals across the C₈H₁₀ isomers as a symmetry measurement (`str-021`), the
+  Karplus relation applied to a locked chair (`str-022`), and sulfur's ~4% M+2
+  (`str-023`).
+
+Two mistakes were caught mid-pass, both by checking rather than by intuition.
+The first rewrite of `spe-023` was a DEPT-135 question — which would have
+created a *new* duplicate with `str-027`, the very defect being fixed. And the
+first draft of `str-021` asserted that para-xylene gives four ¹³C signals; it
+gives **three** (1 methyl + 2 ring types), and *ortho*-xylene is the four-signal
+isomer. Both counts were redone by hand for all four C₈H₁₀ isomers before the
+question was rewritten.
+
+Added 4 new Part II FRQs (`p2-organic-008..011`, one Platinum):
+
+- `p2-organic-008` — IR as physics rather than a table: Hooke's law gives
+  ν̄(C–D) = 2960√(0.923/1.714) = 2170 cm⁻¹, then hydrogen bonding lowers *k* and
+  broadens the O–H band because an ensemble of aggregate geometries is being
+  averaged, and the C=O/C=C comparison separates band **position** (bond order)
+  from band **intensity** (dipole change).
+- `p2-organic-009` (Platinum) — quantitative ¹H NMR: a real purity assay
+  against an internal standard (89.2% from the integral ratio), why qNMR is a
+  primary ratio method needing no authentic sample, the two conditions that make
+  the integrals valid (5×T₁ delay, resolved signals), and what it is blind to
+  (anything without a resolved proton — pair it with Karl Fischer and an ash).
+- `p2-organic-010` — three C₈H₈O₂ isomers separated on IR position, singlet
+  chemical shift and ¹³C count, ending with the fastest bench test (NaHCO₃)
+  rather than another spectrum.
+- `p2-organic-011` — a worked *wrong* answer. Every observation the student
+  cites is true and the structure is still wrong; the question is about the
+  procedural error of reasoning from a hypothesis backwards, and about absences
+  being evidence.
+
+**Five missions**, the first in either tab. Build aniline on the DoU sliders;
+then a choice mission on why oxygen is absent from the DoU formula (valence, not
+element — which also covers S and P for free); read a formula out of an M+1
+peak of 7.7% at M⁺ 106 (7 carbons → C₇H₆O, benzaldehyde, DoU 5); find the IR
+window where almost nothing absorbs, with the sting that a symmetric alkyne is
+IR-inactive so an empty window proves nothing; and produce a septet from the six
+equivalent protons of an isopropyl group.
+
+One bug caught by the live check and not by the compiler: the mass-spec mission
+was defined and its `tick()` wired, but the card was still built with `card()`
+instead of `cardWithMissions()`, so the ladder existed and rendered nowhere.
+`tsc` cannot see this — a `MissionLadderHandle` that is never appended is
+type-correct. **Worth a rule: after adding a ladder, confirm it is on screen,
+not merely that the build passes.** All five were then exercised live, each
+confirmed unsolved at the card's default state, and three confirmed to reject a
+near-miss (the alkene band, n = 3, and –NO₂).
+
+`tsc --noEmit`, the build, the corpus audit and `test-router.mjs` are clean, no
+console errors. Near-duplicate pairs corpus-wide: 23 → 22, though the real
+reduction is the eight cross-module pairs the metric never counted. Organic
+moved from 93 Gold/7 Platinum to 96/8 (of 199).
+
+**A decision left for you.** The rewrites make the two modules teach different
+things, but they remain two modules over one body of material, with two quizzes,
+two challenge ladders and a shared prerequisite. `structure.ts` still opens with
+a header comment describing itself as "Spectroscopy". Merging them into one
+module with a technique half and a deduction half is defensible and would remove
+a genuine source of drift; so is leaving them split, since 25 questions each is
+a reasonable unit and the split now has a rationale. **This is a product call,
+not an audit finding** — but if the answer is "merge", it is much cheaper to do
+before Phase D.4 writes the page contract against 25 topic pages.
+
+---
+
+### C.4 complete — what the twelve passes found
+
+Worth recording, because the pattern is the argument for D.9:
+
+- **Chemistry errors are rare.** Two in the whole corpus: `periodicity.ts`'s
+  Slater fill order (3d before 4s), and the `coo-009` Jahn–Teller question whose
+  `why` contradicted its own answer. Both were found by re-deriving, never by
+  reading.
+- **Duplication is the common defect, and the detector misses the worst kind.**
+  Jaccard similarity finds re-worded questions; it cannot find the same *fact*
+  asked in different words (potassium's flame colour, the nitrogen rule in two
+  modules). Every pass but one found at least one such pair. **D.9's duplicate
+  check must key on the fact, not the string** — the practical version is a
+  small hand-maintained tag per question, or an embedding, not a token metric.
+- **Depth was thin exactly where the derived tier said it was thickest.** The
+  three topics that looked best on `Gold` count — lab, descriptive, organic —
+  were the three where Gold was inherited wholesale from a module's `difficulty`
+  rather than earned. `tierOf()` is doing what it was designed to do; the
+  reporting around it invites the wrong conclusion. An audit line distinguishing
+  *derived* from *overridden* tiers would have saved this pass a day.
+- **Missions were absent from precisely the tabs that most needed them** — 13 of
+  25 had none, and every one of those was a CCO/IChO module where the
+  simulations are the only thing making the abstraction concrete.
 
 ---
 

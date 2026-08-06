@@ -1,5 +1,5 @@
 // Advanced (CCO) — Spectroscopy (IR / NMR / MS) + advanced organic synthesis.
-import { h, card, theory, select, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { SPECTROSCOPY_QUIZ } from './questions3';
 
@@ -19,12 +19,30 @@ const IR_BANDS: { group: string; range: string; note: string }[] = [
 
 function makeIR(): HTMLElement {
   const out = h('div', { class: 'result' });
+  let current = IR_BANDS[6].group;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-spe-01',
+      prompt: 'The card opens on the carbonyl, the most useful band in IR. Find the band that sits in the region where <b>almost nothing else absorbs</b> — so that even a weak peak there is decisive.',
+      meter: () => ({ label: `showing ${current}`, pct: current.startsWith('C≡C') ? 100 : 0 }),
+      check: () => current.startsWith('C≡C'),
+      hints: [
+        'Read the ranges in order. Where is the gap between the C–H region near 3000 and the carbonyl near 1700?',
+        'What kind of bond is stiff enough to absorb between 2100 and 2260 cm⁻¹?',
+      ],
+      explain: 'The triple-bond window, <b>2100–2260 cm⁻¹</b>, is the emptiest part of a routine IR spectrum: single bonds are too floppy to absorb that high and double bonds are not stiff enough, so a peak there means C≡C or C≡N and essentially nothing else. That is why a <i>weak</i> nitrile band is more informative than a strong C–H band — diagnostic value comes from how few things could have produced a peak, not from how large it is. <span class="trap">The corollary bites: a symmetric internal alkyne has no dipole change when it stretches, so it is IR-<b>inactive</b> and shows nothing at all. An empty triple-bond window does not prove there is no triple bond, and that is one of the few places where absence is not evidence.</span>',
+    },
+  ]);
+
   const set = (g: string) => {
+    current = g;
     const b = IR_BANDS.find(x => x.group === g)!;
     out.innerHTML = `<b class="big">${b.range} cm⁻¹</b><p>${b.group} — ${b.note}</p>`;
+    missions.tick();
   };
   const el = h('div', { class: 'cards' },
-    card('IR functional-group band finder',
+    cardWithMissions('IR functional-group band finder', missions,
       select('functional group', IR_BANDS.map(b => ({ value: b.group, label: b.group })), set, IR_BANDS[6].group),
       out,
       h('p', { class: 'muted' }, 'Read an IR left→right: check 3000 first (O–H/N–H, and sp² vs sp³ C–H), then the triple-bond window (~2200), then the carbonyl (~1700), then the fingerprint (<1500).'),
@@ -52,11 +70,29 @@ const NMR_SHIFTS: { env: string; ppm: string }[] = [
 
 function makeNMR(): HTMLElement {
   const nInput = h('input', { type: 'number', value: '2', min: '0', max: '9', step: '1' });
+  let lastN = 2;
+
+  const splitMissions = missionLadder([
+    {
+      id: 'msn-spe-02',
+      prompt: 'The methine proton of an <b>isopropyl</b> group, (CH₃)₂C<u>H</u>–, appears as a septet. Set the neighbour count that produces it.',
+      meter: () => ({ label: `n = ${lastN} → ${lastN + 1} lines  ·  target a septet (7 lines)`, pct: Math.max(0, 100 - Math.abs(lastN - 6) * 20) }),
+      check: () => lastN === 6,
+      hints: [
+        'A septet has seven lines. Work backwards through the n+1 rule.',
+        'The methine proton looks out at two methyl groups. How many hydrogens is that in total?',
+      ],
+      explain: 'Six — the two methyl groups are <b>equivalent</b>, so all six of their protons count as one set of neighbours and n+1 = 7. That equivalence is the whole point: if the two methyls were somehow distinguishable you would get a multiplet of up to 4×4 = 16 lines instead, and the clean septet is evidence of the local symmetry. The partner signal is the 6H doublet from the methyls themselves, each seeing a single neighbour. <span class="trap">The n+1 rule counts <i>neighbouring</i> hydrogens on adjacent atoms, never the hydrogens producing the signal — and it holds only while those neighbours are equivalent and the shifts are well separated. Protons with similar shifts couple into second-order patterns that no simple rule predicts.</span>',
+    },
+  ]);
+
   const splitOut = h('div', { class: 'result' });
   const PATTERN = ['singlet', 'doublet', 'triplet', 'quartet', 'quintet', 'sextet', 'septet', 'octet', 'nonet', '10-plet'];
   const RATIO = ['1', '1:1', '1:2:1', '1:3:3:1', '1:4:6:4:1', '1:5:10:10:5:1', '1:6:15:20:15:6:1'];
   const splitCalc = () => {
     const n = Math.max(0, Math.min(9, Math.round(Number(nInput.value))));
+    lastN = n;
+    splitMissions.tick();
     splitOut.innerHTML = `n = ${n} neighbouring H → n+1 = <b class="big">${n + 1} lines</b> (${PATTERN[n]})` +
       (n < RATIO.length ? `<br>intensity ratio ${RATIO[n]} (Pascal\'s triangle)` : '') +
       `<br><span class="muted">The n+1 rule assumes the neighbours are equivalent. Non-equivalent neighbours give more complex (multiplet) patterns with different J values.</span>`;
@@ -66,7 +102,7 @@ function makeNMR(): HTMLElement {
 
   const shiftRows = NMR_SHIFTS.map(s => `<tr><td>${s.env}</td><td>${s.ppm}</td></tr>`).join('');
   const el = h('div', { class: 'cards' },
-    card('¹H NMR — n+1 splitting predictor',
+    cardWithMissions('¹H NMR — n+1 splitting predictor', splitMissions,
       h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'equivalent neighbours n'), nInput),
       splitOut,
       h('h3', {}, 'Characteristic ¹H chemical shifts'),
