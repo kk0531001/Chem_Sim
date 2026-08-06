@@ -1,7 +1,7 @@
 // Laboratory Skills — practical techniques: recrystallization, the distillation
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
-import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, numberInput, numVal, type TabDef } from './framework';
 import { topicPage } from './page';
 import { LABTECH_QUIZ } from './questions7';
 
@@ -43,11 +43,13 @@ function makeRecryst(): HTMLElement {
 
 // ---- distillation family + steam distillation calc ----
 function makeDistillation(): HTMLElement {
-  const num = (v: number, step = 1) => h('input', { type: 'number', value: v, step });
-  const pOrg = num(15, 1), mOrg = num(150, 1), mWat = num(18, 0.1), pTot = num(760, 1);
+  const pOrg = numberInput({ value: 15, min: 0.1, max: 760 });
+  const mOrg = numberInput({ value: 150, min: 1, max: 2000 });
+  const mWat = numberInput({ value: 18, min: 1, max: 500, step: 0.1 });
+  const pTot = numberInput({ value: 760, min: 1, max: 2000 });
   const out = h('div', { class: 'result' });
   function calc(): void {
-    const po = Number(pOrg.value), mo = Number(mOrg.value), mw = Number(mWat.value), pt = Number(pTot.value);
+    const po = numVal(pOrg), mo = numVal(mOrg), mw = numVal(mWat), pt = numVal(pTot);
     const pw = pt - po; // water partial pressure at the boil
     if (pw > 0 && po > 0 && mw > 0) {
       const orgPerWater = (po * mo) / (pw * mw);
@@ -112,12 +114,13 @@ function makeExtraction(): HTMLElement {
 
 // ---- standard solution & buffer prep ----
 function makeStandardBuffer(): HTMLElement {
-  const num = (v: number, step = 0.001) => h('input', { type: 'number', value: v, step });
   // standard solution
-  const molarity = num(0.1000, 0.001), volFlask = num(250, 1), molarMass = num(204.22, 0.01);
+  const molarity = numberInput({ value: 0.1000, min: 0.0001, max: 20, step: 0.001 });
+  const volFlask = numberInput({ value: 250, min: 1, max: 20000 });
+  const molarMass = numberInput({ value: 204.22, min: 1, max: 5000, step: 0.01 });
   const sOut = h('div', { class: 'result' });
   const sCalc = () => {
-    const M = Number(molarity.value), V = Number(volFlask.value), MM = Number(molarMass.value);
+    const M = numVal(molarity), V = numVal(volFlask), MM = numVal(molarMass);
     const g = M * (V / 1000) * MM;
     sOut.innerHTML = `mass to weigh = M × V × M_r = ${M} × ${(V / 1000).toFixed(4)} L × ${MM} = <b class="big">${g.toFixed(4)} g</b><br>` +
       `<span class="muted">Weigh accurately (analytical balance), dissolve, then dilute to the mark in a Class-A volumetric flask. KHP (M = 204.22) is a common primary standard.</span>`;
@@ -254,11 +257,13 @@ function makeChromatography(): HTMLElement {
 
 // ---- reference: filtration, drying agents, uncertainty, safety ----
 function makeReference(): HTMLElement {
-  const num = (v: number, step = 0.001) => h('input', { type: 'number', value: v, step });
-  const a = num(10.00, 0.01), ea = num(0.02, 0.01), b = num(5.00, 0.01), eb = num(0.01, 0.01);
+  const a = numberInput({ value: 10.00, min: 0.001, max: 100000, step: 0.01 });
+  const ea = numberInput({ value: 0.02, min: 0, max: 1000, step: 0.01 });
+  const b = numberInput({ value: 5.00, min: 0.001, max: 100000, step: 0.01 });
+  const eb = numberInput({ value: 0.01, min: 0, max: 1000, step: 0.01 });
   const uOut = h('div', { class: 'result' });
   const uCalc = () => {
-    const A = Number(a.value), sa = Number(ea.value), B = Number(b.value), sb = Number(eb.value);
+    const A = numVal(a), sa = numVal(ea), B = numVal(b), sb = numVal(eb);
     if (A && B) {
       const R = A / B;
       const relR = Math.sqrt(Math.pow(sa / A, 2) + Math.pow(sb / B, 2));

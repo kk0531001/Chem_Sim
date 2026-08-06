@@ -7,7 +7,7 @@ import { detectMolecules, type Molecule } from '../molecules';
 import { initRender, syncRender } from '../render';
 import { buildUI, updateCensus } from '../ui';
 import type { TabDef, TabHandle } from './framework';
-import { h, missionLadder } from './framework';
+import { h, missionLadder, prefersReducedMotion } from './framework';
 
 export const sandboxTab: TabDef = {
   id: 'sandbox',
@@ -80,6 +80,11 @@ export const sandboxTab: TabDef = {
         return;
       }
       appRef = app;
+      // Reduced motion opens the box paused rather than suppressing it: the
+      // moving particles ARE the lesson here, so the setting picks the starting
+      // state and the existing `paused` control (bound in the panel) hands it
+      // straight back. Set before buildUI so the checkbox renders checked.
+      if (prefersReducedMotion()) params.paused = true;
       buildUI(paneHost); // starts empty — pick a preset or add atoms
 
       let frame = 0;

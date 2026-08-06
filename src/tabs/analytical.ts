@@ -1,7 +1,7 @@
 // Advanced (CCO) — Analytical & quantitative chemistry.
 // EDTA complexometric titration curve, Debye-Hückel activity, gravimetric
 // factor and back-titration calculators.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef } from './framework';
 import { topicPage } from './page';
 import { ANALYTICAL_QUIZ } from './questions3';
 
@@ -138,11 +138,14 @@ function makeActivity(): HTMLElement {
 }
 
 function makeGravimetric(): HTMLElement {
-  const num = (v: number, step = 0.001) => h('input', { type: 'number', value: v, step });
-  const mPpt = num(0.2870), mmAnalyte = num(35.45, 0.01), mmPpt = num(143.3, 0.01), aFac = num(1), bFac = num(1);
+  const mPpt = numberInput({ value: 0.2870, min: 0.0001, max: 1000, step: 0.001 });
+  const mmAnalyte = numberInput({ value: 35.45, min: 0.1, max: 1000, step: 0.01 });
+  const mmPpt = numberInput({ value: 143.3, min: 0.1, max: 5000, step: 0.01 });
+  const aFac = numberInput({ value: 1, min: 1, max: 12 });
+  const bFac = numberInput({ value: 1, min: 1, max: 12 });
   const gOut = h('div', { class: 'result' });
   const gCalc = () => {
-    const p = Number(mPpt.value), mmA = Number(mmAnalyte.value), mmP = Number(mmPpt.value), a = Number(aFac.value), b = Number(bFac.value);
+    const p = numVal(mPpt), mmA = numVal(mmAnalyte), mmP = numVal(mmPpt), a = numVal(aFac), b = numVal(bFac);
     if (p > 0 && mmA > 0 && mmP > 0 && b > 0) {
       const gf = (a * mmA) / (b * mmP);
       gOut.innerHTML = `Gravimetric factor = (a·M_analyte)/(b·M_ppt) = ${gf.toFixed(4)}<br>mass of analyte = ${p} × ${gf.toFixed(4)} = <b class="big">${(p * gf).toFixed(4)} g</b>`;

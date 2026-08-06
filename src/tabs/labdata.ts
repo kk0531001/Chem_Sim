@@ -1,6 +1,6 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
-import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, numberInput, numVal, type TabDef } from './framework';
 import { topicPage } from './page';
 import { LABDATA_QUIZ } from './questions2';
 
@@ -116,11 +116,11 @@ function makeSigFigs(): HTMLElement {
   input.addEventListener('input', sfCalc);
   sfCalc();
 
-  const meas = h('input', { type: 'number', value: '9.61', step: '0.01' });
-  const acc = h('input', { type: 'number', value: '9.81', step: '0.01' });
+  const meas = numberInput({ value: 9.61, min: -1e6, max: 1e6, step: 0.01 });
+  const acc = numberInput({ value: 9.81, min: -1e6, max: 1e6, step: 0.01 });
   const errOut = h('div', { class: 'result' });
   const errCalc = () => {
-    const m = Number(meas.value), a = Number(acc.value);
+    const m = numVal(meas), a = numVal(acc);
     if (a !== 0) errOut.innerHTML = `% error = |measured − accepted| / accepted × 100 = <b>${(Math.abs(m - a) / Math.abs(a) * 100).toFixed(2)}%</b>`;
   };
   [meas, acc].forEach(i => i.addEventListener('input', errCalc));
@@ -194,12 +194,16 @@ function makeTechnique(): HTMLElement {
 
 // ================= UNCERTAINTY PROPAGATION + Q-TEST =================
 function makeUncertainty(): HTMLElement {
-  const num = (v: number, step = 0.01) => h('input', { type: 'number', value: v, step });
   // propagation: result = (A*B)/C style — relative uncertainties add in quadrature (or linearly)
-  const A = num(25.00, 0.01), dA = num(0.03, 0.01), B = num(0.1000, 0.0001), dB = num(0.0005, 0.0001), C = num(10.00, 0.01), dC = num(0.02, 0.01);
+  const A = numberInput({ value: 25.00, min: 0.001, max: 100000, step: 0.01 });
+  const dA = numberInput({ value: 0.03, min: 0, max: 1000, step: 0.01 });
+  const B = numberInput({ value: 0.1000, min: 0.0001, max: 100000, step: 0.0001 });
+  const dB = numberInput({ value: 0.0005, min: 0, max: 1000, step: 0.0001 });
+  const C = numberInput({ value: 10.00, min: 0.001, max: 100000, step: 0.01 });
+  const dC = numberInput({ value: 0.02, min: 0, max: 1000, step: 0.01 });
   const propOut = h('div', { class: 'result' });
   const propCalc = () => {
-    const a = Number(A.value), da = Number(dA.value), b = Number(B.value), db = Number(dB.value), c = Number(C.value), dc = Number(dC.value);
+    const a = numVal(A), da = numVal(dA), b = numVal(B), db = numVal(dB), c = numVal(C), dc = numVal(dC);
     if (a && b && c) {
       const result = (a * b) / c;
       const relA = da / a, relB = db / b, relC = dc / c;

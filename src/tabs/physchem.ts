@@ -1,7 +1,7 @@
 // Physical Chemistry — advanced topics: van't Hoff (K vs T), Clausius–Clapeyron,
 // concentration cells, real gases (van der Waals / Z), heat capacities +
 // Kirchhoff, catalysis energy profile, and coupled/complex equilibria.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef } from './framework';
 import { topicPage } from './page';
 import { PHYSCHEM_QUIZ } from './questions6';
 
@@ -77,12 +77,19 @@ function makeVantHoff(): HTMLElement {
 
 // ---- Clausius–Clapeyron two-point solver ----
 function makeClausius(): HTMLElement {
-  const num = (v: number, step = 0.1) => h('input', { type: 'number', value: v, step });
-  const P1 = num(1.0, 0.01), T1 = num(353), dHv = num(35.0, 0.5), T2 = num(373);
+  // Bounded: a typed ΔH_vap of 1e6 overflowed exp() and printed "P₂ = Infinity
+  // atm". The lower bound on the temperatures is 20 K rather than 1 K for the
+  // same reason — 1/T blows up near zero, and no liquid this equation describes
+  // has a reference point down there (helium boils at 4.2 K and is not a
+  // Clausius–Clapeyron problem).
+  const P1 = numberInput({ value: 1.0, min: 0.001, max: 500, step: 0.01 });
+  const T1 = numberInput({ value: 353, min: 20, max: 2000 });
+  const dHv = numberInput({ value: 35.0, min: 0.5, max: 500, step: 0.5 });
+  const T2 = numberInput({ value: 373, min: 20, max: 2000 });
   const out = h('div', { class: 'result' });
   const canvas = h('canvas', { width: 480, height: 240 });
   function calc(): void {
-    const p1 = Number(P1.value), t1 = Number(T1.value), dh = Number(dHv.value) * 1000, t2 = Number(T2.value);
+    const p1 = numVal(P1), t1 = numVal(T1), dh = numVal(dHv) * 1000, t2 = numVal(T2);
     if (p1 > 0 && t1 > 0 && t2 > 0 && dh > 0) {
       const p2 = p1 * Math.exp(-(dh / R) * (1 / t2 - 1 / t1));
       // curve of P vs T
@@ -90,10 +97,15 @@ function makeClausius(): HTMLElement {
       const Ps = Ts.map(t => p1 * Math.exp(-(dh / R) * (1 / t - 1 / t1)));
       plot(canvas, [{ xs: Ts, ys: Ps, color: '#e8590c', label: 'P(T)' }],
         { xLabel: 'T (K)', yLabel: 'P (atm)',
-          markers: [{ x: t1, y: p1, label: 'ref' }, { x: t2, y: p2, label: `${p2.toFixed(3)} atm` }] });
+          markers: [{ x: t1, y: p1, label: 'ref' }, { x: t2, y: p2, label: Number.isFinite(p2) ? `${p2.toFixed(3)} atm` : 'off scale' }] });
+      // Bounding the fields is not enough on its own: this is an exponential,
+      // and a legal ΔH_vap with a legal pair of temperatures far apart still
+      // overflows to Infinity. Say so rather than printing "Infinity atm".
       out.innerHTML =
         `<span class="eq">\\(\\ln(P_2/P_1) = -(\\Delta H_{vap}/R)(1/T_2 - 1/T_1)\\)</span>` +
-        `P₂ at ${t2} K = <b class="big">${p2.toFixed(4)} atm</b><br>` +
+        (Number.isFinite(p2)
+          ? `P₂ at ${t2} K = <b class="big">${p2.toFixed(4)} atm</b><br>`
+          : `P₂ at ${t2} K is <b class="big">beyond floating point</b> — that combination of ΔH_vap and temperature gap makes the exponential overflow. Real ΔH_vap values sit near 20–50 kJ/mol.<br>`) +
         `<span class="muted">Vapor pressure rises steeply (exponentially) with T. Set P₂ = 1 atm and solve for T₂ to get the normal boiling point.</span>`;
     }
   }
@@ -186,10 +198,10 @@ function makeHeatCap(): HTMLElement {
   ];
   let m = MODELS[0];
   const out = h('div', { class: 'result' });
-  const dCp = h('input', { type: 'number', value: -20, step: 1 });
-  const dH1 = h('input', { type: 'number', value: -285, step: 1 });
-  const T1 = h('input', { type: 'number', value: 298, step: 1 });
-  const T2 = h('input', { type: 'number', value: 373, step: 1 });
+  const dCp = numberInput({ value: -20, min: -500, max: 500 });
+  const dH1 = numberInput({ value: -285, min: -5000, max: 5000 });
+  const T1 = numberInput({ value: 298, min: 1, max: 3000 });
+  const T2 = numberInput({ value: 373, min: 1, max: 3000 });
   const kOut = h('div', { class: 'result' });
   function calc(): void {
     const cv = m.cv, cp = cv + 1, gamma = cp / cv;
@@ -199,7 +211,7 @@ function makeHeatCap(): HTMLElement {
       `<span class="muted">${m.note}. Equipartition gives ½R per active quadratic degree of freedom. Adiabatic reversible: PVγ = const.</span>`;
   }
   function kcalc(): void {
-    const dcp = Number(dCp.value), dh1 = Number(dH1.value), t1 = Number(T1.value), t2 = Number(T2.value);
+    const dcp = numVal(dCp), dh1 = numVal(dH1), t1 = numVal(T1), t2 = numVal(T2);
     const dh2 = dh1 + (dcp / 1000) * (t2 - t1);
     kOut.innerHTML =
       `<span class="eq">Kirchhoff: \\(\\Delta H(T_2) = \\Delta H(T_1) + \\Delta C_p\\,(T_2 - T_1)\\)</span>` +

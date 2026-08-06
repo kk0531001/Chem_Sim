@@ -1,6 +1,6 @@
 // Polymers — monomer↔polymer explorer, MW/PDI/DP calculator, and the
 // addition-vs-condensation reference. (IChO area 12.)
-import { h, card, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, quiz, numberInput, numVal, type TabDef } from './framework';
 import { topicPage } from './page';
 import { POLYMERS_QUIZ } from './questions5';
 
@@ -40,8 +40,9 @@ function makeExplorer(): HTMLElement {
 }
 
 function makeMW(): HTMLElement {
-  const num = (v: number, step = 1) => h('input', { type: 'number', value: v, step });
-  const mn = num(20000, 100), mw = num(30000, 100), mrep = num(104, 1);
+  const mn = numberInput({ value: 20000, min: 100, max: 10000000, step: 100 });
+  const mw = numberInput({ value: 30000, min: 100, max: 10000000, step: 100 });
+  const mrep = numberInput({ value: 104, min: 1, max: 100000 });
   const out = h('div', { class: 'result' });
   let lastPdi = 0, lastDp = 0;
 
@@ -60,8 +61,8 @@ function makeMW(): HTMLElement {
     {
       id: 'msn-pol-02',
       prompt: 'Nylon-6,6 has a repeat unit of <b>226 g/mol</b>. Set the card up for a nylon-6,6 sample with a degree of polymerisation of <b>100</b>.',
-      meter: () => ({ label: `DP = ${lastDp.toFixed(0)}  ·  target 100 with repeat unit 226`, pct: Math.abs(Number(mrep.value) - 226) < 1 ? Math.max(0, 100 - Math.abs(lastDp - 100)) : 0 }),
-      check: () => Math.abs(Number(mrep.value) - 226) < 1 && Math.abs(lastDp - 100) < 0.5,
+      meter: () => ({ label: `DP = ${lastDp.toFixed(0)}  ·  target 100 with repeat unit 226`, pct: Math.abs(numVal(mrep) - 226) < 1 ? Math.max(0, 100 - Math.abs(lastDp - 100)) : 0 }),
+      check: () => Math.abs(numVal(mrep) - 226) < 1 && Math.abs(lastDp - 100) < 0.5,
       hints: [
         'Two boxes matter here: the repeat-unit mass and one of the averages. DP = M̄n/M(repeat).',
         'Rearrange: M̄n = DP × M(repeat) = 100 × 226.',
@@ -71,7 +72,7 @@ function makeMW(): HTMLElement {
   ]);
 
   const calc = () => {
-    const Mn = Number(mn.value), Mw = Number(mw.value), Mr = Number(mrep.value);
+    const Mn = numVal(mn), Mw = numVal(mw), Mr = numVal(mrep);
     if (Mn > 0 && Mw > 0 && Mr > 0) {
       const pdi = Mw / Mn;
       const dp = Mn / Mr;

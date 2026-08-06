@@ -20,17 +20,40 @@ import { h, card } from './framework';
 import { challengeLadder } from './challenge';
 import { topicById, type Ref } from '../topics';
 
+/**
+ * The official problem archives, shown under every module's reading list.
+ *
+ * Here rather than in each module's `refs`, because they are the same three
+ * links for all 25 modules and none of them is topic-specific — a per-topic
+ * copy would be 75 links to keep alive instead of 3.
+ *
+ * EVERY URL HERE WAS FETCHED AND CONFIRMED, and the list is short for exactly
+ * that reason. The obvious guesses were wrong: `cheminst.ca/education/
+ * national-chemistry-competitions/` 404s, and the CCC archive actually lives
+ * under `/discover/`. USNCO is deliberately absent — acs.org returns 403 to
+ * automated requests on every path, so its URL could not be verified, and an
+ * unverified link is worse than no link. Add it once someone has opened it in
+ * a real browser.
+ */
+const ARCHIVES: readonly Ref[] = [
+  { text: 'Canadian Chemistry Contest & Olympiad — past papers with solutions (Chemical Institute of Canada)', href: 'https://www.cheminst.ca/discover/canadian-chemistry-contest/', chapter: 'Parts A, B and C, 2014 onward' },
+  { text: 'IChO International Information Centre — every International Chemistry Olympiad since 1968', href: 'https://www.icho.sk/', chapter: 'Preparatory problems and competition problems' },
+];
+
 /** One shared renderer for a module's reading list (D.5). */
 export function references(refs: readonly Ref[]): HTMLElement {
+  const item = (r: Ref) => h('li', {},
+    r.href ? h('a', { href: r.href, target: '_blank', rel: 'noopener' }, r.text) : h('span', {}, r.text),
+    r.chapter ? h('span', { class: 'ref-chapter' }, ` — ${r.chapter}`) : null,
+  );
   return card('References',
     h('p', { class: 'section-lede' },
       'Where to read this properly. Chapter names rather than numbers, because the numbering moves between editions.'),
-    h('ul', { class: 'ref-list' }, ...refs.map(r => h('li', {},
-      r.href ? h('a', { href: r.href, target: '_blank', rel: 'noopener' }, r.text) : h('span', {}, r.text),
-      r.chapter ? h('span', { class: 'ref-chapter' }, ` — ${r.chapter}` ) : null,
-    ))),
+    h('ul', { class: 'ref-list' }, ...refs.map(item)),
+    h('h3', {}, 'Official past papers'),
+    h('ul', { class: 'ref-list' }, ...ARCHIVES.map(item)),
     h('p', { class: 'muted' },
-      'Past papers are linked, never reproduced, in the Question Bank under "Olympiad Questions".'),
+      'Linked, never reproduced — past papers are copyrighted by the bodies that set them. The Question Bank\'s own questions are all original.'),
   );
 }
 

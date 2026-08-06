@@ -1,6 +1,6 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, numberInput, numVal, type TabDef } from './framework';
 import { topicPage } from './page';
 import { STOICH_QUIZ } from './questions1';
 
@@ -93,11 +93,12 @@ export const stoichTab: TabDef = {
     rebuildControls();
 
     // ---- solution calculators ----
-    const num = (val: number, step = 0.01) => h('input', { type: 'number', value: val, step });
-    const m1 = num(6), v1 = num(50), m2 = num(0.5);
+    const m1 = numberInput({ value: 6, min: 0.001, max: 20, step: 0.01 });
+    const v1 = numberInput({ value: 50, min: 0.1, max: 10000, step: 0.01 });
+    const m2 = numberInput({ value: 0.5, min: 0.001, max: 20, step: 0.01 });
     const dilOut = h('div', { class: 'result' });
     const dilCalc = () => {
-      const vals = [Number(m1.value), Number(v1.value), Number(m2.value)];
+      const vals = [numVal(m1), numVal(v1), numVal(m2)];
       if (vals.every(v => v > 0)) {
         const v2 = (vals[0] * vals[1]) / vals[2];
         dilOut.innerHTML = `V₂ = M₁V₁/M₂ = <b>${v2.toFixed(1)} mL</b> total → add <b>${(v2 - vals[1]).toFixed(1)} mL</b> of water to the ${vals[1]} mL stock.`;
@@ -106,7 +107,9 @@ export const stoichTab: TabDef = {
     [m1, v1, m2].forEach(i => i.addEventListener('input', dilCalc));
     dilCalc();
 
-    const gIn = num(58.44), mmIn = num(58.44), vIn = num(250);
+    const gIn = numberInput({ value: 58.44, min: 0.001, max: 100000, step: 0.01 });
+    const mmIn = numberInput({ value: 58.44, min: 1, max: 5000, step: 0.01 });
+    const vIn = numberInput({ value: 250, min: 0.1, max: 100000, step: 0.01 });
     const molOut = h('div', { class: 'result' });
 
     const molMissions = missionLadder([
@@ -114,13 +117,13 @@ export const stoichTab: TabDef = {
         id: 'msn-stoich-02',
         prompt: 'Using the molarity tool below, find a mass/volume combination that makes exactly <b>0.100 M</b> — any molar mass, any volume, your choice.',
         meter: () => {
-          const g = Number(gIn.value), mm = Number(mmIn.value), v = Number(vIn.value);
+          const g = numVal(gIn), mm = numVal(mmIn), v = numVal(vIn);
           if (!(g > 0 && mm > 0 && v > 0)) return { label: 'enter mass, molar mass and volume', pct: 0 };
           const conc = (g / mm) / (v / 1000);
           return { label: `current: ${conc.toFixed(4)} M · target 0.100 M`, pct: Math.max(0, 100 - Math.abs(conc - 0.100) / 0.100 * 100) };
         },
         check: () => {
-          const g = Number(gIn.value), mm = Number(mmIn.value), v = Number(vIn.value);
+          const g = numVal(gIn), mm = numVal(mmIn), v = numVal(vIn);
           if (!(g > 0 && mm > 0 && v > 0)) return false;
           const conc = (g / mm) / (v / 1000);
           return Math.abs(conc - 0.100) / 0.100 < 0.02;
@@ -135,7 +138,7 @@ export const stoichTab: TabDef = {
     ]);
 
     const molCalc = () => {
-      const g = Number(gIn.value), mm = Number(mmIn.value), v = Number(vIn.value);
+      const g = numVal(gIn), mm = numVal(mmIn), v = numVal(vIn);
       if (g > 0 && mm > 0 && v > 0) {
         const n = g / mm;
         molOut.innerHTML = `n = m/M = ${n.toFixed(4)} mol → concentration = n/V = <b>${(n / (v / 1000)).toFixed(3)} mol/L</b>`;
@@ -159,10 +162,11 @@ export const stoichTab: TabDef = {
     );
 
     // ---- % yield / empirical ----
-    const actualIn = num(12.5), theoIn = num(15.8);
+    const actualIn = numberInput({ value: 12.5, min: 0, max: 100000, step: 0.01 });
+    const theoIn = numberInput({ value: 15.8, min: 0.001, max: 100000, step: 0.01 });
     const yOut = h('div', { class: 'result' });
     const yCalc = () => {
-      const a = Number(actualIn.value), t = Number(theoIn.value);
+      const a = numVal(actualIn), t = numVal(theoIn);
       if (a >= 0 && t > 0) yOut.innerHTML = `% yield = actual/theoretical × 100 = <b>${((a / t) * 100).toFixed(1)}%</b>` + (a > t ? ' <span class="trap">(>100% means product is wet/impure or you made an error)</span>' : '');
     };
     [actualIn, theoIn].forEach(i => i.addEventListener('input', yCalc));

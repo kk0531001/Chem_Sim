@@ -792,8 +792,79 @@ export function select(
   return h('label', { class: 'ctl' }, h('span', { class: 'ctl-label' }, label), sel);
 }
 
+/**
+ * A bounded numeric field (ROADMAP D.6).
+ *
+ * Sliders carry their limits in the DOM and cannot be driven outside them; a
+ * bare `<input type="number">` cannot be driven outside them by the *mouse*,
+ * but nothing stops a student typing 1e6 into it. That is not hypothetical:
+ * sweeping every control on the site to its extremes found exactly one broken
+ * readout, and it was a typed ΔH_vap overflowing exp() to "P₂ = Infinity atm".
+ *
+ * The bounds live on the element (`min`/`max`), so `numVal()` needs no state to
+ * clamp with, and the browser's own validity UI comes along free. Clamping is
+ * at READ time rather than on every keystroke: rewriting the field mid-edit
+ * makes it impossible to type "0.05" into a field whose minimum is 0.01,
+ * because the intermediate "0" would be snapped first.
+ */
+export function numberInput(opts: { value: number; min: number; max: number; step?: number }): HTMLInputElement {
+  return h('input', {
+    type: 'number', value: opts.value, min: opts.min, max: opts.max,
+    step: opts.step ?? 1, autocomplete: 'off',
+  });
+}
+
+/**
+ * The value of a `numberInput`, clamped to its own bounds and guaranteed
+ * finite. An empty or half-typed field reads as the minimum rather than NaN.
+ */
+export function numVal(el: HTMLInputElement): number {
+  const lo = Number(el.min), hi = Number(el.max);
+  const raw = Number(el.value);
+  if (!Number.isFinite(raw)) return Number.isFinite(lo) ? lo : 0;
+  return Math.min(Number.isFinite(hi) ? hi : raw, Math.max(Number.isFinite(lo) ? lo : raw, raw));
+}
+
 export function button(label: string, onClick: () => void, cls = ''): HTMLButtonElement {
   return h('button', { type: 'button', class: `btn ${cls}`, onclick: onClick }, label);
+}
+
+/**
+ * Does this reader want motion kept to a minimum?
+ *
+ * Read live rather than cached: the setting can change while the page is open,
+ * and the cost is a matchMedia lookup. `matchMedia` is guarded because it is
+ * absent in some test environments, and the default there is "no preference" —
+ * the same thing an unset OS preference reports.
+ */
+export function prefersReducedMotion(): boolean {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+}
+
+/**
+ * Play/pause for a simulation that would otherwise animate the moment you open
+ * the page (ROADMAP D.6).
+ *
+ * The rule this encodes: a decorative animation should be suppressed under
+ * `prefers-reduced-motion`, but these simulations ARE the lesson — suppressing
+ * them outright would remove the content. So the setting decides the *starting*
+ * state only. Reduced motion opens paused, showing a real, computed frame with
+ * a Play button; everyone else opens running. Either way the student controls it
+ * from then on, which is also what an animation-sensitive reader needs mid-page.
+ *
+ * `onChange` fires with the new state so a paused sim can still redraw once.
+ */
+export function playPause(onChange: (playing: boolean) => void): { el: HTMLButtonElement; playing: () => boolean } {
+  let playing = !prefersReducedMotion();
+  const btn = h('button', { type: 'button', class: 'btn play-pause' }, '');
+  const paint = () => {
+    btn.textContent = playing ? 'Pause' : 'Play';
+    btn.setAttribute('aria-pressed', String(playing));
+    btn.setAttribute('aria-label', playing ? 'Pause the simulation' : 'Play the simulation');
+  };
+  btn.addEventListener('click', () => { playing = !playing; paint(); onChange(playing); });
+  paint();
+  return { el: btn, playing: () => playing };
 }
 
 let pillSeq = 0;

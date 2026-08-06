@@ -231,8 +231,12 @@ export const TOPICS: TopicMeta[] = [
     blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and the four advanced CCO problem sets (PS1–PS4) with full worked solutions.',
     intro: 'Practice under exam conditions, in exam format. Part I is multiple choice by topic; Part II is free response with per-part worked solutions; Part III is lab scenarios; the CCO sets PS1–PS4 mirror the advanced problem sets; Integrated Challenges deliberately cross two areas at once; and the Olympiad Questions section holds five full-length original mock papers. <b>Every question here is original</b> — written to match the format and difficulty of real CCC/CCO/USNCO items, never copied from them. The real past papers are linked, as PDFs on the hosting bodies\' own sites, and never reproduced.',
     refs: [
-      { text: 'Chemical Institute of Canada — official CCC and CCO past papers', href: 'https://www.cheminst.ca/', chapter: 'Linked paper by paper under "Olympiad Questions"' },
-      { text: 'American Chemical Society — U.S. National Chemistry Olympiad past exams', href: 'https://www.acs.org/education/olympiad.html' },
+      // No href on the USNCO line: acs.org answers 403 to every automated
+      // request, so the URL could not be checked, and a reference that 404s is
+      // worse than one the reader searches for. The two archives that WERE
+      // verified are linked from `references()` on every module page.
+      { text: 'American Chemical Society — the U.S. National Chemistry Olympiad exams and study materials', chapter: 'Search "ACS Chemistry Olympiad"' },
+      { text: 'Chemical Institute of Canada — official CCC and CCO past papers', href: 'https://www.cheminst.ca/discover/canadian-chemistry-contest/', chapter: 'Also linked paper by paper under "Olympiad Questions"' },
     ] },
 ];
 

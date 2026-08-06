@@ -1,6 +1,6 @@
 // Gases, IMFs, phase diagrams, solutions: kinetic gas box, Maxwell-Boltzmann,
 // interactive phase diagrams, colligative properties.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
+import { h, card, playPause, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
 import { topicPage } from './page';
 import { GASES_QUIZ } from './questions2';
 
@@ -62,8 +62,11 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void; dest
     missions.tick();
   }
 
-  function frame(): void {
-    if (visible) {
+  // `visible` is the TAB's visibility; `play.playing()` is the student's choice.
+  // Both must be true to advance the particles — and under prefers-reduced-motion
+  // the second starts false, so the box opens as a still frame with a Play button.
+  const play = playPause(() => drawFrame());
+  function drawFrame(): void {
       const ctx = canvas.getContext('2d')!;
       const W = canvas.width, Hh = canvas.height;
       const boxW = W * (0.3 + 0.7 * (V - 5) / 45); // box width tracks V
@@ -78,17 +81,20 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void; dest
         if (p.y > 1) { p.y = 1; p.vy = -Math.abs(p.vy); }
         ctx.beginPath(); ctx.arc(4 + p.x * (boxW - 8), 4 + p.y * (Hh - 8), 2.5, 0, 7); ctx.fill();
       }
-    }
+  }
+  function frame(): void {
+    if (visible && play.playing()) drawFrame();
     frameId = requestAnimationFrame(frame);
   }
   frame();
+  drawFrame();   // one computed frame, so a paused box is not an empty box
   resync();
 
   const el = cardWithMissions('Kinetic molecular theory: the gas box (PV = nRT)', missions,
     slider({ label: 'n (mol)', min: 0.2, max: 3, step: 0.1, value: n, fmt: v => v.toFixed(1), onInput: v => { n = v; resync(); } }),
     slider({ label: 'T (K)', min: 50, max: 1000, step: 10, value: T, onInput: v => { T = v; resync(); } }),
     slider({ label: 'V (L)', min: 5, max: 50, step: 1, value: V, onInput: v => { V = v; resync(); } }),
-    canvas, out,
+    play.el, canvas, out,
   );
   return {
     el,

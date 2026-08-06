@@ -1,6 +1,6 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
-import { h, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, type TabDef, type TabHandle } from './framework';
+import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, numberInput, numVal, type TabDef, type TabHandle } from './framework';
 import { topicPage } from './page';
 import { EQUILIBRIUM_QUIZ } from './questions1';
 
@@ -101,8 +101,11 @@ export const equilibriumTab: TabDef = {
       missions.tick();
     }
 
+    // Tab visibility AND the student's play/pause both gate the integrator.
+    // Under prefers-reduced-motion the sim opens paused on a drawn frame.
+    const play = playPause(() => draw());
     function loop(): void {
-      if (visible) {
+      if (visible && play.playing()) {
         step();
         draw();
       }
@@ -111,7 +114,7 @@ export const equilibriumTab: TabDef = {
 
     const note = (msg: string) => { eventOut.textContent = msg; };
     const simCard = cardWithMissions('Live equilibrium: N₂O₄(g) ⇌ 2NO₂(g)  (colorless ⇌ brown, ΔH° = +57 kJ)', missions,
-      simCanvas, qkOut,
+      play.el, simCanvas, qkOut,
       h('div', {},
         button('+0.5 M N₂O₄', () => { A += 0.5; note('Added reactant → Q < K → shifts right: some of the added N₂O₄ converts, but [N₂O₄] still ends higher than before.'); }),
         button('+0.5 M NO₂', () => { B += 0.5; note('Added product → Q > K → shifts left, consuming part of the added NO₂.'); }),
@@ -214,8 +217,8 @@ export const equilibriumTab: TabDef = {
     let logC = -3.5;
     const kspOut = h('div', { class: 'result' });
     const qOut = h('div', { class: 'result' });
-    const catIn = h('input', { type: 'number', value: '0.001', step: '0.0001' });
-    const anIn = h('input', { type: 'number', value: '0.001', step: '0.0001' });
+    const catIn = numberInput({ value: 0.001, min: 1e-9, max: 10, step: 0.0001 });
+    const anIn = numberInput({ value: 0.001, min: 1e-9, max: 10, step: 0.0001 });
 
     // Exact common-ion solubility: solve (m·s)^m · (C + n·s)^n = Ksp for s.
     // The textbook shortcut drops the n·s the dissolving solid itself adds,
@@ -254,14 +257,14 @@ export const equilibriumTab: TabDef = {
         prompt: 'Switch the salt above to <b>Ag₂CrO₄</b>, then use the mixing-check calculator below: with the anion field (CrO₄²⁻) set to <b>0.010</b>, dial in the cation (Ag⁺) concentration at which the red Ag₂CrO₄ indicator is JUST about to precipitate (Q ≈ Ksp).',
         meter: () => {
           if (salt.name !== 'Ag₂CrO₄') return { label: 'select Ag₂CrO₄ above first', pct: 0 };
-          const an = Number(anIn.value), cat = Number(catIn.value);
+          const an = numVal(anIn), cat = numVal(catIn);
           if (!(an > 0 && cat > 0)) return { label: 'enter both concentrations below', pct: 0 };
           const Q = cat * cat * an;
           return { label: `Q = ${Q.toExponential(2)} vs Ksp = ${salt.ksp.toExponential(1)} · target Q ≈ Ksp`, pct: Math.min(100, (Q / salt.ksp) * 100) };
         },
         check: () => {
           if (salt.name !== 'Ag₂CrO₄') return false;
-          const an = Number(anIn.value), cat = Number(catIn.value);
+          const an = numVal(anIn), cat = numVal(catIn);
           if (!(an > 0 && cat > 0) || Math.abs(an - 0.010) / 0.010 > 0.05) return false;
           const Q = cat * cat * an;
           return Math.abs(Q - salt.ksp) / salt.ksp < 0.15;
@@ -304,7 +307,7 @@ export const equilibriumTab: TabDef = {
       qCalc();
     }
     function qCalc(): void {
-      const cat = Number(catIn.value), an = Number(anIn.value);
+      const cat = numVal(catIn), an = numVal(anIn);
       if (!(cat > 0 && an > 0)) { kspMissions.tick(); return; }
       const Q = Math.pow(cat, salt.m) * Math.pow(an, salt.n);
       qOut.innerHTML = `Q = [cation]^${salt.m}[anion]^${salt.n} = <b>${Q.toExponential(2)}</b> vs Ksp = ${salt.ksp.toExponential(1)} → ` +

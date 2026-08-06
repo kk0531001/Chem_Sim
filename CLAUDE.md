@@ -61,6 +61,20 @@ with a reason stated in the commit/summary.
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
   select, pills, plot, quiz, missionLadder) instead of hand-rolling DOM or
   canvas-axis code.
+- **Numeric input is always `numberInput({value, min, max, step})` read back
+  through `numVal()`** — never a bare `<input type="number">` (D.6). A slider
+  carries its limits in the DOM; a bare number field does not, and the one
+  broken readout on the whole site was a typed value overflowing `exp()` to
+  "Infinity atm". `numVal` clamps at read time (not on keystroke — that makes
+  "0.05" untypable in a min-0.01 field) and always returns a finite number.
+  Bounding is still not sufficient for an exponential: check `Number.isFinite`
+  before printing anything you got from `Math.exp`.
+- **A simulation that animates on its own is gated by `playPause()`**, whose
+  starting state comes from `prefersReducedMotion()`. The setting picks whether
+  it starts running — it never suppresses the animation, because in these
+  modules the motion IS the content. Paused must still show a real computed
+  frame, not an empty canvas.
+- Every `plot()` call passes `xLabel` and `yLabel`. All 28 do; keep it that way.
 - **The page contract** (ROADMAP D.4): a topic tab's `mount` appends exactly one
   `topicPage(id, { sims, quiz, theory })` from src/tabs/page.ts, which renders
   intro · theory · sims · quiz · challenge ladder · references in that order.

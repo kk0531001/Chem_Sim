@@ -1866,36 +1866,84 @@ explains, rather than one hoisted to the top of the page. They pass `theory: []`
 and the runtime check confirms the blocks exist. Hoisting them would separate
 each explanation from its simulation to satisfy a type.
 
-### D.5 References — **[ ]**
+### D.5 References — **[x] DONE** (mostly landed with D.4)
 
-Greenfield: nothing in `src/tabs/` mentions a textbook today.
+- [x] `refs: Ref[]` on `TopicMeta`, rendered by one shared `references()` helper
+      in page.ts. Data in topics.ts, per the single-source rule.
+- [x] 2–4 per module from Atkins · Zumdahl · Clayden · Shriver & Atkins · Levine
+      (plus Harris, Pavia, Miessler, Greenwood and Warren where those are the
+      standard text for the area). **Chapters are named, never numbered** —
+      numbering moves between editions and a stale "ch. 14" is worse than no
+      pointer at all.
+- [x] Archive links, in `ARCHIVES` in page.ts rather than copied into 25 `refs`
+      arrays: the same links serve every module and none is topic-specific.
+- [x] **Links only, never reproduction.**
 
-- [ ] `refs: Ref[]` on `TopicMeta` — `{ text, chapter?, href? }` — rendered by
-      one shared `references()` helper. Data in `topics.ts`, per the
-      single-source rule.
-- [ ] Per module: 2–4 of Atkins · Zumdahl · Clayden · Shriver & Atkins · Levine,
-      with the specific chapter, plus links to the official IChO / USNCO / CCC
-      problem archives.
-- [ ] **Links only to past papers, never reproduction** — the same copyright
-      rule that governs `bankOlympiad.ts`'s `OFFICIAL_PAPERS`.
+**Two links, not three, and every one of them was fetched before shipping.** The
+obvious guesses were wrong — `cheminst.ca/education/national-chemistry-
+competitions/` 404s, the CCC/CCO archive really lives under `/discover/`, and
+`ichosc.org` is the steering committee, which redirects to `icho.sk` for the
+problems. USNCO is deliberately **unlinked**: acs.org answers 403 to automated
+requests on every path, so its URL could not be verified and the reference
+carries the search term instead. Add the link once a human has opened it.
 
-### D.6 Simulation hardening — **[ ]**
+### D.6 Simulation hardening — **[x] DONE**
 
-"What happens if a student intentionally tries to break this?" Run every sim
-against the same list and record the pass in a table, the way C.4 records
-per-topic curation:
+"What happens if a student intentionally tries to break this?" — answered by
+**driving every control on the site to its extremes and reading the output**,
+rather than by re-reading 6 000 lines hoping to spot a division. The sweep is
+the table:
 
-- [ ] Numerical: NaN/Infinity guards on every division and `log`, clamped
-      slider ranges, no runaway integration at extreme parameters
-- [ ] Physical: T → 0 K, [A] → 0, pH 0 and 14, infinite dilution, single
-      particle, zero particles — each either behaves or is out of range
-- [ ] Presentation: units on every axis and readout, legends, sensible defaults,
-      responsive canvas, `prefers-reduced-motion` honoured
-- [ ] Missions: reachable, **not already satisfied by the default state**, and
-      every drive-the-sim mission has a `meter()` (the existing B.1 rule —
-      re-verify it for the D.4 backfill)
-- [ ] Reset returns the card to its documented initial state, including the
-      mission ladder's live meters (solved missions stay solved)
+| Probe | Result |
+| --- | --- |
+| Controls swept | **156** (every slider and number field outside the mission ladders) |
+| Values per control | min · max · 0 · −1 · 1e9 · empty |
+| Probes | **936** |
+| Non-finite output before the fix | 2 sites |
+| Non-finite output after | **0** |
+| Unbounded numeric fields before / after | **20 / 0** |
+
+- [x] Numerical: the sweep found exactly two failures, both in
+      Clausius–Clapeyron and both the *same* root cause — an unbounded
+      `<input type="number">`. A typed ΔH_vap of 10⁶ kJ/mol, and a T₁ of 1 K,
+      each overflowed `exp()` and printed "P₂ = Infinity atm".
+- [x] The fix is one shared `numberInput()` + `numVal()` in framework.ts, which
+      also **deleted six copies of the same one-line `num()` helper**. Bounds
+      live on the element, so `numVal()` clamps with no state of its own and the
+      browser's validity UI comes free. Clamping is at READ time, not on
+      keystroke: rewriting the field mid-edit makes it impossible to type "0.05"
+      into a field whose minimum is 0.01.
+- [x] **Bounding the inputs is not sufficient on its own** and the code says so:
+      an exponential still overflows for legal-but-extreme inputs, so the
+      Clausius readout tests `Number.isFinite` and explains itself instead of
+      printing "Infinity".
+- [x] Physical extremes: covered by the same sweep — every control's own min and
+      max *are* T → its floor, [A] → its floor, pH 0/14, infinite dilution. Zero
+      particles is the sandbox's default opening state, so it is exercised on
+      every visit.
+- [x] Presentation: all **28** `plot()` call sites carry both `xLabel` and
+      `yLabel` (checked by parsing the calls, not by eye); `.card canvas` is
+      already `max-width: 100%`.
+- [x] `prefers-reduced-motion`: three simulations auto-played (the gas box, the
+      live equilibrium, the sandbox). They are now play/pause-gated through a
+      shared `playPause()` helper, and **the setting picks the starting state
+      rather than suppressing the animation** — these sims *are* the lesson, so
+      removing the motion would remove the content. Reduced motion opens paused
+      on a real computed frame (verified: 3 643 drawn pixels, not an empty
+      canvas); everyone else opens running. Nuclear already started stopped.
+- [x] Missions: **68 total, 46 drive-the-sim, 0 of them without a `meter()`** —
+      the B.1 rule re-verified across the D.4 backfill by parsing every
+      `MissionDef`.
+- [x] Reset: shipped in D.4, and the meters follow it because the card's own
+      input handler is what re-runs.
+
+**Note for anyone re-running the sweep.** It has to run as ONE synchronous pass
+with `requestAnimationFrame` shimmed to call inline (with a re-entrancy guard —
+the animation loops re-schedule from inside their own callback and will recurse
+forever without it). The preview pane throttles both rAF and timers while it is
+hidden, and every slider coalesces its redraw through rAF, so a queue driven by
+`setInterval` stalls after ~30 of 936 probes and reports a clean run that never
+happened.
 
 ### D.7 Visual and typographic consistency — **[ ]**
 
