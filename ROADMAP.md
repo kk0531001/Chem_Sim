@@ -1363,11 +1363,101 @@ driving a slider and reading the readout in the same tick shows stale state and
 looks like a broken handler. It is not. Selects call their handler synchronously;
 sliders need a frame.
 
-**Not yet done:** organic — the largest topic left (190 questions), and best
-split into two passes: mechanisms/synthesis (`organic1/2/3`, `polymers`) and
-structure determination (`spectroscopy`, `structure`). Both have the same
-derived-Gold illusion as descriptive did, only 2 Part II FRQs, and zero missions
-across all six tabs.
+**Organic, part 1 — mechanisms & synthesis — done.** Covering `organic1`,
+`organic2`, `organic3` and `polymers` (101 module questions) plus the organic
+items in Part I/III and the mock papers. `spectroscopy` and `structure` are
+part 2 and are untouched here.
+
+Manual read found **no chemistry errors** — every mechanism call, Zaitsev/
+Hofmann assignment, aromaticity count and stereocentre count checked out,
+including the ones easiest to get wrong (`mock5-a-016`'s nine primary hydrogens
+in 2-methylbutane, `og3-022`'s conrotatory 4n thermal closure, `og3-016`'s
+migratory aptitude order). Three defects, all of wording or redundancy:
+
+- **`pol-023` had a garbled stem** — "Which is a reducing behaviour NOT expected
+  of a typical polyalkene", where "reducing" is meaningless. The answer was
+  right and the question was not answerable as written. Restated, with a `why`
+  that now closes the loop the original left open: the missing reactive site
+  that makes polyethylene inert to acids and bases is the same one that makes
+  it persist in the environment.
+- **`pol-003` and `pol-015`** were both "spot the condensation polymer"
+  (flagged at 0.60). `pol-015` now contrasts nylon-6 with nylon-6,6 — same
+  amide linkage, and only one of them a condensation polymer, because the
+  mechanism is decided by whether a small molecule is expelled and not by what
+  the linkage looks like. Nothing in the corpus had tested ring-opening
+  polymerisation.
+- **`mock3-a-016` and `p1-organic-001`** were both "name this branched alkyl
+  chain" (0.75). `mock3-a-016` is now a longest-chain error: 2-ethyl-3-
+  methylpentane is a correctly drawn structure with an incorrectly chosen
+  parent, and the answer is 3,4-dimethylhexane.
+
+  *A first draft of this replacement was itself wrong* — it asked students to
+  "correct" 3-ethyl-4-methylhexane, which is already correct: both numbering
+  directions give the locant set {3,4}, and the tie is broken by giving the
+  lower locant to the substituent cited first alphabetically, which is exactly
+  what that name does. Caught by working the rule through rather than trusting
+  the intuition that a name with two different substituents must have a lower
+  alternative.
+
+`p1-organic-007` / `mock4-a-017` stays flagged at 0.56 and is **deliberately
+kept**: one is a 2° alcohol going to a ketone, the other a 1° alcohol stopped at
+the aldehyde by limiting the oxidant. Same reagent, opposite teaching points.
+
+Added 5 new Part II FRQs (`p2-organic-003..007`, one Platinum):
+
+- `p2-organic-003` — kinetic vs thermodynamic control, from the 71:29 → 15:85
+  temperature flip in butadiene hydrobromination, and part (c) asks for the
+  experiment that *proves* equilibrium control (warm the isolated 1,2-adduct and
+  watch it convert). Part (d) carries the same logic to the two enolates of
+  2-methylcyclohexanone. The corpus mentioned LDA once and never tested this.
+- `p2-organic-004` (Platinum) — a Hammett analysis: extract ρ ≈ +2.2 from five
+  rate constants, then read the mechanism off it. Sign gives the charge type
+  (negative, so hydroxide attack building the tetrahedral alkoxide), magnitude
+  gives how much (more than twice the benzoic-acid reference, so a late TS
+  resembling the intermediate), and part (d) is the σ⁻ scale — a single point
+  off the line means the wrong substituent constant, whereas a *break* in slope
+  means the rate-determining step has changed.
+- `p2-organic-005` — enantiomeric excess, which the corpus never quantified.
+  50% ee is 75:25 and not 50:50; a zero rotation has three distinct causes; a
+  solvolysis giving 20% ee *inverted* is direct evidence for intimate ion pairs
+  rather than free carbocations; and resolution works by making the difference
+  diastereomeric.
+- `p2-organic-006` — Carothers with real numbers. Nylon-6,6's repeat unit is
+  226.31 g/mol; DP 100 needs p = 0.990 and DP 200 needs p = 0.995, so the last
+  half-percent of conversion doubles the chain; and a 2% stoichiometric excess
+  caps DP at 101 **even at complete conversion**. `pol-024` asserted the
+  equation, nothing made a student use it.
+- `p2-organic-007` — one Diels–Alder answering four questions: the s-cis
+  conformational requirement (why cyclopentadiene is fast and (2Z,4Z)-hexa-2,4-
+  diene is dead), the endo rule as kinetic control by secondary orbital overlap,
+  the "ortho/para" regiochemistry rule, and the Woodward–Hoffmann classification
+  with a 4n+2 thermal disrotatory closure worked through to a cis product.
+
+**Six missions, the first in any of these four tabs.** The decision engine's is
+the one that repays the effort: bulky bases give elimination on 1°, 2° and 3°
+substrates, so find the substrate where a bulky base still substitutes — methyl,
+because it has no β-hydrogen and elimination is not disfavoured but impossible.
+The EAS mission hunts the one substituent that deactivates and still directs
+ortho/para (the halogens, where induction sets the rate and resonance sets the
+position — two effects that everywhere else point the same way). The radical
+calculator asks for a case where the *least* reactive site gives the *major*
+product: isobutane's 9×1 against 1×5 gives 64.3% primary, which is why radical
+chlorination is preparatively useless; its follow-up asks why bromination
+reverses this, with Hammond against three plausible-sounding distractors. The
+two polymer missions drive PDI to exactly 1.00 (achievable only by living
+polymerisation, or by a protein) and set up nylon-6,6 at DP 100.
+
+`tsc --noEmit`, the build, the corpus audit and `test-router.mjs` are all clean,
+no console errors. All six missions were exercised live and confirmed unsolved
+at the default state first — two of them also confirmed to reject the near-miss
+case (a bulky base on a *secondary* substrate, and –NO₂ as a deactivator that
+directs meta). Near-duplicate pairs corpus-wide: 26 → 23. Organic moved from
+89 Gold/6 Platinum to 93/7 (of 195).
+
+**Not yet done:** organic part 2 — `spectroscopy` and `structure`, the two
+structure-determination modules. Same derived-Gold illusion, no missions, and
+the only existing depth is in `cco-ps2-*` and `int-org-spec-*`, which sit in
+different banks from the module quizzes.
 
 ---
 

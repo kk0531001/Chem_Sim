@@ -1,6 +1,6 @@
 // Organic II: alkene addition (Markovnikov), EAS directing effects,
 // carbonyl reaction map, molecular symmetry / point groups.
-import { h, card, theory, select, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { ORGANIC2_QUIZ } from './questions2';
 
@@ -76,13 +76,31 @@ function easSVG(dir: 'op' | 'm'): string {
 function makeEAS(): HTMLElement {
   const ring = h('div', {});
   const out = h('div', { class: 'result' });
+  let current = 0;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-og2-01',
+      prompt: 'Step through the substituents. Every activator here directs ortho/para and every deactivator directs meta — except one. Find the substituent that <b>deactivates the ring and still directs ortho/para</b>.',
+      meter: () => ({ label: `${EAS_SUBS[current].g} — ${EAS_SUBS[current].cls}, ${EAS_SUBS[current].dir === 'op' ? 'ortho/para' : 'meta'}`, pct: EAS_SUBS[current].cls.includes('DEACTIVATOR') && EAS_SUBS[current].dir === 'op' ? 100 : 0 }),
+      check: () => EAS_SUBS[current].cls.includes('DEACTIVATOR') && EAS_SUBS[current].dir === 'op',
+      hints: [
+        'Rate and regiochemistry are decided by two different electronic effects. Which substituent has one of each, pulling in opposite directions?',
+        'Look for an atom that is strongly electronegative but still carries lone pairs.',
+      ],
+      explain: 'The halogens are the exception, and they are the exception because <b>the two effects are separable</b>. Induction and resonance answer two different questions: induction sets the <em>rate</em> — chlorine is electronegative and drains σ density from the ring, so every position reacts more slowly than benzene. Resonance sets the <em>position</em> — a chlorine lone pair can still be donated into the ring, and that donation stabilises the arenium ion only when the electrophile attacks ortho or para. So the ring is deactivated overall, yet what little reaction occurs goes o/p. Everything else on this list has both effects pointing the same way, which is why the "activator ⇒ o/p" shortcut works everywhere else and fails here.',
+    },
+  ]);
+
   const set = (v: string) => {
-    const s = EAS_SUBS[Number(v)];
+    current = Number(v);
+    const s = EAS_SUBS[current];
     ring.innerHTML = easSVG(s.dir);
     out.innerHTML = `<b>${s.g}</b>: ${s.cls}, directs <b>${s.dir === 'op' ? 'ortho/para' : 'meta'}</b> (rate ${s.rate})<p>${s.note}</p>`;
+    missions.tick();
   };
   const el = h('div', { class: 'cards' },
-    card('EAS directing effects — where does the electrophile go?',
+    cardWithMissions('EAS directing effects — where does the electrophile go?', missions,
       select('substituent already on ring', EAS_SUBS.map((s, i) => ({ value: String(i), label: `${s.g} (${s.cls})` })), set, '0'),
       ring, out,
       h('p', { class: 'muted' }, 'Green = favored attack positions. Rule of thumb: lone pair on the attached atom → o/p director; positive/π-withdrawing attached atom → meta.'),

@@ -1,6 +1,6 @@
 // Polymers — monomer↔polymer explorer, MW/PDI/DP calculator, and the
 // addition-vs-condensation reference. (IChO area 12.)
-import { h, card, theory, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { POLYMERS_QUIZ } from './questions5';
 
@@ -43,20 +43,49 @@ function makeMW(): HTMLElement {
   const num = (v: number, step = 1) => h('input', { type: 'number', value: v, step });
   const mn = num(20000, 100), mw = num(30000, 100), mrep = num(104, 1);
   const out = h('div', { class: 'result' });
+  let lastPdi = 0, lastDp = 0;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-pol-01',
+      prompt: 'The card opens on PDI = 1.50, a typical radical-polymerised sample. Set the two averages so the <b>PDI is exactly 1.00</b>.',
+      meter: () => ({ label: `PDI = ${lastPdi.toFixed(2)}  ·  target 1.00`, pct: lastPdi > 0 ? Math.max(0, 100 - Math.abs(lastPdi - 1) * 100) : 0 }),
+      check: () => Math.abs(lastPdi - 1) < 0.005,
+      hints: [
+        'PDI = M̄w/M̄n. What relationship between the two averages makes their ratio one?',
+        'Try setting M̄w equal to M̄n — any equal pair will do.',
+      ],
+      explain: 'PDI = 1 requires M̄w = M̄n, and the two averages coincide only when <b>every chain has exactly the same length</b> — the weight average over-counts long chains, so any spread at all pushes M̄w above M̄n. PDI can never fall below 1. Real chain-growth polymers land near 1.5–2.0 (termination is random), step-growth near 2.0, and only <b>living</b> polymerisations — where every chain starts at the same moment and none terminates — approach 1.02–1.05. Nature does better than any of them: a protein has PDI exactly 1.000, because its length is transcribed rather than left to statistics.',
+    },
+    {
+      id: 'msn-pol-02',
+      prompt: 'Nylon-6,6 has a repeat unit of <b>226 g/mol</b>. Set the card up for a nylon-6,6 sample with a degree of polymerisation of <b>100</b>.',
+      meter: () => ({ label: `DP = ${lastDp.toFixed(0)}  ·  target 100 with repeat unit 226`, pct: Math.abs(Number(mrep.value) - 226) < 1 ? Math.max(0, 100 - Math.abs(lastDp - 100)) : 0 }),
+      check: () => Math.abs(Number(mrep.value) - 226) < 1 && Math.abs(lastDp - 100) < 0.5,
+      hints: [
+        'Two boxes matter here: the repeat-unit mass and one of the averages. DP = M̄n/M(repeat).',
+        'Rearrange: M̄n = DP × M(repeat) = 100 × 226.',
+      ],
+      explain: 'M̄n = 100 × 226 = <b>22 600 g/mol</b> — a hundred repeat units, each one a diamine and a diacid joined with two molecules of water expelled. Now put that beside the Carothers equation below the readout: DP = 1/(1−p), so DP = 100 demands <b>p = 0.990</b>. Ninety-nine percent of every amine and acid group in the pot must have found a partner to reach a chain of only a hundred units, and pushing to DP 200 needs 99.5%. Step-growth molar mass lives entirely in the last fraction of a percent of conversion — which is why nylon is polymerised for hours under vacuum, stripping water to drag the equilibrium forward.',
+    },
+  ]);
+
   const calc = () => {
     const Mn = Number(mn.value), Mw = Number(mw.value), Mr = Number(mrep.value);
     if (Mn > 0 && Mw > 0 && Mr > 0) {
       const pdi = Mw / Mn;
       const dp = Mn / Mr;
+      lastPdi = pdi; lastDp = dp;
       out.innerHTML =
         `PDI = Mᵂ/Mₙ = <b class="big">${pdi.toFixed(2)}</b> ${pdi < 1 ? '<span class="trap">(PDI &lt; 1 is impossible — Mᵂ ≥ Mₙ always)</span>' : pdi < 1.1 ? '(very narrow distribution)' : '(broad distribution)'}<br>` +
         `degree of polymerization = Mₙ/M_repeat = <b>${dp.toFixed(0)}</b> repeat units per chain<br>` +
         `<span class="muted">Mᵂ weights larger chains more, so Mᵂ ≥ Mₙ; equal only for perfectly uniform chains (PDI = 1).</span>`;
     }
+    missions.tick();
   };
   [mn, mw, mrep].forEach(i => i.addEventListener('input', calc));
   calc();
-  const el = card('Molar mass, PDI & degree of polymerization',
+  const el = cardWithMissions('Molar mass, PDI & degree of polymerization', missions,
     h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Mₙ (number-avg)'), mn),
     h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Mᵂ (weight-avg)'), mw),
     h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'M of repeat unit'), mrep),

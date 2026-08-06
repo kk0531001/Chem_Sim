@@ -1,7 +1,7 @@
 // Organic III — synthesis & advanced mechanisms: retrosynthesis, protecting
 // groups, radical mechanisms + selectivity, rearrangements, and an intro to
 // pericyclic reactions (Woodward–Hoffmann).
-import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { ORGANIC3_QUIZ } from './questions6';
 
@@ -15,6 +15,41 @@ function makeRadicalSelectivity(): HTMLElement {
   let hal: keyof typeof HAL = 'Cl₂ (chlorination)';
   let nP = 6, nS = 2, nT = 1; // e.g. 2-methylbutane-ish counts
   const out = h('div', { class: 'result' });
+  // The card's own weights, so a mission can never disagree with the table.
+  const share = (which: 'p' | 's' | 't'): number => {
+    const r = HAL[hal];
+    const w = { p: nP * r.p, s: nS * r.s, t: nT * r.t };
+    const tot = w.p + w.s + w.t || 1;
+    return (w[which] / tot) * 100;
+  };
+
+  const missions = missionLadder([
+    {
+      id: 'msn-og3-01',
+      prompt: 'Keep the halogen on <b>chlorination</b>. Per hydrogen, a 1° site is the least reactive of the three — yet find a substrate where the <b>1° product is nonetheless the major one</b> (over 50%).',
+      meter: () => ({ label: `1° product ${share('p').toFixed(1)}%  ·  target > 50% (chlorination)`, pct: hal.startsWith('Cl') ? Math.min(100, share('p') * 2) : 0 }),
+      check: () => hal.startsWith('Cl') && share('p') > 50,
+      hints: [
+        'The product ratio multiplies two things. You cannot change the per-H rates, so change the other one.',
+        'Isobutane, (CH₃)₃CH, has nine 1° hydrogens and a single 3° one. Try those counts.',
+      ],
+      explain: 'With nine 1° H and one 3° H, the weights are 9×1 = 9 against 1×5 = 5, so the 1° product wins with about 64% despite every individual 1° hydrogen being five times less reactive. <b>Product ratio = (number of hydrogens) × (per-H rate)</b>, and with chlorination the first factor routinely beats the second. This is why radical chlorination is nearly useless preparatively — it gives a mixture governed mostly by counting — and why "the most stable radical forms" is a statement about <em>per-hydrogen rate</em>, not about what comes out of the flask.',
+    },
+    {
+      id: 'msn-og3-02',
+      prompt: 'Leave those same counts alone and switch the halogen to <b>bromination</b>. The major product changes completely. What is the underlying reason?',
+      choices: [
+        { label: 'Br• abstraction is endothermic, so the TS is late and radical-like', value: 'hammond' },
+        { label: 'Br₂ is a weaker bond, so it dissociates more easily', value: 'bde' },
+        { label: 'Bromine atoms are larger and cannot reach 1° hydrogens', value: 'steric' },
+        { label: 'Bromination runs at a lower temperature', value: 'temp' },
+      ],
+      validateChoice: v => v === 'hammond',
+      explain: 'Abstraction of H by Br• is <b>endothermic</b>, so by Hammond\'s postulate its transition state comes late and closely resembles the carbon radical being formed. The TS therefore inherits nearly the full stability difference between a 3° and a 1° radical, and the per-H rates spread out to 1 : 82 : 1600. Cl• abstraction is exothermic, its TS is early and resembles the starting alkane, and the radical-stability difference is barely felt — hence 1 : 3.8 : 5. Same reaction type, same radicals, opposite synthetic usefulness, and the whole difference is <em>where along the reaction coordinate</em> the transition state sits. Sterics are not the cause: bromine is selective for the <em>most hindered</em> position.',
+      hints: ['Compare the two rows of per-H rates: 1 : 3.8 : 5 against 1 : 82 : 1600. What makes one reaction able to tell the sites apart and the other not?'],
+    },
+  ]);
+
   function calc(): void {
     const r = HAL[hal];
     const wp = nP * r.p, ws = nS * r.s, wt = nT * r.t;
@@ -29,8 +64,9 @@ function makeRadicalSelectivity(): HTMLElement {
       (hal.startsWith('Br')
         ? '<span class="muted">Bromination is <b>highly selective</b> — the 3° product dominates even when 3° H are few, because Br• abstraction is endothermic → a late, radical-like TS (Hammond).</span>'
         : '<span class="muted">Chlorination is <b>nearly statistical</b> — with many 1° H, the 1° product often wins despite lower per-H reactivity. Its early TS barely distinguishes the sites.</span>');
+    missions.tick();
   }
-  const el = card('Radical halogenation — selectivity calculator',
+  const el = cardWithMissions('Radical halogenation — selectivity calculator', missions,
     select('halogen', Object.keys(HAL).map(k => ({ value: k, label: k })), v => { hal = v as keyof typeof HAL; calc(); }, hal),
     slider({ label: '# of 1° H', min: 0, max: 12, step: 1, value: nP, onInput: v => { nP = v; calc(); } }),
     slider({ label: '# of 2° H', min: 0, max: 12, step: 1, value: nS, onInput: v => { nS = v; calc(); } }),

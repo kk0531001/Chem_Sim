@@ -1,6 +1,6 @@
 // Organic I: substrate/mechanism decision engine (SN1/SN2/E1/E2),
 // pKa ladder, carbocation stability.
-import { h, card, theory, select, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, plot, linspace, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { ORGANIC1_QUIZ } from './questions2';
 
@@ -109,12 +109,28 @@ export const organic1Tab: TabDef = {
     let sub: Sub = 'secondary', reag: Reag = 'strongBase', solv: Solv = 'protic', heat = false;
     const verdictOut = h('div', { class: 'result' });
     const profCanvas = h('canvas', { width: 440, height: 220 });
+
+    const deciderMissions = missionLadder([
+      {
+        id: 'msn-og1-01',
+        prompt: 'A bulky base (t-BuO⁻, LDA) gives elimination on primary, secondary and tertiary substrates alike. Find the <b>one</b> substrate where a bulky base still gives clean substitution.',
+        meter: () => ({ label: `${sub} + ${reag === 'bulkyBase' ? 'bulky base' : 'not the bulky base yet'}`, pct: reag === 'bulkyBase' ? (sub === 'methyl' ? 100 : 50) : 0 }),
+        check: () => sub === 'methyl' && reag === 'bulkyBase',
+        hints: [
+          'Elimination has a structural requirement that substitution does not. What must a substrate possess before E2 can happen at all?',
+          'E2 removes a proton from the carbon NEXT to the leaving group. Which substrate has no such carbon?',
+        ],
+        explain: 'Methyl halides have <b>no β-hydrogen</b> — there is no carbon adjacent to the C–X bond, so there is nothing for a base to remove and elimination is not merely disfavoured but impossible. However bulky and however basic the reagent, the only reaction available is backside attack, and CH₃–X is the least hindered substrate there is. The lesson generalises: before weighing sterics, basicity and solvent, check whether the substrate can physically support the mechanism. Structure vetoes; conditions only choose among what is left.',
+      },
+    ]);
+
     function update(): void {
       const { verdict, why } = decide(sub, reag, solv, heat);
       verdictOut.innerHTML = `<b class="big">${verdict}</b><ul>${why.map(w => `<li>${w}</li>`).join('')}</ul>`;
       energyProfile(profCanvas, !(verdict.includes('SN1') || verdict.includes('E1')));
+      deciderMissions.tick();
     }
-    const deciderCard = card('SN1 / SN2 / E1 / E2 decision engine',
+    const deciderCard = cardWithMissions('SN1 / SN2 / E1 / E2 decision engine', deciderMissions,
       select('substrate', SUBSTRATES, v => { sub = v as Sub; update(); }, sub),
       select('nucleophile/base', REAGENTS, v => { reag = v as Reag; update(); }, reag),
       select('solvent', SOLVENTS, v => { solv = v as Solv; update(); }, solv),
