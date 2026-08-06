@@ -1945,16 +1945,49 @@ hidden, and every slider coalesces its redraw through rAF, so a queue driven by
 `setInterval` stalls after ~30 of 936 probes and reports a clean run that never
 happened.
 
-### D.7 Visual and typographic consistency — **[ ]**
+### D.7 Visual and typographic consistency — **[x] DONE**
 
-- [ ] Spacing scale as CSS custom properties; one card style; lighter rules and
-      softer shadows; larger section titles
-- [ ] Heading hierarchy fixed by `topicPage()` (D.4) rather than per-tab
-- [ ] Equation, table, list and callout spacing set once in `style.css`
-- [ ] Hover and collapse transitions ≤ 150 ms, all behind
-      `prefers-reduced-motion`
-- [ ] Break long theory into **concept → visualization → example → summary**;
-      no block of prose longer than ~120 words without a figure or an equation
+Counted first, so the work had a target rather than a taste: the stylesheet held
+**42 distinct spacing values, 14 radii, 9 shadows and 9 transition durations**.
+
+- [x] Scales as custom properties in `:root` — `--s-1…--s-8`, `--r-sm/md/lg/pill`,
+      `--shadow-1/2/3`, `--t` / `--t-enter`.
+- [x] **The 400 existing hard-coded spacing values were deliberately NOT
+      mass-rewritten** to the nearest step. A mechanical sweep over spacing is a
+      large invisible diff with a real chance of nudging a layout somebody tuned
+      by hand, and what it would buy is prevention of *future* drift — which the
+      tokens buy on their own. What was collapsed is the smaller, checkable set:
+      **14 radii → 4 tokens, 9 shadows → 3, 9 durations → 2**, all of them
+      visually interchangeable values whose inconsistency *was* the defect.
+- [x] Lighter rules and softer shadows: the card shadow drops from
+      `0 1px 4px/0.04` with a `0 4px 16px` hover to `--shadow-1/2`, and the card
+      title's underline goes from `--rule` to the softer `--paper-3`.
+- [x] Larger section titles: `.card h2` 17 → **19 px**. At 17 it carried less
+      visual weight than the body copy beneath it, which is the wrong order for
+      the only text naming what a simulation is.
+- [x] Heading hierarchy is owned by `topicPage()` + `card()` (D.4), not per-tab.
+- [x] **Equation spacing set once.** `.eq` was written twice — in `.theory` with
+      a wash, an accent rule and 8/13 px padding, and again in `.result` with no
+      padding and a different margin — so the same equation changed shape
+      depending on which container it landed in. There is now one `.eq` that
+      owns the box, and the two contexts override **colour only** (`.result`
+      sits on a dark instrument panel).
+- [x] Hover and collapse transitions ≤ 150 ms: every one of the 23 transitions
+      is now `var(--t)` or `var(--t-enter)`, except one. `.bar-fill` keeps 0.3 s
+      and says why in the source: it reports a *value* changing (a mission meter
+      filling), not a hover state, and at 150 ms the fill reads as a jump. All of
+      them are already killed by the existing `prefers-reduced-motion` block.
+- [x] No block of prose over ~120 words without a figure or an equation —
+      **measured in the browser across all 33 theory blocks**, walking each body
+      and resetting the word count at every heading, equation, table or canvas.
+      Two blocks failed (Electrochemistry essentials at 153 words, Coordination
+      chemistry essentials at 130) and both were split with a sub-heading and an
+      equation. Now 0 of 33; the worst is 115.
+
+The first measurement pass scored **0 for every block** and was wrong — every
+direct child of a theory body is a heading, list, table or equation, so a naive
+walk counts nothing. The number above comes from counting the text *inside*
+lists, so a 300-word `<ul>` cannot hide.
 
 ### D.8 Question bank navigation — **[ ]**
 

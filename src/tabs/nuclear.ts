@@ -244,8 +244,15 @@ function makeCoordination(): HTMLElement {
 <li>Coordination number & geometry: 6 → octahedral, 4 → tetrahedral or square planar (d⁸: Ni²⁺/Pd²⁺/Pt²⁺ with strong ligands), 2 → linear (Ag⁺).</li>
 <li>Ligand denticity: en, ox²⁻ bidentate; EDTA hexadentate. <b>Chelate effect</b>: polydentate binding is entropy-favored (more free particles released).</li>
 <li>Spectrochemical series: I⁻ &lt; Br⁻ &lt; Cl⁻ &lt; F⁻ &lt; OH⁻ &lt; H₂O &lt; NH₃ &lt; en &lt; NO₂⁻ &lt; CN⁻ ≈ CO.</li>
-<li>Octahedral splitting: t₂g (dxy, dxz, dyz) down 0.4Δo; eg (dz², dx²−y²) up 0.6Δo — eg points AT the ligands.</li>
-<li>Low spin happens only for d⁴–d⁷ octahedral with strong-field ligands (pairing energy &lt; Δo).</li>
+</ul>
+<h4>Crystal-field splitting</h4>
+<span class="eq">LFSE(oct) = (−0.4·n(t₂g) + 0.6·n(e_g))Δ₀ &nbsp;·&nbsp; low spin only when Δ₀ &gt; pairing energy</span>
+<ul>
+<li>t₂g (d<sub>xy</sub>, d<sub>xz</sub>, d<sub>yz</sub>) drops 0.4Δ₀; e_g (d<sub>z²</sub>, d<sub>x²−y²</sub>) rises 0.6Δ₀ — e_g points straight AT the ligands, which is why it costs more.</li>
+<li>Low spin happens only for d⁴–d⁷ octahedral with strong-field ligands.</li>
+</ul>
+<h4>Isomerism and naming</h4>
+<ul>
 <li>Isomers: ionization ([CoBr(NH₃)₅]SO₄ vs [CoSO₄(NH₃)₅]Br), linkage (NO₂⁻ vs ONO⁻), cis/trans, fac/mer, and optical (Δ/Λ for tris-chelates).</li>
 <li>Naming: ligands alphabetically, metal oxidation state in Roman numerals; -ate suffix if the complex is an anion (ferrate, cuprate).</li>
 </ul>`),

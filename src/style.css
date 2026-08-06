@@ -43,6 +43,46 @@
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ---- the scales (ROADMAP D.7) ----
+     Counted before writing these: the stylesheet held 42 distinct spacing
+     values, 14 radii, 9 shadows and 9 transition durations, which is what
+     "every page should feel like the same application" fails on.
+
+     These tokens are the vocabulary for NEW rules and for every rule touched
+     from here on. The 400 existing hard-coded values were deliberately NOT
+     mass-rewritten to the nearest step: a mechanical sweep over spacing is a
+     large invisible diff with a real chance of nudging a layout that was tuned
+     by hand, and the drift it prevents is future drift, which tokens prevent
+     just as well. What DID get collapsed is the smaller, checkable set —
+     radii, shadows and durations — where the values are visually
+     interchangeable and the inconsistency is the whole defect. */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 96px;
+
+  --r-sm: 6px;    /* chips, small buttons, inline marks */
+  --r-md: 10px;   /* controls, canvases, panels */
+  --r-lg: 14px;   /* cards and other large surfaces */
+  --r-pill: 999px;
+
+  /* Lighter than before: the card shadow was 0 1px 4px / 0.04 with a 0 4px 16px
+     hover, and the topic cards lifted 28px on focus. Shadow here is depth cueing
+     on paper, not drama. */
+  --shadow-1: 0 1px 3px rgba(28, 30, 33, 0.035);
+  --shadow-2: 0 3px 12px rgba(28, 30, 33, 0.05);
+  --shadow-3: 0 8px 22px rgba(28, 30, 33, 0.07);
+
+  /* D.7: hover and collapse transitions ≤ 150 ms. --t-enter is for one-shot
+     entrances (scroll reveals), which are not hover feedback and are killed
+     outright by the prefers-reduced-motion block below. */
+  --t: 0.15s;
+  --t-enter: 0.4s;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -124,7 +164,7 @@ body { overflow: hidden; }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--rule-2); border-radius: 5px; border: 2px solid var(--paper); }
+::-webkit-scrollbar-thumb { background: var(--rule-2); border-radius: var(--r-sm); border: 2px solid var(--paper); }
 ::-webkit-scrollbar-thumb:hover { background: #b0a890; }
 
 /* shared wordmark tile */
@@ -135,7 +175,7 @@ body { overflow: hidden; }
   width: 30px;
   height: 30px;
   border: 1.5px solid var(--ink);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-family: var(--serif);
   font-weight: 700;
   font-size: 15px;
@@ -209,9 +249,9 @@ body { overflow: hidden; }
   width: 270px;
   background: var(--paper-2);
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 16px;
-  box-shadow: 0 10px 30px rgba(28, 30, 33, 0.14);
+  box-shadow: var(--shadow-3);
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -224,7 +264,7 @@ body { overflow: hidden; }
   justify-content: center;
   gap: 9px;
   padding: 9px 14px;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   border: 1px solid var(--rule-2);
   background: var(--paper-2);
   color: var(--ink);
@@ -232,7 +272,7 @@ body { overflow: hidden; }
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color var(--t), background var(--t);
 }
 .acc-google-btn:hover { border-color: var(--ink); background: var(--paper); }
 .acc-divider {
@@ -249,7 +289,7 @@ body { overflow: hidden; }
   background: var(--paper);
   color: var(--ink);
   border: 1px solid var(--rule-2);
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   padding: 8px 10px;
   font: inherit;
   font-size: 13px;
@@ -299,12 +339,12 @@ body { overflow: hidden; }
   font-size: 15px;
   font-weight: 600;
   padding: 12px 26px;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   border: 1px solid var(--accent-darker);
   cursor: pointer;
   color: #fff;
   background: var(--accent-dark);
-  transition: background 0.15s;
+  transition: background var(--t);
 }
 .btn-hero:hover { background: var(--accent-darker); }
 .btn-ghost {
@@ -312,12 +352,12 @@ body { overflow: hidden; }
   font-size: 14.5px;
   font-weight: 500;
   padding: 11px 20px;
-  border-radius: 8px;
+  border-radius: var(--r-md);
   cursor: pointer;
   color: var(--ink);
   background: transparent;
   border: 1px solid var(--rule-2);
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color var(--t), background var(--t);
 }
 .btn-ghost:hover { border-color: var(--ink); background: var(--paper-2); }
 
@@ -325,10 +365,10 @@ body { overflow: hidden; }
 .figure {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 10px;
 }
-.figure canvas, .figure svg { display: block; width: 100%; border-radius: 6px; }
+.figure canvas, .figure svg { display: block; width: 100%; border-radius: var(--r-sm); }
 .fig-cap {
   font-size: 12.5px;
   color: var(--ink-dim);
@@ -341,7 +381,7 @@ body { overflow: hidden; }
 .hero-in, .reveal {
   opacity: 0;
   transform: translateY(12px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
+  transition: opacity var(--t-enter) ease, transform var(--t-enter) ease;
 }
 .hero-in.visible, .reveal.visible { opacity: 1; transform: none; }
 
@@ -404,7 +444,7 @@ body { overflow: hidden; }
 .path-card {
   background: var(--paper-2);
   border: 1px solid rgba(28, 30, 33, 0.05);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 24px;
 }
 .path-card h3 { font-family: var(--serif); font-size: 19px; margin-bottom: 10px; }
@@ -434,7 +474,7 @@ body { overflow: hidden; }
 .comp-card {
   background: var(--paper-2);
   border: 1px solid rgba(28, 30, 33, 0.05);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 20px;
 }
 .comp-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -466,15 +506,15 @@ body { overflow: hidden; }
 .topic-card {
   background: var(--paper-2);
   border: 1px solid rgba(28, 30, 33, 0.05);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 24px;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(28, 30, 33, 0.04);
-  transition: box-shadow 0.2s ease, transform 0.2s ease,
-    opacity 0.4s ease;
+  box-shadow: var(--shadow-1);
+  transition: box-shadow var(--t) ease, transform var(--t) ease,
+    opacity var(--t-enter) ease;
 }
 .topic-card:hover,
-.topic-card:focus-within { box-shadow: 0 10px 28px rgba(28, 30, 33, 0.09); transform: translateY(-3px); }
+.topic-card:focus-within { box-shadow: var(--shadow-3); transform: translateY(-3px); }
 .topic-card.span2 { grid-column: span 2; }
 @media (max-width: 700px) { .topic-card.span2 { grid-column: span 1; } }
 .topic-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -484,7 +524,7 @@ body { overflow: hidden; }
   height: 30px;
   color: var(--accent-dark);
   opacity: 0.85;
-  transition: transform 0.2s ease;
+  transition: transform var(--t) ease;
 }
 .topic-icon svg { width: 100%; height: 100%; }
 .topic-card:hover .topic-icon { transform: scale(1.08) rotate(-4deg); }
@@ -534,7 +574,7 @@ body { overflow: hidden; }
   font-weight: 700;
   letter-spacing: 0.4px;
   padding: 2px 7px;
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   border: 1px solid transparent;
 }
 .badge-ccc { background: rgba(47, 158, 68, 0.1); color: #227031; border-color: rgba(47, 158, 68, 0.25); }
@@ -551,7 +591,7 @@ body { overflow: hidden; }
   align-items: center;
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
+  transition: opacity var(--t-enter) ease, transform var(--t-enter) ease;
 }
 .feature.visible { opacity: 1; transform: none; }
 .feature.right .feature-text { order: 2; }
@@ -584,7 +624,7 @@ body { overflow: hidden; }
   margin-top: 18px;
   padding: 10px 14px;
   border: 1px solid var(--rule-2);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: var(--paper-2);
   color: var(--ink);
   font: inherit;
@@ -638,7 +678,7 @@ body { overflow: hidden; }
   color: var(--ink-faint);
   padding: 16px 10px 6px;
   cursor: pointer;
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   /* Replace the UA disclosure triangle with the line-art chevron below —
      ::-webkit-details-marker is still needed for older WebKit. */
   list-style: none;
@@ -651,14 +691,14 @@ body { overflow: hidden; }
   letter-spacing: 0.5px;
   color: var(--ink-faint);
   background: var(--paper-2);
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   padding: 1px 6px;
 }
 .nav-group-chevron {
   display: flex;
   width: 11px;
   height: 11px;
-  transition: transform 0.15s;
+  transition: transform var(--t);
 }
 .nav-group-chevron svg { width: 100%; height: 100%; }
 .nav-group[open] > .nav-group-head > .nav-group-chevron { transform: rotate(90deg); }
@@ -679,7 +719,7 @@ body { overflow: hidden; }
   border-radius: 0 7px 7px 0;
   padding: 7px 12px;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
+  transition: background var(--t), color var(--t), border-color var(--t);
 }
 .nav-item:hover { color: var(--ink); background: var(--paper-2); }
 #menu-link {
@@ -691,10 +731,10 @@ body { overflow: hidden; }
   color: var(--ink);
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
-  border-radius: 8px;
+  border-radius: var(--r-md);
   padding: 8px 12px;
   cursor: pointer;
-  transition: border-color 0.13s;
+  transition: border-color var(--t);
 }
 #menu-link:hover { border-color: var(--accent); }
 .nav-item.active {
@@ -718,7 +758,7 @@ body { overflow: hidden; }
   background: var(--paper-2);
   color: var(--ink);
   border: 1px solid var(--rule-2);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 6px 8px;
   font: inherit;
   font-size: 12px;
@@ -729,7 +769,7 @@ body { overflow: hidden; }
   font-size: 12px;
   font-weight: 500;
   padding: 6px 10px;
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--rule-2);
   background: var(--paper-2);
   color: var(--ink);
@@ -744,7 +784,7 @@ body { overflow: hidden; }
      used by .quiz-opt.correct, at 5.01:1 */
   color: #227031;
   background: rgba(47, 158, 68, 0.1);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 1px 8px;
   margin-left: 6px;
   white-space: nowrap;
@@ -816,10 +856,10 @@ body { overflow: hidden; }
   color: var(--accent-dark);
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
-  border-radius: 20px;
+  border-radius: var(--r-lg);
   padding: 3px 12px;
   cursor: pointer;
-  transition: border-color 0.13s;
+  transition: border-color var(--t);
 }
 .prereq-chip:hover { border-color: var(--accent); }
 
@@ -850,7 +890,7 @@ body { overflow: hidden; }
   color: var(--ink);
   background: var(--paper-3);
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   padding: 2px 5px;
   overflow-wrap: anywhere;
 }
@@ -859,7 +899,7 @@ body { overflow: hidden; }
 .notfound-topic, .notfound-primary, .notfound-secondary {
   font: inherit;
   font-weight: 600;
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   cursor: pointer;
 }
 .notfound-topic {
@@ -896,7 +936,7 @@ body { overflow: hidden; }
   border: none;
   cursor: pointer;
   padding: 8px 4px;
-  transition: color 0.13s;
+  transition: color var(--t);
 }
 .topic-prev-btn:hover { color: var(--accent-dark); }
 
@@ -909,12 +949,12 @@ body { overflow: hidden; }
   text-align: left;
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 10px 16px;
   cursor: pointer;
-  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow var(--t) ease, transform var(--t) ease, border-color var(--t) ease;
 }
-.next-lesson-card:hover { border-color: var(--accent); box-shadow: 0 6px 18px rgba(28, 30, 33, 0.08); transform: translateY(-2px); }
+.next-lesson-card:hover { border-color: var(--accent); box-shadow: var(--shadow-2); transform: translateY(-2px); }
 .next-lesson-icon { width: 26px; height: 26px; color: var(--accent-dark); flex-shrink: 0; }
 .next-lesson-icon svg { width: 100%; height: 100%; }
 .next-lesson-body { display: flex; flex-direction: column; gap: 2px; }
@@ -964,7 +1004,7 @@ body { overflow: hidden; }
   line-height: 1.6;
   padding: 12px;
   border: 1px solid #3d3324;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background: #1c1712;
   color: #d8c8b2;
 }
@@ -1020,24 +1060,29 @@ body { overflow: hidden; }
 .card {
   background: var(--paper-2);
   border: 1px solid rgba(28, 30, 33, 0.05);
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   padding: 26px;
   min-width: 300px;
   flex: 1 1 400px;
   max-width: 680px;
-  box-shadow: 0 1px 4px rgba(28, 30, 33, 0.04);
-  transition: box-shadow 0.2s ease;
+  box-shadow: var(--shadow-1);
+  transition: box-shadow var(--t) ease;
 }
-.card:hover { box-shadow: 0 4px 16px rgba(28, 30, 33, 0.06); }
+.card:hover { box-shadow: var(--shadow-2); }
 .card.wide { flex-basis: 640px; max-width: 920px; }
 .card h2 {
   font-family: var(--serif);
-  font-size: 17px;
+  /* D.7 asks for larger section titles: 17 -> 19px. The card title is the only
+     thing naming what a simulation IS, and at 17px it sat below the body copy
+     of the paragraph under it in visual weight. */
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  margin-bottom: 16px;
-  padding-bottom: 11px;
-  border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--s-4);
+  padding-bottom: var(--s-3);
+  /* lighter rule: --rule at full strength drew a harder line under every card
+     title than the content below it deserved */
+  border-bottom: 1px solid var(--paper-3);
 }
 .card h3 { font-size: 13px; font-weight: 650; color: var(--accent-dark); margin: 18px 0 7px; }
 .card p, .card li { font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
@@ -1045,7 +1090,7 @@ body { overflow: hidden; }
 .card canvas, .card svg {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   max-width: 100%;
   margin-top: 6px;
 }
@@ -1057,8 +1102,8 @@ body { overflow: hidden; }
   background: var(--paper-2);
   border: 1px solid var(--rule);
   border-left: 4px solid var(--accent);
-  border-radius: 10px;
-  box-shadow: 0 1px 4px rgba(28, 30, 33, 0.04);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
 }
 .tab-error h2 { font-family: var(--serif); font-size: 24px; margin-bottom: 12px; }
 .tab-error-message { color: var(--ink-dim); font-family: var(--mono); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
@@ -1084,7 +1129,7 @@ body { overflow: hidden; }
   -webkit-appearance: none;
   appearance: none;
   height: 4px;
-  border-radius: 2px;
+  border-radius: var(--r-sm);
   background: var(--rule-2);
   cursor: pointer;
 }
@@ -1096,7 +1141,7 @@ body { overflow: hidden; }
   background: var(--accent);
   border: 2px solid var(--paper-2);
   box-shadow: 0 1px 4px rgba(28, 30, 33, 0.3);
-  transition: transform 0.1s;
+  transition: transform var(--t);
 }
 .ctl input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.18); }
 .ctl input[type='range']::-moz-range-thumb {
@@ -1107,12 +1152,12 @@ body { overflow: hidden; }
   background: var(--paper-2);
   color: var(--ink);
   border: 1px solid var(--rule-2);
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   padding: 7px 10px;
   font: inherit;
   font-size: 13px;
   flex: 1;
-  transition: border-color 0.15s;
+  transition: border-color var(--t);
 }
 .ctl select:focus, .ctl input:focus { border-color: var(--accent); }
 .ctl select { cursor: pointer; }
@@ -1121,14 +1166,14 @@ body { overflow: hidden; }
   background: var(--paper-2);
   color: var(--ink);
   border: 1px solid var(--rule-2);
-  border-radius: 7px;
+  border-radius: var(--r-sm);
   padding: 7px 14px;
   font: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   margin: 2px;
-  transition: border-color 0.13s, background 0.13s;
+  transition: border-color var(--t), background var(--t);
 }
 .btn:hover { border-color: var(--ink); background: var(--paper); }
 .btn.primary {
@@ -1143,13 +1188,13 @@ body { overflow: hidden; }
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
   color: var(--ink-dim);
-  border-radius: 18px;
+  border-radius: var(--r-lg);
   padding: 7px 17px;
   font: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.13s;
+  transition: all var(--t);
 }
 .pill:hover { color: var(--ink); border-color: var(--ink); }
 .pill.active {
@@ -1164,7 +1209,7 @@ body { overflow: hidden; }
   margin: 18px auto 0;
   max-width: 1480px;
   border: 1px solid var(--rule);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   background: var(--paper-2);
 }
 .theory summary {
@@ -1180,7 +1225,7 @@ body { overflow: hidden; }
   align-items: center;
   gap: 9px;
 }
-.theory summary::before { content: '▸'; transition: transform 0.15s; font-size: 11px; color: var(--accent); }
+.theory summary::before { content: '▸'; transition: transform var(--t); font-size: 11px; color: var(--accent); }
 .theory[open] summary::before { transform: rotate(90deg); }
 .theory > div { padding: 2px 20px 18px; font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
 .theory h4 {
@@ -1194,16 +1239,22 @@ body { overflow: hidden; }
 .theory table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
 .theory td, .theory th { border: 1px solid var(--rule); padding: 5px 11px; text-align: left; }
 .theory th { color: var(--ink-dim); background: var(--paper-3); }
-.theory .eq {
+/* ONE equation block, defined once (D.7). It used to be written twice — in
+   .theory with a wash, a rule and 8px/13px padding, and again in .result with
+   no padding at all and a different margin — so the same equation changed shape
+   depending on which container it landed in. The shared rule owns the box; the
+   two contexts below override COLOUR only, because .result sits on a dark
+   instrument panel and .theory on paper. */
+.eq {
   display: block;
-  background: var(--paper-3);
-  border-left: 3px solid var(--accent);
-  border-radius: 0 7px 7px 0;
-  padding: 8px 13px;
-  margin: 8px 0;
-  color: var(--ink);
-  font-size: 13.5px;
   font-family: var(--mono);
+  font-size: 13.5px;
+  padding: var(--s-2) var(--s-3);
+  margin: var(--s-2) 0;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--paper-3);
+  color: var(--ink);
 }
 .theory ul, .theory ol { padding-left: 20px; }
 .trap { color: var(--accent-dark); font-weight: 550; }
@@ -1233,7 +1284,7 @@ body { overflow: hidden; }
   color: var(--accent-dark);
   background: var(--paper-3);
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   padding: 1px 6px;
   margin-right: 6px;
   vertical-align: middle;
@@ -1243,15 +1294,15 @@ body { overflow: hidden; }
 .mission-meter-track {
   height: 6px;
   background: var(--rule);
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   overflow: hidden;
 }
 .mission-meter-fill {
   height: 100%;
   width: 0;
   background: linear-gradient(90deg, var(--accent), #e8590c);
-  border-radius: 3px;
-  transition: width 0.15s ease-out;
+  border-radius: var(--r-sm);
+  transition: width var(--t) ease-out;
 }
 .mission-meter-label { display: block; font-size: 11px; color: var(--ink-faint); margin-top: 4px; font-family: var(--mono); }
 .mission-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
@@ -1262,7 +1313,7 @@ body { overflow: hidden; }
   width: 72px;
   padding: 5px 8px;
   border: 1px solid var(--rule-2);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-family: var(--mono);
   font-size: 13px;
 }
@@ -1270,7 +1321,7 @@ body { overflow: hidden; }
   margin-top: 8px;
   padding: 8px 10px;
   background: var(--paper-3);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 12.5px;
   color: var(--ink-dim);
 }
@@ -1285,7 +1336,7 @@ body { overflow: hidden; }
   padding: 8px 10px;
   background: rgba(47, 158, 68, 0.07);
   border: 1px solid rgba(47, 158, 68, 0.35);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   font-size: 13px;
   line-height: 1.55;
   color: #245c31;
@@ -1316,7 +1367,7 @@ body { overflow: hidden; }
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   padding: 1px 6px;
   margin-right: 4px;
   vertical-align: middle;
@@ -1371,7 +1422,7 @@ body { overflow: hidden; }
 .result {
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 13px 15px;
   margin-top: 10px;
   font-size: 13.5px;
@@ -1390,11 +1441,9 @@ body { overflow: hidden; }
 /* likewise .trap: --accent-dark is 4.82:1 on paper but 3.49:1 on a panel */
 .result .trap { color: var(--accent-on-panel); }
 .result .eq {
-  display: block;
-  font-family: var(--mono);
+  background: var(--panel-2);
+  border-left-color: var(--accent-on-panel);
   color: #9fc5e8;
-  font-size: 12.5px;
-  margin-bottom: 6px;
 }
 
 .ref-table { border-collapse: collapse; font-size: 13px; width: 100%; margin-top: 6px; }
@@ -1424,7 +1473,7 @@ body { overflow: hidden; }
 .oly-year-label { font-family: var(--mono, monospace); font-weight: 700; color: var(--ink); min-width: 3.2em; }
 .oly-links { display: flex; flex-wrap: wrap; gap: 8px; }
 .oly-link {
-  display: inline-block; font-size: 12.5px; padding: 3px 10px; border-radius: 999px;
+  display: inline-block; font-size: 12.5px; padding: 3px 10px; border-radius: var(--r-pill);
   border: 1px solid var(--rule); color: var(--accent-dark); text-decoration: none; white-space: nowrap;
 }
 .oly-link:hover { background: var(--accent-dark); color: #fff; border-color: var(--accent-dark); }
@@ -1433,7 +1482,7 @@ body { overflow: hidden; }
   display: inline-block;
   width: 42px;
   height: 20px;
-  border-radius: 5px;
+  border-radius: var(--r-sm);
   vertical-align: middle;
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
@@ -1445,13 +1494,16 @@ body { overflow: hidden; }
 .bar-track {
   flex: 1;
   background: var(--paper-3);
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   height: 18px;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--rule);
 }
-.bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+/* The one transition deliberately longer than --t: this bar reports a VALUE
+   changing (a mission meter filling), not a hover state. At 150 ms the fill is
+   a jump; the extra time is what makes the direction of change readable. */
+.bar-fill { height: 100%; border-radius: var(--r-sm); transition: width 0.3s ease; }
 .bar-val { min-width: 100px; font-family: var(--mono); font-size: 12px; color: var(--ink-dim); }
 
 /* ---- quiz ---- */
@@ -1470,12 +1522,12 @@ body { overflow: hidden; }
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
   color: var(--ink-dim);
-  border-radius: 9px;
+  border-radius: var(--r-md);
   padding: 10px 14px;
   font: inherit;
   font-size: 13.5px;
   cursor: pointer;
-  transition: border-color 0.12s, background 0.12s;
+  transition: border-color var(--t), background var(--t);
 }
 .quiz-opt:hover { border-color: var(--ink); background: var(--paper); }
 .quiz-opt.correct {
@@ -1489,7 +1541,7 @@ body { overflow: hidden; }
   background: rgba(224, 49, 49, 0.07);
   color: #a32626;
 }
-.quiz-why { margin-top: 10px; font-size: 13.5px; line-height: 1.6; border-radius: 9px; }
+.quiz-why { margin-top: 10px; font-size: 13.5px; line-height: 1.6; border-radius: var(--r-md); }
 .quiz-why.good, .quiz-why.bad { padding: 11px 14px; margin-bottom: 8px; }
 .quiz-why.good { background: rgba(47, 158, 68, 0.07); border: 1px solid rgba(47, 158, 68, 0.35); color: #245c31; }
 .quiz-why.bad { background: rgba(224, 49, 49, 0.06); border: 1px solid rgba(224, 49, 49, 0.3); color: #86322c; }
@@ -1514,7 +1566,7 @@ body { overflow: hidden; }
     color: var(--ink);
     background: var(--paper);
     border: 1px solid var(--rule-2);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     padding: 7px 13px;
     cursor: pointer;
   }
@@ -1534,7 +1586,7 @@ body { overflow: hidden; }
     left: 0;
     width: 264px;
     transform: translateX(-100%);
-    transition: transform 0.18s ease;
+    transition: transform var(--t) ease;
     box-shadow: 0 0 32px rgba(23, 21, 18, 0.18);
   }
   #app.nav-open #sidenav { transform: translateX(0); }

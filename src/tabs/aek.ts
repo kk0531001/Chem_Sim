@@ -418,9 +418,16 @@ function makeElectro(): HTMLElement {
 <li>More positive E° = better oxidizing agent (gets reduced). F₂ strongest oxidizer; Li strongest reducing agent.</li>
 <li><span class="trap">Never multiply E° by stoichiometric coefficients — potentials are intensive!</span> (But n in ΔG° = −nFE° does use the electron count.)</li>
 <li>Galvanic: spontaneous, cathode +. Electrolytic: driven, cathode −, need E &gt; |E°cell| applied.</li>
-<li>Electrolysis stoichiometry: mol e⁻ = It/F (F = 96485 C/mol). Charge → moles → grams plated.</li>
+</ul>
+<h4>Electrolysis</h4>
+<span class="eq">mol e⁻ = It/F &nbsp;(F = 96485 C/mol) &nbsp;→&nbsp; mol product = mol e⁻ / n</span>
+<ul>
+<li>Charge → moles of electrons → moles of product → grams plated. Time and current are the two things you actually measure.</li>
 <li>Electrolysis of aqueous salts: water may be reduced (−0.83 V) instead of Na⁺, or oxidized (+1.23 V) instead of F⁻/SO₄²⁻. Overpotential makes Cl₂ possible from brine.</li>
 <li>Concentration cells: same couple both sides, E° = 0, driven purely by the concentration difference.</li>
+</ul>
+<h4>Reading potential diagrams</h4>
+<ul>
 <li><b>Latimer diagrams</b> chain species by reduction potential; a species disproportionates when the potential to its right exceeds the one to its left. <b>Frost diagrams</b> plot nΔE° vs oxidation state — the lowest point is most stable, and a species above the line joining its neighbours disproportionates.</li>
 </ul>`, true),
   );

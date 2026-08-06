@@ -133,6 +133,12 @@ with a reason stated in the commit/summary.
   copyrighted); match format and difficulty only, and only ever LINK to real
   papers, never reproduce them. Topic ids: stoich, states, thermo, kinetics, equilibrium, acids,
   redox, atomic, bonding, descriptive, organic, lab.
+- **Spacing, radius, shadow and duration come from the tokens in `:root`**
+  (`--s-1…--s-8`, `--r-sm/md/lg/pill`, `--shadow-1/2/3`, `--t`, `--t-enter`) —
+  D.7 collapsed 14 radii, 9 shadows and 9 durations into them. Existing
+  hard-coded spacing was left alone on purpose, but new rules use the scale.
+  Hover and collapse transitions are `var(--t)` (150 ms); anything longer needs
+  a comment saying why it is not hover feedback.
 - Visual language ("Lab Journal") is defined by CSS variables in src/style.css:
   paper/ink reading surfaces (--paper/--ink/--rule), ONE accent (--accent,
   flame orange), and dark instrument panels (--panel/--panel-text) reserved
