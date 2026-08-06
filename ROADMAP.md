@@ -1692,7 +1692,7 @@ because every mount is synchronous; **D.10 makes them async, and then it will.**
       canvases and `requestAnimationFrame` loops otherwise leak per attempt.
       `onShow`/`onHide` already exist and stay as they are.
 
-### D.2 Navigation — sections, not a 25-item list — **[ ]**
+### D.2 Navigation — sections, not a 25-item list — **[x] DONE**
 
 Worth separating what the reviewer asked for from what is already true. The
 domain taxonomy they proposed (Physical / Organic / Inorganic / Analytical /
@@ -1701,13 +1701,41 @@ is no "Advanced Physical" bucket to break apart. The defect is presentational:
 all eight groups render permanently expanded, so the sidebar is 25 buttons deep
 and the grouping is invisible.
 
-- [ ] Collapsible groups in `initTabs` — native `<details>`/`<summary>` (free
+- [x] Collapsible groups in `initTabs` — native `<details>`/`<summary>` (free
       keyboard and screen-reader semantics, no JS focus management to get
       wrong), one open by default: the one containing the active topic.
-- [ ] Persist open/closed state in `localStorage`; the active group always
-      auto-expands on navigation regardless of stored state.
-- [ ] Mobile: the sidebar becomes a drawer under ~900 px, closing on selection.
-- [ ] Item count per group in the summary row ("Physical Chemistry · 7").
+- [x] Persist open/closed state in `localStorage` (`chemprep.nav.open`); the
+      active group always auto-expands on navigation regardless of stored state.
+      A corrupt or absent value falls back to the default and never throws —
+      verified by writing `{not json` into the key and reloading.
+- [x] Mobile: the sidebar becomes a drawer under ~900 px, closing on selection,
+      `Escape`, or a backdrop click. Focus moves to the first control on open
+      and returns to the toggle on close. Deliberately **not** a focus trap: a
+      nav drawer is not a modal dialog, and a trap would mean reimplementing
+      escape behaviour the browser already provides.
+- [x] Item count per group in the summary row, derived from the `defs` runs
+      rather than written down twice (1 · 4 · 7 · 4 · 3 · 3 · 2 · 1 = 25).
+
+Two things worth keeping in mind for the rest of Phase D, both about the
+preview pane rather than the app:
+
+1. **The pane's synthetic key events carry an empty `key`.** A `keydown` arrives
+   trusted, with `defaultPrevented: false`, and `key: ""` — so the UA performs
+   no default action. Tab does not move focus and Enter does not toggle a
+   `<summary>`. This is why keyboard *activation* cannot be verified there; what
+   can be verified is that the control is focusable, that `:focus-visible`
+   paints the ring (confirmed: 2px `--accent` on both `<summary>` and
+   `.nav-item`), and that no handler of ours swallows the event. Native
+   `<details>` owns the Enter/Space behaviour and we add no keydown handler to
+   it. **Check real keyboard activation in a real browser before D.11 signs off
+   on accessibility.**
+2. **The pane resizes the viewport without dispatching `resize` or matchMedia
+   `change`** (both probed, both zero, while `matches` flips correctly). So the
+   breakpoint-crossing cleanup — closing a stranded open drawer when the window
+   grows past 900 px — is implemented but unverified here. Every drawer style
+   lives inside the `max-width` query, so a stranded `.nav-open` is invisible at
+   desktop width; what it would leave wrong is `aria-expanded="true"` on a
+   `display:none` control, and an unexpectedly open drawer on shrinking back.
 
 **On splitting Organic into eleven modules** (Stereochemistry, Alkenes,
 Carbonyls, …): don't. It contradicts this document's own filter — *depth in the

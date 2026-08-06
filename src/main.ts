@@ -88,6 +88,45 @@ mainEl.insertBefore(notFoundEl, footerEl);
 
 brandEl.innerHTML = `${TILE_HTML}<span><b>ChemPrep</b><small>CCC Trainer</small></span>`;
 
+// ---- mobile drawer ---------------------------------------------------------
+// Under 900px the sidebar slides in over the lesson. Deliberately NOT a focus
+// trap: the order is a nav drawer, not a modal dialog, and a trap here would
+// mean building (and getting wrong) escape handling that the browser already
+// gives us for free. What it does owe the user is that focus goes somewhere
+// useful on open and comes back to the button on close.
+const navToggleEl = document.getElementById('nav-toggle') as HTMLButtonElement;
+const navBackdropEl = document.getElementById('nav-backdrop')!;
+const sidenavEl = document.getElementById('sidenav')!;
+
+function setDrawer(open: boolean): void {
+  appEl.classList.toggle('nav-open', open);
+  navToggleEl.setAttribute('aria-expanded', String(open));
+  navBackdropEl.hidden = !open;
+  if (open) sidenavEl.querySelector<HTMLElement>('#menu-link')?.focus();
+  else if (sidenavEl.contains(document.activeElement)) navToggleEl.focus();
+}
+const closeDrawer = () => { if (appEl.classList.contains('nav-open')) setDrawer(false); };
+
+navToggleEl.addEventListener('click', () => setDrawer(!appEl.classList.contains('nav-open')));
+navBackdropEl.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+// Resizing past the breakpoint leaves the drawer class stranded on a layout
+// that no longer uses it. The CSS makes that harmless to look at — every drawer
+// rule lives inside the max-width query — but aria-expanded="true" on a
+// display:none control is a lie, and shrinking back would reveal an open drawer
+// nobody asked for.
+//
+// The MediaQueryList is kept in a module-level const rather than created inline:
+// an unreferenced MQL is a documented garbage-collection hazard in some engines,
+// where the listener stops firing once the object is collected.
+//
+// NOT VERIFIED IN THE PREVIEW PANE: its viewport override changes the metrics
+// without dispatching `resize` or matchMedia `change` (both probed, both zero),
+// so this handler cannot be exercised there. `matches` does flip correctly, so
+// the query itself is live. Check this one by dragging a real browser window.
+const desktopMQ = window.matchMedia('(min-width: 901px)');
+desktopMQ.addEventListener('change', e => { if (e.matches) closeDrawer(); });
+
 let tabs: TabsAPI | null = null;
 
 const home = buildHome(id => navigate({ kind: 'topic', id }), () => navigate({ kind: 'menu' }));
@@ -268,7 +307,9 @@ function showRoute(route: Route): void {
     return;
   }
   appEl.hidden = false;
-  if (!tabs) tabs = initTabs(DEFS, navEl, viewEl, id => navigate({ kind: 'topic', id }));
+  // Selecting a module from the drawer must close it, or the lesson you just
+  // chose is hidden behind the thing you chose it from.
+  if (!tabs) tabs = initTabs(DEFS, navEl, viewEl, id => { closeDrawer(); navigate({ kind: 'topic', id }); });
   if (tabs.current() === route.id) tabs.resume();
   else tabs.show(route.id);
   updateTopicChrome(route.id);

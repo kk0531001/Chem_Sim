@@ -3,6 +3,7 @@
 // animation loops pause when hidden.
 import { isSolved, markSolved, recordAttempt, solvedOf, onProgressChange } from '../progress';
 import { toExamTopic } from '../content/topicIds';
+import { CHEVRON_ICON } from '../icons';
 import 'katex/dist/katex.min.css';
 import 'katex/contrib/mhchem';
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -77,6 +78,26 @@ export interface TabsAPI {
   current: () => string | null;
 }
 
+const NAV_OPEN_KEY = 'chemprep.nav.open';
+
+/**
+ * Which sidebar groups the student left open, or null for "never set".
+ *
+ * Anything unparseable is treated as never-set rather than repaired: the cost
+ * of the default is one extra click, and the same defensive posture as
+ * progress.ts means a corrupt value can never take the sidebar down with it.
+ */
+function readOpenGroups(): string[] | null {
+  try {
+    const raw = localStorage.getItem(NAV_OPEN_KEY);
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter((s): s is string => typeof s === 'string') : null;
+  } catch {
+    return null;
+  }
+}
+
 // `onSelect` (optional) is called when a sidebar nav item is clicked, so the
 // host can route through the History API — keeping the URL and the topic chrome
 // (breadcrumb + prev/next footer) in sync. Falls back to a plain tab swap.
@@ -89,6 +110,10 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
   const roots = new Map<string, TabEntry>();
   const buttons = new Map<string, HTMLButtonElement>();
   let currentId: string | null = null;
+  // Assigned once the nav is built, below; show() may run before that only if
+  // a caller shows a tab without a sidebar, so the no-op default is the safe
+  // starting value rather than a bug to guard against.
+  let revealInNav: (id: string) => void = () => {};
 
   function runLifecycle(id: string, phase: 'onShow' | 'onHide' | 'onDestroy', handle?: TabHandle): void {
     try {
@@ -193,30 +218,78 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
     // the active item is the current PAGE (each topic has its own URL), not
     // just a highlighted button — .active is a paint, aria-current is the fact
     btn?.setAttribute('aria-current', 'page');
+    revealInNav(id);
     currentId = id;
   }
 
-  // Sidebar items are grouped by chemistry domain. The group label is a real
-  // element and each run of items is a role="group" pointing at it, so the
-  // grouping is available to assistive tech and not just to the eye.
-  let lastGroup = '';
-  let groupBox: HTMLElement = nav;
-  let groupIndex = 0;
+  // Sidebar items are grouped by chemistry domain, each group a native
+  // <details>. <details>/<summary> is keyboard-operable, announced as a
+  // disclosure, and has no focus management to get wrong — a hand-rolled
+  // div+click disclosure would have to reimplement all three and would get one
+  // of them wrong. The group label is the <summary> and each run of items is a
+  // role="group" pointing at it, so the grouping reaches assistive tech and not
+  // just the eye.
+  const groupEls = new Map<string, HTMLDetailsElement>();
+  const groupOfItem = new Map<string, string>();
+  const stored = readOpenGroups();
+
+  // Collect into ordered runs first: `defs` is already in group order (main.ts
+  // DEFS mirrors topics.ts), and building from runs means the count in each
+  // summary is derived rather than written down twice.
+  const runs: { name: string; items: TabDef[] }[] = [];
   for (const def of defs) {
     const g = def.group ?? '';
-    if (g && g !== lastGroup) {
-      const labelId = `nav-group-${++groupIndex}`;
-      nav.appendChild(h('div', { class: 'nav-group', id: labelId }, g));
-      groupBox = h('div', { class: 'nav-group-items', role: 'group', 'aria-labelledby': labelId });
-      nav.appendChild(groupBox);
-      lastGroup = g;
-    }
-    const btn = h('button', {
-      type: 'button', class: 'nav-item', onclick: () => (onSelect ?? show)(def.id),
-    }, def.label);
-    buttons.set(def.id, btn);
-    groupBox.appendChild(btn);
+    const last = runs[runs.length - 1];
+    if (last && last.name === g) last.items.push(def);
+    else runs.push({ name: g, items: [def] });
   }
+
+  runs.forEach((run, i) => {
+    const labelId = `nav-group-${i + 1}`;
+    const box = h('div', { class: 'nav-group-items', role: 'group', 'aria-labelledby': labelId });
+    for (const def of run.items) {
+      const btn = h('button', {
+        type: 'button', class: 'nav-item', onclick: () => (onSelect ?? show)(def.id),
+      }, def.label);
+      buttons.set(def.id, btn);
+      groupOfItem.set(def.id, run.name);
+      box.appendChild(btn);
+    }
+    if (!run.name) { nav.appendChild(box); return; }
+
+    // First visit (nothing stored) starts everything closed; show() then opens
+    // the active topic's group, so the student lands on exactly one open
+    // section rather than the wall of 25 this replaces.
+    const open = stored ? stored.includes(run.name) : false;
+    const details = h('details', { class: 'nav-group', open: open || undefined },
+      h('summary', { class: 'nav-group-head', id: labelId },
+        h('span', { class: 'nav-group-chevron', html: CHEVRON_ICON }),
+        h('span', { class: 'nav-group-name' }, run.name),
+        h('span', { class: 'nav-group-n' }, String(run.items.length)),
+      ),
+      box,
+    ) as HTMLDetailsElement;
+    details.addEventListener('toggle', persistOpenGroups);
+    groupEls.set(run.name, details);
+    nav.appendChild(details);
+  });
+
+  function persistOpenGroups(): void {
+    const open = [...groupEls.entries()].filter(([, d]) => d.open).map(([name]) => name);
+    try { localStorage.setItem(NAV_OPEN_KEY, JSON.stringify(open)); } catch { /* storage unavailable — the nav still works, it just won't remember */ }
+  }
+
+  /** Open the group holding `id` and bring the item into view. */
+  revealInNav = (id: string) => {
+    const g = groupOfItem.get(id);
+    const details = g ? groupEls.get(g) : undefined;
+    // The active topic's group is open whatever the stored state says: a cold
+    // load of /topic/thermodynamics-ii must not land you on a collapsed sidebar
+    // with no indication of where you are.
+    if (details && !details.open) { details.open = true; persistOpenGroups(); }
+    buttons.get(id)?.scrollIntoView({ block: 'nearest' });
+  };
+  if (currentId) revealInNav(currentId); // show() may already have run
 
   return {
     show,

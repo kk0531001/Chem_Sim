@@ -40,6 +40,10 @@
     <div id="app" hidden>
       <!-- 25 sidebar items sit before the lesson; give keyboard users a way past them -->
       <a class="skip-link" href="#app-main">Skip to lesson content</a>
+      <!-- Drawer toggle: display:none above the 900px breakpoint, so the
+           desktop layout is untouched and this is never in the tab order there -->
+      <button id="nav-toggle" type="button" aria-expanded="false" aria-controls="sidenav">Topics</button>
+      <div id="nav-backdrop" hidden></div>
       <aside id="sidenav" role="navigation" aria-label="Main">
         <!-- #brand's label is injected as innerHTML (a decorative tile + wordmark),
              so its name is set explicitly here rather than inferred from that markup -->

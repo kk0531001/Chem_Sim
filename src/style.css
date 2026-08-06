@@ -546,14 +546,43 @@ body { overflow: hidden; }
 #brand:hover b { color: var(--accent-dark); }
 
 #nav-items { flex: 1; padding: 8px 10px 18px; display: flex; flex-direction: column; }
-.nav-group {
+/* Each group is a native <details>; the heading below is its <summary>. */
+.nav-group { border: none; }
+.nav-group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--mono);
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.6px;
   color: var(--ink-faint);
-  padding: 18px 10px 6px;
+  padding: 16px 10px 6px;
+  cursor: pointer;
+  border-radius: 7px;
+  /* Replace the UA disclosure triangle with the line-art chevron below —
+     ::-webkit-details-marker is still needed for older WebKit. */
+  list-style: none;
 }
+.nav-group-head::-webkit-details-marker { display: none; }
+.nav-group-head:hover { color: var(--ink-dim); }
+.nav-group-name { flex: 1; }
+.nav-group-n {
+  font-size: 9.5px;
+  letter-spacing: 0.5px;
+  color: var(--ink-faint);
+  background: var(--paper-2);
+  border-radius: 20px;
+  padding: 1px 6px;
+}
+.nav-group-chevron {
+  display: flex;
+  width: 11px;
+  height: 11px;
+  transition: transform 0.15s;
+}
+.nav-group-chevron svg { width: 100%; height: 100%; }
+.nav-group[open] > .nav-group-head > .nav-group-chevron { transform: rotate(90deg); }
 /* Each run of nav items is wrapped in role="group" labelled by its .nav-group
    heading, so a screen reader says "Physical Chemistry" before the items in
    it. The wrapper has to re-declare the column layout it inherited from
@@ -1352,9 +1381,57 @@ body { overflow: hidden; }
 .quiz-why.bad { background: rgba(224, 49, 49, 0.06); border: 1px solid rgba(224, 49, 49, 0.3); color: #86322c; }
 .quiz-why b { color: var(--ink); }
 
-/* ---- responsive ---- */
+/* ---- mobile nav drawer ----
+   Both controls are display:none above the breakpoint, so they are out of the
+   tab order and out of the layout on desktop — the drawer costs the desktop
+   view nothing. */
+#nav-toggle, #nav-backdrop { display: none; }
+
 @media (max-width: 900px) {
-  #sidenav { width: 188px; }
+  #nav-toggle {
+    display: block;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 42;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+    border-radius: 8px;
+    padding: 7px 13px;
+    cursor: pointer;
+  }
+  #nav-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(23, 21, 18, 0.42);
+  }
+  #nav-backdrop[hidden] { display: none; }
+  #sidenav {
+    position: fixed;
+    z-index: 41;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 264px;
+    transform: translateX(-100%);
+    transition: transform 0.18s ease;
+    box-shadow: 0 0 32px rgba(23, 21, 18, 0.18);
+  }
+  #app.nav-open #sidenav { transform: translateX(0); }
+  /* The open drawer slides under the fixed toggle and collides with the brand.
+     Hide it while open — Escape, the backdrop and picking a module all close
+     the drawer, and setDrawer() drops .nav-open before returning focus here,
+     so the button is visible again by the time it is focused. */
+  #app.nav-open #nav-toggle { display: none; }
+  /* The toggle sits over the lesson, so give the content room to clear it. */
+  #app-main { padding-top: 44px; }
+
   .hero { grid-template-columns: 1fr; }
   .feature, .feature.right { grid-template-columns: 1fr; }
   .feature.right .feature-text { order: 1; }
