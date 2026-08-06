@@ -1,5 +1,5 @@
 // Advanced (CCO) — Coordination/CFT + solid-state + descriptive inorganic.
-import { h, card, theory, slider, select, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, pills, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { INORGANIC_QUIZ } from './questions4';
 
@@ -7,6 +7,37 @@ import { INORGANIC_QUIZ } from './questions4';
 function makeLFSE(): HTMLElement {
   let d = 6, strong = false, geom: 'oct' | 'tet' = 'oct';
   const out = h('div', { class: 'result' });
+  // calc() is the only writer; the missions read it rather than re-deriving the
+  // fill rules, so a change to the model can never disagree with the goals.
+  let lastLfse = 0;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-ain-01',
+      prompt: 'Find the one setting of the three controls that drives the LFSE to its most negative possible value, <b>−2.4 Δₒ</b>.',
+      meter: () => ({ label: `LFSE = ${lastLfse.toFixed(1)} Δ  ·  target −2.4 Δₒ`, pct: Math.min(100, (Math.abs(lastLfse) / 2.4) * 100) }),
+      check: () => geom === 'oct' && Math.abs(lastLfse + 2.4) < 1e-9,
+      hints: [
+        'Only the octahedral case can be low spin, and only a low-spin arrangement keeps electrons out of the destabilised e_g set.',
+        'You want every electron in t₂g and none in e_g. How many electrons does t₂g hold?',
+      ],
+      explain: 'Low-spin d⁶ is t₂g⁶e_g⁰ — six electrons, each stabilised by 0.4 Δₒ, and nothing in the upper set: 6(−0.4) = −2.4 Δₒ. This is the deepest ligand-field well available to a first-row metal, and it is why low-spin d⁶ ions such as Co(III) and Fe(II)-with-cyanide are both thermodynamically stable and kinetically inert.',
+    },
+    {
+      id: 'msn-ain-02',
+      prompt: 'Now sweep the d-electron slider with the field switch set to <b>strong</b>, then back to <b>weak</b>. For several d-counts the readout does not change at all. Which counts have a genuinely different low-spin option?',
+      choices: [
+        { label: 'd¹–d³ only', value: 'low' },
+        { label: 'd⁴–d⁷ only', value: 'mid' },
+        { label: 'd⁸–d¹⁰ only', value: 'high' },
+        { label: 'every d-count from d¹ to d⁹', value: 'all' },
+      ],
+      validateChoice: v => v === 'mid',
+      explain: 'Below d⁴ there is nothing to decide: the first three electrons go into three separate t₂g orbitals whatever the field strength. From d⁸ up, t₂g is full and the remaining electrons have nowhere but e_g. Only d⁴–d⁷ face a real choice — pair up in t₂g, or climb to e_g — so only there does the ligand field get to pick, and only there do high- and low-spin differ in LFSE, magnetic moment and colour.',
+      hints: ['Try d³ and d⁸ first, and watch whether the configuration line moves when you flip the switch.'],
+    },
+  ]);
+
   function calc(): void {
     // octahedral: t2g (−0.4), eg (+0.6); tetrahedral: e (−0.6), t2 (+0.4)
     const lowCap = geom === 'oct' ? 6 : 4;   // t2g holds 6, e holds 4
@@ -27,6 +58,7 @@ function makeLFSE(): HTMLElement {
       low = singleLow + pairLow; high = singleHigh + pairHigh;
     }
     const lfse = low * lowStab + high * highStab;
+    lastLfse = lfse;
     const unpaired = countUnpaired(low, lowSlots) + countUnpaired(high, highSlots);
     const mu = Math.sqrt(unpaired * (unpaired + 2));
     out.innerHTML =
@@ -34,9 +66,10 @@ function makeLFSE(): HTMLElement {
       `<b>${lowSpin ? 'low spin' : 'high spin'}</b>${geom === 'tet' ? ' (tetrahedral is essentially always high spin: Δ_t ≈ 4/9 Δ_o)' : ''}<br>` +
       `LFSE = ${low}(${lowStab}) + ${high}(+${highStab}) = <b class="big">${lfse.toFixed(1)} Δ${geom === 'oct' ? 'o' : 't'}</b><br>` +
       `unpaired e⁻ = <b>${unpaired}</b> → μ = √(n(n+2)) = <b>${mu.toFixed(2)} BM</b> (${unpaired ? 'paramagnetic' : 'diamagnetic'})`;
+    missions.tick();
   }
   const countUnpaired = (e: number, slots: number) => (e <= slots ? e : 2 * slots - e);
-  const el = card('Ligand-field stabilization energy (LFSE)',
+  const el = cardWithMissions('Ligand-field stabilization energy (LFSE)', missions,
     slider({ label: 'd electrons', min: 0, max: 10, step: 1, value: d, onInput: v => { d = v; calc(); } }),
     select('field strength', [{ value: 'weak', label: 'weak field (high spin)' }, { value: 'strong', label: 'strong field (low spin, oct only)' }], v => { strong = v === 'strong'; calc(); }, 'weak'),
     select('geometry', [{ value: 'oct', label: 'octahedral' }, { value: 'tet', label: 'tetrahedral' }], v => { geom = v as 'oct' | 'tet'; calc(); }, 'oct'),
@@ -56,11 +89,34 @@ const CELLS = {
 function makeSolidState(): HTMLElement {
   let cell: keyof typeof CELLS = 'fcc', a = 361, M = 63.55; // pm, g/mol (Cu)
   const out = h('div', { class: 'result' });
+  let lastDensity = 0;
+
+  // The card opens on copper (FCC, 361 pm, 63.55) and already reproduces
+  // copper's density, so a "build copper" mission would be solved before the
+  // student touched anything. Tungsten needs all three controls moved.
+  const missions = missionLadder([
+    {
+      id: 'msn-ain-03',
+      prompt: 'Tungsten has M = 183.8 g/mol, a body-centred cubic lattice with a = 316.5 pm, and a measured density of <b>19.25 g/cm³</b>. Set the controls to reproduce it (within 0.3).',
+      meter: () => ({
+        label: cell === 'bcc' ? `ρ = ${lastDensity.toFixed(2)} g/cm³  ·  target 19.25` : `lattice is ${CELLS[cell].name} — tungsten is body-centred cubic`,
+        pct: cell === 'bcc' ? Math.max(0, 100 - Math.abs(lastDensity - 19.25) * 12) : 0,
+      }),
+      check: () => cell === 'bcc' && M > 180 && M < 188 && Math.abs(lastDensity - 19.25) < 0.3,
+      hints: [
+        'Three controls, three given numbers. Start with the lattice type — it fixes Z, and Z multiplies the whole density.',
+        'The edge slider steps in whole pm, so 316 or 317 is as close as you can get to 316.5. Either lands inside the tolerance.',
+      ],
+      explain: 'ρ = ZM/(N_A a³) with Z = 2 for BCC: (2 × 183.8)/(6.022×10²³ × (3.165×10⁻⁸)³) = 19.25 g/cm³ ✓. Now switch the lattice to FCC and watch the density leap to ~38 g/cm³ — denser than any element that exists. Z is the whole difference, so assuming the wrong lattice does not give a slightly wrong answer, it gives one off by a factor of two. Getting Z right is the entire skill in a unit-cell calculation.',
+    },
+  ]);
+
   function calc(): void {
     const c = CELLS[cell];
     const aCm = a * 1e-10; // pm → cm
     const vol = Math.pow(aCm, 3);
     const density = (c.Z * M) / (6.022e23 * vol);
+    lastDensity = density;
     // radius from edge
     const r = cell === 'sc' ? a / 2 : cell === 'bcc' ? (a * Math.sqrt(3)) / 4 : (a * Math.sqrt(2)) / 4;
     out.innerHTML =
@@ -68,8 +124,9 @@ function makeSolidState(): HTMLElement {
       `atom radius from ${c.rel}: r = <b>${r.toFixed(1)} pm</b><br>` +
       `density ρ = ZM/(N_A·a³) = <b class="big">${density.toFixed(2)} g/cm³</b><br>` +
       `<span class="muted">FCC and HCP both reach the 74% closest-packing limit. Compute Z from corner(⅛)/face(½)/edge(¼)/body(1) sharing.</span>`;
+    missions.tick();
   }
-  const el = card('Unit cell — density, radius, packing',
+  const el = cardWithMissions('Unit cell — density, radius, packing', missions,
     select('lattice', Object.entries(CELLS).map(([k, v]) => ({ value: k, label: v.name })), v => { cell = v as keyof typeof CELLS; calc(); }, cell),
     slider({ label: 'edge a (pm)', min: 200, max: 600, step: 1, value: a, onInput: v => { a = v; calc(); } }),
     slider({ label: 'molar mass (g/mol)', min: 1, max: 250, step: 0.5, value: M, fmt: v => v.toFixed(1), onInput: v => { M = v; calc(); } }),

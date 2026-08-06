@@ -1,7 +1,7 @@
 // Inorganic — coordination & organometallic chemistry: HSAB, Jahn–Teller,
 // ligand substitution (labile/inert + trans effect), the chelate/macrocyclic
 // effect, isomerism, and 18-electron counting.
-import { h, card, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
 import { challengeLadder } from './challenge';
 import { COORDCHEM_QUIZ } from './questions6';
 
@@ -26,21 +26,41 @@ function makeJahnTeller(): HTMLElement {
       return { t2g, eg };
     }
   }
+  // Three outcomes, not two — the distinction the missions below are built on.
+  function kind(d: number, spin: string): 'strong' | 'weak' | 'none' {
+    const { t2g, eg } = occ(d, spin);
+    if (eg % 2 === 1) return 'strong';   // uneven eg — orbitals point AT the ligands
+    if (t2g % 3 !== 0) return 'weak';    // uneven t2g — orbitals point BETWEEN them
+    return 'none';
+  }
   function verdict(d: number, spin: string): string {
     const { t2g, eg } = occ(d, spin);
-    // strong JT: uneven eg occupancy (1 or 3 electrons in eg)
-    const egUneven = eg % 2 === 1;
-    // weak JT: uneven t2g occupancy
-    const t2gUneven = t2g % 3 !== 0;
-    if (egUneven) return `<b class="big">STRONG</b> Jahn–Teller distortion (uneven e_g — orbitals point AT the ligands). t₂g<sup>${t2g}</sup>e_g<sup>${eg}</sup>. Typical of d⁹ (Cu²⁺) and high-spin d⁴ (Mn³⁺): tetragonal elongation.`;
-    if (t2gUneven) return `<b>weak</b> Jahn–Teller distortion (uneven t₂g — orbitals point BETWEEN ligands). t₂g<sup>${t2g}</sup>e_g<sup>${eg}</sup>. Small effect, often not observed.`;
+    const k = kind(d, spin);
+    if (k === 'strong') return `<b class="big">STRONG</b> Jahn–Teller distortion (uneven e_g — orbitals point AT the ligands). t₂g<sup>${t2g}</sup>e_g<sup>${eg}</sup>. Typical of d⁹ (Cu²⁺) and high-spin d⁴ (Mn³⁺): tetragonal elongation.`;
+    if (k === 'weak') return `<b>weak</b> Jahn–Teller distortion (uneven t₂g — orbitals point BETWEEN ligands). t₂g<sup>${t2g}</sup>e_g<sup>${eg}</sup>. Small effect, often not observed.`;
     return `<b>no</b> Jahn–Teller distortion — symmetric occupation. t₂g<sup>${t2g}</sup>e_g<sup>${eg}</sup>.`;
   }
+
+  const missions = missionLadder([
+    {
+      id: 'msn-coo-01',
+      prompt: 'The card opens on d⁹ high-spin, which distorts <b>strongly</b>. Find a setting that gives a <b>weak</b> distortion instead — neither strong nor absent.',
+      meter: () => ({ label: `current verdict: ${kind(d, spin)}  ·  target: weak`, pct: kind(d, spin) === 'weak' ? 100 : 0 }),
+      check: () => kind(d, spin) === 'weak',
+      hints: [
+        'Strong needs an uneven e_g. Absent needs both sets even. So weak must mean an uneven t₂g with an e_g that is empty, half, or full.',
+        'High-spin d⁶ is t₂g⁴e_g² — count how many electrons sit in each of the two sets.',
+      ],
+      explain: 'Weak Jahn–Teller means the unevenness is in t₂g (d_xy, d_xz, d_yz), which point <em>between</em> the M–L axes: high-spin d¹, d², d⁶, d⁷, or low-spin d¹, d², d⁴, d⁵. Distorting barely changes the metal–ligand overlap, so the energy gain is small and the distortion is usually too slight to resolve. The strong cases are the ones where e_g is uneven — those orbitals point straight at the ligands, so moving a ligand changes the energy a great deal. <b>Three outcomes, not two</b>: strong (uneven e_g), weak (uneven t₂g), none (both even, e.g. d³, high-spin d⁵, low-spin d⁶, d⁸).',
+    },
+  ]);
+
   function draw(): void {
     out.innerHTML = verdict(d, spin) +
       `<br><span class="muted">The theorem: a non-linear complex in a degenerate electronic state distorts to lift the degeneracy and lower its energy. e_g points along the M–L axes, so uneven e_g gives the big effect.</span>`;
+    missions.tick();
   }
-  const el = card('Jahn–Teller distortion predictor (octahedral)',
+  const el = cardWithMissions('Jahn–Teller distortion predictor (octahedral)', missions,
     slider({ label: 'd-electron count', min: 0, max: 10, step: 1, value: d, fmt: v => `d${v}`, onInput: v => { d = v; draw(); } }),
     select('spin state', [{ value: 'high', label: 'high-spin' }, { value: 'low', label: 'low-spin' }], v => { spin = v as 'high' | 'low'; draw(); }, spin),
     out,
@@ -64,6 +84,24 @@ function makeElectronCount(): HTMLElement {
   const counts: Record<string, number> = { CO: 0, 'η⁵-Cp': 2 };
   const out = h('div', { class: 'result' });
   const ligRows = h('div', {});
+  let lastTotal = 0;
+
+  // The card opens on ferrocene, which is already 18 e⁻ — so the mission has to
+  // be the OTHER magic number, the one that makes catalysis possible.
+  const missions = missionLadder([
+    {
+      id: 'msn-coo-02',
+      prompt: 'The counter opens on ferrocene: 18 electrons, coordinatively saturated, and catalytically useless. Build a <b>16-electron</b> complex on a third-row group-9 or group-10 metal (Rh, Ir or Pt) instead.',
+      meter: () => ({ label: `${lastTotal} e⁻  ·  target 16 on Rh, Ir or Pt`, pct: ['Rh', 'Ir', 'Pt'].includes(metal) ? Math.max(0, 100 - Math.abs(lastTotal - 16) * 20) : 0 }),
+      check: () => ['Rh', 'Ir', 'Pt'].includes(metal) && lastTotal === 16,
+      hints: [
+        'Clear the two Cp rings first — they are worth 5 electrons each and will dominate any count you try to build.',
+        'Vaska\'s complex is one answer: Ir with one CO, two phosphines and one chloride.',
+      ],
+      explain: 'Vaska\'s complex, trans-[IrCl(CO)(PPh₃)₂]: 9 + 2 + 2(2) + 1 = 16 e⁻. Two electrons short of saturation means one empty coordination site, and that vacancy is where catalysis happens — a substrate binds to make 18, reacts, and leaves the metal back at 16. The 16 ⇌ 18 shuttle is the backbone of oxidative addition, migratory insertion and reductive elimination, which is why almost every homogeneous catalyst is a square-planar d⁸ metal from this corner of the table. <span class="trap">18 electrons means stable, and for a catalyst stable means dead.</span>',
+    },
+  ]);
+
   function compute(): void {
     let total = METALS[metal] - charge; // covalent method: subtract complex charge
     let terms = `${metal}(${METALS[metal]})${charge ? ` − charge ${charge}` : ''}`;
@@ -78,12 +116,14 @@ function makeElectronCount(): HTMLElement {
         : total === 16 ? '16 electrons — common for square-planar d⁸ (Pt/Pd/Rh/Ir); a reactive open site for catalysis.'
           : total < 18 ? `${18 - total} e⁻ short — unsaturated; can bind more ligands or do oxidative addition.`
             : `${total - 18} e⁻ over 18 — unusual; expect lability or non-innocent bonding.`);
+    lastTotal = total;
+    missions.tick();
   }
   function rebuild(): void {
     ligRows.replaceChildren(...LIGANDS.map(L =>
       slider({ label: `# ${L.name} (${L.e}e)`, min: 0, max: 6, step: 1, value: counts[L.name] || 0, onInput: v => { counts[L.name] = v; compute(); } })));
   }
-  const el = card('18-electron rule — electron counter',
+  const el = cardWithMissions('18-electron rule — electron counter', missions,
     select('metal (group e⁻, covalent method)', Object.keys(METALS).map(m => ({ value: m, label: `${m} (${METALS[m]})` })), v => { metal = v; compute(); }, metal),
     select('complex charge', ['-2', '-1', '0', '1', '2'].map(c => ({ value: c, label: c })), v => { charge = Number(v); compute(); }, '0'),
     ligRows, out,

@@ -1274,8 +1274,100 @@ word headings and mangles formulas — the Latimer diagram rendered "MnO₄²⁻
 added during the acids pass earned its keep immediately, holding this
 eleven-cell diagram inside its card.
 
-**Not yet done:** descriptive and organic — the two largest topics left (101 and
-190 questions). Repeat this workflow one at a time.
+**Descriptive & Inorganic — done.** The first topic whose headline audit number
+was actively misleading. `descriptive` showed 43 Gold going in, the second-best
+ratio in the corpus — but `tier` is *derived* from module `difficulty`, and its
+three modules (`nuclear`, `coordchem`, `advinorganic`) are tagged CCO/IChO, so
+all 76 of their quiz questions inherit Gold without anyone having curated them.
+The real state was 2 Part II FRQs (against equilibrium's 7 and atomic's 10) and
+**zero missions and zero misconception fields across all three tabs**.
+
+Manual read of all 101 descriptive-tagged questions found no calculation errors
+— every LFSE, radius-ratio, magnetic-moment and unit-cell value checked out,
+including `cco-ps3-003`'s three radius ratios and `int-cft-mag-*`'s spin-only
+moments. Three defects of a different kind:
+
+- **`coo-009` taught a distinction it then got wrong.** It asked which
+  configuration shows "only a WEAK" Jahn–Teller effect, and the correct option
+  was high-spin d⁵/d³ — configurations with *no* JT effect at all. Its `why`
+  contradicted its own answer ("uneven t₂g occupation gives only a small
+  distortion", then picked the two evenly-occupied sets). Rewritten to ask for
+  **no** distortion, with the three-way split spelled out: strong = uneven e_g
+  (points AT the ligands), weak = uneven t₂g (points BETWEEN them), none = both
+  even. Genuinely weak cases (d¹, d², low-spin d⁴/d⁵, high-spin d⁶/d⁷) were not
+  among the options and now appear in the explanation.
+- **A duplicate the near-duplicate detector cannot see.** `p1-descriptive-001`
+  and `mock1-a-019` both asked for potassium's flame colour in different words,
+  so their Jaccard similarity is low and the audit passed them — four of the 101
+  questions were flame tests. `mock1-a-019` is now the brown-ring test for
+  nitrate, which nothing in the corpus covered. **Lesson for D.9: token overlap
+  finds re-worded questions, not re-asked *facts*.**
+- `mock4-a-018` duplicated `p1-descriptive-003` (limewater → CO₂, flagged at
+  0.80). Rewritten into the trap the pair was hiding: SO₂ *also* turns limewater
+  milky, so the test identifies an acidic gas, not CO₂. The new item adds the
+  discriminating observation — SO₂ is a reductant and decolourises MnO₄⁻.
+
+Added 5 new Part II FRQs (`p2-descriptive-003..007`, one Platinum), all on
+ground the topic never touched — the corpus had nothing at all on lattice
+energy, extraction thermodynamics, period-3 periodicity, or spinels:
+
+- `p2-descriptive-003` — Born–Haber for NaCl (−787) and AgCl (−915), then the
+  *residual* against the ionic model (2.7% vs 9.8%) as the measure of covalent
+  character. Part (d) uses hydration enthalpies to show why the salt with the
+  larger lattice energy is the insoluble one, and why solubility is a small
+  difference between two numbers near 1000 kJ mol⁻¹.
+- `p2-descriptive-004` (Platinum) — an Ellingham diagram from raw ΔH°/ΔS°.
+  Carbon reduces ZnO above **1252 K (979 °C)** and Al₂O₃ only above **2311 K
+  (2038 °C)**, both computed from the crossing of two lines; the payoff is that
+  Hall–Héroult exists because 2038 °C is impractical, not because the reaction
+  is forbidden. Part (a) turns on the one sign that matters — 2C + O₂ → 2CO
+  makes more gas than it consumes, so its line slopes the other way.
+- `p2-descriptive-005` — period 3 across and down: oxide acid–base character
+  from polarising power, MgO vs Al₂O₃ separated experimentally rather than
+  asserted, and three distinct fates for chlorides in water (dissolution,
+  cation hydrolysis, covalent hydrolysis). Part (d) is the CCl₄/SiCl₄ pair:
+  ΔH ≈ −360 kJ mol⁻¹ for CCl₄ hydrolysis and it still does not happen, because
+  "stable" means two different things.
+- `p2-descriptive-006` — why Fe₃O₄ is an inverse spinel and Mn₃O₄ a normal one,
+  from octahedral site preference energies computed in the student's own hands
+  (Fe²⁺ −0.133 Δₒ, Mn³⁺ −0.422 Δₒ, both d⁵ ions exactly 0). Part (d) predicts
+  hausmannite's tetragonal distortion from the Mn³⁺ d⁴ e_g occupancy — the same
+  Jahn–Teller rule as `coo-009`, now deciding a crystal structure. The LFSE
+  card's own caption already name-dropped "spinel site preferences" and nothing
+  tested it.
+- `p2-descriptive-007` — [NiCl₄]²⁻ vs [Ni(CN)₄]²⁻: one d-count, two geometries,
+  told apart by magnetism. Part (c) is the trap: [PtCl₄]²⁻ is square planar with
+  the *same* weak-field ligand, because Δ grows down a group — geometry follows
+  the size of Δ, not the ligand alone.
+
+**Six missions, the first in any of the three tabs.** Two chosen specifically
+because the obvious version was already satisfied by the card's default state:
+the 18-electron counter opens on ferrocene (18 e⁻), so the goal is the *other*
+magic number — build 16 e⁻ on Rh/Ir/Pt, i.e. Vaska's complex, and the open site
+that makes catalysis possible; and the unit-cell card opens on copper and
+already reproduces copper's density, so the goal is tungsten (BCC, 19.25 g/cm³),
+where getting Z wrong is an error of exactly ×2. The others: the one d¹⁰ ion
+that cannot be coloured; Fe³⁺ + CN⁻ driving a d⁵ ion from 5 unpaired to 1;
+LFSE to its −2.4 Δₒ floor; and the d⁴–d⁷ window where high and low spin actually
+differ — which is also the repair for `coo-009`, since the Jahn–Teller card is
+the one place the three-way strong/weak/none split is visible.
+
+`tsc --noEmit`, the build, the corpus audit and `test-router.mjs` are all clean,
+no console errors on the three routes. All six missions were exercised live and
+each was confirmed **unsolved at the card's default state** before being driven
+to completion. Descriptive moved from 43 Gold/5 Platinum to 47/6 (of 106).
+
+One verification note worth recording: `slider()` coalesces its callback into a
+`requestAnimationFrame`, and rAF is paused while the preview pane is hidden — so
+driving a slider and reading the readout in the same tick shows stale state and
+looks like a broken handler. It is not. Selects call their handler synchronously;
+sliders need a frame.
+
+**Not yet done:** organic — the largest topic left (190 questions), and best
+split into two passes: mechanisms/synthesis (`organic1/2/3`, `polymers`) and
+structure determination (`spectroscopy`, `structure`). Both have the same
+derived-Gold illusion as descriptive did, only 2 Part II FRQs, and zero missions
+across all six tabs.
 
 ---
 

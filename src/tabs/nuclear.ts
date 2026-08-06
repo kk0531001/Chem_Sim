@@ -1,5 +1,5 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
-import { h, card, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle } from './framework';
 import { challengeLadder } from './challenge';
 import { NUCLEAR_QUIZ } from './questions2';
 
@@ -127,6 +127,32 @@ function makeCoordination(): HTMLElement {
   let metal = METALS[5], ligand = LIGANDS[5], geom: 'oct' | 'tet' = 'oct';
   const canvas = h('canvas', { width: 420, height: 240 });
   const out = h('div', { class: 'result' });
+  let lastUnpaired = 0;
+
+  const missions = missionLadder([
+    {
+      id: 'msn-nuc-01',
+      prompt: 'Every complex you can build here is coloured except for one metal ion. Find the ion that cannot absorb visible light by a d–d transition, whatever ligand or geometry you give it.',
+      meter: () => ({ label: `${metal.name} is d${metal.d}  ·  looking for a d-count with no possible d–d transition`, pct: metal.d === 10 ? 100 : 0 }),
+      check: () => metal.d === 10,
+      hints: [
+        'A d–d transition needs an electron in a lower orbital AND a vacancy in an upper one. Which d-counts fail one of those two conditions?',
+        'The list runs from d¹ to d¹⁰. Look at the end.',
+      ],
+      explain: 'Zn²⁺ is d¹⁰: every d orbital is full, so there is no vacancy to promote an electron into and no d–d absorption is possible at any Δ. The same holds at the other extreme, d⁰ (Sc³⁺, Ti⁴⁺) — no electron to promote. That is why zinc salts are white and copper salts are blue, and why the intense purple of MnO₄⁻ (a d⁰ ion!) cannot be a d–d band at all: it is a charge-transfer transition, an entirely different mechanism.',
+    },
+    {
+      id: 'msn-nuc-02',
+      prompt: 'Now build an octahedral complex of a <b>d⁵</b> ion with just <b>1 unpaired electron</b> — four fewer than the free ion has.',
+      meter: () => ({ label: `d${metal.d}, ${lastUnpaired} unpaired  ·  target d⁵ with 1`, pct: metal.d === 5 ? Math.max(0, 100 - Math.abs(lastUnpaired - 1) * 25) : 0 }),
+      check: () => metal.d === 5 && lastUnpaired === 1 && geom === 'oct',
+      hints: [
+        'Two ions in the list are d⁵. Pick either, then work on the ligand.',
+        'Five electrons must be squeezed into the three t₂g orbitals, so Δₒ has to beat the pairing energy. Go to the strong-field end of the spectrochemical series.',
+      ],
+      explain: 'Fe³⁺ or Mn²⁺ with CN⁻ or NO₂⁻ goes low spin: t₂g⁵e_g⁰, one unpaired electron, μ = 1.73 BM instead of the high-spin 5.92 BM. Nothing about the metal changed — same ion, same d-count, same charge — only the ligand field. This is the single most direct evidence that Δₒ is real and that the spectrochemical series orders it: swap the ligand and the magnetic moment of the iron changes by a factor of three. Try Cl⁻ and then CN⁻ on the same ion and watch it switch.',
+    },
+  ]);
 
   function fill(): void {
     const d = metal.d;
@@ -150,6 +176,7 @@ function makeCoordination(): HTMLElement {
       upper = singleUpper + pairUpper;
     }
     const unpaired = countUnpaired(lower, lowSlots) + countUnpaired(upper, highSlots);
+    lastUnpaired = unpaired;
     const mu = Math.sqrt(unpaired * (unpaired + 2));
     const cfseLow = geom === 'oct' ? -0.4 : -0.6;
     const cfseHigh = geom === 'oct' ? 0.6 : 0.4;
@@ -193,6 +220,7 @@ function makeCoordination(): HTMLElement {
       `CFSE = ${cfse.toFixed(1)} Δ${geom === 'oct' ? 'o' : 't'}<br>` +
       `absorbs ≈ ${lambdaAbs.toFixed(0)} nm → solution looks <span class="swatch" style="background:${shown.css}"></span> ${shown.name}` +
       `<br><span class="muted">Stronger ligand → bigger Δ → absorbs bluer light → complex looks more yellow/orange. d⁰ and d¹⁰ (${metal.d === 0 || metal.d === 10 ? 'like this one! ' : ''}Sc³⁺, Zn²⁺) are colorless — no d–d transition possible.</span>`;
+    missions.tick();
   }
   const countUnpaired = (e: number, slots: number) => e <= slots ? e : 2 * slots - e;
   const complement = (nm: number): { name: string; css: string } => {
@@ -205,7 +233,7 @@ function makeCoordination(): HTMLElement {
   };
 
   const el = h('div', { class: 'cards' },
-    card('Crystal field explorer',
+    cardWithMissions('Crystal field explorer', missions,
       select('metal ion', METALS.map(m => ({ value: m.name, label: `${m.name} (d${m.d})` })), v => { metal = METALS.find(m => m.name === v)!; fill(); }, metal.name),
       select('ligand', LIGANDS.map(l => ({ value: l.name, label: l.name })), v => { ligand = LIGANDS.find(l => l.name === v)!; fill(); }, ligand.name),
       select('geometry', [{ value: 'oct', label: 'octahedral (ML₆)' }, { value: 'tet', label: 'tetrahedral (ML₄)' }], v => { geom = v as 'oct' | 'tet'; fill(); }, 'oct'),
