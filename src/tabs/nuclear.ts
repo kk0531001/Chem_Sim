@@ -1,6 +1,6 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { NUCLEAR_QUIZ } from './questions2';
 
 
@@ -296,12 +296,16 @@ export const nuclearTab: TabDef = {
   id: 'nuclear',
   mount(root): TabHandle {
     const nuc = makeNuclear();
-    root.append(pills([
-      { label: 'Nuclear', el: nuc.el },
-      { label: 'Coordination', el: makeCoordination() },
-      { label: 'Descriptive', el: makeDescriptive() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(NUCLEAR_QUIZ, 5)), challengeLadder('nuclear')) },
-    ]));
+    root.append(topicPage('nuclear', {
+      sims: [pills([
+        { label: 'Nuclear', el: nuc.el },
+        { label: 'Coordination', el: makeCoordination() },
+        { label: 'Descriptive', el: makeDescriptive() },
+      ])],
+      quiz: quiz(NUCLEAR_QUIZ, 5),
+      // One theory block per panel, beside the tool it explains.
+      theory: [],
+    }));
     // pills swap DOM but the rAF loop lives on; gate on tab visibility
     return {
       onShow() { nuc.setVisible(true); },

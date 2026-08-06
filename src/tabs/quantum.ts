@@ -1,7 +1,7 @@
 // Quantum mechanics & atomic structure: hydrogen orbital viewer,
 // energy levels / spectral series, electron configuration builder.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { QUANTUM_QUIZ } from './questions1';
 
 
@@ -271,10 +271,10 @@ export const quantumTab: TabDef = {
       cfgOut,
     );
     setZ(26);
-
-    root.append(
-      h('div', { class: 'cards' }, orbCard, radCard, lvlCard, cfgCard, card('Quick quiz', quiz(QUANTUM_QUIZ, 5)), challengeLadder('quantum')),
-      theory('Theory & key equations — quantum / atomic structure', `
+    root.append(topicPage('quantum', {
+      sims: [orbCard, radCard, lvlCard, cfgCard],
+      quiz: quiz(QUANTUM_QUIZ, 5),
+      theory: theory('Theory & key equations — quantum / atomic structure', `
 <h4>Quantum numbers</h4>
 <ul>
 <li><b>n</b> = 1,2,3… (size/energy) · <b>ℓ</b> = 0…n−1 (shape: s,p,d,f) · <b>m<sub>ℓ</sub></b> = −ℓ…+ℓ (orientation) · <b>m<sub>s</sub></b> = ±½</li>
@@ -296,7 +296,7 @@ export const quantumTab: TabDef = {
 <li>Successive IEs jump hugely once you break into a core shell — use the jump to identify the group.</li>
 <li>Isoelectronic series: more protons = smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
 <li>PES (photoelectron spectroscopy): each peak = one subshell; peak height ∝ number of electrons; higher binding energy = closer to nucleus.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

@@ -1,7 +1,7 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
 import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { LABDATA_QUIZ } from './questions2';
 
 
@@ -309,13 +309,17 @@ function makeQualTests(): HTMLElement {
 export const labdataTab: TabDef = {
   id: 'labdata',
   mount(root) {
-    root.append(pills([
-      { label: 'Beer\'s law', el: makeBeer() },
-      { label: 'Sig figs & error', el: makeSigFigs() },
-      { label: 'Uncertainty & Q-test', el: makeUncertainty() },
-      { label: 'Qual. analysis', el: makeQualTests() },
-      { label: 'Technique', el: makeTechnique() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(LABDATA_QUIZ, 5)), challengeLadder('labdata')) },
-    ]));
+    root.append(topicPage('labdata', {
+      sims: [pills([
+        { label: 'Beer\'s law', el: makeBeer() },
+        { label: 'Sig figs & error', el: makeSigFigs() },
+        { label: 'Uncertainty & Q-test', el: makeUncertainty() },
+        { label: 'Qual. analysis', el: makeQualTests() },
+        { label: 'Technique', el: makeTechnique() },
+      ])],
+      quiz: quiz(LABDATA_QUIZ, 5),
+      // One theory block per panel, beside the tool it explains.
+      theory: [],
+    }));
   },
 };

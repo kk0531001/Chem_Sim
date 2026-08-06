@@ -1,7 +1,7 @@
 // Organic II: alkene addition (Markovnikov), EAS directing effects,
 // carbonyl reaction map, molecular symmetry / point groups.
 import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { ORGANIC2_QUIZ } from './questions2';
 
 
@@ -247,13 +247,17 @@ function makeAromaticity(): HTMLElement {
 export const organic2Tab: TabDef = {
   id: 'organic2',
   mount(root) {
-    root.append(pills([
-      { label: 'Alkene addition', el: makeAddition() },
-      { label: 'EAS (aromatics)', el: makeEAS() },
-      { label: 'Carbonyls', el: makeCarbonyl() },
-      { label: 'Aromaticity & conformation', el: makeAromaticity() },
-      { label: 'Symmetry & inorganic', el: makeSymmetry() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz', quiz(ORGANIC2_QUIZ, 5)), challengeLadder('organic2')) },
-    ]));
+    root.append(topicPage('organic2', {
+      sims: [pills([
+        { label: 'Alkene addition', el: makeAddition() },
+        { label: 'EAS (aromatics)', el: makeEAS() },
+        { label: 'Carbonyls', el: makeCarbonyl() },
+        { label: 'Aromaticity & conformation', el: makeAromaticity() },
+        { label: 'Symmetry & inorganic', el: makeSymmetry() },
+      ])],
+      quiz: quiz(ORGANIC2_QUIZ, 5),
+      // One theory block per panel, beside the tool it explains.
+      theory: [],
+    }));
   },
 };

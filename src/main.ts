@@ -353,11 +353,19 @@ void initProgress().then(() => {
 // share one progress record, and an out-of-range answer index makes a question
 // unanswerable. Both are invisible at runtime, so surface them in dev.
 if (import.meta.env.DEV) {
-  void import('./content/registry').then(({ auditCorpus, corpusBreakdown, CORPUS_COUNTS }) => {
+  void import('./content/registry').then(({ auditCorpus, auditTopicPages, corpusBreakdown, CORPUS_COUNTS }) => {
     const problems = auditCorpus();
     if (problems.length) console.error(`[content audit] ${problems.length} problem(s)`, problems.slice(0, 20));
     else console.info(`[content audit] clean — ${CORPUS_COUNTS.mc} MC + ${CORPUS_COUNTS.frq} written, all ids unique`);
     console.info('[corpus]', corpusBreakdown());
+
+    // The page contract (D.4). Missions and reset buttons can't be seen from
+    // here — they exist only once a tab mounts — so topicPage() checks those
+    // itself and reports under the same [page contract] prefix.
+    const page = auditTopicPages();
+    if (page.problems.length) console.error(`[page contract] ${page.problems.length} problem(s)`, page.problems);
+    else console.info(`[page contract] clean — every module has an intro, references, a 25-question quiz and misconception coverage`);
+    console.info(`[page contract] ${page.misconceptions} misconception boxes across the module quizzes`);
   });
 
   const topicProblems: string[] = [];

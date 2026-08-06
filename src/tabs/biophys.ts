@@ -1,6 +1,6 @@
 // Advanced (CCO) — Advanced thermo/kinetics + biochemistry.
-import { h, card, theory, slider, select, plot, linspace, pills, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, pills, quiz, type TabDef } from './framework';
+import { topicPage } from './page';
 import { BIOPHYS_QUIZ } from './questions4';
 
 // ================= ENZYME KINETICS =================
@@ -33,8 +33,44 @@ function makeMM(): HTMLElement {
         : inhib === 'noncomp' ? `<b>Non-competitive inhibitor:</b> V_max falls to ${VmaxApp.toFixed(0)}; K_M unchanged — cannot be overcome by adding substrate.`
           : `<b>No inhibitor.</b> Lineweaver–Burk: slope K_M/V_max, y-int 1/V_max, x-int −1/K_M.`) +
       `<br><span class="muted">Catalytic efficiency k_cat/K_M rates the enzyme; ~10⁸–10⁹ M⁻¹s⁻¹ is diffusion-limited ("catalytically perfect").</span>`;
+    missions.tick();
   }
-  const el = card('Enzyme kinetics — Michaelis–Menten & Lineweaver–Burk',
+  // The card's own inhibition model, read back for the missions: Ki is fixed at
+  // 2, competitive inhibition raises apparent K_M by (1 + [I]/Ki).
+  const kmApparent = (): number => (inhib === 'comp' ? Km * (1 + I / 2) : Km);
+
+  const missions = missionLadder([
+    {
+      id: 'msn-biophys-01',
+      prompt: 'Leave K_M at its opening value of <b>2.0</b> and use an inhibitor to push the <b>apparent</b> K_M to 6.0 or above — without moving V_max at all.',
+      meter: () => ({
+        label: inhib === 'comp'
+          ? `apparent K_M = ${kmApparent().toFixed(1)} · target ≥ 6.0 (K_M itself must stay 2.0)`
+          : 'no competitive inhibitor selected',
+        pct: inhib === 'comp' && Math.abs(Km - 2) < 0.05 ? Math.min(100, (kmApparent() / 6) * 100) : 0,
+      }),
+      check: () => inhib === 'comp' && Math.abs(Km - 2) < 0.05 && kmApparent() >= 6,
+      hints: [
+        'Only one of the two inhibitor types leaves V_max where it is. Which curve still reaches the same plateau, just later?',
+        'Competitive inhibition scales K_M by (1 + [I]/K_i), and K_i here is 2 — so [I] = 4 gives a factor of 3, taking the apparent K_M to exactly 6.0.',
+      ],
+      explain: 'A competitive inhibitor binds the <b>active site</b>, so it competes with substrate: at any fixed [S] less enzyme is available, but flooding the enzyme with substrate still wins in the end — V_max is untouched and only the apparent K_M rises, by (1 + [I]/K_i). On the Lineweaver–Burk plot that is the signature: the lines share a y-intercept (1/V_max) and fan out in slope. <span class="trap">"K_M went up" does not mean the enzyme changed; K_M is a property of the enzyme–substrate pair, and what the inhibitor moves is the <em>apparent</em> value.</span>',
+    },
+    {
+      id: 'msn-biophys-02',
+      prompt: 'A drug slows an enzyme, and adding far more substrate does not restore the original maximum rate. Which kind of inhibition is that?',
+      choices: [
+        { label: 'Competitive', value: 'comp' },
+        { label: 'Non-competitive', value: 'noncomp' },
+        { label: 'Either — more substrate always wins', value: 'either' },
+      ],
+      validateChoice: v => v === 'noncomp',
+      hints: ['Switch the card between the two inhibitor types and watch which one moves the dashed V_max line.'],
+      explain: 'Non-competitive. The inhibitor binds somewhere other than the active site, so substrate cannot displace it: every enzyme molecule it touches is out of service whatever [S] is, and V_max falls to V_max/(1 + [I]/K_i) while K_M stays put. On the Lineweaver–Burk plot the lines then share an <em>x</em>-intercept (−1/K_M) and differ in y-intercept — the mirror image of the competitive case you just built.',
+    },
+  ]);
+
+  const el = cardWithMissions('Enzyme kinetics — Michaelis–Menten & Lineweaver–Burk', missions,
     slider({ label: 'V_max', min: 20, max: 200, step: 5, value: Vmax, onInput: v => { Vmax = v; draw(); } }),
     slider({ label: 'K_M', min: 0.3, max: 8, step: 0.1, value: Km, fmt: v => v.toFixed(1), onInput: v => { Km = v; draw(); } }),
     select('inhibitor', [{ value: 'none', label: 'none' }, { value: 'comp', label: 'competitive' }, { value: 'noncomp', label: 'non-competitive' }], v => { inhib = v as typeof inhib; draw(); }, 'none'),
@@ -144,14 +180,15 @@ function makeBiochem(): HTMLElement {
 export const biophysTab: TabDef = {
   id: 'biophys',
   mount(root) {
-    root.append(pills([
-      { label: 'Enzyme kinetics', el: h('div', { class: 'cards' }, makeMM()) },
-      { label: 'Eyring (TST)', el: h('div', { class: 'cards' }, makeEyring()) },
-      { label: 'Boltzmann', el: h('div', { class: 'cards' }, makeBoltzmann()) },
-      { label: 'Biochemistry', el: makeBiochem() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — physical & biochem', quiz(BIOPHYS_QUIZ, 5)), challengeLadder('biophys')) },
-    ]),
-    theory('Theory — advanced thermo/kinetics & biochemistry (CCO PS4)', `
+    root.append(topicPage('biophys', {
+      sims: [pills([
+        { label: 'Enzyme kinetics', el: h('div', { class: 'cards' }, makeMM()) },
+        { label: 'Eyring (TST)', el: h('div', { class: 'cards' }, makeEyring()) },
+        { label: 'Boltzmann', el: h('div', { class: 'cards' }, makeBoltzmann()) },
+        { label: 'Biochemistry', el: makeBiochem() },
+      ])],
+      quiz: quiz(BIOPHYS_QUIZ, 5),
+      theory: theory('Theory — advanced thermo/kinetics & biochemistry (CCO PS4)', `
 <h4>Advanced kinetics</h4>
 <ul>
 <li><b>Steady-state approximation:</b> d[intermediate]/dt ≈ 0 → eliminate intermediates from the rate law (basis of Michaelis–Menten).</li>
@@ -170,7 +207,7 @@ export const biophysTab: TabDef = {
 <li>Amino-acid zwitterions and pI; protein 1°–4° structure; peptide-bond planarity; denaturation.</li>
 <li>Enzyme kinetics (Michaelis–Menten, inhibitor types, k_cat/K_M); allosteric feedback regulation.</li>
 <li>Bioenergetics: ATP coupling, redox chain E°′, sugar hemiacetals/mutarotation. Enzymes never shift equilibrium.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

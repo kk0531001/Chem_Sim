@@ -16,7 +16,7 @@ import {
   BANKS, COMPS, ID_PREFIX, ceilingRank, compsForDifficulty, isModuleId, toExamTopic,
   type Comp, type ExamTopicId, type QuizModuleId, type Tier,
 } from './topicIds';
-import { topicById } from '../topics';
+import { TOPICS, topicById } from '../topics';
 
 // ---- quiz banks (one per topic module) ----
 import { QUANTUM_QUIZ, BONDING_QUIZ, STOICH_QUIZ, THERMO1_QUIZ, THERMO2_QUIZ, EQUILIBRIUM_QUIZ } from '../tabs/questions1';
@@ -233,6 +233,51 @@ export function corpusBreakdown(): {
   const tp: Record<string, number> = {};
   for (const [k, v] of BY_TOPIC) tp[k] = v.length;
   return { byTier: t, byComp: c, byTopic: tp, untopiced: ALL.filter(q => !q.topic).length };
+}
+
+/**
+ * The page contract (ROADMAP D.4), for the parts a type cannot state.
+ *
+ * `topicPage()` already makes six of the eight blocks a compile error to omit —
+ * intro, theory, simulations, quiz, challenge and references are required
+ * fields. What is left is everything that is a COUNT rather than a presence:
+ * a bank of five questions still type-checks, and so does a page whose
+ * misconception boxes were never written. Those are what this reads.
+ *
+ * Deliberately not a spreadsheet and not a mount harness: it is a pass over the
+ * data the modules already export, so it stays true without anything being kept
+ * in sync by hand. The two blocks it cannot see from here — a mission ladder
+ * and a reset button, which exist only once a tab is mounted — are checked by
+ * topicPage() itself when the page is built.
+ */
+const CONTRACT_EXEMPT = new Set(['sandbox', 'qbank']);
+
+export function auditTopicPages(): { problems: string[]; misconceptions: number } {
+  const problems: string[] = [];
+  let misconceptions = 0;
+
+  for (const topic of TOPICS) {
+    // The playground and the exam bank are not lessons: neither has a 25-item
+    // module quiz or a simulation, and pretending otherwise would mean either a
+    // fake quiz bank or an audit that is permanently red.
+    if (CONTRACT_EXEMPT.has(topic.id)) continue;
+    const where = topic.id;
+    if (topic.intro.trim().length < 200) problems.push(`${where}: intro is too short to be an introduction`);
+    if (topic.refs.length < 2) problems.push(`${where}: ${topic.refs.length} reference(s), the contract asks for 2–4`);
+    for (const r of topic.refs) if (!r.text.trim()) problems.push(`${where}: a reference with no text`);
+
+    const bank = (QUIZ_BANKS as Record<string, QuizQ[] | undefined>)[where];
+    if (!bank) { problems.push(`${where}: no quiz bank registered in QUIZ_BANKS`); continue; }
+    if (bank.length < 25) problems.push(`${where}: quiz has ${bank.length} questions, the contract asks for 25`);
+    const withMiscon = bank.filter(q => q.misconception?.trim()).length;
+    misconceptions += withMiscon;
+    // Not every question earns one — a box on an arithmetic slip is noise — but
+    // a whole module without any means nobody has read the bank for wrong
+    // models yet.
+    if (withMiscon < 4) problems.push(`${where}: ${withMiscon} misconception box(es) in 25 questions`);
+  }
+
+  return { problems, misconceptions };
 }
 
 /**

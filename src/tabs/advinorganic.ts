@@ -1,6 +1,6 @@
 // Advanced (CCO) — Coordination/CFT + solid-state + descriptive inorganic.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, pills, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { INORGANIC_QUIZ } from './questions4';
 
 // ================= LFSE / CFT =================
@@ -179,13 +179,14 @@ function makeDescriptive(): HTMLElement {
 export const advInorganicTab: TabDef = {
   id: 'advinorganic',
   mount(root) {
-    root.append(pills([
-      { label: 'Crystal field (LFSE)', el: h('div', { class: 'cards' }, makeLFSE()) },
-      { label: 'Solid state', el: h('div', { class: 'cards' }, makeSolidState()) },
-      { label: 'Descriptive', el: makeDescriptive() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — advanced inorganic', quiz(INORGANIC_QUIZ, 5)), challengeLadder('advinorganic')) },
-    ]),
-    theory('Theory — coordination, solid-state & descriptive (CCO PS3)', `
+    root.append(topicPage('advinorganic', {
+      sims: [pills([
+        { label: 'Crystal field (LFSE)', el: h('div', { class: 'cards' }, makeLFSE()) },
+        { label: 'Solid state', el: h('div', { class: 'cards' }, makeSolidState()) },
+        { label: 'Descriptive', el: makeDescriptive() },
+      ])],
+      quiz: quiz(INORGANIC_QUIZ, 5),
+      theory: theory('Theory — coordination, solid-state & descriptive (CCO PS3)', `
 <h4>Crystal / ligand field</h4>
 <span class="eq">LFSE(oct) = (−0.4·n_t₂g + 0.6·n_e_g)Δ_o &nbsp;·&nbsp; Δ_t ≈ (4/9)Δ_o</span>
 <ul>
@@ -204,7 +205,7 @@ export const advInorganicTab: TabDef = {
 <h4>Descriptive & bonding models</h4>
 <ul>
 <li>Amphoterism, inert-pair effect, diagonal relationships, lanthanide contraction, HSAB, 18-electron rule, Ellingham diagrams.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

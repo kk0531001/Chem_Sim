@@ -1,6 +1,6 @@
 // Advanced (CCO) — Spectroscopy (IR / NMR / MS) + advanced organic synthesis.
 import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { SPECTROSCOPY_QUIZ } from './questions3';
 
 // ================= IR =================
@@ -228,12 +228,16 @@ function makeSynthesis(): HTMLElement {
 export const spectroscopyTab: TabDef = {
   id: 'spectroscopy',
   mount(root) {
-    root.append(pills([
-      { label: 'IR', el: makeIR() },
-      { label: '¹H NMR', el: makeNMR() },
-      { label: 'Mass spec', el: makeMS() },
-      { label: 'Synthesis', el: makeSynthesis() },
-      { label: 'Quiz', el: h('div', { class: 'cards' }, card('Quick quiz — spectroscopy & synthesis', quiz(SPECTROSCOPY_QUIZ, 5)), challengeLadder('spectroscopy')) },
-    ]));
+    root.append(topicPage('spectroscopy', {
+      sims: [pills([
+        { label: 'IR', el: makeIR() },
+        { label: '¹H NMR', el: makeNMR() },
+        { label: 'Mass spec', el: makeMS() },
+        { label: 'Synthesis', el: makeSynthesis() },
+      ])],
+      quiz: quiz(SPECTROSCOPY_QUIZ, 5),
+      // One theory block per panel, beside the tool it explains.
+      theory: [],
+    }));
   },
 };

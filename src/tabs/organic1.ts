@@ -1,7 +1,7 @@
 // Organic I: substrate/mechanism decision engine (SN1/SN2/E1/E2),
 // pKa ladder, carbocation stability.
 import { h, card, cardWithMissions, missionLadder, theory, select, plot, linspace, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { ORGANIC1_QUIZ } from './questions2';
 
 
@@ -173,10 +173,10 @@ export const organic1Tab: TabDef = {
       h('p', { html: '<span class="trap">Never form a carbocation next to a carbonyl or on a vinyl/aryl carbon — destabilized.</span>' }),
       h('p', { html: '<b>Rearrangements:</b> a 2° cation adjacent to a 3° center does a hydride (or methyl) shift → watch for "unexpected" SN1/E1 products. If a shift can make a more stable cation, it will.' }),
     );
-
-    root.append(
-      h('div', { class: 'cards' }, deciderCard, ladderCard, cationCard, card('Quick quiz', quiz(ORGANIC1_QUIZ, 5)), challengeLadder('organic1')),
-      theory('Theory — organic bonding, stereochem quick hits, mechanism summary', `
+    root.append(topicPage('organic1', {
+      sims: [deciderCard, ladderCard, cationCard],
+      quiz: quiz(ORGANIC1_QUIZ, 5),
+      theory: theory('Theory — organic bonding, stereochem quick hits, mechanism summary', `
 <h4>The four mechanisms at a glance</h4>
 <table><tr><th></th><th>rate law</th><th>stereo</th><th>substrate</th><th>needs</th></tr>
 <tr><td><b>SN2</b></td><td>k[RX][Nu]</td><td>inversion (backside)</td><td>Me &gt; 1° &gt; 2° (never 3°)</td><td>strong Nu, aprotic best</td></tr>
@@ -194,7 +194,7 @@ export const organic1Tab: TabDef = {
 <li>Enantiomers: identical physical properties except optical rotation & chiral environments. Diastereomers differ in everything.</li>
 <li>R/S: rank by atomic number, lowest priority away, trace 1→2→3. <span class="trap">If the lowest priority points toward you, reverse the answer.</span></li>
 <li>SN2 flips R↔S only if the leaving group and nucleophile have the same priority rank — check, don't assume.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

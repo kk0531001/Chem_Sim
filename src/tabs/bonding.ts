@@ -1,6 +1,6 @@
 // Chemical bonding: VSEPR geometry explorer + MO diagrams for diatomics.
-import { h, card, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { h, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
+import { topicPage } from './page';
 import { BONDING_QUIZ } from './questions1';
 
 
@@ -191,10 +191,10 @@ export const bondingTab: TabDef = {
       moCanvas, moOut,
     );
     setMO('O₂');
-
-    root.append(
-      h('div', { class: 'cards' }, vseprCard, moCard, card('Quick quiz', quiz(BONDING_QUIZ, 5)), challengeLadder('bonding')),
-      theory('Theory & key ideas — Lewis, VSEPR, valence bond, MO', `
+    root.append(topicPage('bonding', {
+      sims: [vseprCard, moCard],
+      quiz: quiz(BONDING_QUIZ, 5),
+      theory: theory('Theory & key ideas — Lewis, VSEPR, valence bond, MO', `
 <h4>Lewis structures & formal charge</h4>
 <span class="eq">FC = valence e⁻ − nonbonding e⁻ − ½(bonding e⁻)</span>
 <ul>
@@ -221,7 +221,7 @@ export const bondingTab: TabDef = {
 <li><span class="trap">The classic: O₂ is paramagnetic (2 unpaired π* electrons) — Lewis theory can't explain this, MO can.</span></li>
 <li>B₂ paramagnetic, C₂ diamagnetic — the π-below-σ ordering is testable.</li>
 <li>He₂, Ne₂: bond order 0 → don't exist.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

@@ -1,7 +1,7 @@
 // Gases, IMFs, phase diagrams, solutions: kinetic gas box, Maxwell-Boltzmann,
 // interactive phase diagrams, colligative properties.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { GASES_QUIZ } from './questions2';
 
 
@@ -410,9 +410,10 @@ export const gasesTab: TabDef = {
   id: 'gases',
   mount(root): TabHandle {
     const gasBox = makeGasBox();
-    root.append(
-      h('div', { class: 'cards' }, gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative(), card('Quick quiz', quiz(GASES_QUIZ, 5)), challengeLadder('gases')),
-      theory('Theory & key equations — gases / IMF / solutions', `
+    root.append(topicPage('gases', {
+      sims: [gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative()],
+      quiz: quiz(GASES_QUIZ, 5),
+      theory: theory('Theory & key equations — gases / IMF / solutions', `
 <h4>Gas laws</h4>
 <span class="eq">PV = nRT (R = 0.08206 L·atm/mol·K = 8.314 J/mol·K) · P<sub>i</sub> = x<sub>i</sub>P<sub>total</sub> (Dalton) · rate ∝ 1/√M (Graham)</span>
 <ul>
@@ -432,8 +433,8 @@ export const gasesTab: TabDef = {
 <li>Gas solubility: ↑ with pressure, ↓ with temperature (warm soda goes flat). Most solids: ↑ with T.</li>
 <li>Positive deviation from Raoult (A–B weaker than A–A/B–B) → higher vapor P, minimum-boiling azeotrope (ethanol–water).</li>
 <li>Colligative properties count dissolved particles — great for finding molar masses of unknowns.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
     return {
       onShow() { gasBox.setVisible(true); },
       onHide() { gasBox.setVisible(false); },

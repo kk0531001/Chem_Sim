@@ -1,7 +1,7 @@
 // Polymers — monomer↔polymer explorer, MW/PDI/DP calculator, and the
 // addition-vs-condensation reference. (IChO area 12.)
 import { h, card, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { POLYMERS_QUIZ } from './questions5';
 
 interface Poly { name: string; type: 'addition' | 'condensation'; monomer: string; link: string; use: string; byproduct: string }
@@ -99,9 +99,10 @@ function makeMW(): HTMLElement {
 export const polymersTab: TabDef = {
   id: 'polymers',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' }, makeExplorer(), makeMW(), card('Quick quiz', quiz(POLYMERS_QUIZ, 5)), challengeLadder('polymers')),
-      theory('Theory — polymers (IChO area 12)', `
+    root.append(topicPage('polymers', {
+      sims: [makeExplorer(), makeMW()],
+      quiz: quiz(POLYMERS_QUIZ, 5),
+      theory: theory('Theory — polymers (IChO area 12)', `
 <h4>Two mechanisms</h4>
 <table><tr><th></th><th>addition (chain-growth)</th><th>condensation (step-growth)</th></tr>
 <tr><td>monomer</td><td>has C=C (vinyl)</td><td>two reactive groups (diol+diacid, diamine+diacid)</td></tr>
@@ -123,7 +124,7 @@ export const polymersTab: TabDef = {
 <ul>
 <li>Proteins (amino acids, peptide bonds), polysaccharides (sugars, glycosidic bonds), nucleic acids — all natural condensation polymers.</li>
 <li>Deduce the monomer from a backbone repeat: reverse the linkage and restore the lost small molecule (or the C=C).</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

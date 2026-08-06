@@ -1,8 +1,8 @@
 // Physical Chemistry — advanced topics: van't Hoff (K vs T), Clausius–Clapeyron,
 // concentration cells, real gases (van der Waals / Z), heat capacities +
 // Kirchhoff, catalysis energy profile, and coupled/complex equilibria.
-import { h, card, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
+import { topicPage } from './page';
 import { PHYSCHEM_QUIZ } from './questions6';
 
 const R = 8.314; // J/mol·K
@@ -29,8 +29,43 @@ function makeVantHoff(): HTMLElement {
         ? 'ΔH° &lt; 0 (exothermic): the line slopes <b>up</b> to the right, so K <b>falls</b> as T rises — heat is a product.'
         : 'ΔH° &gt; 0 (endothermic): the line slopes <b>down</b>, so K <b>grows</b> with T — heat drives it forward.') +
       `<br><span class="muted">The two-point form ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁) lets you get ΔH° from K at two temperatures.</span>`;
+    missions.tick();
   }
-  const el = card('van\'t Hoff — how K depends on temperature',
+  // Crossover temperature: ln K = 0 when ΔH°/T = ΔS°, i.e. T = ΔH°/ΔS°.
+  // ΔH° is in kJ/mol and ΔS° in J/mol·K, hence the factor of 1000.
+  const Tcross = (): number => (dS !== 0 ? (dH * 1000) / dS : NaN);
+  const inWindow = (): boolean => { const t = Tcross(); return dH > 0 && dS > 0 && t >= 250 && t <= 600; };
+
+  const missions = missionLadder([
+    {
+      id: 'msn-physchem-01',
+      prompt: 'The card opens on an exothermic reaction: its K only <b>falls</b> as you heat it. Set ΔH° and ΔS° so that the reaction is instead one whose K <b>passes 1</b> somewhere inside the plotted window — a crossover temperature between <b>250 and 600 K</b>.',
+      meter: () => {
+        const t = Tcross();
+        if (!(dH > 0 && dS > 0)) return { label: 'both ΔH° and ΔS° must be positive · crossover undefined', pct: 0 };
+        const dist = t < 250 ? 250 - t : t > 600 ? t - 600 : 0;
+        return { label: `crossover T = ${t.toFixed(0)} K · target 250–600 K`, pct: Math.max(0, 100 - dist / 4) };
+      },
+      check: inWindow,
+      hints: [
+        'ln K = 0 when the two terms cancel: ΔH°/RT = ΔS°/R. Solve that for T.',
+        'T(crossover) = ΔH°/ΔS°. With ΔH° in kJ/mol and ΔS° in J/mol·K that is 1000·ΔH°/ΔS° — so ΔH° = +60 with ΔS° = +150 puts it at 400 K.',
+      ],
+      explain: 'K crosses 1 exactly where ΔG° changes sign, at <b>T = ΔH°/ΔS°</b> — the same crossover temperature as the spontaneity map in Thermodynamics II, seen from the equilibrium side. It only exists when ΔH° and ΔS° share a sign: an endothermic, entropy-driven reaction (both positive) is switched <em>on</em> by heating, and an exothermic, entropy-losing one (both negative) is switched <em>off</em>. When the signs differ there is no crossover at all — the reaction has K > 1 at every temperature, or K < 1 at every temperature.',
+    },
+    {
+      id: 'msn-physchem-02',
+      prompt: 'A reaction is measured twice: <b>K = 4.0 at 300 K</b> and <b>K = 0.50 at 400 K</b>. Report ΔH° in kJ/mol, sign included.',
+      numeric: { label: 'ΔH° (kJ/mol)', placeholder: '±0.0', step: 0.1, validate: n => Math.abs(n + 20.7) < 1.5 },
+      hints: [
+        'Two-point van\'t Hoff: ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁). Keep R in J/mol·K and convert at the end.',
+        'ln(0.50/4.0) = −2.079, and 1/400 − 1/300 = −8.333×10⁻⁴ K⁻¹.',
+      ],
+      explain: 'ΔH° = −2.079 × 8.314 / (−8.333×10⁻⁴) × (−1) = <b>−20.7 kJ/mol</b>. The sign was readable before any arithmetic: K <em>fell</em> when the reaction was heated, so heat behaves as a product and the reaction is exothermic. <span class="trap">The most common slip here is dropping the minus sign on (1/T₂ − 1/T₁) and reporting +20.7 — a reaction that the data say gets worse on heating cannot have a positive ΔH°.</span>',
+    },
+  ]);
+
+  const el = cardWithMissions('van\'t Hoff — how K depends on temperature', missions,
     slider({ label: 'ΔH° (kJ/mol)', min: -120, max: 120, step: 5, value: dH, onInput: v => { dH = v; draw(); } }),
     slider({ label: 'ΔS° (J/mol·K)', min: -150, max: 150, step: 5, value: dS, onInput: v => { dS = v; draw(); } }),
     slider({ label: 'temperature T (K)', min: 250, max: 600, step: 5, value: T, onInput: v => { T = v; draw(); } }),
@@ -266,14 +301,10 @@ function makeComplexEq(): HTMLElement {
 export const physChemTab: TabDef = {
   id: 'physchem',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' },
-        makeVantHoff(), makeClausius(), makeConcCell(), makeRealGas(),
-        makeHeatCap(), makeCatalysis(), makeComplexEq(),
-        card('Quick quiz', quiz(PHYSCHEM_QUIZ, 5)),
-        challengeLadder('physchem'),
-      ),
-      theory('Theory — advanced physical chemistry', `
+    root.append(topicPage('physchem', {
+      sims: [makeVantHoff(), makeClausius(), makeConcCell(), makeRealGas(), makeHeatCap(), makeCatalysis(), makeComplexEq()],
+      quiz: quiz(PHYSCHEM_QUIZ, 5),
+      theory: theory('Theory — advanced physical chemistry', `
 <h4>Temperature dependence of K (van't Hoff)</h4>
 <span class="eq">\\(\\ln K = -\\Delta H^\\circ/RT + \\Delta S^\\circ/R\\) &nbsp;·&nbsp; \\(\\ln(K_2/K_1) = -(\\Delta H^\\circ/R)(1/T_2 - 1/T_1)\\)</span>
 <ul>
@@ -313,7 +344,7 @@ export const physChemTab: TabDef = {
 <ul>
 <li>Add reactions → multiply K's (e.g. Ka·Kb = Kw). Stepwise formation: overall βₙ = K₁K₂…Kₙ; successive K's decrease.</li>
 <li>Speciation (fraction αₙ) shifts with free-ligand concentration — the basis of buffer, EDTA, and metal-ammine chemistry.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

@@ -2,7 +2,7 @@
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
 import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { LABTECH_QUIZ } from './questions7';
 
 // ---- recrystallization: solubility curve + recovery ----
@@ -302,13 +302,10 @@ function makeReference(): HTMLElement {
 export const labTechTab: TabDef = {
   id: 'labtech',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' },
-        makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference(),
-        card('Quick quiz', quiz(LABTECH_QUIZ, 5)),
-        challengeLadder('labtech'),
-      ),
-      theory('Theory — laboratory techniques', `
+    root.append(topicPage('labtech', {
+      sims: [makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference()],
+      quiz: quiz(LABTECH_QUIZ, 5),
+      theory: theory('Theory — laboratory techniques', `
 <h4>Recrystallization</h4>
 <ul><li>Dissolve in the MINIMUM hot solvent; hot-filter (+ charcoal) to drop insoluble/coloured impurities; cool slowly to grow pure crystals; collect by vacuum filtration; wash with cold solvent.</li>
 <li>Ideal solvent: high hot solubility, low cold solubility. Recovery = mass − (cold solubility × volume).</li></ul>
@@ -329,7 +326,7 @@ export const labTechTab: TabDef = {
 <li>Buffer: pH = pKa + log([A⁻]/[HA]); choose pKa within ±1 of the target pH for good capacity.</li></ul>
 <h4>Uncertainty & safety</h4>
 <ul><li>Accuracy (closeness to true) ≠ precision (reproducibility). Sums add absolute σ in quadrature; products add relative σ in quadrature. Report the correct sig figs.</li>
-<li>Acid to water; know GHS pictograms; segregate incompatibles; goggles/gloves/fume hood; know emergency equipment.</li></ul>`, true),
-    );
+<li>Acid to water; know GHS pictograms; segregate incompatibles; goggles/gloves/fume hood; know emergency equipment.</li></ul>`),
+    }));
   },
 };

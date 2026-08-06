@@ -1,7 +1,7 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, type TabDef, type TabHandle } from './framework';
-import { challengeLadder } from './challenge';
+import { h, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, type TabDef, type TabHandle } from './framework';
+import { topicPage } from './page';
 import { EQUILIBRIUM_QUIZ } from './questions1';
 
 
@@ -329,9 +329,10 @@ export const equilibriumTab: TabDef = {
     );
     kspCalc();
 
-    root.append(
-      h('div', { class: 'cards' }, simCard, iceCard, kspCard, card('Quick quiz', quiz(EQUILIBRIUM_QUIZ, 5)), challengeLadder('equilibrium')),
-      theory('Theory & key equations — equilibrium (highest-volume olympiad topic)', `
+    root.append(topicPage('equilibrium', {
+      sims: [simCard, iceCard, kspCard],
+      quiz: quiz(EQUILIBRIUM_QUIZ, 5),
+      theory: theory('Theory & key equations — equilibrium (highest-volume olympiad topic)', `
 <h4>The law of mass action</h4>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>
 <ul>
@@ -351,8 +352,8 @@ export const equilibriumTab: TabDef = {
 <li>ICE tables: define x from stoichiometry, watch coefficient multipliers ((2x)² for 2NO₂!).</li>
 <li>5% rule: if x &lt; 5% of initial, the "small x" shortcut is fine. If K is huge, run the reaction to completion first, then come back a little.</li>
 <li><span class="trap">K<sub>sp</sub>: for Ca₃(PO₄)₂ → 3Ca²⁺ + 2PO₄³⁻, K<sub>sp</sub> = (3s)³(2s)² = 108s⁵. Common-ion effect lowers solubility.</span></li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
 
     loop();
     return {

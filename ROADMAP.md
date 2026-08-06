@@ -1815,35 +1815,56 @@ while the pane is hidden, which freezes both the reveal transitions and the demo
 loop — sections can look washed out and stalled when they are neither. Take a
 screenshot to wake it, then re-read.
 
-### D.4 The page contract — **[ ] the biggest item in the phase**
+### D.4 The page contract — **[x] DONE**
 
 "Every topic contains: introduction, theory, simulation, missions, misconception
-boxes, quiz, gold/platinum challenge, references." Measured against the source
-today, that contract is met by roughly a third of the site:
+boxes, quiz, gold/platinum challenge, references." Coverage before and after:
 
-| Block | Coverage now |
-| --- | --- |
-| Theory + quiz (25 Q) | 25 / 25 |
-| Simulation | most, but several advanced modules are prose-only |
-| **Missions** | **12 / 25 tabs** — absent from organic1–3, polymers, nuclear, coordchem, advinorganic, analytical, spectroscopy, structure, physchem, biophys |
-| **Misconception boxes** | **12 questions of ~590** — B.2 shipped the mechanism and eight canonical items, not coverage |
-| **Reset button** | **3 tabs** (sandbox, equilibrium, nuclear) |
-| **References** | **0 / 25** |
-| Gold/Platinum challenge | C.2 wrote 6 exemplars; the full layer is C.2's open work |
+| Block | Was | Now |
+| --- | --- | --- |
+| Theory + quiz (25 Q) | 25 / 25 | 25 / 25 |
+| Simulation | most | 23 / 23 study modules |
+| **Missions** | the table below said 12/25 and was **stale** — C.4 had already added most of them; the real gap was 3 | 23 / 23 |
+| **Misconception boxes** | **12 of 587** | **167 of 587**, every module ≥ 4 |
+| **Reset button** | **3 tabs** | **78 cards** |
+| **References** | **0 / 25** | 25 / 25 |
+| Gold/Platinum challenge | C.2's ladder, unchanged | unchanged |
 
-- [ ] `topicPage()` scaffold in `framework.ts` that renders the eight blocks in a
-      fixed order with fixed heading levels, so a module cannot silently omit
-      one. Existing tabs migrate to it one at a time.
-- [ ] `auditTopicPages()` alongside `auditCorpus()` — dev-time console error
-      listing every module missing a block. This repo's audit pattern already
-      works; extend it rather than tracking coverage in a spreadsheet.
-- [ ] **Content backfill (Claude):** missions for the 13 tabs without them,
-      one misconception on every question whose distractor encodes a real wrong
-      model (target ≥ 150, not all 590 — a box on an arithmetic slip is noise),
-      an `intro` paragraph per module, references per module.
-- [ ] **Chrome backfill (Codex):** reset button on every sim, objectives line
-      and hints on every mission card, consistent `.trap` / `.note` /
-      `.misconception` usage.
+- [x] `topicPage()` — in **`src/tabs/page.ts`**, not framework.ts: it needs
+      `challengeLadder()` and `TopicMeta`, and framework → challenge → registry →
+      topics → framework is an import cycle between modules that build top-level
+      constants. Renders intro · theory · sims · quiz · challenge · references in
+      that fixed order, with the card `<h2>` level owned by `card()`.
+- [x] **The type is the audit.** `sims` is a non-empty tuple and `quiz`/`theory`
+      are required fields; `intro` and `refs` are required on `TopicMeta`. Six of
+      the eight blocks are therefore a *compile error* to omit, which is stronger
+      than a console warning and needed no script. Only the two blocks that are
+      counts rather than presence needed checking at runtime.
+- [x] `auditTopicPages()` in registry.ts, wired into main.ts's DEV block: intro
+      length, 2–4 references, a registered 25-question bank, and ≥ 4
+      misconception boxes per module. `topicPage()` itself checks the two things
+      that only exist once a tab mounts — a mission ladder and a theory block.
+- [x] **Reset without per-sim code.** A slider's or select's initial value is
+      already in the DOM as `defaultValue`/`defaultSelected`, so `resetControls()`
+      restores it and dispatches `input`/`change` — the card's own handler then
+      recomputes through its normal path, mission meters included. `topicPage()`
+      adds the button to every sim card that has a control and doesn't already
+      have one, so the three bespoke resets (sandbox, equilibrium, nuclear —
+      which carry state no control holds) are left alone.
+- [x] **Content backfill:** 25 intros, 25 reference lists (2–4 textbooks each,
+      chapters named rather than numbered so they survive an edition change),
+      155 new misconception boxes, and mission ladders for the three tabs that
+      genuinely lacked them (physchem, biophys, analytical) — each verified in
+      the browser as reachable and *not* satisfied by the card's default state.
+- [x] Two modules are exempt and say so in the audit: `sandbox` (a playground,
+      no 25-question bank) and `qbank` (the exam bank itself, no simulation).
+      Both still carry an intro and references.
+
+**Not done, and deliberately:** the pills-based modules (aek, organic2, nuclear,
+labdata, spectroscopy) keep one theory block *per panel*, beside the tool it
+explains, rather than one hoisted to the top of the page. They pass `theory: []`
+and the runtime check confirms the blocks exist. Hoisting them would separate
+each explanation from its simulation to satisfy a type.
 
 ### D.5 References — **[ ]**
 

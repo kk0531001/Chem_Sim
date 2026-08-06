@@ -974,6 +974,37 @@ body { overflow: hidden; }
 /* ============================================================
    TOPIC TAB COMPONENTS
    ============================================================ */
+/* ---- the page contract (ROADMAP D.4) ---- */
+
+/* The module's opening paragraph, above the theory block. Reading measure, not
+   card width: this is prose, and a 1480px line is unreadable. */
+.topic-intro {
+  max-width: 1480px;
+  margin: 0 auto 4px;
+}
+.topic-intro p {
+  max-width: 70ch;
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--ink-dim);
+  border-left: 2px solid var(--accent);
+  padding-left: 16px;
+}
+.topic-intro b { color: var(--ink); font-weight: 650; }
+
+/* A pill group is a full-width block inside the flex-wrap simulation row, not
+   a card sitting beside another card. */
+.cards > .pills { flex: 1 1 100%; min-width: 0; }
+
+/* Reset sits on the card's title rule, right-aligned against it. */
+.card.has-reset > h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card-reset { font-size: 11.5px; padding: 3px 11px; flex: none; }
+
+.ref-list { list-style: none; padding-left: 0; }
+.ref-list li { padding: 7px 0; border-bottom: 1px solid var(--rule); }
+.ref-list li:last-child { border-bottom: none; }
+.ref-chapter { color: var(--ink-faint); }
+
 .cards {
   display: flex;
   flex-wrap: wrap;

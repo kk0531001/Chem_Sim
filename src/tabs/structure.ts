@@ -2,7 +2,7 @@
 // interpretation (isotopes, nitrogen rule, fragment losses), an IR functional-
 // group checklist, combined IR+NMR+MS unknowns, and reference tables.
 import { h, card, cardWithMissions, missionLadder, theory, slider, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { STRUCTURE_QUIZ } from './questions7';
 
 // ---- molecular formula / DoU analyzer ----
@@ -206,13 +206,10 @@ function makeNMRRef(): HTMLElement {
 export const structureTab: TabDef = {
   id: 'structure',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' },
-        makeFormula(), makeMassSpec(), makeIRChecklist(), makeNMRRef(), makeCombined(),
-        card('Quick quiz', quiz(STRUCTURE_QUIZ, 5)),
-        challengeLadder('structure'),
-      ),
-      theory('Theory — structure determination', `
+    root.append(topicPage('structure', {
+      sims: [makeFormula(), makeMassSpec(), makeIRChecklist(), makeNMRRef(), makeCombined()],
+      quiz: quiz(STRUCTURE_QUIZ, 5),
+      theory: theory('Theory — structure determination', `
 <h4>Step 1 — molecular formula & DoU</h4>
 <span class="eq">\\(\\text{DoU} = \\dfrac{2C + 2 + N - H - X}{2}\\)</span>
 <ul><li>From MS (M⁺, isotopes, M+1 carbon count) or combustion analysis. Each ring/π bond = 1 DoU; 4 often means a benzene ring. Nitrogen rule: odd M⁺ ⇒ odd number of N.</li></ul>
@@ -224,7 +221,7 @@ export const structureTab: TabDef = {
 <li>Carbonyl position: acid chloride ~1800 &gt; ester ~1740 &gt; ketone ~1715 &gt; amide ~1650; conjugation lowers it.</li></ul>
 <h4>Step 4 — NMR (the skeleton)</h4>
 <ul><li>¹H: chemical shift = environment, integration = #H, n+1 splitting = neighbours, J = geometry. ¹³C/DEPT = carbon count and CH multiplicity.</li>
-<li>Assemble fragments consistent with the formula and DoU; verify every atom and every degree of unsaturation is accounted for.</li></ul>`, true),
-    );
+<li>Assemble fragments consistent with the formula and DoU; verify every atom and every degree of unsaturation is accounted for.</li></ul>`),
+    }));
   },
 };

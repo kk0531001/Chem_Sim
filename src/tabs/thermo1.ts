@@ -1,6 +1,6 @@
 // Thermodynamics I: first law, calorimetry, Hess's law, bond enthalpies.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { THERMO1_QUIZ } from './questions1';
 
 
@@ -196,10 +196,10 @@ export const thermo1Tab: TabDef = {
       h('p', { class: 'muted' }, 'Defaults are NaCl, whose measured steps return U ≈ −788 kJ/mol. The cycle is just Hess\'s law drawn as a loop — the unmeasurable lattice energy falls out of the measurable steps.'),
     );
     bhCalc();
-
-    root.append(
-      h('div', { class: 'cards' }, calCard, hessCard, bondCard, bhCard, card('Quick quiz', quiz(THERMO1_QUIZ, 5)), challengeLadder('thermo1')),
-      theory('Theory & key equations — first law / enthalpy', `
+    root.append(topicPage('thermo1', {
+      sims: [calCard, hessCard, bondCard, bhCard],
+      quiz: quiz(THERMO1_QUIZ, 5),
+      theory: theory('Theory & key equations — first law / enthalpy', `
 <h4>First law</h4>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
 <ul>
@@ -220,7 +220,7 @@ export const thermo1Tab: TabDef = {
 <li>Three routes to ΔH: formation enthalpies (exact), Hess cycles (exact), bond enthalpies (estimate, gas phase only).</li>
 <li><b>Born–Haber cycle:</b> a Hess loop for ionic solids — ΔH_f = ΔH_sub + IE + ½D − EA + U_lattice — lets you extract the unmeasurable lattice energy from measurable steps.</li>
 <li><b>Kirchhoff's law:</b> ΔH is temperature-dependent — ΔH(T₂) = ΔH(T₁) + ΔC_p(T₂ − T₁), where ΔC_p = ΣC_p(products) − ΣC_p(reactants).</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

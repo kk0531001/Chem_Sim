@@ -61,6 +61,16 @@ with a reason stated in the commit/summary.
 - Use the shared helpers in src/tabs/framework.ts (h, card, theory, slider,
   select, pills, plot, quiz, missionLadder) instead of hand-rolling DOM or
   canvas-axis code.
+- **The page contract** (ROADMAP D.4): a topic tab's `mount` appends exactly one
+  `topicPage(id, { sims, quiz, theory })` from src/tabs/page.ts, which renders
+  intro · theory · sims · quiz · challenge ladder · references in that order.
+  Don't assemble a page by hand — the required fields (plus `intro`/`refs` on
+  TopicMeta) are what make omitting a block a compile error rather than a
+  silent gap. `topicPage` also adds the Reset button to every sim card that has
+  a control; a card whose state is NOT in a control (particle box, integrator,
+  decay clock) supplies its own and is skipped. `auditTopicPages()` in
+  registry.ts covers what the type can't: reference count, bank size, and
+  misconception coverage (≥ 4 per module, 167 corpus-wide).
 - **Simulation missions** (ROADMAP Phase B) go through `missionLadder(defs)` +
   `cardWithMissions()` — one ladder per card, pinned above that card's controls,
   never a bespoke implementation. Call the returned `tick()` from wherever the

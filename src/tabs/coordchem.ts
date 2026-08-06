@@ -2,7 +2,7 @@
 // ligand substitution (labile/inert + trans effect), the chelate/macrocyclic
 // effect, isomerism, and 18-electron counting.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { COORDCHEM_QUIZ } from './questions6';
 
 // ---- Jahn-Teller predictor ----
@@ -189,13 +189,10 @@ function makeIsomerism(): HTMLElement {
 export const coordChemTab: TabDef = {
   id: 'coordchem',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' },
-        makeHSAB(), makeJahnTeller(), makeSubstitution(), makeIsomerism(), makeElectronCount(),
-        card('Quick quiz', quiz(COORDCHEM_QUIZ, 5)),
-        challengeLadder('coordchem'),
-      ),
-      theory('Theory — coordination & organometallic chemistry', `
+    root.append(topicPage('coordchem', {
+      sims: [makeHSAB(), makeJahnTeller(), makeSubstitution(), makeIsomerism(), makeElectronCount()],
+      quiz: quiz(COORDCHEM_QUIZ, 5),
+      theory: theory('Theory — coordination & organometallic chemistry', `
 <h4>HSAB</h4>
 <ul><li>Hard–hard (ionic) and soft–soft (covalent) pairings are most stable. Rationalizes solubility (AgI ≪ AgF), oxidation-state/ligand matching, and toxicology (soft metals → thiols).</li></ul>
 <h4>Jahn–Teller</h4>
@@ -211,7 +208,7 @@ export const coordChemTab: TabDef = {
 <h4>Organometallic — the 18-electron rule</h4>
 <span class="eq">covalent count: (metal group \\(e^-\\)) \\(-\\) charge \\(+ \\sum\\) ligand donations (\\(\\ce{CO}\\) 2, H/X/R 1, η⁵-Cp 5, η⁶-arene 6)</span>
 <ul><li>18 e⁻ = saturated/stable (Fe(Cp)₂, Ni(CO)₄, Cr(CO)₆). 16 e⁻ square-planar d⁸ are catalytically reactive.</li>
-<li>M–CO synergic bonding: σ-donation + π-backbonding into CO π* (lowers ν(CO), strengthens M–C). Oxidative addition +2 oxidation state / +2 e⁻; reductive elimination reverses it — the heart of homogeneous catalysis.</li></ul>`, true),
-    );
+<li>M–CO synergic bonding: σ-donation + π-backbonding into CO π* (lowers ν(CO), strengthens M–C). Oxidative addition +2 oxidation state / +2 e⁻; reductive elimination reverses it — the heart of homogeneous catalysis.</li></ul>`),
+    }));
   },
 };

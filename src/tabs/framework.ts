@@ -860,7 +860,10 @@ export function pills(sections: { label: string; el: HTMLElement }[]): HTMLEleme
     if (moveFocus) btns[i].focus();
   }
   activate(0);
-  return h('div', {}, bar, body);
+  // `.pills` matters for layout: topicPage puts the simulation region in a
+  // flex-wrap `.cards` row, and a pill group is a full-width block in it, not
+  // a card sitting beside another card.
+  return h('div', { class: 'pills' }, bar, body);
 }
 
 // ---- text alternatives for <canvas> ----

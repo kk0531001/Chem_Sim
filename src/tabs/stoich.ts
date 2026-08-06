@@ -1,7 +1,7 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { STOICH_QUIZ } from './questions1';
 
 
@@ -180,10 +180,10 @@ export const stoichTab: TabDef = {
         h('li', {}, 'Molecular formula = empirical × (molar mass ÷ empirical mass).'),
       ),
     );
-
-    root.append(
-      h('div', { class: 'cards' }, limCard, solCard, yieldCard, card('Quick quiz', quiz(STOICH_QUIZ, 5)), challengeLadder('stoich')),
-      theory('Theory & key equations — stoichiometry / reactions / solutions', `
+    root.append(topicPage('stoich', {
+      sims: [limCard, solCard, yieldCard],
+      quiz: quiz(STOICH_QUIZ, 5),
+      theory: theory('Theory & key equations — stoichiometry / reactions / solutions', `
 <h4>The mole highway</h4>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>
 <h4>Reaction types to recognize instantly</h4>
@@ -203,7 +203,7 @@ export const stoichTab: TabDef = {
 <ul>
 <li>Molarity M = mol/L solution (changes with T); molality m = mol/kg solvent (T-independent — use for colligative).</li>
 <li>ppm = mg solute / kg solution ≈ mg/L in dilute water.</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

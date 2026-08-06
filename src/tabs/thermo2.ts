@@ -1,6 +1,6 @@
 // Thermodynamics II: entropy (microstates), Gibbs energy, ΔG° ↔ K.
 import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { THERMO2_QUIZ } from './questions1';
 
 
@@ -133,10 +133,10 @@ export const thermo2Tab: TabDef = {
       kOut,
     );
     kCalc();
-
-    root.append(
-      h('div', { class: 'cards' }, microCard, gibbsCard, kCard, card('Quick quiz', quiz(THERMO2_QUIZ, 5)), challengeLadder('thermo2')),
-      theory('Theory & key equations — entropy / Gibbs energy', `
+    root.append(topicPage('thermo2', {
+      sims: [microCard, gibbsCard, kCard],
+      quiz: quiz(THERMO2_QUIZ, 5),
+      theory: theory('Theory & key equations — entropy / Gibbs energy', `
 <h4>Second & third laws</h4>
 <span class="eq">ΔS<sub>univ</sub> = ΔS<sub>sys</sub> + ΔS<sub>surr</sub> &gt; 0 for spontaneous · ΔS<sub>surr</sub> = −ΔH<sub>sys</sub>/T</span>
 <ul>
@@ -155,7 +155,7 @@ export const thermo2Tab: TabDef = {
 <li><span class="trap">ΔG° &gt; 0 does NOT mean "no reaction" — it means K &lt; 1. The reaction runs until Q = K.</span></li>
 <li>At equilibrium ΔG = 0 (not ΔG°!). Phase transitions at the normal transition T: ΔG = 0 → ΔS = ΔH/T (e.g., ΔS<sub>vap</sub> ≈ 88 J/mol·K for many liquids, Trouton's rule).</li>
 <li>Coupling: a positive-ΔG step can be driven by a very negative one (ATP in biology; carbothermal reduction in metallurgy).</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

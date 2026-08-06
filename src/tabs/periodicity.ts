@@ -1,7 +1,7 @@
 // Periodicity — interactive trends explorer, Slater's-rules Z_eff calculator,
 // and the anomaly/amphoterism reference. (IChO area 4.)
 import { h, card, cardWithMissions, missionLadder, theory, select, plot, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { PERIODICITY_QUIZ } from './questions5';
 
 // Period-2 and period-3 data: IE1 (kJ/mol), atomic radius (pm), EA (kJ/mol, +ve released),
@@ -154,9 +154,10 @@ function makeAnomalies(): HTMLElement {
 export const periodicityTab: TabDef = {
   id: 'periodicity',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' }, makeTrends(), makeSlater(), makeAnomalies(), card('Quick quiz', quiz(PERIODICITY_QUIZ, 5)), challengeLadder('periodicity')),
-      theory('Theory — periodicity (IChO area 4)', `
+    root.append(topicPage('periodicity', {
+      sims: [makeTrends(), makeSlater(), makeAnomalies()],
+      quiz: quiz(PERIODICITY_QUIZ, 5),
+      theory: theory('Theory — periodicity (IChO area 4)', `
 <h4>The trends and their driver</h4>
 <span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>
 <ul>
@@ -175,7 +176,7 @@ export const periodicityTab: TabDef = {
 <li>Metallic ↔ non-metallic character; amphoterism (Al, Zn, Be, Sn, Pb); oxide acid–base trend across a period.</li>
 <li>Diagonal relationships (Li–Mg, Be–Al, B–Si); inert-pair effect for heavy p-block; lanthanide contraction (Zr ≈ Hf).</li>
 <li>Electronegativity scales: Pauling (bond energies), Mulliken (½(IE+EA)), Allred–Rochow (Z_eff/r²).</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

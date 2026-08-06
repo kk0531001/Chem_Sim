@@ -1,8 +1,8 @@
 // Advanced (CCO) — Analytical & quantitative chemistry.
 // EDTA complexometric titration curve, Debye-Hückel activity, gravimetric
 // factor and back-titration calculators.
-import { h, card, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef } from './framework';
+import { topicPage } from './page';
 import { ANALYTICAL_QUIZ } from './questions3';
 
 // α₄ (fraction of EDTA as Y⁴⁻) vs pH — standard textbook values.
@@ -55,9 +55,43 @@ function makeEDTA(): HTMLElement {
         ? 'K′ &gt; 10⁸ → the endpoint break is sharp; this titration is feasible.'
         : '<span class="trap">K′ is small here — raise the pH so α₄ (and the break) grow, or the endpoint is too gradual to use.</span>') +
       `<br><span class="muted">Lower the pH and watch the jump collapse: at low pH EDTA is protonated, K′ falls, and the curve flattens.</span>`;
+    missions.tick();
   }
 
-  const el = card('EDTA complexometric titration',
+  // log K′ = log K_f + log α₄ — the number that decides whether the titration
+  // is usable at all, read back from the card's own model for the missions.
+  const logKcond = (): number => metal.logKf + Math.log10(ALPHA4[Math.round(pH)] ?? 0.35);
+
+  const missions = missionLadder([
+    {
+      id: 'msn-analytical-01',
+      prompt: 'The card opens on Ca²⁺ buffered at pH 10, where the endpoint break is sharp. Without changing the metal, <b>break the titration</b>: bring the conditional constant below <b>log K′ = 8</b> and watch the jump collapse.',
+      meter: () => ({
+        label: `log K′ = ${logKcond().toFixed(2)} · target below 8.00`,
+        pct: metal.name === 'Ca²⁺' ? Math.max(0, Math.min(100, (10.24 - logKcond()) / (10.24 - 8) * 100)) : 0,
+      }),
+      check: () => metal.name === 'Ca²⁺' && logKcond() < 8,
+      hints: [
+        'Only one control changes how much of the EDTA is present as the binding form, Y⁴⁻.',
+        'α₄ collapses by roughly a power of ten per pH unit below 10. Ca²⁺ has log K_f = 10.7, so you need log α₄ below −2.7 — pH 7 or lower.',
+      ],
+      explain: 'EDTA is a hexaprotic acid and <b>only the fully deprotonated Y⁴⁻ binds the metal</b>, so the useful constant is not K_f but K′ = α₄K_f. At pH 10, α₄ = 0.35 and Ca²⁺ titrates cleanly at log K′ ≈ 10.2; at pH 7, α₄ = 4.8×10⁻⁴ and log K′ falls to 7.4, where the break is too gradual to locate an endpoint. The rule of thumb is log K′ &gt; 8 for a usable titration — which is why every EDTA procedure specifies a buffer, and why the buffer is part of the chemistry rather than housekeeping.',
+    },
+    {
+      id: 'msn-analytical-02',
+      prompt: 'Raising the pH sharpens an EDTA endpoint. What is actually increasing?',
+      choices: [
+        { label: 'α₄ — more of the EDTA is present as Y⁴⁻', value: 'a4' },
+        { label: 'K_f itself, the metal–EDTA formation constant', value: 'kf' },
+        { label: 'The metal concentration, as hydroxide redissolves', value: 'oh' },
+      ],
+      validateChoice: v => v === 'a4',
+      hints: ['Which of the three could a buffer possibly change? K_f is a property of the M–Y⁴⁻ complex.'],
+      explain: 'α₄. K_f is a thermodynamic constant of the metal–EDTA complex and does not care about pH; what pH controls is the <em>fraction</em> of the EDTA in the binding form, and K′ = α₄K_f rises with it. <span class="trap">This does not mean higher pH is always better: past a metal-dependent limit the metal precipitates as its hydroxide and the titration fails from the other direction, which is why Ca²⁺/Mg²⁺ hardness is run at pH 10 and not pH 13.</span>',
+    },
+  ]);
+
+  const el = cardWithMissions('EDTA complexometric titration', missions,
     select('metal ion', METALS.map(m => ({ value: m.name, label: `${m.name} (log K_f ${m.logKf})` })), v => { metal = METALS.find(m => m.name === v)!; draw(); }, metal.name),
     slider({ label: 'buffer pH', min: 3, max: 12, step: 1, value: pH, onInput: v => { pH = v; draw(); } }),
     slider({ label: 'analyte conc (M)', min: 0.001, max: 0.05, step: 0.001, value: C0, fmt: v => v.toFixed(3), onInput: v => { C0 = v; draw(); } }),
@@ -171,9 +205,10 @@ function makeSeparations(): HTMLElement {
 export const analyticalTab: TabDef = {
   id: 'analytical',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' }, makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations(), card('Quick quiz', quiz(ANALYTICAL_QUIZ, 5)), challengeLadder('analytical')),
-      theory('Theory — analytical & quantitative chemistry (CCO PS1)', `
+    root.append(topicPage('analytical', {
+      sims: [makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations()],
+      quiz: quiz(ANALYTICAL_QUIZ, 5),
+      theory: theory('Theory — analytical & quantitative chemistry (CCO PS1)', `
 <h4>Complexometric (EDTA) titrations</h4>
 <span class="eq">K′ = α₄·K_f &nbsp; (conditional formation constant)</span>
 <ul>
@@ -204,7 +239,7 @@ export const analyticalTab: TabDef = {
 <li>TLC: R_f = spot distance / solvent-front distance — characteristic in a fixed system. On silica, polar = low R_f.</li>
 <li>Solvent extraction: partition coefficient K_D = [A]_org/[A]_aq; multiple small extractions beat one large one.</li>
 <li>Electroanalytical: potentiometry and ion-selective/pH electrodes give Nernstian E ∝ log[ion].</li>
-</ul>`, true),
-    );
+</ul>`),
+    }));
   },
 };

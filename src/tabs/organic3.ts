@@ -2,7 +2,7 @@
 // groups, radical mechanisms + selectivity, rearrangements, and an intro to
 // pericyclic reactions (Woodward–Hoffmann).
 import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
-import { challengeLadder } from './challenge';
+import { topicPage } from './page';
 import { ORGANIC3_QUIZ } from './questions6';
 
 // ---- radical halogenation selectivity calculator ----
@@ -141,13 +141,10 @@ function makePericyclic(): HTMLElement {
 export const organic3Tab: TabDef = {
   id: 'organic3',
   mount(root) {
-    root.append(
-      h('div', { class: 'cards' },
-        makeRetro(), makeProtecting(), makeRadicalSelectivity(), makeRearrangements(), makePericyclic(),
-        card('Quick quiz', quiz(ORGANIC3_QUIZ, 5)),
-        challengeLadder('organic3'),
-      ),
-      theory('Theory — synthesis & advanced mechanisms', `
+    root.append(topicPage('organic3', {
+      sims: [makeRetro(), makeProtecting(), makeRadicalSelectivity(), makeRearrangements(), makePericyclic()],
+      quiz: quiz(ORGANIC3_QUIZ, 5),
+      theory: theory('Theory — synthesis & advanced mechanisms', `
 <h4>Retrosynthesis</h4>
 <ul><li>Disconnect the target into synthons (idealized charged fragments) and their reagent equivalents; use FGIs to reach them. Maximize simplification; disconnect near heteroatoms and at branch points; end at cheap, available starting materials.</li>
 <li>Umpolung (dithianes) reverses normal carbonyl polarity, enabling acyl-anion chemistry.</li></ul>
@@ -162,7 +159,7 @@ export const organic3Tab: TabDef = {
 <h4>Selectivity vocabulary</h4>
 <ul><li>Regioselectivity (Markovnikov/Zaitsev vs anti-Markovnikov/Hofmann), stereoselectivity (syn/anti, cis/trans, enantio), chemoselectivity (one functional group over another). Bulky bases and reagents flip many of these.</li></ul>
 <h4>Pericyclic reactions</h4>
-<ul><li>Concerted, cyclic TS, orbital-symmetry controlled. Diels–Alder [4+2] (thermal, s-cis diene, endo). Electrocyclic: 4n → Δ conrotatory / hν disrotatory; 4n+2 → the reverse. [3,3] sigmatropic (Cope/Claisen) via a chair TS.</li></ul>`, true),
-    );
+<ul><li>Concerted, cyclic TS, orbital-symmetry controlled. Diels–Alder [4+2] (thermal, s-cis diene, endo). Electrocyclic: 4n → Δ conrotatory / hν disrotatory; 4n+2 → the reverse. [3,3] sigmatropic (Cope/Claisen) via a chair TS.</li></ul>`),
+    }));
   },
 };
