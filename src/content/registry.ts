@@ -64,7 +64,12 @@ export const ALL_FRQ: FRQ[] = [
   ...OLYMPIAD_PAPERS.flatMap(p => p.partB),
 ];
 
-export const CORPUS_COUNTS = { mc: ALL_MC.length, frq: ALL_FRQ.length };
+/**
+ * The corpus in numbers. Every count is derived here so a page can never quote
+ * a figure the corpus does not support — the homepage used to hard-code four
+ * stats and three of them were wrong.
+ */
+export const CORPUS_COUNTS = { mc: ALL_MC.length, frq: ALL_FRQ.length, papers: OLYMPIAD_PAPERS.length };
 
 // ---- tier and competition scope ------------------------------------------
 //

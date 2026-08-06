@@ -76,7 +76,49 @@ export const TOPICS: TopicMeta[] = [
     blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and the four advanced CCO problem sets (PS1–PS4) with full worked solutions.' },
 ];
 
+/**
+ * An ordered run of existing modules, for the homepage's learning-path cards.
+ *
+ * Data, not code: a path is only a list of topic ids, and everything shown on
+ * its card — titles, minutes, difficulty badges — is looked up from TOPICS at
+ * render time. Nothing here duplicates module metadata, so a path can never
+ * quietly disagree with the module it points at.
+ *
+ * ORDERING IS A CURRICULUM DECISION AND HAS NOT BEEN CONTENT-REVIEWED. The
+ * order below is TOPICS order filtered by `difficulty`, with `prereqs`
+ * respected — a defensible first cut, not a taught sequence. Review before
+ * launch (ROADMAP D.12).
+ */
+export interface LearningPath {
+  id: string; title: string; blurb: string; topicIds: readonly string[];
+}
+
+export const PATHS: readonly LearningPath[] = [
+  {
+    id: 'ccc-foundation',
+    title: 'CCC foundation',
+    blurb: 'The core sequence, in prerequisite order: structure and bonding first, then the mole, then energy and equilibrium, finishing in the lab.',
+    topicIds: ['quantum', 'periodicity', 'bonding', 'stoich', 'thermo1', 'equilibrium', 'labdata'],
+  },
+  {
+    id: 'organic-run',
+    title: 'Organic, end to end',
+    blurb: 'Mechanisms before synthesis, and structure determination last — you can only confirm a product once you know what it should be.',
+    topicIds: ['organic1', 'organic2', 'organic3', 'polymers', 'spectroscopy', 'structure'],
+  },
+  {
+    id: 'cco-advanced',
+    title: 'CCO / IChO advanced',
+    blurb: 'The olympiad-level material, assuming the foundation run: rigorous thermodynamics and kinetics, coordination chemistry, and quantitative lab work.',
+    topicIds: ['thermo2', 'physchem', 'biophys', 'coordchem', 'advinorganic', 'analytical'],
+  },
+];
+
 export const topicById = (id: string): TopicMeta | undefined => TOPICS.find(t => t.id === id);
+
+/** Modules of a path, in path order, skipping any id that no longer exists. */
+export const pathTopics = (p: LearningPath): TopicMeta[] =>
+  p.topicIds.map(topicById).filter((t): t is TopicMeta => t !== undefined);
 
 const topicsBySlug = new Map<string, TopicMeta>();
 for (const topic of TOPICS) {

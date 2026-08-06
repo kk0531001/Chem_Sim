@@ -1745,7 +1745,7 @@ instead: give each module in-page section anchors, and let the collapsed
 sidebar group expand to show *sections within a module* rather than new modules.
 Same discoverability, no content fragmentation, no new question banks to fill.
 
-### D.3 Homepage order — **[ ]**
+### D.3 Homepage order — **[x] DONE**
 
 Current order is hero → stats → "Why it works" (01) → topic grid (02) → end.
 Target, from the reviewer, with the sections that don't exist yet marked:
@@ -1762,7 +1762,58 @@ Target, from the reviewer, with the sections that don't exist yet marked:
 | 8 | Footer | exists |
 
 Testimonials stay out until there are real ones. A fabricated testimonial is the
-single fastest way to lose a student's trust in the chemistry.
+single fastest way to lose a student's trust in the chemistry. **None were
+added.**
+
+**Shipped.** Final order: hero → 01 Why it works → 02 Try one right now → 03
+Three ways through → 04 Which competition → 05 The whole syllabus → 06 What is
+actually in here → footer.
+
+**The numbers were the real defect.** The old strip hard-coded four figures and
+three were wrong: 18 modules (there are 25), 650+ questions (853), and "65+
+simulations" / "90+ key equations", which nothing in the repo counts at all. The
+hero paragraph then contradicted the strip directly above it. Every figure on
+the page is now interpolated from `TOPICS.length` and `CORPUS_COUNTS`, and the
+hero sentence is built from the same values, so the two cannot disagree again.
+The two unsourceable stats were **deleted rather than re-guessed** — a stat with
+no source of truth is not a stat. `CORPUS_COUNTS` gained `papers` so the mock
+paper count comes from `OLYMPIAD_PAPERS.length` too. Live values: **25 modules ·
+853 questions · 119 written problems · 5 mock papers**.
+
+The interactive demo is a **small reimplementation** of the equilibrium sim, not
+an import of `equilibrium.ts`. Importing the module would have pulled its
+25-question bank, challenge ladder and seven mission definitions into the
+landing page's chunk — precisely what D.10's budget exists to prevent — to draw
+two curves whose physics is twenty lines either way. It starts stopped, runs
+only while intersecting, and under `prefers-reduced-motion` integrates to a
+settled frame instead of animating, with the disturb buttons jumping straight to
+the new equilibrium.
+
+`PATHS` and `pathTopics()` live in `src/topics.ts` as data. Each card's minutes
+and difficulty badges are computed from the modules it points at — the badge row
+is the union of its modules' levels, so a path can never claim a level none of
+its modules carries. **The path ORDERING has not been content-reviewed**: it is
+`TOPICS` order filtered by difficulty with `prereqs` respected, which is a
+defensible first cut and not a taught sequence. Flagged in the source and due
+before D.12.
+
+The competition cards state only what `TopicMeta.difficulty` supports, plus a
+derived "N of 25 modules are pitched at this level" (10 · 14 · 10 · 5). No exam
+dates, formats, cutoffs or qualification rules — the repo has no source for any
+of them.
+
+One fix outside the order's scope but inside its acceptance criteria: the
+homepage top bar did not wrap, so **the whole landing page scrolled sideways at
+375 px**. Pre-existing, unrelated to the new sections, and now fixed with
+`flex-wrap`. Verified: `scrollWidth === clientWidth` and no element extends past
+the viewport at 375 px.
+
+Verified live at 1280×800 and 375×812, no console errors. Note for anyone
+re-checking this in the preview pane: scroll-driven behaviour is awkward there
+because `#home` is the scroll container (not the document) and `rAF` is paused
+while the pane is hidden, which freezes both the reveal transitions and the demo
+loop — sections can look washed out and stalled when they are neither. Take a
+screenshot to wake it, then re-read.
 
 ### D.4 The page contract — **[ ] the biggest item in the phase**
 

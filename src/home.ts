@@ -3,7 +3,9 @@
 // simulation in the hero, figure panels with captions elsewhere).
 import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
-import { TOPICS, renderTopicCard } from './topics';
+import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges } from './topics';
+import { CORPUS_COUNTS } from './content/registry';
+import { CLOCK_ICON } from './icons';
 
 // The tile is a logo mark, and it always sits immediately before the word
 // "ChemPrep" — so its "Ch" (plus the "25" the stylesheet adds via ::after) is
@@ -142,6 +144,116 @@ function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) =>
   return { canvas, setRunning: v => { running = v; } };
 }
 
+// ---- touchable demo: N2O4 <=> 2 NO2, the equilibrium module's core sim ----
+//
+// Deliberately a small reimplementation rather than an import of equilibrium.ts.
+// That module carries a 25-question bank, a challenge ladder and seven mission
+// definitions; pulling it in to draw two curves would put all of that in the
+// landing page's chunk, which is exactly what D.10's budget is meant to stop.
+// The physics is the same twenty lines either way.
+function makeDemoSim(): { el: HTMLElement; setRunning: (v: boolean) => void } {
+  const KF = 0.30, KR = 0.60;              // K = kf/kr = 0.5, as in the module
+  const A0 = 1.0;
+  let A = A0, B = 0, t = 0;
+  const histA: number[] = [], histB: number[] = [];
+  const canvas = h('canvas', {
+    width: 560, height: 240, role: 'img',
+    'aria-label': 'Live plot of a chemical equilibrium: the concentration of '
+      + 'dinitrogen tetroxide falls and nitrogen dioxide rises until the forward '
+      + 'and reverse rates match, then both hold steady.',
+  });
+  const ctx = canvas.getContext('2d')!;
+  const out = h('p', { class: 'demo-readout' });
+  let running = false, frameId: number | null = null;
+  const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+  function step(): void {
+    const dt = 0.05;
+    const rf = KF * A, rr = KR * B * B;
+    A += (-rf + rr) * dt;
+    B += (2 * rf - 2 * rr) * dt;
+    A = Math.max(0, A); B = Math.max(0, B);
+    t += dt;
+    histA.push(A); histB.push(B);
+    if (histA.length > 560) { histA.shift(); histB.shift(); }
+  }
+
+  function draw(): void {
+    const W = 560, Hh = 240;
+    ctx.clearRect(0, 0, W, Hh);
+    const yOf = (v: number) => Hh - 24 - (v / 1.6) * (Hh - 48);
+    ctx.strokeStyle = '#242b33'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = 24 + (i / 4) * (Hh - 48);
+      ctx.beginPath(); ctx.moveTo(34, y); ctx.lineTo(W - 12, y); ctx.stroke();
+    }
+    const trace = (hist: number[], color: string) => {
+      ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.beginPath();
+      hist.forEach((v, i) => {
+        const x = 34 + (i / 560) * (W - 46);
+        i ? ctx.lineTo(x, yOf(v)) : ctx.moveTo(x, yOf(v));
+      });
+      ctx.stroke();
+    };
+    trace(histA, '#f5f0e8');
+    trace(histB, '#e8590c');
+    ctx.fillStyle = '#8a939e'; ctx.font = '11px Menlo, monospace';
+    ctx.fillText('N₂O₄', 40, 20);
+    ctx.fillStyle = '#e8590c';
+    ctx.fillText('NO₂', 84, 20);
+    const Q = A > 1e-6 ? (B * B) / A : Infinity;
+    out.innerHTML = `[N₂O₄] = <b>${A.toFixed(3)}</b> · [NO₂] = <b>${B.toFixed(3)}</b> · `
+      + `Q = [NO₂]²/[N₂O₄] = <b>${Number.isFinite(Q) ? Q.toFixed(2) : '—'}</b> (K = 0.50)`;
+  }
+
+  function loop(): void {
+    if (running) { for (let i = 0; i < 3; i++) step(); draw(); }
+    frameId = requestAnimationFrame(loop);
+  }
+
+  const disturb = (label: string, fn: () => void) =>
+    h('button', { class: 'btn-ghost', type: 'button', onclick: () => { fn(); if (reduceMotion) { for (let i = 0; i < 400; i++) step(); draw(); } } }, label);
+
+  const el = h('div', { class: 'demo-card' },
+    h('div', { class: 'figure' }, canvas),
+    out,
+    h('div', { class: 'demo-controls' },
+      disturb('Add N₂O₄', () => { A += 0.6; }),
+      disturb('Add NO₂', () => { B += 0.6; }),
+      disturb('Reset', () => { A = A0; B = 0; t = 0; histA.length = 0; histB.length = 0; }),
+    ),
+    h('p', { class: 'fig-cap', html: '<b>Fig. 5</b> — push either side and the system walks back until Q meets K again. Nothing here is scripted: the curves are the rate equations being integrated in your browser.' }),
+  );
+
+  // Reduced motion: draw one settled frame instead of animating, and let the
+  // buttons jump straight to the new equilibrium rather than sliding to it.
+  // Otherwise draw a single frame and stop — the rAF loop is not started here,
+  // so the demo costs nothing at all until it is scrolled into view.
+  if (reduceMotion) for (let i = 0; i < 400; i++) step();
+  draw();
+
+  return {
+    el,
+    setRunning: v => {
+      running = v && !reduceMotion;
+      if (!v && frameId !== null) { cancelAnimationFrame(frameId); frameId = null; }
+      else if (v && frameId === null && !reduceMotion) loop();
+    },
+  };
+}
+
+function competitionCard(name: string, badge: string, line: string): HTMLElement {
+  return h('article', { class: 'comp-card reveal' },
+    h('div', { class: 'comp-card-top' },
+      h('h3', {}, name),
+      ...difficultyBadges([badge]),
+    ),
+    h('p', {}, line),
+    h('p', { class: 'comp-count' },
+      `${TOPICS.filter(t => t.difficulty.includes(badge)).length} of ${TOPICS.length} modules are pitched at this level`),
+  );
+}
+
 export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void): HTMLElement {
   const progress = h('div', { class: 'scroll-progress' });
 
@@ -163,8 +275,11 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
     h('div', {},
       h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
       h('h1', { class: 'hero-in', style: 'transition-delay:.06s', html: 'The chemistry in this page is <em>actually running</em>.' }),
+      // Every number in this sentence is interpolated from the corpus, for the
+      // same reason the stats strip is: the page that promises numerical care
+      // cannot be the one page nobody checks.
       h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
-        'Twenty-five interactive modules — quantum orbitals to enzyme kinetics — plus 850+ exam-style questions, 66 multi-part written problems and five full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.'),
+        `${TOPICS.length} interactive modules — quantum orbitals to enzyme kinetics — plus ${CORPUS_COUNTS.mc} exam-style questions, ${CORPUS_COUNTS.frq} multi-part written problems and ${CORPUS_COUNTS.papers} full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.`),
       h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
         h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning'),
         h('button', {
@@ -179,19 +294,29 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
     ),
   );
 
-  // ---- stats strip ----
+  // ---- 05 · the corpus, counted ----
+  // Every figure comes from TOPICS or CORPUS_COUNTS. The previous strip
+  // hard-coded four numbers and three were wrong (18 modules, 650+ questions,
+  // and "65+ simulations" / "90+ equations", which nothing counted at all).
+  // A stat with no source of truth is not a stat, so those two are gone rather
+  // than replaced with a fresh guess.
   const statDefs = [
-    { n: 18, suffix: '', label: 'interactive modules' },
-    { n: 65, suffix: '+', label: 'simulations & tools' },
-    { n: 650, suffix: '+', label: 'practice questions' },
-    { n: 90, suffix: '+', label: 'key equations' },
+    { n: TOPICS.length, label: 'interactive modules' },
+    { n: CORPUS_COUNTS.mc, label: 'practice questions' },
+    { n: CORPUS_COUNTS.frq, label: 'written problems, worked' },
+    { n: CORPUS_COUNTS.papers, label: 'full mock papers' },
   ];
-  const stats = h('section', { class: 'stats' },
-    ...statDefs.map(s =>
-      h('div', { class: 'stat reveal' },
-        h('span', { class: 'stat-n', 'data-n': s.n, 'data-suffix': s.suffix }, '0'),
-        h('span', { class: 'stat-label' }, s.label),
-      )),
+  const stats = h('section', { class: 'stats-sect' },
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '06'), h('h2', {}, 'What is actually in here')),
+    h('p', { class: 'section-lede reveal' },
+      'Counted from the question bank at build time, not rounded up for the landing page.'),
+    h('div', { class: 'stats' },
+      ...statDefs.map(s =>
+        h('div', { class: 'stat reveal' },
+          h('span', { class: 'stat-n', 'data-n': s.n }, '0'),
+          h('span', { class: 'stat-label' }, s.label),
+        )),
+    ),
   );
 
   // ---- 01 · why it works (builds trust before the full catalog) ----
@@ -211,14 +336,75 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
       FIG_DECAY, '<b>Fig. 4</b> — sixty nuclei, each deciding at random; the ensemble still obeys first-order kinetics.'),
   );
 
-  // ---- 02 · the full catalog ----
+  // ---- 02 · try one ----
+  const demo = makeDemoSim();
+  const demoSect = h('section', { class: 'demo-sect' },
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '02'), h('h2', {}, 'Try one right now')),
+    h('p', { class: 'section-lede reveal' },
+      'This is the equilibrium module\'s core simulation, running on this page. Disturb it and watch Le Chatelier\'s principle happen rather than be asserted.'),
+    h('div', { class: 'reveal' }, demo.el),
+    h('div', { style: 'text-align:center;margin-top:24px' },
+      h('button', { class: 'btn-ghost', onclick: () => onEnter('equilibrium') }, 'Open the full module →'),
+    ),
+  );
+
+  // ---- 03 · learning paths ----
+  const paths = h('section', { class: 'paths-sect' },
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '03'), h('h2', {}, 'Three ways through')),
+    h('p', { class: 'section-lede reveal' },
+      'Ordered runs through the modules that already exist — start at the top of one and work down, or ignore them entirely and pick your own.'),
+    h('div', { class: 'path-grid' },
+      ...PATHS.map(p => {
+        const mods = pathTopics(p);
+        const mins = mods.reduce((s, t) => s + t.estMinutes, 0);
+        // Badges are the union of the levels its modules carry, in tier order,
+        // so a path can never claim a level none of its modules is pitched at.
+        const levels = ['CCC', 'USNCO', 'CCO', 'IChO'].filter(d => mods.some(t => t.difficulty.includes(d)));
+        return h('article', { class: 'path-card reveal' },
+          h('h3', {}, p.title),
+          h('div', { class: 'topic-meta' },
+            h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${Math.round(mins / 60)} h`),
+            ...difficultyBadges(levels),
+          ),
+          h('p', {}, p.blurb),
+          h('ol', { class: 'path-steps' },
+            ...mods.map(t => h('li', {},
+              h('button', { class: 'path-step', type: 'button', onclick: () => onEnter(t.id) }, t.title),
+            )),
+          ),
+        );
+      }),
+    ),
+  );
+
+  // ---- 04 · competition scope ----
+  // Only what TopicMeta.difficulty supports — no dates, formats, cutoffs or
+  // qualification rules, none of which this repo has a source for.
+  const comps = h('section', { class: 'comps-sect' },
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '04'), h('h2', {}, 'Which competition')),
+    h('p', { class: 'section-lede reveal' },
+      'Every module carries the levels it is pitched at, and the same badges appear on each card below and throughout the app.'),
+    h('div', { class: 'comp-grid' },
+      competitionCard('CCC', 'CCC', 'The Canadian Chemistry Contest — the entry level here, and the assumed starting point for everything else.'),
+      competitionCard('USNCO', 'USNCO', 'The US National Chemistry Olympiad. Broader coverage than CCC, with quantitative work expected throughout.'),
+      competitionCard('CCO', 'CCO', 'The Canadian Chemistry Olympiad. Rigorous physical chemistry, coordination chemistry and multi-step synthesis.'),
+      competitionCard('IChO', 'IChO', 'The International Chemistry Olympiad — the deepest material in the app, layered on top of the CCO modules.'),
+    ),
+  );
+
+  // ---- 05 · the full catalog, grouped by domain ----
+  const groupsInOrder = [...new Set(TOPICS.map(t => t.group))];
   const topics = h('section', { class: 'topics' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '02'), h('h2', {}, 'The whole syllabus, module by module')),
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '05'), h('h2', {}, 'The whole syllabus, module by module')),
     h('p', { class: 'section-lede reveal' },
       'Each module pairs hands-on simulations with the key equations and the traps examiners reuse, then tests you with a 25-question quiz — five warm-ups, twenty at contest level.'),
-    h('div', { class: 'topic-grid' },
-      ...TOPICS.map((t, i) => renderTopicCard(t, onEnter, ' reveal', `transition-delay:${(i % 3) * 60}ms`)),
-    ),
+    ...groupsInOrder.flatMap(g => [
+      h('h3', { class: 'topic-group-head reveal' }, g),
+      h('div', { class: 'topic-grid' },
+        ...TOPICS.filter(t => t.group === g)
+          .map((t, i) => renderTopicCard(t, onEnter, ' reveal', `transition-delay:${(i % 3) * 60}ms`)),
+      ),
+    ]),
     h('div', { style: 'text-align:center;margin-top:34px' },
       h('button', { class: 'btn-ghost', onclick: onMenu }, 'Browse the full directory →'),
     ),
@@ -233,7 +419,7 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
 
   const root = h('div', { id: 'home' },
     progress,
-    h('div', { class: 'home-wrap' }, topBar, hero, stats, features, topics, footer),
+    h('div', { class: 'home-wrap' }, topBar, hero, features, demoSect, paths, comps, topics, stats, footer),
   );
 
   // ---- scroll reveals + count-up ----
@@ -253,6 +439,13 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
     sim.setRunning(entries.some(e => e.isIntersecting) && !root.hidden);
   }, { threshold: 0.05 });
   simIO.observe(sim.canvas);
+
+  // Same treatment for the demo, which starts stopped: it costs nothing until
+  // it is scrolled to, and gives its frame back the moment it leaves.
+  const demoIO = new IntersectionObserver(entries => {
+    demo.setRunning(entries.some(e => e.isIntersecting) && !root.hidden);
+  }, { threshold: 0.05 });
+  demoIO.observe(demo.el);
 
   let ticking = false;
   root.addEventListener('scroll', () => {
