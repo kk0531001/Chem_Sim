@@ -25,7 +25,11 @@ const TOPICS: { id: string; label: string }[] = [
   { id: 'all', label: 'All topics' },
   ...EXAM_TOPIC_IDS.map(id => ({ id, label: EXAM_TOPIC_LABEL[id] })),
 ];
-const topicLabel = (id: string) => (id in EXAM_TOPIC_LABEL ? EXAM_TOPIC_LABEL[id as ExamTopicId] : id);
+// 'all' is the topic select's own sentinel, never a real question's topic — but
+// the results-view crumb calls this on the FILTER value, which can be 'all',
+// so it needs a real label too rather than leaking the raw id into the UI.
+const topicLabel = (id: string) =>
+  id === 'all' ? 'All topics' : id in EXAM_TOPIC_LABEL ? EXAM_TOPIC_LABEL[id as ExamTopicId] : id;
 
 // Reusable multi-part free-response browser (Prev / Next + per-part solutions).
 function frqBrowser(items: FRQ[], heading: string): HTMLElement {
