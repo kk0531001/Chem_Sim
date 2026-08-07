@@ -2068,3 +2068,25 @@ body { overflow: hidden; }
 }
 .topic-bookmark:hover { border-color: var(--accent); color: var(--accent-dark); }
 .topic-bookmark.on { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-dark); }
+
+/* Sidebar mastery underline (E.3, sidebar half). Deliberately thinner and
+   quieter than the topic-card bar: this list is always on screen, so it carries
+   state, not figures. Hidden entirely at zero — see addNavMeter(). */
+.nav-item { position: relative; }
+.nav-item-meter {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 3px;
+  height: 2px;
+  background: var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.nav-item-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.nav-item.done .nav-item-fill { background: var(--green); }

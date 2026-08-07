@@ -1,9 +1,11 @@
 // Tab framework + shared DOM/plot helpers for the topic modules.
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
-import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, onProgressChange, isBookmarked, toggleBookmark } from '../progress';
+import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, solvedWithPrefix, onProgressChange, isBookmarked, toggleBookmark } from '../progress';
 import { toExamTopic } from '../content/topicIds';
 import { CHEVRON_ICON } from '../icons';
+import { ID_PREFIX } from '../content/topicIds';
+import { MODULE_QUIZ_SIZE } from '../content/counts';
 import 'katex/dist/katex.min.css';
 import 'katex/contrib/mhchem';
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -101,6 +103,43 @@ function readOpenGroups(): string[] | null {
 // `onSelect` (optional) is called when a sidebar nav item is clicked, so the
 // host can route through the History API — keeping the URL and the topic chrome
 // (breadcrumb + prev/next footer) in sync. Falls back to a plain tab swap.
+/**
+ * The sidebar's half of the Phase E mastery bars.
+ *
+ * A nav item is ~180 px of a permanently-visible list of 25, so it gets a
+ * 2 px underline and nothing else — the fraction and the full bar live on the
+ * topic card, where there is room to read them. Putting "19/25" on all 25 rows
+ * would turn the one piece of navigation that must stay scannable into a
+ * spreadsheet.
+ *
+ * Counted by id namespace (`solvedWithPrefix` + `MODULE_QUIZ_SIZE`) rather than
+ * by enumerating the bank, exactly as the topic cards do: the sidebar is built
+ * at startup and must not pull in the corpus.
+ *
+ * The underline is decorative — `aria-label` carries the same figure as text,
+ * and drops back to the plain label at zero so a screen reader isn't told
+ * "0 of 25 solved" twenty-five times on a first visit.
+ */
+function addNavMeter(btn: HTMLButtonElement, id: string, label: string): void {
+  const prefix = ID_PREFIX[id as keyof typeof ID_PREFIX];
+  const total = MODULE_QUIZ_SIZE[id];
+  if (!prefix || !total) return;   // sandbox and qbank own no quiz bank
+
+  const fill = h('span', { class: 'nav-item-fill' });
+  const meter = h('span', { class: 'nav-item-meter', 'aria-hidden': 'true' }, fill);
+  btn.appendChild(meter);
+  const paint = (): void => {
+    const done = Math.min(solvedWithPrefix(prefix), total);
+    meter.hidden = done === 0;
+    fill.style.width = `${Math.round((done / total) * 100)}%`;
+    btn.classList.toggle('done', done === total);
+    if (done === 0) btn.removeAttribute('aria-label');
+    else btn.setAttribute('aria-label', `${label}, ${done} of ${total} solved`);
+  };
+  paint();
+  onProgressChange(paint);
+}
+
 export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, onSelect?: (id: string) => void): TabsAPI {
   interface TabEntry {
     root: HTMLElement;
@@ -266,6 +305,7 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
       const btn = h('button', {
         type: 'button', class: 'nav-item', onclick: () => (onSelect ?? show)(def.id),
       }, def.label);
+      addNavMeter(btn, def.id, def.label ?? def.id);
       buttons.set(def.id, btn);
       groupOfItem.set(def.id, run.name);
       box.appendChild(btn);

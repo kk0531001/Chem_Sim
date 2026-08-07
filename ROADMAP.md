@@ -2189,8 +2189,16 @@ which is why it must come after A, and why it's one week rather than three.
 - [x] Dashboard route (`/progress`) — [progressPage.ts](src/progressPage.ts),
       lazily imported by main.ts because it reads the corpus. Four bands:
       instrument panel, weak topics, mastery, history (+ bookmarks when any).
-- [x] Per-topic mastery bars on topic cards — `progressStrip()` in
-      [topics.ts](src/topics.ts), on the one shared card renderer.
+- [x] Per-topic mastery bars **in the sidebar and on topic cards** —
+      `progressStrip()` in [topics.ts](src/topics.ts) on the one shared card
+      renderer, and `addNavMeter()` in [framework.ts](src/tabs/framework.ts) for
+      the sidebar. Two different marks on purpose: the card has room for a bar
+      plus `19/25`, the sidebar is a permanently-visible list of 25 and gets a
+      2 px underline only — putting the fraction on all 25 rows would turn the
+      one thing that has to stay scannable into a spreadsheet. Both count by id
+      namespace rather than enumerating banks, and both are invisible at zero so
+      a first visit isn't a wall of empty bars. The figure still reaches a
+      screen reader: the nav item's `aria-label` carries it as text.
 - [x] **Weak topics** — `weakTopics(3)`, each with a one-click practice set.
 - [x] **Quiz history** — last 50, filterable to wrong-only, plus "retry the N
       you got wrong".
