@@ -10,8 +10,8 @@ import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
 import { INTEGRATED_SETS } from './bankIntegrated';
 import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
-import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, isBookmarked, toggleBookmark } from '../progress';
-import { tierOf, compsOf, query, type Indexable } from '../content/registry';
+import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, reviewQueue, isBookmarked, toggleBookmark } from '../progress';
+import { tierOf, compsOf, query, questionsByIds, type Indexable } from '../content/registry';
 import {
   COMPS, COMP_LABEL, DOMAINS, EXAM_TOPIC_IDS, EXAM_TOPIC_LABEL, TIER_LABEL,
   type Comp, type ExamTopicId, type Tier,
@@ -120,7 +120,7 @@ const STATUS_LABEL: Record<Status, string> = {
 export const qbankTab: TabDef = {
   id: 'qbank',
   mount(root) {
-    let part: '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' = '1';
+    let part: '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' | 'review' = '1';
     let topic = 'all';
     let comp: Comp | 'any' = 'any';
     let tier: Tier | 'any' = 'any';
@@ -133,9 +133,10 @@ export const qbankTab: TabDef = {
     const content = h('div', {});
     const countNote = h('span', { class: 'muted' });
 
-    type Part = '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results';
+    type Part = '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' | 'review';
     const partBtns = new Map<string, HTMLButtonElement>();
     const PARTS: [Part, string][] = [
+      ['review', 'Review your mistakes'],
       ['browse', 'Browse by topic'],
       ['1', 'Part I — Multiple Choice'],
       ['2', 'Part II — Free Response'],
@@ -271,7 +272,11 @@ export const qbankTab: TabDef = {
       // The fixed problem sets are a curated running order, so filtering them
       // by topic or difficulty would mean showing "problem 3 of 7" with four
       // missing. Browse is its own filter, so it hides the row too.
-      const isSet = part === 'cco' || part === 'integrated' || part === 'olympiad' || part === 'browse';
+      // Review is a curated ORDER (oldest mistake first), so the topic picker,
+      // the filter row and shuffle are all hidden for it — every one of them
+      // would either fight the ordering or silently empty the queue.
+      const isSet = part === 'cco' || part === 'integrated' || part === 'olympiad'
+        || part === 'browse' || part === 'review';
       topicCtl.style.display = isSet ? 'none' : '';
       filterRow.style.display = isSet ? 'none' : '';
       shuffleBtn.style.display = isSet ? 'none' : '';
@@ -372,9 +377,42 @@ export const qbankTab: TabDef = {
       return wrap;
     }
 
+    /**
+     * Personalised review (ROADMAP F.4) — every question whose most recent
+     * answer was wrong, oldest mistake first.
+     *
+     * The ORDER is the feature, which is why this doesn't go through
+     * `applyFilters`/`maybeShuffle` like the other parts: re-answering what you
+     * got wrong five minutes ago is re-reading the page you just closed. The
+     * queue is rebuilt on every render, so a question answered correctly here
+     * leaves it the moment the student moves on.
+     */
+    function reviewView(): HTMLElement[] {
+      const items = questionsByIds(reviewQueue());
+      countNote.textContent = ` ${items.length} to review`;
+      if (items.length === 0) {
+        return [h('p', { class: 'muted' },
+          'Nothing outstanding — every question you have answered wrong, you have since answered right. ',
+          button('Browse by topic', () => { part = 'browse'; syncPills(); render(); }))];
+      }
+      const frqs = items.filter((q): q is FRQ => 'parts' in q);
+      const mcs = items.filter((q): q is QuizQ => !('parts' in q));
+      const out: HTMLElement[] = [
+        h('p', { class: 'section-lede', style: 'margin-bottom:12px' },
+          'Your outstanding mistakes, oldest first — the ones you have had longest to forget. ' +
+          'A question leaves this list as soon as you answer it correctly. ' +
+          'Ordering is best-effort: the attempt log is capped, so anything older than the last ' +
+          'thousand answers is simply treated as oldest.'),
+      ];
+      if (mcs.length) out.push(card(`Multiple choice (${mcs.length})`, quiz(mcs)));
+      if (frqs.length) out.push(frqBrowser(frqs, `Written problems (${frqs.length})`));
+      return out;
+    }
+
     function render(): void {
       writeUrl();
       content.replaceChildren();
+      if (part === 'review') { content.append(...reviewView()); return; }
       if (part === 'browse') {
         countNote.textContent = ` ${query({}).length} questions in the corpus`;
         content.append(

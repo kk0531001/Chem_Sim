@@ -340,6 +340,27 @@ export function dailyCounts(n = 30): { day: string; n: number }[] {
 export function wrongQuestionIds(): string[] { return [...outstandingWrong]; }
 
 /**
+ * The same set, ordered OLDEST MISTAKE FIRST — the review queue (ROADMAP F.4).
+ *
+ * Order is the whole feature. Reviewing your most recent mistakes is just
+ * re-reading the page you closed a minute ago; the ones worth returning to are
+ * the ones you got wrong long enough ago to have forgotten why.
+ *
+ * A question's age is the time of its most recent WRONG answer. The attempt
+ * window is capped, so some outstanding-wrong ids have no attempt left in it —
+ * those sort oldest, which is not a fallback but the correct answer: falling
+ * out of a 1000-attempt window is itself evidence that the mistake is old.
+ */
+export function reviewQueue(): string[] {
+  const lastWrong = new Map<string, number>();
+  // `attempts` is ascending by time, so the last write per id wins.
+  for (const a of attempts) {
+    if (!a.correct && outstandingWrong.has(a.questionId)) lastWrong.set(a.questionId, a.at);
+  }
+  return [...outstandingWrong].sort((x, y) => (lastWrong.get(x) ?? 0) - (lastWrong.get(y) ?? 0));
+}
+
+/**
  * Rewrite every stored question id through `map`. This is the migration
  * mechanism for Phase A.2: when questions gain explicit ids, progress
  * recorded under the old text-hash ids has to follow, or every existing user

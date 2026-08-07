@@ -5,7 +5,8 @@ import { buildMenuPage } from './menu';
 import { initRouter, navigate, onRouteChange, parseRoute, routeToPath, type Route } from './router';
 import { TOPICS, topicById, difficultyBadges } from './topics';
 import { CLOCK_ICON, ARROW_ICON, topicIconSVG } from './icons';
-import { initProgress, needsIdMigration } from './progress';
+import { initProgress, needsIdMigration, onProgressChange } from './progress';
+import { recommendNext } from './recommend';
 import { mountSidebarAccountPanel } from './authWidget';
 
 /**
@@ -199,8 +200,13 @@ function updateTopicChrome(tabId: string): void {
   }
 
   // previous (plain link) + next lesson (rich recommendation card)
+  //
+  // "Previous" stays strictly linear — it means "the module before this one",
+  // and a back-link that moved around would break the one navigation people
+  // expect to be dumb. "Next" is a RECOMMENDATION (F.3) and says why.
   const prev = TOPICS[idx - 1];
-  const next = TOPICS[idx + 1];
+  const rec = recommendNext(tabId);
+  const next = rec?.topic;
   footerEl.append(
     prev
       ? h('button', {
@@ -216,13 +222,17 @@ function updateTopicChrome(tabId: string): void {
           type: 'button', class: 'next-lesson-card',
           // collapses the card's icon + label + title + time + badges into one
           // spoken name; the detail is still on screen
-          'aria-label': `Next lesson: ${next.title}, ${next.estMinutes} min`,
+          // The reason rides in the accessible name too — it is the difference
+          // between advice and an unexplained jump, and a screen-reader user
+          // needs it at least as much as a sighted one.
+          'aria-label': `Next lesson: ${next.title}, ${next.estMinutes} min — ${rec!.reason}`,
           onclick: () => navigate({ kind: 'topic', id: next.id }),
         },
           h('span', { class: 'next-lesson-icon', html: topicIconSVG(next.icon) }),
           h('span', { class: 'next-lesson-body' },
             h('span', { class: 'next-lesson-label' }, 'Next lesson'),
             h('span', { class: 'next-lesson-title' }, next.title),
+            h('span', { class: 'next-lesson-why' }, rec!.reason),
             h('span', { class: 'next-lesson-meta' },
               h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${next.estMinutes} min`),
               ...difficultyBadges(next.difficulty),
@@ -359,6 +369,20 @@ function showRoute(route: Route): void {
 
 onRouteChange(showRoute);
 showRoute(initRouter());
+
+// The next-lesson card is DERIVED from progress (F.3), so it must not go stale
+// while the student answers the quiz underneath it — finishing a module should
+// change what comes next, immediately. Registered once, not per navigation:
+// onProgressChange has no unsubscribe.
+//
+// Skipped while the footer holds focus. Rebuilding it would drop the keyboard
+// user out of the control they are on, and a recommendation that updates one
+// answer later is a much smaller problem than that.
+onProgressChange(() => {
+  if (!lastTopicId) return;
+  if (footerEl.contains(document.activeElement)) return;
+  updateTopicChrome(lastTopicId);
+});
 
 brandEl.addEventListener('click', () => navigate({ kind: 'home' }));
 homeLinkEl.addEventListener('click', () => navigate({ kind: 'home' }));

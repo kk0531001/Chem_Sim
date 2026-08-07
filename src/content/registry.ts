@@ -177,6 +177,30 @@ export const byModule = (m: string): Indexable[] => BY_MODULE.get(m) ?? [];
 export const byTier = (t: Tier): Indexable[] => BY_TIER.get(t) ?? [];
 export const byComp = (c: Comp): Indexable[] => BY_COMP.get(c) ?? [];
 
+// One id -> question lookup for the whole corpus. Progress stores ids and
+// nothing else, so every feature that turns stored progress back into readable
+// questions — the dashboard's history list, the review queue, search results —
+// needs exactly this map. Built once here rather than three times by hand.
+const BY_ID = new Map<string, Indexable>(ALL.map(q => [q.id, q]));
+
+/** The question with this id, or undefined if it has been removed from a bank. */
+export const questionById = (id: string): Indexable | undefined => BY_ID.get(id);
+
+/**
+ * Resolve stored ids to questions, in the order given, silently dropping any
+ * that no longer exist. Progress outlives the corpus: a question deleted from a
+ * bank leaves its id in someone's attempt log forever, and that must degrade to
+ * a shorter list rather than a hole in the page.
+ */
+export function questionsByIds(ids: readonly string[]): Indexable[] {
+  const out: Indexable[] = [];
+  for (const id of ids) {
+    const q = BY_ID.get(id);
+    if (q) out.push(q);
+  }
+  return out;
+}
+
 /** Everything matching all the constraints given — the Phase C/E/F workhorse. */
 export function query(f: {
   topic?: ExamTopicId; module?: string; tier?: Tier; comp?: Comp; mcOnly?: boolean;

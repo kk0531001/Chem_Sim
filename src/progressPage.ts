@@ -17,7 +17,7 @@ import {
   dailyCounts, recentAttempts, wrongQuestionIds, bookmarkIds, toggleBookmark,
   onProgressChange, currentEmail, isCloudConfigured,
 } from './progress';
-import { ALL_MC, ALL_FRQ, byTopic, QUIZ_BANKS } from './content/registry';
+import { ALL_MC, ALL_FRQ, byTopic, questionById, QUIZ_BANKS } from './content/registry';
 import { DOMAINS, EXAM_TOPIC_LABEL, type ExamTopicId } from './content/topicIds';
 import { TOPICS, topicById } from './topics';
 import { TILE_HTML } from './home';
@@ -98,16 +98,21 @@ export function buildProgressPage(): HTMLElement {
   );
 
   // Corpus totals are computed once: the arrays are static for the session.
-  const mcIds = ALL_MC.map(q => q.id);
-  const allIds = [...mcIds, ...ALL_FRQ.map(f => f.id)];
-  const byId = new Map<string, string>();
-  for (const q of ALL_MC) byId.set(q.id, q.q);
-  for (const f of ALL_FRQ) byId.set(f.id, f.title);
+  const allIds = [...ALL_MC.map(q => q.id), ...ALL_FRQ.map(f => f.id)];
+  // One readable line per stored id, through the registry's shared lookup —
+  // an MC is named by its prompt, a written problem by its title.
+  const label = (id: string): string | undefined => {
+    const q = questionById(id);
+    if (!q) return undefined;
+    return 'parts' in q ? q.title : q.q;
+  };
 
   /** Open the question bank on a prepared results view — qbank restores the
    *  filters from the query string, so this needs no new UI over there. */
   const openBank = (params: Record<string, string>): void =>
     navigate({ kind: 'topic', id: 'qbank' }, false, '?' + new URLSearchParams({ part: 'results', ...params }));
+  const openReview = (): void =>
+    navigate({ kind: 'topic', id: 'qbank' }, false, '?part=review');
 
   function render(): void {
     const acc = accuracyByTopic();
@@ -219,7 +224,7 @@ export function buildProgressPage(): HTMLElement {
         list.replaceChildren(...(items.length ? items.map(at => h('div', { class: 'history-row' },
           h('span', { class: `history-mark ${at.correct ? 'ok' : 'no'}`, html: at.correct ? TICK : CROSS },
             h('span', { class: 'sr-only' }, at.correct ? 'Correct' : 'Incorrect')),
-          h('span', { class: 'history-q' }, byId.get(at.questionId) ?? at.questionId),
+          h('span', { class: 'history-q' }, label(at.questionId) ?? at.questionId),
           h('span', { class: 'history-topic' },
             at.topic ? EXAM_TOPIC_LABEL[at.topic as ExamTopicId] ?? at.topic : ''),
           h('span', { class: 'history-when' }, ago(at.at)),
@@ -245,8 +250,10 @@ export function buildProgressPage(): HTMLElement {
           allBtn, wrongBtn,
           h('span', { class: 'spacer' }),
           wrong.length
-            ? h('button', { type: 'button', class: 'btn', onclick: () => openBank({ status: 'wrong' }) },
-                `Retry the ${wrong.length} you got wrong`)
+            // The review queue, not a `status=wrong` filter: same questions,
+            // but ordered oldest-mistake-first instead of corpus order.
+            ? h('button', { type: 'button', class: 'btn primary', onclick: () => openReview() },
+                `Review the ${wrong.length} you got wrong`)
             : null,
         ),
         list);
@@ -258,10 +265,10 @@ export function buildProgressPage(): HTMLElement {
       const list = h('div', { class: 'history' },
         ...ids.map(id => {
           const topic = topicById(id);
-          const label = topic ? topic.title : byId.get(id);
-          if (!label) return null;   // a bookmark whose question has since been removed
+          const name = topic ? topic.title : label(id);
+          if (!name) return null;   // a bookmark whose question has since been removed
           const row = h('div', { class: 'history-row bookmark-row' },
-            h('span', { class: 'history-q' }, label),
+            h('span', { class: 'history-q' }, name),
             h('span', { class: 'history-topic' }, topic ? 'Module' : 'Question'),
             h('button', {
               type: 'button', class: 'btn', onclick: () => { toggleBookmark(id); row.remove(); },
