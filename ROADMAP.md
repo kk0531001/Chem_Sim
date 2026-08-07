@@ -331,8 +331,18 @@ forward, all now enforced by comments in the code:
   table has no natural key to deduplicate on and a retried push would otherwise
   duplicate rows.
 
-Remaining wiring (needs A.2's ids first): `quiz()` still calls `markSolved`
-only — it must also call `recordAttempt`, passing the question's `topic`.
+That wiring landed: `quiz()` calls `recordAttempt` alongside `markSolved`
+([framework.ts:435](src/tabs/framework.ts)), passing `toExamTopic(q.topic)` and
+the chosen index.
+
+**One boundary worth knowing before Phase E displays any of this.** Only
+multiple choice records attempts. A written problem is self-marked with a
+"solved" toggle in qbank.ts and challenge.ts, and a self-assessment is not a
+graded answer — recording it would put an unverified verdict into
+`accuracyByTopic()`, the same reason missions are barred from `recordAttempt`.
+So **accuracy statistics describe the MC corpus only**, while the solved set
+covers both. Phase E's dashboard has to say so, or a student reading "78% in
+thermo" will think it includes the FRQs they worked through.
 
 Original plan, for the record:
 
