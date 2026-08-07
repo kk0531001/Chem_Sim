@@ -15,10 +15,9 @@
 // following the obvious order reads as a bug; one that says "because
 // Equilibrium is your weakest topic" is advice you can agree or disagree with.
 // `reason` is not decoration, it is the feature.
-import { TOPICS, topicById, type TopicMeta } from './topics';
-import { ID_PREFIX, modulesForExamTopic, examTopicsOf, EXAM_TOPIC_LABEL, isExamTopicId, type QuizModuleId } from './content/topicIds';
-import { MODULE_QUIZ_SIZE } from './content/counts';
-import { solvedWithPrefix, weakTopics } from './progress';
+import { TOPICS, topicById, moduleProgress, moduleCompletion, type TopicMeta } from './topics';
+import { modulesForExamTopic, examTopicsOf, EXAM_TOPIC_LABEL, isExamTopicId, type QuizModuleId } from './content/topicIds';
+import { weakTopics } from './progress';
 
 export interface Recommendation {
   topic: TopicMeta;
@@ -35,16 +34,11 @@ export interface Recommendation {
  */
 const PREREQ_MET = 0.5;
 
-/** Fraction of a module's quiz bank solved, 0–1. Modules with no bank give 0. */
-export function completion(id: string): number {
-  const prefix = ID_PREFIX[id as keyof typeof ID_PREFIX];
-  const total = MODULE_QUIZ_SIZE[id];
-  if (!prefix || !total) return 0;
-  return Math.min(solvedWithPrefix(prefix) / total, 1);
-}
+/** Re-exported so the rules check can assert on it without importing topics. */
+export const completion = moduleCompletion;
 
 /** Does this module have a quiz bank at all? Sandbox and the bank itself don't. */
-const isLesson = (t: TopicMeta): boolean => !!MODULE_QUIZ_SIZE[t.id];
+const isLesson = (t: TopicMeta): boolean => moduleProgress(t.id) !== null;
 
 const prereqsMet = (t: TopicMeta): boolean =>
   t.prereqs.every(p => completion(p) >= PREREQ_MET);
@@ -137,7 +131,7 @@ export function recommendNext(currentId: string): Recommendation | null {
  */
 export function moduleTopicLabels(id: string): string[] {
   const mod = id as QuizModuleId;
-  if (!MODULE_QUIZ_SIZE[id]) return [];
+  if (!moduleProgress(id)) return [];
   try {
     return examTopicsOf(mod).map(t => EXAM_TOPIC_LABEL[t]);
   } catch {

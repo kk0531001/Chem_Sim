@@ -1,8 +1,42 @@
-// Menu page — the full course directory, grouped by category with search.
+// Menu page — the full course directory, grouped by category, with search and
+// filters (ROADMAP F.5).
 // Reuses the homepage's card/grid visual language for consistency.
+//
+// Filter state lives in the QUERY STRING, both directions, exactly as the
+// question bank's filters do (D.8): a filtered directory is a view worth
+// sharing ("here's the CCC material you haven't started"), and a link that
+// silently drops the filters sends the reader somewhere else. Defaults are
+// omitted rather than written out, so a shared URL carries the filters someone
+// chose and not the ones they didn't.
 import { h } from './tabs/framework';
-import { TOPICS, renderTopicCard } from './topics';
+import { TOPICS, renderTopicCard, moduleProgress, type TopicMeta } from './topics';
 import { TILE_HTML } from './home';
+import { onProgressChange } from './progress';
+
+const LEVELS = ['CCC', 'USNCO', 'CCO', 'IChO'] as const;
+type Level = (typeof LEVELS)[number];
+
+type Status = 'any' | 'todo' | 'doing' | 'done';
+const STATUS_LABEL: Record<Status, string> = {
+  any: 'Any progress',
+  todo: 'Not started',
+  doing: 'In progress',
+  done: 'Complete',
+};
+
+/**
+ * A module's state, from the same two tables the topic cards count with — no
+ * corpus import, because this page is on the entry path.
+ *
+ * Modules with no quiz bank (the sandbox, the question bank) are always
+ * 'none': they cannot be completed, so they must never be hidden by a progress
+ * filter that has nothing to say about them.
+ */
+function statusOf(t: TopicMeta): Exclude<Status, 'any'> | 'none' {
+  const p = moduleProgress(t.id);
+  if (!p) return 'none';
+  return p.done === 0 ? 'todo' : p.done >= p.total ? 'done' : 'doing';
+}
 
 export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void): HTMLElement {
   const groupsOrder: string[] = [];
@@ -12,29 +46,138 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
     groups.get(t.group)!.push(t);
   }
 
+  let level: Level | 'any' = 'any';
+  let status: Status = 'any';
+  let group = 'any';
+
   const searchIn = h('input', { type: 'text', placeholder: 'Search topics…', class: 'menu-search' });
   const body = h('div', {});
+  const countNote = h('p', { class: 'menu-count' });
+
+  // ---- URL <-> filter state ----
+  function readUrl(): void {
+    const p = new URLSearchParams(location.search);
+    const lv = p.get('level');
+    if (lv && (LEVELS as readonly string[]).includes(lv)) level = lv as Level;
+    const st = p.get('status');
+    if (st && st in STATUS_LABEL) status = st as Status;
+    const g = p.get('group');
+    if (g && groupsOrder.includes(g)) group = g;
+    const q = p.get('q');
+    if (q) searchIn.value = q;
+  }
+  function writeUrl(): void {
+    // Only touch the URL while the menu is the page being shown. buildMenuPage
+    // runs at startup on every route, and a render triggered by a progress sync
+    // must not rewrite the address of a topic page the reader is on.
+    if (location.pathname.replace(/\/+$/, '') !== '/menu') return;
+    const p = new URLSearchParams();
+    if (level !== 'any') p.set('level', level);
+    if (status !== 'any') p.set('status', status);
+    if (group !== 'any') p.set('group', group);
+    if (searchIn.value.trim()) p.set('q', searchIn.value.trim());
+    const qs = p.toString();
+    history.replaceState({}, '', location.pathname + (qs ? '?' + qs : ''));
+  }
+
+  // ---- the filter row ----
+  //
+  // `.pill` is the site's existing filter chip; `active` paints it and
+  // aria-pressed states it. Both, always together — the paint alone is
+  // invisible to a screen reader, and the attribute alone is invisible to
+  // everyone else.
+  const chipRows: HTMLElement[] = [];
+  function chipRow<T extends string>(
+    label: string, options: readonly { value: T; label: string }[],
+    get: () => T, set: (v: T) => void,
+  ): HTMLElement {
+    const btns = options.map(o => {
+      const b = h('button', { type: 'button', class: 'pill' }, o.label);
+      b.addEventListener('click', () => { set(o.value); syncChips(); render(); });
+      b.dataset.value = o.value;
+      return b;
+    });
+    const row = h('div', { class: 'menu-filter-row' },
+      h('span', { class: 'menu-filter-label' }, label), ...btns);
+    (row as HTMLElement & { sync?: () => void }).sync = () => {
+      for (const b of btns) {
+        const on = b.dataset.value === get();
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', String(on));
+      }
+    };
+    chipRows.push(row);
+    return row;
+  }
+  function syncChips(): void {
+    for (const r of chipRows) (r as HTMLElement & { sync?: () => void }).sync?.();
+  }
+
+  const levelRow = chipRow<Level | 'any'>('Level',
+    [{ value: 'any', label: 'All levels' }, ...LEVELS.map(l => ({ value: l, label: l }))],
+    () => level, v => { level = v; });
+  const statusRow = chipRow<Status>('Progress',
+    (Object.keys(STATUS_LABEL) as Status[]).map(s => ({ value: s, label: STATUS_LABEL[s] })),
+    () => status, v => { status = v; });
+  const groupRow = chipRow<string>('Area',
+    [{ value: 'any', label: 'All areas' }, ...groupsOrder.map(g => ({ value: g, label: g }))],
+    () => group, v => { group = v; });
+
+  const clearBtn = h('button', { type: 'button', class: 'btn menu-clear' }, 'Clear filters');
+  clearBtn.addEventListener('click', () => {
+    level = 'any'; status = 'any'; group = 'any'; searchIn.value = '';
+    syncChips(); render();
+  });
+
+  function matches(t: TopicMeta): boolean {
+    const f = searchIn.value.trim().toLowerCase();
+    if (f && !(t.title.toLowerCase().includes(f) || t.blurb.toLowerCase().includes(f) || t.tag.toLowerCase().includes(f))) return false;
+    if (level !== 'any' && !t.difficulty.includes(level)) return false;
+    if (group !== 'any' && t.group !== group) return false;
+    if (status !== 'any') {
+      const s = statusOf(t);
+      // A module with no quiz bank has no progress to filter on, so a progress
+      // filter simply doesn't apply to it rather than excluding it silently.
+      if (s !== 'none' && s !== status) return false;
+      if (s === 'none') return false;
+    }
+    return true;
+  }
 
   function render(): void {
-    const f = searchIn.value.trim().toLowerCase();
+    writeUrl();
     body.replaceChildren();
-    let any = false;
-    for (const group of groupsOrder) {
-      const shown = groups.get(group)!.filter(t =>
-        !f || t.title.toLowerCase().includes(f) || t.blurb.toLowerCase().includes(f) || t.tag.toLowerCase().includes(f));
+    let shownTotal = 0;
+    for (const g of groupsOrder) {
+      const shown = groups.get(g)!.filter(matches);
       if (!shown.length) continue;
-      any = true;
+      shownTotal += shown.length;
       body.append(
-        h('div', { class: 'sect-head', style: 'margin-top:34px' }, h('h2', {}, group)),
+        h('div', { class: 'sect-head', style: 'margin-top:34px' }, h('h2', {}, g)),
         h('div', { class: 'topic-grid' },
           ...shown.map(t => renderTopicCard(t, onOpen, '', '', true)),
         ),
       );
     }
-    if (!any) body.append(h('p', { class: 'muted' }, 'No topics match your search.'));
+    const filtered = level !== 'any' || status !== 'any' || group !== 'any' || !!searchIn.value.trim();
+    countNote.textContent = filtered
+      ? `${shownTotal} of ${TOPICS.length} modules match`
+      : `${TOPICS.length} modules`;
+    clearBtn.hidden = !filtered;
+    if (!shownTotal) {
+      body.append(h('p', { class: 'muted' },
+        'No modules match these filters. ',
+        h('button', { type: 'button', class: 'btn', onclick: () => clearBtn.click() }, 'Clear filters')));
+    }
   }
+
   searchIn.addEventListener('input', render);
+  readUrl();
+  syncChips();
   render();
+  // The progress filters and the cards' own bars both read the progress store,
+  // which finishes loading (and can sync from the cloud) after this is built.
+  onProgressChange(render);
 
   return h('div', { id: 'menu-page' },
     h('div', { class: 'home-wrap' },
@@ -46,6 +189,8 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
         h('h1', { style: 'font-family:var(--serif);font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700;margin-bottom:10px' }, 'All Topics'),
         h('p', { class: 'section-lede' }, `Browse the full syllabus — ${TOPICS.length} modules from foundations through the advanced CCO problem sets.`),
         searchIn,
+        h('div', { class: 'menu-filters' }, levelRow, statusRow, groupRow),
+        h('div', { class: 'menu-count-row' }, countNote, clearBtn),
       ),
       body,
       h('div', { style: 'height:60px' }),

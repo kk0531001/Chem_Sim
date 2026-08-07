@@ -304,6 +304,36 @@ export function difficultyBadges(diff: string[]): HTMLElement[] {
 }
 
 /**
+ * How much of a module's quiz bank is solved — the ONE definition.
+ *
+ * Four things ask this question (the card strips and sidebar meters, the menu's
+ * progress filter, the next-lesson rules, and the learning-path bars) and they
+ * were on their way to four slightly different answers. It lives here because
+ * this file already holds the three tables it needs.
+ *
+ * Returns null for anything that has no bank to measure — the sandbox and the
+ * question bank. That is deliberately not `{done: 0, total: 0}`: "no progress"
+ * and "not a lesson" are different facts, and callers that conflate them end up
+ * hiding the sandbox behind a progress filter that never applied to it.
+ *
+ * Counted by ID NAMESPACE rather than by enumerating the bank's questions,
+ * because every one of those callers renders on the entry path and the corpus
+ * must stay out of it (D.10).
+ */
+export function moduleProgress(id: string): { done: number; total: number } | null {
+  const prefix = ID_PREFIX[id as keyof typeof ID_PREFIX];
+  const total = MODULE_QUIZ_SIZE[id];
+  if (!prefix || !total) return null;
+  return { done: Math.min(solvedWithPrefix(prefix), total), total };
+}
+
+/** Fraction of a module's bank solved, 0–1. Modules with no bank give 0. */
+export function moduleCompletion(id: string): number {
+  const p = moduleProgress(id);
+  return p ? p.done / p.total : 0;
+}
+
+/**
  * The card's progress strip (ROADMAP E.3) — how much of this module's quiz is
  * solved, and a "Complete" mark once all of it is.
  *
@@ -319,13 +349,12 @@ export function difficultyBadges(diff: string[]): HTMLElement[] {
  * `initProgress()` has finished loading.
  */
 function progressStrip(id: string): HTMLElement | null {
-  const prefix = ID_PREFIX[id as keyof typeof ID_PREFIX];
-  const total = MODULE_QUIZ_SIZE[id];
-  if (!prefix || !total) return null;   // sandbox and qbank have no quiz bank
+  const total = moduleProgress(id)?.total;
+  if (!total) return null;   // sandbox and qbank have no quiz bank
 
   const strip = h('div', { class: 'topic-progress', hidden: 'true' });
   const paint = (): void => {
-    const done = Math.min(solvedWithPrefix(prefix), total);
+    const done = moduleProgress(id)!.done;
     strip.hidden = done === 0;
     if (done === 0) return;
     strip.replaceChildren(

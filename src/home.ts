@@ -3,7 +3,8 @@
 // simulation in the hero, figure panels with captions elsewhere).
 import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
-import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges } from './topics';
+import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges, moduleCompletion } from './topics';
+import { onProgressChange } from './progress';
 import { CORPUS_COUNTS } from './content/counts';
 import { CLOCK_ICON } from './icons';
 
@@ -360,6 +361,40 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
         // Badges are the union of the levels its modules carry, in tier order,
         // so a path can never claim a level none of its modules is pitched at.
         const levels = ['CCC', 'USNCO', 'CCO', 'IChO'].filter(d => mods.some(t => t.difficulty.includes(d)));
+
+        // ---- progress along the path (ROADMAP F.2) ----
+        // The paths were already data; what was missing is where you are in
+        // one. Steps mark themselves done, and "Continue" jumps to the first
+        // module that isn't — which is the only button on the card that knows
+        // anything, and the reason a path beats a plain list of links.
+        const steps = mods.map(t => h('button', {
+          class: 'path-step', type: 'button', onclick: () => onEnter(t.id),
+        }, t.title));
+        const bar = h('div', { class: 'pbar' });
+        const count = h('span', { class: 'path-count' });
+        const cont = h('button', { class: 'btn path-continue', type: 'button' });
+        const paint = (): void => {
+          const done = mods.map(t => moduleCompletion(t.id) >= 1);
+          const n = done.filter(Boolean).length;
+          steps.forEach((s, i) => s.classList.toggle('done', done[i]));
+          bar.replaceChildren(h('div', {
+            class: `pbar-fill${n ? '' : ' zero'}`,
+            style: `width:${n ? Math.max(Math.round((n / mods.length) * 100), 2) : 0}%`,
+          }));
+          bar.setAttribute('role', 'img');
+          bar.setAttribute('aria-label', `${n} of ${mods.length} modules complete`);
+          count.textContent = n === mods.length ? 'Complete' : `${n}/${mods.length} modules`;
+          count.classList.toggle('all-done', n === mods.length);
+          const next = mods.find((_, i) => !done[i]);
+          // Colon, not an em dash: four module titles already contain one
+          // ("Organic I — Mechanisms"), and "Start — Organic I — Mechanisms"
+          // reads as two separators fighting.
+          cont.textContent = next ? `${n ? 'Continue' : 'Start'}: ${next.title}` : 'Revisit from the top';
+          cont.onclick = () => onEnter((next ?? mods[0]).id);
+        };
+        paint();
+        onProgressChange(paint);
+
         return h('article', { class: 'path-card reveal' },
           h('h3', {}, p.title),
           h('div', { class: 'topic-meta' },
@@ -367,11 +402,9 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
             ...difficultyBadges(levels),
           ),
           h('p', {}, p.blurb),
-          h('ol', { class: 'path-steps' },
-            ...mods.map(t => h('li', {},
-              h('button', { class: 'path-step', type: 'button', onclick: () => onEnter(t.id) }, t.title),
-            )),
-          ),
+          h('div', { class: 'path-progress' }, bar, count),
+          h('ol', { class: 'path-steps' }, ...steps.map(s => h('li', {}, s))),
+          cont,
         );
       }),
     ),
