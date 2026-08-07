@@ -18,7 +18,12 @@ const GOOGLE_G = `<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="t
 
 // The sign-in form shared by both variants: Google button, divider, email + link.
 function buildSignInForm(): HTMLElement {
-  const emailIn = h('input', { type: 'email', placeholder: 'you@email.com', autocomplete: 'email' });
+  // aria-label, not a placeholder: a placeholder is not an accessible name,
+  // and it disappears the moment the field has content.
+  const emailIn = h('input', {
+    type: 'email', placeholder: 'you@email.com', autocomplete: 'email',
+    'aria-label': 'Email address for a sign-in link',
+  });
   const msg = h('div', { class: 'acc-msg' });
   const googleBtn = h('button', { class: 'acc-google-btn', html: `${GOOGLE_G}<span>Continue with Google</span>` });
   googleBtn.addEventListener('click', async () => {

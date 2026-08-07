@@ -1,7 +1,7 @@
 // Physical Chemistry — advanced topics: van't Hoff (K vs T), Clausius–Clapeyron,
 // concentration cells, real gases (van der Waals / Z), heat capacities +
 // Kirchhoff, catalysis energy profile, and coupled/complex equilibria.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { PHYSCHEM_QUIZ } from './questions6';
 
@@ -111,10 +111,10 @@ function makeClausius(): HTMLElement {
   }
   [P1, T1, dHv, T2].forEach(i => i.addEventListener('input', calc));
   const el = card('Clausius–Clapeyron — vapor pressure vs temperature',
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'P₁ (atm)'), P1),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'T₁ (K)'), T1),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'ΔH_vap (kJ/mol)'), dHv),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'T₂ (K)'), T2),
+    ctlRow('P₁ (atm)', P1),
+    ctlRow('T₁ (K)', T1),
+    ctlRow('ΔH_vap (kJ/mol)', dHv),
+    ctlRow('T₂ (K)', T2),
     canvas, out,
   );
   calc();
@@ -223,10 +223,10 @@ function makeHeatCap(): HTMLElement {
     select('gas model', MODELS.map(x => ({ value: x.name, label: x.name })), v => { m = MODELS.find(x => x.name === v)!; calc(); }, m.name),
     out,
     h('h3', {}, 'Kirchhoff — enthalpy at another temperature'),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'ΔH at T₁ (kJ/mol)'), dH1),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'ΔCp (J/mol·K)'), dCp),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'T₁ (K)'), T1),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'T₂ (K)'), T2),
+    ctlRow('ΔH at T₁ (kJ/mol)', dH1),
+    ctlRow('ΔCp (J/mol·K)', dCp),
+    ctlRow('T₁ (K)', T1),
+    ctlRow('T₂ (K)', T2),
     kOut,
   );
   calc(); kcalc();
@@ -317,42 +317,42 @@ export const physChemTab: TabDef = {
       sims: [makeVantHoff(), makeClausius(), makeConcCell(), makeRealGas(), makeHeatCap(), makeCatalysis(), makeComplexEq()],
       quiz: quiz(PHYSCHEM_QUIZ, 5),
       theory: theory('Theory — advanced physical chemistry', `
-<h4>Temperature dependence of K (van't Hoff)</h4>
+<h3>Temperature dependence of K (van't Hoff)</h3>
 <span class="eq">\\(\\ln K = -\\Delta H^\\circ/RT + \\Delta S^\\circ/R\\) &nbsp;·&nbsp; \\(\\ln(K_2/K_1) = -(\\Delta H^\\circ/R)(1/T_2 - 1/T_1)\\)</span>
 <ul>
 <li>A plot of ln K vs 1/T is linear: slope = −ΔH°/R, intercept = ΔS°/R. Exothermic → K falls with T; endothermic → K rises.</li>
 <li>The same equation with Ksp explains why most salts (endothermic dissolution) get more soluble on heating.</li>
 </ul>
-<h4>Clausius–Clapeyron</h4>
+<h3>Clausius–Clapeyron</h3>
 <span class="eq">\\(\\ln(P_2/P_1) = -(\\Delta H_{vap}/R)(1/T_2 - 1/T_1)\\)</span>
 <ul>
 <li>Vapor pressure grows exponentially with T; the normal boiling point is where P = 1 atm.</li>
 <li>Assumes ΔH_vap constant and vapor ideal with negligible liquid volume. Trouton's rule: ΔS_vap ≈ 85 J/mol·K for many liquids.</li>
 </ul>
-<h4>Concentration cells</h4>
+<h3>Concentration cells</h3>
 <span class="eq">\\(E = (RT/nF)\\ln(C_{cathode}/C_{anode}) = (0.0592/n)\\log(C_{high}/C_{low})\\) at 25 °C, \\(E^\\circ = 0\\)</span>
 <ul>
 <li>Identical electrodes; EMF comes purely from the concentration (entropy) gradient. The concentrated side is reduced (cathode).</li>
 <li>Runs until the concentrations equalize. Basis of pH/ion-selective electrodes.</li>
 </ul>
-<h4>Real gases</h4>
+<h3>Real gases</h3>
 <span class="eq">\\(\\left(P + an^2/V^2\\right)(V - nb) = nRT\\) &nbsp;·&nbsp; \\(Z = PV_m/RT\\)</span>
 <ul>
 <li>a: intermolecular attraction (lowers P); b: excluded molecular volume. <span class="trap">Z &lt; 1 attractions dominate; Z &gt; 1 size dominates; Z → 1 as P → 0.</span></li>
 <li>Boyle temperature: a and b cancel, gas near-ideal over a wide low-P range. Critical constants: Tc = 8a/27Rb, Pc = a/27b².</li>
 </ul>
-<h4>Heat capacities</h4>
+<h3>Heat capacities</h3>
 <span class="eq">\\(C_v = (f/2)R\\) &nbsp;·&nbsp; \\(C_p - C_v = R\\) (ideal gas) &nbsp;·&nbsp; \\(\\gamma = C_p/C_v\\)</span>
 <ul>
 <li>Equipartition: ½R per active quadratic mode. Monatomic Cv = 3/2R (γ = 5/3); diatomic 5/2R at 300 K (γ = 7/5); vibration adds R at high T.</li>
 <li>Kirchhoff: ΔH(T₂) = ΔH(T₁) + ΔCp(T₂ − T₁). Adiabatic reversible: PVγ = const, TV^(γ−1) = const.</li>
 </ul>
-<h4>Catalysis</h4>
+<h3>Catalysis</h3>
 <ul>
 <li>Provides a lower-Ea pathway; k ratio = e^(ΔEa/RT) — huge. Does NOT change ΔH, ΔG, or K; speeds forward and reverse equally.</li>
 <li>Homogeneous (same phase), heterogeneous (surface adsorption), enzymatic (Michaelis–Menten). Selectivity and turnover number matter.</li>
 </ul>
-<h4>Complex / coupled equilibria</h4>
+<h3>Complex / coupled equilibria</h3>
 <ul>
 <li>Add reactions → multiply K's (e.g. Ka·Kb = Kw). Stepwise formation: overall βₙ = K₁K₂…Kₙ; successive K's decrease.</li>
 <li>Speciation (fraction αₙ) shifts with free-ligand concentration — the basis of buffer, EDTA, and metal-ammine chemistry.</li>

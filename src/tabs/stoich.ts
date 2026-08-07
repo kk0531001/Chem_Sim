@@ -1,6 +1,6 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, numberInput, numVal, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { STOICH_QUIZ } from './questions1';
 
@@ -150,14 +150,14 @@ export const stoichTab: TabDef = {
 
     const solCard = cardWithMissions('Solution chemistry tools', molMissions,
       h('h3', {}, 'Molarity: dissolve a solid'),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'mass (g)'), gIn),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'molar mass (g/mol)'), mmIn),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'final volume (mL)'), vIn),
+      ctlRow('mass (g)', gIn),
+      ctlRow('molar mass (g/mol)', mmIn),
+      ctlRow('final volume (mL)', vIn),
       molOut,
       h('h3', {}, 'Dilution: M₁V₁ = M₂V₂'),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'stock M₁ (mol/L)'), m1),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'stock V₁ (mL)'), v1),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'target M₂ (mol/L)'), m2),
+      ctlRow('stock M₁ (mol/L)', m1),
+      ctlRow('stock V₁ (mL)', v1),
+      ctlRow('target M₂ (mol/L)', m2),
       dilOut,
     );
 
@@ -172,8 +172,8 @@ export const stoichTab: TabDef = {
     [actualIn, theoIn].forEach(i => i.addEventListener('input', yCalc));
     yCalc();
     const yieldCard = card('Percent yield',
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'actual (g)'), actualIn),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'theoretical (g)'), theoIn),
+      ctlRow('actual (g)', actualIn),
+      ctlRow('theoretical (g)', theoIn),
       yOut,
       h('h3', {}, 'Empirical formula recipe'),
       h('ol', {},
@@ -188,22 +188,22 @@ export const stoichTab: TabDef = {
       sims: [limCard, solCard, yieldCard],
       quiz: quiz(STOICH_QUIZ, 5),
       theory: theory('Theory & key equations — stoichiometry / reactions / solutions', `
-<h4>The mole highway</h4>
+<h3>The mole highway</h3>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>
-<h4>Reaction types to recognize instantly</h4>
+<h3>Reaction types to recognize instantly</h3>
 <ul>
 <li><b>Precipitation:</b> soluble — all NO₃⁻, Group 1, NH₄⁺, most Cl⁻/Br⁻/I⁻ (except Ag⁺, Pb²⁺, Hg₂²⁺), most SO₄²⁻ (except Ba²⁺, Pb²⁺, Ca²⁺, Sr²⁺). Insoluble — most OH⁻, S²⁻, CO₃²⁻, PO₄³⁻.</li>
 <li><b>Acid–base:</b> H⁺ + OH⁻ → H₂O; carbonate + acid → CO₂ + H₂O (fizzing).</li>
 <li><b>Redox:</b> assign oxidation states; oxidation = e⁻ loss (OS up). Balance half-reactions: balance atoms, then O with H₂O, H with H⁺, charge with e⁻ (in base: add OH⁻ to both sides at the end).</li>
 </ul>
-<h4>Net ionic equations</h4>
+<h3>Net ionic equations</h3>
 <ul>
 <li>Split only strong electrolytes (strong acids: HCl, HBr, HI, HNO₃, H₂SO₄, HClO₄; soluble salts; strong bases). Weak acids, solids, liquids, gases stay together.</li>
 <li><span class="trap">Trap: spectator ions must have identical form and state on both sides.</span></li>
 </ul>
-<h4>Titration stoichiometry</h4>
+<h3>Titration stoichiometry</h3>
 <span class="eq">C₁V₁/a = C₂V₂/b (a, b = coefficients) — don't forget diprotic acids need 2 OH⁻!</span>
-<h4>Concentration units</h4>
+<h3>Concentration units</h3>
 <ul>
 <li>Molarity M = mol/L solution (changes with T); molality m = mol/kg solvent (T-independent — use for colligative).</li>
 <li>ppm = mg solute / kg solution ≈ mg/L in dilute water.</li>

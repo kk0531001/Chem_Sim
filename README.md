@@ -18,10 +18,18 @@ The site is a real multi-page app with proper URLs and browser back/forward:
 - **`/menu`** — the full topic directory, grouped by category with a search box
 - **`/topic/:id`** — one page per module, with a breadcrumb (Home / group /
   title) and a prev/next footer for moving through the syllabus in order
+- **`/guide/:slug`** — a study guide per competition (`/guide/ccc-study-guide`,
+  `/guide/usnco-study-guide`): what the contest is, how to work through the site
+  for it, and the modules in scope. The button on each sets competition mode.
 
-Every module and both directory pages are bookmarkable and shareable, and
-reloading on any URL lands you back on the same page (Netlify config in
-`public/_redirects`).
+Every page is bookmarkable and shareable, and reloading on any URL lands you
+back on the same page (Netlify config in `public/_redirects`).
+
+`npm run build` also runs `scripts/prerender.mjs`, which writes a static HTML
+shell for every topic, every competition guide and `/menu` — per-page title, description, canonical
+and Open Graph tags, plus a `<noscript>` summary — along with `sitemap.xml` and
+`robots.txt`. The app boots on top of those files unchanged; they exist so that
+a crawler, or a link unfurl, sees the topic instead of an empty document.
 
 ## Run it
 

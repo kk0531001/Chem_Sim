@@ -137,18 +137,18 @@ export const thermo2Tab: TabDef = {
       sims: [microCard, gibbsCard, kCard],
       quiz: quiz(THERMO2_QUIZ, 5),
       theory: theory('Theory & key equations — entropy / Gibbs energy', `
-<h4>Second & third laws</h4>
+<h3>Second & third laws</h3>
 <span class="eq">ΔS<sub>univ</sub> = ΔS<sub>sys</sub> + ΔS<sub>surr</sub> &gt; 0 for spontaneous · ΔS<sub>surr</sub> = −ΔH<sub>sys</sub>/T</span>
 <ul>
 <li>Third law: perfect crystal at 0 K has S = 0 → absolute entropies S° exist (never 0 or negative at 298 K, unlike ΔH°f).</li>
 <li>ΔS°<sub>rxn</sub> = Σ nS°(products) − Σ nS°(reactants).</li>
 </ul>
-<h4>Predicting the sign of ΔS</h4>
+<h3>Predicting the sign of ΔS</h3>
 <ul>
 <li>Gas moles rule almost everything: Δn<sub>gas</sub> &gt; 0 → ΔS &gt; 0. Same gas moles → look at complexity/mixing.</li>
 <li>S°: gas ≫ liquid &gt; solid; more atoms per molecule → more S; dissolving gas in water → ΔS &lt; 0 (!).</li>
 </ul>
-<h4>Gibbs energy</h4>
+<h3>Gibbs energy</h3>
 <span class="eq">ΔG = ΔH − TΔS &nbsp;·&nbsp; ΔG° = −RT ln K &nbsp;·&nbsp; ΔG = ΔG° + RT ln Q &nbsp;·&nbsp; ΔG° = −nFE°</span>
 <ul>
 <li>Four cases: (−,+) always spontaneous · (+,−) never · (−,−) low T only · (+,+) high T only. Crossover at T = ΔH/ΔS.</li>

@@ -177,7 +177,7 @@ export const organic1Tab: TabDef = {
       sims: [deciderCard, ladderCard, cationCard],
       quiz: quiz(ORGANIC1_QUIZ, 5),
       theory: theory('Theory — organic bonding, stereochem quick hits, mechanism summary', `
-<h4>The four mechanisms at a glance</h4>
+<h3>The four mechanisms at a glance</h3>
 <div class="table-scroll"><table><tr><th></th><th>rate law</th><th>stereo</th><th>substrate</th><th>needs</th></tr>
 <tr><td><b>SN2</b></td><td>k[RX][Nu]</td><td>inversion (backside)</td><td>Me &gt; 1° &gt; 2° (never 3°)</td><td>strong Nu, aprotic best</td></tr>
 <tr><td><b>SN1</b></td><td>k[RX]</td><td>racemization</td><td>3° &gt; 2° (+benzylic/allylic)</td><td>weak Nu, protic, stable cation</td></tr>
@@ -188,7 +188,7 @@ export const organic1Tab: TabDef = {
 <li>Zaitsev (more substituted alkene) vs Hofmann (bulky base → less substituted). E2 on cyclohexanes: leaving group must be axial.</li>
 <li>Alkene stability: tetra &gt; tri &gt; cis-di &lt; trans-di ordering — trans &gt; cis; more substitution = more stable (hyperconjugation).</li>
 </ul>
-<h4>Stereochemistry quick hits</h4>
+<h3>Stereochemistry quick hits</h3>
 <ul>
 <li>Chiral center: 4 different groups. n centers → up to 2ⁿ stereoisomers (meso compounds reduce the count).</li>
 <li>Enantiomers: identical physical properties except optical rotation & chiral environments. Diastereomers differ in everything.</li>

@@ -211,6 +211,42 @@ with a reason stated in the commit/summary.
   called from home.ts). Don't duplicate this UI — extend authWidget.ts instead.
   See the quiz/FRQ progress integration in framework.ts / qbank.ts.
 
+## Competition landing pages (src/guides.ts + src/guide.ts)
+
+- `/guide/<slug>` (I.3). src/guides.ts is the prose and is **pure data with no
+  value imports** — scripts/prerender.mjs loads it in Node, and every value
+  import is another thing to stub there. src/guide.ts builds the DOM.
+- The slug is the search phrase (`ccc-study-guide`), not the comp id. A new
+  guide is one entry in `GUIDES`; the router, prerender, sitemap, `_redirects`
+  and the router tests all derive from that array.
+- **Never state exam mechanics** (dates, scoring, time limits, eligibility) on
+  these pages. They change yearly and belong to the organiser — link the
+  official page instead. Everything on the site is original practice; say so,
+  and never imply a real paper is reproduced here.
+- The page filters modules with `inScope` from mode.ts, the same rule the menu
+  and the sidebar use. Don't re-implement "is this module on that syllabus".
+
+## Feedback and analytics (src/signals.ts)
+
+- All four feedback loops (I.2) write to ONE append-only `signals` table:
+  `view` (topic + dwell seconds), `quiz` (where a student stopped),
+  `explain` (the helpful/not-helpful verdict), `feedback` (the bug-report box).
+  Add a new signal as a `kind`, not as a table.
+- **Never route these through the Supabase client.** It is ~110 kB loaded
+  lazily so a reader who never signs in never pays for it (D.10); logging a
+  page view through it would undo that. signals.ts posts to PostgREST with a
+  bare `fetch` + the publishable key, and the table is insert-only with no
+  select policy.
+- Passive signals (`view`, `quiz`) are suppressed under Do Not Track / Global
+  Privacy Control. Deliberate ones (`explain`, `feedback`) are not — a reader
+  who pressed "Not helpful" is sending a message, not being tracked.
+- The identifier is a random per-TAB id in sessionStorage. Never key a signal
+  on a user id, and never send anything free-text that the reader did not type
+  into the feedback box themselves.
+- Everything here is fire-and-forget: instrumentation must never surface an
+  error to a student mid-question, and the UI acknowledges regardless of
+  whether the row landed.
+
 ## Verifying changes
 
 `npx tsc --noEmit` must pass (strict mode). To eyeball behavior: `npm run dev`,

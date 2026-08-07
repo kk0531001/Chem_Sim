@@ -1,6 +1,6 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
-import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, numberInput, numVal, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { LABDATA_QUIZ } from './questions2';
 
@@ -128,7 +128,7 @@ function makeSigFigs(): HTMLElement {
 
   return h('div', { class: 'cards' },
     card('Sig fig counter',
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'number'), input),
+      ctlRow('number', input),
       sfOut,
       h('h3', {}, 'Rules for calculations'),
       h('ul', {},
@@ -139,8 +139,8 @@ function makeSigFigs(): HTMLElement {
         h('li', { html: '<span class="trap">Round only at the END — carry extra digits through intermediate steps.</span>' }),
       ),
       h('h3', {}, 'Percent error'),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'measured'), meas),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'accepted'), acc),
+      ctlRow('measured', meas),
+      ctlRow('accepted', acc),
       errOut,
     ),
     card('Glassware — precision you can claim',
@@ -268,13 +268,13 @@ function makeUncertainty(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Uncertainty propagation',
       h('p', { class: 'muted' }, 'Compute A·B/C with its uncertainty:'),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'A ± δA'), A, dA),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'B ± δB'), B, dB),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'C ± δC'), C, dC),
+      ctlRow('A ± δA', A, dA),
+      ctlRow('B ± δB', B, dB),
+      ctlRow('C ± δC', C, dC),
       propOut,
     ),
     cardWithMissions('Q-test for outliers', qMissions,
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'values (comma-sep)'), vals),
+      ctlRow('values (comma-sep)', vals),
       qOut,
     ),
   );

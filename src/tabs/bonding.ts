@@ -203,26 +203,26 @@ export const bondingTab: TabDef = {
       sims: [vseprCard, moCard],
       quiz: quiz(BONDING_QUIZ, 5),
       theory: theory('Theory & key ideas — Lewis, VSEPR, valence bond, MO', `
-<h4>Lewis structures & formal charge</h4>
+<h3>Lewis structures & formal charge</h3>
 <span class="eq">FC = valence e⁻ − nonbonding e⁻ − ½(bonding e⁻)</span>
 <ul>
 <li>Best structure: FC closest to zero; negative FC on the most electronegative atom.</li>
 <li>Resonance: real molecule is the average (O₃ bond order 1.5; NO₃⁻ 1.33). Equivalent resonance = more stabilization.</li>
 <li>Octet exceptions: e⁻-deficient (BF₃, BeCl₂), radicals (NO, NO₂), expanded octets only for period ≥3 (PCl₅, SF₆, XeF₄).</li>
 </ul>
-<h4>Bond properties</h4>
+<h3>Bond properties</h3>
 <ul>
 <li>Bond order ↑ → length ↓, strength ↑. C–C 154 pm &gt; C=C 134 &gt; C≡C 120.</li>
 <li>Polarity: ΔEN &gt; ~1.8 ionic, 0.4–1.8 polar covalent. Dipoles are vectors — symmetric shapes cancel (CO₂, CCl₄, XeF₄ nonpolar).</li>
 <li><b>Fajans' rules:</b> covalent character in an "ionic" bond grows with a small, highly-charged cation and a large, polarizable anion (why AgI and AlCl₃ are quite covalent). Bonding is a continuum, not a switch.</li>
 </ul>
-<h4>Valence bond / hybridization</h4>
+<h3>Valence bond / hybridization</h3>
 <ul>
 <li>Count σ-bonds + lone pairs on the atom: 2 → sp, 3 → sp², 4 → sp³.</li>
 <li>σ bonds: head-on overlap (free rotation). π bonds: sideways p–p overlap (locks rotation → cis/trans isomers).</li>
 <li>Double bond = 1σ + 1π; triple = 1σ + 2π. More s-character → shorter/stronger bond, more electronegative orbital (sp C–H is most acidic).</li>
 </ul>
-<h4>MO theory essentials</h4>
+<h3>MO theory essentials</h3>
 <span class="eq">bond order = (bonding e⁻ − antibonding e⁻) / 2</span>
 <ul>
 <li>π2p falls below σ2p for B₂, C₂, N₂ (s–p mixing); order flips for O₂, F₂.</li>

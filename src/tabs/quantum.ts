@@ -275,20 +275,20 @@ export const quantumTab: TabDef = {
       sims: [orbCard, radCard, lvlCard, cfgCard],
       quiz: quiz(QUANTUM_QUIZ, 5),
       theory: theory('Theory & key equations — quantum / atomic structure', `
-<h4>Quantum numbers</h4>
+<h3>Quantum numbers</h3>
 <ul>
 <li><b>n</b> = 1,2,3… (size/energy) · <b>ℓ</b> = 0…n−1 (shape: s,p,d,f) · <b>m<sub>ℓ</sub></b> = −ℓ…+ℓ (orientation) · <b>m<sub>s</sub></b> = ±½</li>
 <li>Nodes: total = n−1; angular = ℓ; radial = n−ℓ−1. <span class="trap">Classic trap: "how many radial nodes in 4d?" → 4−2−1 = 1.</span></li>
 <li>Pauli: no two electrons share all four quantum numbers. Hund: maximize parallel spins in degenerate orbitals.</li>
 </ul>
-<h4>Hydrogen-like energies & light</h4>
+<h3>Hydrogen-like energies & light</h3>
 <span class="eq">E<sub>n</sub> = −13.6 · Z²/n² eV &nbsp;&nbsp; ΔE = hc/λ &nbsp;&nbsp; λ(nm) ≈ 1240/ΔE(eV)</span>
 <span class="eq">1/λ = R<sub>H</sub>(1/n₁² − 1/n₂²), R<sub>H</sub> = 1.097×10⁷ m⁻¹</span>
 <ul>
 <li>Lyman → n=1 (UV), Balmer → n=2 (visible: 656 red, 486 blue-green, 434, 410 nm), Paschen → n=3 (IR).</li>
 <li>de Broglie: λ = h/mv. Heisenberg: Δx·Δp ≥ ħ/2. Photoelectric: KE = hν − φ (intensity ↑ = more e⁻, not faster e⁻).</li>
 </ul>
-<h4>Multi-electron atoms & periodic trends</h4>
+<h3>Multi-electron atoms & periodic trends</h3>
 <ul>
 <li>Z<sub>eff</sub> ≈ Z − S (shielding). Penetration order within a shell: s &gt; p &gt; d &gt; f.</li>
 <li>Across a period: Z<sub>eff</sub> ↑ → radius ↓, IE ↑, EA ↑ (more negative), electronegativity ↑. Down a group: all reverse.</li>

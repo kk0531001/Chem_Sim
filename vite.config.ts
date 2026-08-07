@@ -1,18 +1,11 @@
 import { defineConfig } from 'vite';
-
 // Social scrapers (Facebook, Twitter/X, Slack, Discord, iMessage) do not
 // resolve relative og:image paths — the URL has to be absolute in the served
 // HTML, and they don't run JS, so it can't be filled in at runtime either.
 // So index.html carries a %SITE_URL% placeholder that gets substituted here.
-//
-// Netlify sets URL to the site's primary address on every production build, so
-// this is correct with no configuration. Set VITE_SITE_URL to override — e.g.
-// when a custom domain is added, or to preview the real tags locally.
-const SITE_URL = (
-  process.env.VITE_SITE_URL ||
-  process.env.URL ||
-  'http://localhost:5174'
-).replace(/\/+$/, '');
+// scripts/prerender.mjs bakes the same value into the per-topic pages, which is
+// why it is defined once, outside this file.
+import { SITE_URL } from './scripts/site-url.mjs';
 
 // KaTeX ships each of its 20 faces three times — woff2, woff and ttf — and its
 // stylesheet lists all three as fallbacks. Every browser this app supports has

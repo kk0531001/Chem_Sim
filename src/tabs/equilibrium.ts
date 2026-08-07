@@ -1,6 +1,6 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
-import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, numberInput, numVal, type TabDef, type TabHandle } from './framework';
+import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, numberInput, numVal, type TabDef, type TabHandle, ctlRow } from './framework';
 import { topicPage } from './page';
 import { EQUILIBRIUM_QUIZ } from './questions1';
 
@@ -329,8 +329,8 @@ export const equilibriumTab: TabDef = {
       slider({ label: `[common ion] log₁₀`, min: -4, max: 0, step: 0.1, value: logC, fmt: v => `${Math.pow(10, v).toExponential(1)} M`, onInput: v => { logC = v; kspCalc(); } }),
       kspOut,
       h('h3', {}, 'Will a precipitate form? (mixing check)'),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, '[cation] after mixing (M)'), catIn),
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, '[anion] after mixing (M)'), anIn),
+      ctlRow('[cation] after mixing (M)', catIn),
+      ctlRow('[anion] after mixing (M)', anIn),
       qOut,
       h('p', { class: 'muted' }, 'Remember to recompute concentrations after dilution when two solutions are mixed (each is diluted by the combined volume) BEFORE computing Q. Selective precipitation: the salt whose Ksp is exceeded first precipitates first — that\'s how Ag₂CrO₄\'s red color signals the endpoint after AgCl finishes (Mohr titration).'),
     );
@@ -340,20 +340,20 @@ export const equilibriumTab: TabDef = {
       sims: [simCard, iceCard, kspCard],
       quiz: quiz(EQUILIBRIUM_QUIZ, 5),
       theory: theory('Theory & key equations — equilibrium (highest-volume olympiad topic)', `
-<h4>The law of mass action</h4>
+<h3>The law of mass action</h3>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>
 <ul>
 <li>K<sub>p</sub> = K<sub>c</sub>(RT)<sup>Δn(gas)</sup>. Reverse the reaction → 1/K. Multiply by n → Kⁿ. Add reactions → multiply K's.</li>
 <li>Q uses the same expression with current (non-equilibrium) values. Q &lt; K → forward; Q &gt; K → reverse.</li>
 </ul>
-<h4>Le Chatelier — what actually changes K?</h4>
+<h3>Le Chatelier — what actually changes K?</h3>
 <div class="table-scroll"><table><tr><th>stress</th><th>response</th><th>K changes?</th></tr>
 <tr><td>add reactant</td><td>shift right</td><td>no</td></tr>
 <tr><td>shrink volume (gas)</td><td>shift to fewer gas moles</td><td>no</td></tr>
 <tr><td>add inert gas, constant V</td><td><b>no shift</b> (concentrations unchanged)</td><td>no</td></tr>
 <tr><td>raise T, endothermic fwd</td><td>shift right</td><td><b>K increases</b></td></tr>
 <tr><td>catalyst</td><td><b>no shift</b> — reaches equilibrium faster</td><td>no</td></tr></table></div>
-<h4>Quantitative tools</h4>
+<h3>Quantitative tools</h3>
 <span class="eq">van 't Hoff: ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁)</span>
 <ul>
 <li>ICE tables: define x from stoichiometry, watch coefficient multipliers ((2x)² for 2NO₂!).</li>

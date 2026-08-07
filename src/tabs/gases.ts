@@ -424,20 +424,20 @@ export const gasesTab: TabDef = {
       sims: [gasBox.el, makeMB(), makePhase(), makeCC(), makeColligative()],
       quiz: quiz(GASES_QUIZ, 5),
       theory: theory('Theory & key equations — gases / IMF / solutions', `
-<h4>Gas laws</h4>
+<h3>Gas laws</h3>
 <span class="eq">PV = nRT (R = 0.08206 L·atm/mol·K = 8.314 J/mol·K) · P<sub>i</sub> = x<sub>i</sub>P<sub>total</sub> (Dalton) · rate ∝ 1/√M (Graham)</span>
 <ul>
 <li>STP: 0 °C, 1 bar → 22.7 L/mol (old 1 atm def: 22.4). Density: M = dRT/P.</li>
 <li>Real gases: van der Waals (P + an²/V²)(V − nb) = nRT. Deviations worst at high P, low T. a ~ attractions (makes P lower than ideal), b ~ molecular volume.</li>
 <li><span class="trap">Collecting gas over water: P(gas) = P(total) − P(H₂O vapor).</span></li>
 </ul>
-<h4>Intermolecular forces (weakest → strongest)</h4>
+<h3>Intermolecular forces (weakest → strongest)</h3>
 <ul>
 <li>London dispersion (everything; grows with polarizability/size — I₂ solid, F₂ gas) &lt; dipole–dipole &lt; H-bond (H on N/O/F) &lt; ion–dipole (solvation).</li>
 <li>Boiling point logic: HF &lt; H₂O despite F's EN — water forms 2 H-bonds per molecule. Branching lowers bp (less contact area).</li>
 <li>IMFs explain: surface tension, viscosity, capillarity, volatility, miscibility ("like dissolves like").</li>
 </ul>
-<h4>Solutions</h4>
+<h3>Solutions</h3>
 <span class="eq">Raoult: P = x<sub>solvent</sub>P° · Henry: S = kP (gas solubility) · ΔT = iKm · π = iMRT</span>
 <ul>
 <li>Gas solubility: ↑ with pressure, ↓ with temperature (warm soda goes flat). Most solids: ↑ with T.</li>

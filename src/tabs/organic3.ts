@@ -145,20 +145,20 @@ export const organic3Tab: TabDef = {
       sims: [makeRetro(), makeProtecting(), makeRadicalSelectivity(), makeRearrangements(), makePericyclic()],
       quiz: quiz(ORGANIC3_QUIZ, 5),
       theory: theory('Theory — synthesis & advanced mechanisms', `
-<h4>Retrosynthesis</h4>
+<h3>Retrosynthesis</h3>
 <ul><li>Disconnect the target into synthons (idealized charged fragments) and their reagent equivalents; use FGIs to reach them. Maximize simplification; disconnect near heteroatoms and at branch points; end at cheap, available starting materials.</li>
 <li>Umpolung (dithianes) reverses normal carbonyl polarity, enabling acyl-anion chemistry.</li></ul>
-<h4>Protecting groups</h4>
+<h3>Protecting groups</h3>
 <ul><li>Block a reactive site, do chemistry elsewhere, then deprotect. Acetals (ketones, acid-labile), silyl ethers (OH, fluoride-labile), Boc/Cbz (amines, acid/H₂). Choose ORTHOGONAL sets so each can be removed independently.</li></ul>
-<h4>Radical mechanisms & selectivity</h4>
+<h3>Radical mechanisms & selectivity</h3>
 <span class="eq">\\(\\text{product \\%} = (\\#\\,\\text{H of that type}) \\times (\\text{per-H relative rate})\\)</span>
 <ul><li>Chain: initiation → propagation (regenerates the radical) → termination. Radical stability 3° &gt; 2° &gt; 1° (allylic/benzylic extra by resonance).</li>
 <li>Bromination is selective (late, endothermic TS — Hammond); chlorination is nearly statistical. NBS → allylic/benzylic bromination.</li></ul>
-<h4>Rearrangements</h4>
+<h3>Rearrangements</h3>
 <ul><li>1,2-shifts build a more stable cation (pinacol). Beckmann (oxime→amide), Baeyer–Villiger (ketone→ester), Hofmann/Curtius (amide→amine, one C shorter). Migratory aptitude: aryl/H &gt; alkyl &gt; methyl.</li></ul>
-<h4>Selectivity vocabulary</h4>
+<h3>Selectivity vocabulary</h3>
 <ul><li>Regioselectivity (Markovnikov/Zaitsev vs anti-Markovnikov/Hofmann), stereoselectivity (syn/anti, cis/trans, enantio), chemoselectivity (one functional group over another). Bulky bases and reagents flip many of these.</li></ul>
-<h4>Pericyclic reactions</h4>
+<h3>Pericyclic reactions</h3>
 <ul><li>Concerted, cyclic TS, orbital-symmetry controlled. Diels–Alder [4+2] (thermal, s-cis diene, endo). Electrocyclic: 4n → Δ conrotatory / hν disrotatory; 4n+2 → the reverse. [3,3] sigmatropic (Cope/Claisen) via a chair TS.</li></ul>`),
     }));
   },

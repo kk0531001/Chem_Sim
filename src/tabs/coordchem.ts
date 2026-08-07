@@ -193,19 +193,19 @@ export const coordChemTab: TabDef = {
       sims: [makeHSAB(), makeJahnTeller(), makeSubstitution(), makeIsomerism(), makeElectronCount()],
       quiz: quiz(COORDCHEM_QUIZ, 5),
       theory: theory('Theory — coordination & organometallic chemistry', `
-<h4>HSAB</h4>
+<h3>HSAB</h3>
 <ul><li>Hard–hard (ionic) and soft–soft (covalent) pairings are most stable. Rationalizes solubility (AgI ≪ AgF), oxidation-state/ligand matching, and toxicology (soft metals → thiols).</li></ul>
-<h4>Jahn–Teller</h4>
+<h3>Jahn–Teller</h3>
 <ul><li>A degenerate ground state distorts to lift degeneracy. STRONG for uneven e_g (d⁹ Cu²⁺, HS d⁴ Mn³⁺) — tetragonal elongation; WEAK for uneven t₂g.</li></ul>
-<h4>Ligand substitution</h4>
+<h3>Ligand substitution</h3>
 <ul><li>Labile vs inert is KINETIC: d³ and low-spin d⁶ are inert (high CFAE). Associative / dissociative / interchange mechanisms.</li>
 <li>Trans effect (Pt II): a strong trans-director (CN⁻, CO, C₂H₄ &gt; halides &gt; NH₃) labilizes the ligand opposite it — used to make cis/trans isomers selectively.</li></ul>
-<h4>Chelate & macrocyclic effects</h4>
+<h3>Chelate & macrocyclic effects</h3>
 <span class="eq">chelate stability is entropy-driven: more free particles released on binding</span>
 <ul><li>Polydentate &gt; monodentate; 5-membered rings optimal; preorganized macrocycles (EDTA, porphyrin, crown) bind tightest.</li></ul>
-<h4>Isomerism</h4>
+<h3>Isomerism</h3>
 <ul><li>Geometric (cis/trans, fac/mer), optical (Δ/Λ), linkage (ambidentate), ionization, coordination, hydrate.</li></ul>
-<h4>Organometallic — the 18-electron rule</h4>
+<h3>Organometallic — the 18-electron rule</h3>
 <span class="eq">covalent count: (metal group \\(e^-\\)) \\(-\\) charge \\(+ \\sum\\) ligand donations (\\(\\ce{CO}\\) 2, H/X/R 1, η⁵-Cp 5, η⁶-arene 6)</span>
 <ul><li>18 e⁻ = saturated/stable (Fe(Cp)₂, Ni(CO)₄, Cr(CO)₆). 16 e⁻ square-planar d⁸ are catalytically reactive.</li>
 <li>M–CO synergic bonding: σ-donation + π-backbonding into CO π* (lowers ν(CO), strengthens M–C). Oxidative addition +2 oxidation state / +2 e⁻; reductive elimination reverses it — the heart of homogeneous catalysis.</li></ul>`),

@@ -90,7 +90,9 @@ export function challengeLadder(moduleId: string): HTMLElement | null {
       const frqs = items.filter(isFRQ);
       const mcs = items.filter((q): q is QuizQ => !isFRQ(q));
       const tierEl = h('div', { class: `challenge-tier ${TIER_CLASS[t]} ${unlocked ? '' : 'challenge-locked'} ${done ? 'challenge-done' : ''}` },
-        h('h4', {},
+        // h3, not h4: the ladder sits under the page's h2 cards, and a level
+        // skipped is a level a screen-reader user has to guess at.
+        h('h3', {},
           h('span', { class: 'challenge-badge' }, TIER_LABEL[t]),
           t === 4 ? ' — the payoff' : '',
           ' ',

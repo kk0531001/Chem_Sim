@@ -162,6 +162,89 @@ for (const file of readdirSync(TABS).filter(f => f.endsWith('.ts'))) {
   });
 }
 
+// ---- 7. answer keys that disagree with their own explanation ----
+//
+// D.12's one unticked line is "every question re-read, answer key verified",
+// and `per-009` is why it matters: its options were 16.0 / 5.5 / 10.9 / 1.0,
+// its `why` derived Z_eff ≈ 5.45 ≈ 5.5, and `a` pointed at 10.9. Every check
+// above passed it — the index was in range, the maths parsed, the fields were
+// present — and a correct answer was marked wrong for everyone who gave it.
+//
+// This catches that class: a question whose options are all plain numbers,
+// where the explanation quotes some option's value but NOT the keyed one.
+// Scope is deliberately narrow (about 160 of 853 MC) because outside it the
+// signal dies — a prose option is rarely repeated verbatim in the `why`, and
+// matching loosely produces a list nobody reads.
+//
+// The comparison is numeric and matches at the OPTION'S OWN PRECISION: a `why`
+// that computes 0.167 or 1.34×10⁻⁵ is stating the option written "0.17" or
+// "1.3×10⁻⁵", because those agree to the two significant figures the option
+// offers. Two earlier versions of this rule were wrong and are worth not
+// repeating:
+//   · a flat percentage tolerance. At the ~3% needed to accept 1.34×10⁻⁵ as
+//     "1.3×10⁻⁵" it also accepts 10.55 as "10.9" — which is per-009 exactly,
+//     so the check went green on the bug it was written for.
+//   · ignoring numbers that also appear in the question. The answer is quoted
+//     in the stem often enough (`phy-011` keys 0.0592 V for a stem containing
+//     0.0592) that this produced four false positives and would have buried a
+//     real mismatch among them.
+const SUP = { '⁻': '-', '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4', '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9' };
+const numText = s => String(s)
+  .replace(/<[^>]+>/g, ' ')
+  .replace(/[⁻⁰¹²³⁴⁵⁶⁷⁸⁹]/g, c => SUP[c])
+  .replace(/[−–—]/g, '-')
+  .replace(/,(?=\d{3})/g, '')
+  .replace(/[×x]\s*10\s*\^?\s*/gi, 'e');
+const numbers = s => (numText(s).match(/-?\d+(?:\.\d+)?(?:e-?\d+)?/g) ?? []).map(Number).filter(Number.isFinite);
+/** Significant figures the option is written to: "16.0" → 3, "0.17" → 2. */
+const sigFigs = s => (numText(s).split(/e/i)[0]   // mantissa only: the exponent's digits are not sig figs
+  .replace(/[^\d.]/g, '').replace(/^0+/, '').replace('.', '').replace(/^0+/, '') || '0').length;
+/** Does `w` (from the explanation) state `v` (an option) to v's own precision? */
+const states = (w, v, sf) => w === v ||
+  (w !== 0 && v !== 0 && Number(w.toPrecision(sf)) === Number(v.toPrecision(sf)));
+
+// The matching rule is the whole check, and two plausible versions of it were
+// wrong, so it carries its own assertions. These run on every audit and cost
+// nothing; the last line is per-009 itself.
+for (const [w, v, opt, want] of [
+  [0.167, 0.17, '0.17', true],          // computed value, option rounded
+  [1.34e-5, 1.3e-5, '1.3×10⁻⁵ M', true],// same, in scientific notation
+  [0.0592, 0.0592, '0.0592 V', true],   // exact
+  [5.45, 5.5, '5.5', true],             // per-009, keyed correctly
+  [10.55, 10.9, '10.9', false],         // per-009, keyed wrongly: must NOT match
+]) {
+  if (states(w, v, sigFigs(opt)) !== want) {
+    throw new Error(`answer-key matcher is broken: states(${w}, ${v}, sf"${opt}") should be ${want}`);
+  }
+}
+
+// Reviewed by hand and correct: the explanation never restates the keyed value,
+// for a reason particular to each.
+//   gas-003        keyed −273.15 °C, explained in kelvin ("0 K") — a unit
+//                  change this check cannot see
+//   lbd-008        keyed 0.01 mL, explained as "graduated every 0.1 mL, you
+//                  estimate one more digit" — the answer is the reasoning
+//   p1-organic-003 keyed 1 chiral centre; the "2" the explanation quotes is the
+//                  locant C2, not a count
+const KEY_CHECK_REVIEWED = new Set(['gas-003', 'lbd-008', 'p1-organic-003']);
+
+for (const q of ALL_MC) {
+  if (KEY_CHECK_REVIEWED.has(q.id) || !Array.isArray(q.opts) || !q.why) continue;
+  const per = q.opts.map(numbers);
+  if (per.some(v => v.length !== 1)) continue;                    // every option one bare number
+  if (new Set(per.map(v => v[0])).size !== per.length) continue;  // and all distinct
+  const quoted = numbers(q.why);
+  const sf = q.opts.map(o => Math.max(1, Math.min(15, sigFigs(o))));
+  const hits = i => quoted.some(w => states(w, per[i][0], sf[i]));
+  if (hits(q.a)) continue;
+  const others = q.opts.map((_, i) => i).filter(i => i !== q.a && hits(i));
+  if (!others.length) continue;   // explanation quotes no option's value: nothing to compare
+  fail(q.id, `answer key may be wrong — keyed [${q.a}] "${q.opts[q.a]}" is never stated in the ` +
+    `explanation, which gives ${others.map(i => `[${i}] "${q.opts[i]}"`).join(' and ')}. ` +
+    'Fix the key or the explanation; if the explanation is right and simply never restates the ' +
+    'value, add the id to KEY_CHECK_REVIEWED with a one-line reason.');
+}
+
 // ---- report ----
 console.log(`Checked ${ALL_MC.length} MC + ${ALL_FRQ.length} written problems.`);
 if (!problems.length) {

@@ -10,6 +10,10 @@ import { recommendNext } from './recommend';
 import { initSearch } from './search';
 import { MODES, MODE_SHORT, MODE_LABEL, activeMode, setMode, onModeChange } from './mode';
 import { mountSidebarAccountPanel } from './authWidget';
+import { mountFeedback } from './feedback';
+import { buildGuidePage } from './guide';
+import { guideBySlug } from './guides';
+import { viewTopic, reportQuizzes } from './signals';
 
 /**
  * The sidebar, and the loader for each module behind it.
@@ -138,9 +142,33 @@ let tabs: TabsAPI | null = null;
 const home = buildHome(id => navigate({ kind: 'topic', id }), () => navigate({ kind: 'menu' }));
 document.body.prepend(home);
 
-const menuPage = buildMenuPage(id => navigate({ kind: 'topic', id }), () => navigate({ kind: 'home' }));
+const menuPage = buildMenuPage(
+  id => navigate({ kind: 'topic', id }),
+  () => navigate({ kind: 'home' }),
+  slug => navigate({ kind: 'guide', slug }),
+);
 menuPage.hidden = true;
 document.body.appendChild(menuPage);
+
+// I.3 competition landing pages. Built on first visit, not at startup: they are
+// entry points from search, so a reader who arrives anywhere else should not pay
+// for two of them. One element per guide, kept once built — the same pattern as
+// the progress dashboard above.
+const guidePages = new Map<string, HTMLElement>();
+function showGuide(slug: string): void {
+  for (const [s, el] of guidePages) el.hidden = s !== slug;
+  if (guidePages.has(slug)) return;
+  const guide = guideBySlug(slug);
+  if (!guide) return;
+  const el = buildGuidePage(
+    guide,
+    id => navigate({ kind: 'topic', id }),
+    () => navigate({ kind: 'home' }),
+    () => navigate({ kind: 'menu' }),
+  );
+  guidePages.set(slug, el);
+  document.body.appendChild(el);
+}
 
 // The dashboard reads the whole corpus (to count what a topic contains and to
 // name the questions in the history list), so it is loaded on FIRST VISIT to
@@ -312,8 +340,17 @@ function renderNotFound(path: string): void {
 }
 
 function showRoute(route: Route): void {
+  // I.2 measurement, before any of the rendering: a topic's dwell row is
+  // written when the topic is LEFT, so every exit path — another module, the
+  // menu, the homepage, a 404 — has to pass through one place, and this is it.
+  const topicNow = route.kind === 'topic' && VALID_IDS.has(route.id) ? route.id : null;
+  if (topicNow !== lastTopicId) reportQuizzes();
+  viewTopic(topicNow);
+
   home.hidden = route.kind !== 'home';
   menuPage.hidden = route.kind !== 'menu';
+  if (route.kind === 'guide') showGuide(route.slug);
+  else for (const el of guidePages.values()) el.hidden = true;
   notFoundEl.hidden = route.kind !== 'notfound';
   viewEl.hidden = route.kind === 'notfound';
   if (route.kind === 'progress') showProgressPage();
@@ -333,6 +370,7 @@ function showRoute(route: Route): void {
     lastTopicId = null;
     document.title = route.kind === 'menu' ? 'All Topics — ChemPrep'
       : route.kind === 'progress' ? 'Your Progress — ChemPrep'
+      : route.kind === 'guide' ? `${guideBySlug(route.slug)?.title ?? 'Study guide'} — ChemPrep`
       : BASE_TITLE;
     return;
   }
@@ -436,6 +474,8 @@ autoTypeset(viewEl, home, menuPage);
 
 // ---- progress / account panel ----
 mountSidebarAccountPanel(document.getElementById('progress-panel')!);
+// I.2: a way to report a wrong answer or a broken sim, on every page of the app.
+mountFeedback(homeLinkEl);
 // The id migration has to run AFTER initProgress: it rewrites the stored keys,
 // so the local set (and the remote merge, when signed in) must be loaded first.
 // It is also the only startup work that needs the whole question corpus, and it

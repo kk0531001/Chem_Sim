@@ -2165,6 +2165,15 @@ Checked against the source and a browser walk of every route, not from memory.
       answer indexes, KaTeX, tables). Units and significant figures are not
       decidable by script — see D.9. **This line is a human pass, and it is the
       one thing between here and launch that cannot be automated.**
+
+      Narrowed since, by the incident that proves the point. `per-009` shipped
+      with `a` pointing at 10.9 while its own explanation derived 5.45 ≈ 5.5 —
+      in range, valid KaTeX, all fields present, audit green, and a correct
+      answer marked wrong for every student who gave it. Audit check 7 now
+      catches that class: where all options are plain numbers, the explanation
+      must state the keyed one to the option's own precision. It covers ~160 of
+      853 MC and exits non-zero, so the human pass is now about units, sig figs
+      and prose answers rather than arithmetic keys.
 - [x] **Navigation is two clicks deep from anywhere.** Sidebar (grouped, always
       present) → module; or Home → All Topics → module. The 404 view also links
       straight to both.
@@ -2354,15 +2363,30 @@ Entry chunk 408 → 410 kB.
 
 Run the phases in the order given; **do not skip to the AI step.**
 
-- [ ] **H.1 — Handwritten alternate explanations.** A second `why2` on the
-      questions students most often miss (Phase A's attempt log tells you which
-      ones — that data does not exist until then, which is the whole argument for
-      writing this by hand first).
-- [ ] **H.2 — Misconception explanations.** Already covered in B.2.
-- [ ] **H.3 — "Explain differently" button.** Gate on a real, observed request
-      rate from H.1 usage.
+- [x] **H.1 — Handwritten alternate explanations.** `QuizQ.why2` (src/tabs/
+      framework.ts) holds a second explanation that re-derives the answer by a
+      *different route* — a drawing, a limiting case, a worked number, a
+      reductio — rather than rewording `why`. A student who asks for it has read
+      `why` and it did not land; more of the same prose is not an alternative.
+      **Seeded on 23 questions, one per quiz bank** (the classic trap in each:
+      `qua-013`, `bon-017`, `sto-014`, `th1-012`, `th2-015`, `equ-006`,
+      `aek-007`, `gas-015`, `nuc-017`, `og1-019`, `og2-015`, `lbd-006`,
+      `ana-009`, `spe-023`, `ain-012`, `bio-024`, `per-009`, `pol-024`,
+      `phy-012`, `og3-022`, `coo-021`, `lbt-017`, `str-022`). That selection is
+      a stand-in for data: **the moment the attempt log has real users in it,
+      re-pick from `accuracyByTopic`/`wrongQuestionIds` instead of judgement**
+      — hand-picking "the hard one" is exactly the guess the log exists to
+      replace.
+- [x] **H.2 — Misconception explanations.** Already covered in B.2.
+- [x] **H.3 — "Explain differently" button.** Shipped as the *handwritten*
+      version: the button appears only on questions that carry a `why2`, and
+      reveals it. Offered whether the answer was right or wrong — a lucky guess
+      is precisely the case where one explanation has not landed. **The
+      model-backed version stays gated**, and now has a cheaper prerequisite
+      than a backend: with I.2's analytics, click-through on this button *is*
+      the demand measurement the gate was asking for.
 
-**Engineering note:** this is the only phase that adds a backend and a recurring
+**Engineering note:** the AI version is the only phase that adds a backend and a recurring
 cost. An API key cannot ship in a Vite client bundle — it would be extracted
 within a day of the repo or the deployed JS being read. It needs a Netlify
 Function proxying the request, plus rate limiting per user, or the first person
@@ -2380,28 +2404,100 @@ B, C and D beats it on impact per hour.** Revisit after users exist.
 no-JS visitor sees an empty document. Phase 0.2's OG tags fix link *unfurling*;
 this fixes *search*. They are different problems and both are worth solving.
 
-- [ ] Build-time prerender: emit a static HTML shell per `/topic/:id` from the
-      `TOPICS` metadata (title, blurb, group, difficulty) — a small Vite build
-      script, no framework change, no SSR runtime
-- [ ] Per-route `<title>` and `og:*` (a shared link to *one topic* should unfurl
-      as that topic)
-- [ ] `<noscript>` summary with the topic list
-- [ ] `sitemap.xml` + `robots.txt` generated from `TOPICS`
+- [x] Build-time prerender: `scripts/prerender.mjs`, run after `vite build`,
+      copies `dist/index.html` to `dist/topic/<slug>/index.html` for all 25
+      modules plus `/menu`. No framework change, no SSR runtime — nothing here
+      renders the app, it swaps `TOPICS` metadata into the head and body of the
+      shell the bundle already produced, and the app boots on top of it.
+- [x] Per-route `<title>`, `description`, canonical, `og:*` and `twitter:*`
+- [x] `<noscript>` summary: per page its title, group, difficulty, estimate and
+      `intro`, plus the full grouped topic list on every page so no prerendered
+      URL is a dead end
+- [x] `sitemap.xml` + `robots.txt` generated from `TOPICS` (`/progress`
+      excluded from both — it is one signed-in user's history)
+
+Three things here are less obvious than they look, and each is load-bearing:
+
+- **The rewrites are generated, not assumed.** `prerender.mjs` prepends an
+  explicit `200` rule per known slug to `dist/_redirects`, above the `/*`
+  catch-all. Netlify would probably resolve `/topic/x` to `/topic/x/index.html`
+  by itself, but that is the single behaviour the whole step depends on and it
+  cannot be verified without deploying. Listing only slugs that exist keeps the
+  router's own 404 for anything else — a blanket rule would turn an unknown
+  topic into a hard Netlify 404.
+- **`src/topics.ts` cannot simply be imported by a build script.**
+  `renderTopicCard()` pulls in framework.ts, which imports KaTeX's stylesheet,
+  and Node cannot load `.css`. `scripts/load-topics.mjs` transpiles it and
+  stubs the DOM-facing imports (the same trick as `scripts/test-router.mjs`).
+  That is also why this is a build step rather than a Vite plugin.
+- **`SITE_URL` is defined once**, in `scripts/site-url.mjs`, imported by both
+  vite.config.ts and prerender.mjs. Two copies would eventually disagree, and
+  the symptom — a shared link unfurling with the wrong host — is invisible
+  from inside the repo.
 
 ### I.2 Feedback loops — build before recruiting users
 
 There is no point getting 50 users if nothing captures what they hit.
 
-- [ ] Helpful / Not helpful on every explanation (one table, question id + verdict)
-- [ ] Feedback form and bug report — **`textContent` only, per 0.5**
-- [ ] Lightweight, privacy-respecting analytics: which topics get opened, which
-      get abandoned, which questions get skipped
+- [x] Helpful / Not helpful under every graded explanation — `helpfulBar()` in
+      framework.ts, one verdict per question id, one-shot (it asks once and
+      replaces itself; there is no running tally for an irritated reader to
+      drive)
+- [x] Feedback form and bug report — a native `<dialog>` from the sidebar,
+      src/feedback.ts. **`textContent` only, per 0.5**: the submitted text is
+      never interpolated into HTML and never read back into the page
+- [x] Lightweight, privacy-respecting analytics — src/signals.ts: `view`
+      (topic id + seconds, written on LEAVING, so one row says both "opened"
+      and "abandoned after 4s") and `quiz` (the question a student stopped on
+      + how many they answered)
+
+All four land in ONE `signals` table (SQL and the queries it exists to answer
+are in SUPABASE_SETUP.md). Four points that are not obvious:
+
+- **It does not use the Supabase client.** progress.ts loads that lazily
+  because it is ~110 kB of auth machinery (D.10), and logging a page view must
+  not drag it in for a visitor who never signs in. PostgREST is plain HTTP: one
+  `fetch`, the publishable key, insert-only by policy, `keepalive` so the last
+  batch survives the page going away.
+- **The table accepts rows from signed-out visitors**, unlike `solved` /
+  `attempts` / `bookmarks`. Most readers never make an account and their
+  experience is the thing worth measuring. There is no select policy at all, so
+  nothing can read it back through the API.
+- **Passive and deliberate signals are treated differently.** Do Not Track /
+  Global Privacy Control silences `view` and `quiz`. It does NOT silence a
+  pressed "Not helpful" or a submitted bug report — discarding those would
+  throw away a message the reader chose to send.
+- **The identifier is per-tab, not per-person**: a random id in
+  sessionStorage, so one visit's rows group together and nothing follows anyone
+  between visits. No user id, no cookie.
 
 ### I.3 Reach (after I.1 and I.2 are live)
 
 - [ ] Chemistry teachers, olympiad Discords, relevant subreddits, school clubs
-- [ ] "CCC Study Guide" / "USNCO Study Guide" landing pages — real search demand,
-      and they are assembled from content you already have
+- [x] "CCC Study Guide" / "USNCO Study Guide" landing pages — `/guide/<slug>`,
+      src/guides.ts (the prose) + src/guide.ts (the page). Assembled entirely
+      from content that already exists: the in-scope modules, the corpus totals,
+      the practice banks. Prerendered by I.1's pipeline with their own title and
+      description, in the sitemap, and linked from the menu directory so they
+      are not reachable only from Google.
+
+      Three decisions in there worth keeping:
+
+      - **The slug IS the search phrase** (`ccc-study-guide`), because that is
+        the entire reason the page exists. `scripts/test-router.mjs` gates them
+        like topic slugs — resolve, trailing slash, casing, no collisions, and
+        an unknown guide slug still reaching the router's 404.
+      - **No exam mechanics are stated.** No dates, scoring, time limits or
+        eligibility: those change yearly, they are the organiser's to publish,
+        and a study guide that quotes them wrongly is worse than one that
+        doesn't. Each page links the official page instead and says so.
+      - **The CTA sets competition mode, then opens the directory.** The page's
+        one job is to hand a student the site already filtered to their contest
+        — that is the thing a generic "study guide" article cannot do, and it
+        costs one `setMode()` call.
+      - src/guides.ts is **pure data with no value imports**, so
+        scripts/prerender.mjs can load it in Node without stubbing anything.
+        Adding a third guide (CCO, IChO) is one entry in `GUIDES`.
 - [ ] Short explainer videos if the earlier items show real traffic
 
 ---

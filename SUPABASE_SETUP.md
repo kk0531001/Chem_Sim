@@ -106,6 +106,85 @@ create policy "users manage their own bookmarks"
 Optional like the rest: without it, bookmarks live in localStorage and simply
 don't follow the user to another device.
 
+## 2d. Create the `signals` table (run the SQL)
+
+The feedback loops (ROADMAP I.2): which explanations readers flag as unhelpful,
+which topics get opened and abandoned, where in a quiz people stop, and the
+free-text bug reports. One table for all four, because it is one append-only
+stream that the app only ever writes.
+
+Unlike the three tables above, **this one accepts rows from signed-out
+visitors** — most readers never make an account, and their experience is
+exactly the thing worth measuring. So the policy is insert-only for `anon`, and
+there is deliberately **no select policy at all**: nothing can read this table
+through the API, including the person who submitted the row. Read it in the SQL
+editor.
+
+```sql
+create table if not exists public.signals (
+  id uuid primary key default gen_random_uuid(),
+  -- view: ref = topic id, n = seconds spent on it
+  -- quiz: ref = question id stopped on, n = questions answered
+  -- explain: ref = question id, note = 'yes' | 'no'
+  -- feedback: ref = page path, note = what the reader typed
+  kind text not null check (kind in ('view', 'quiz', 'explain', 'feedback')),
+  ref text not null check (length(ref) <= 200),
+  n integer,
+  -- Bounded in the database as well as in the client: the client-side limit is
+  -- a courtesy, and this column is reachable by anyone with the anon key.
+  note text check (note is null or length(note) <= 2000),
+  -- A random per-TAB id from sessionStorage, so one visit's rows can be read
+  -- as one visit. Not a user id, not a cookie, and gone when the tab closes.
+  session text not null check (length(session) <= 64),
+  created_at timestamptz not null default now()
+);
+
+create index if not exists signals_kind_time_idx
+  on public.signals (kind, created_at desc);
+
+alter table public.signals enable row level security;
+
+create policy "anyone may add a signal"
+  on public.signals for insert
+  to anon, authenticated
+  with check (true);
+```
+
+Open insert with the publishable key means anyone who reads the bundle can post
+rows to it. That is the price of measuring signed-out readers, and the exposure
+is bounded by the length checks above — but if it is ever abused, the fix is a
+Netlify Function in front of it, not a stricter policy here (a policy that can
+tell a student from a script would need an account, which defeats the purpose).
+
+The queries this exists to answer:
+
+```sql
+-- Explanations readers are telling you are bad. Start rewriting at the top.
+select ref, count(*) filter (where note = 'no') as unhelpful,
+             count(*) filter (where note = 'yes') as helpful
+from public.signals where kind = 'explain'
+group by ref having count(*) filter (where note = 'no') > 0
+order by unhelpful desc;
+
+-- Topics opened and abandoned: a low median means the page is not landing.
+select ref as topic, count(*) as opens,
+       percentile_cont(0.5) within group (order by n) as median_seconds
+from public.signals where kind = 'view'
+group by ref order by median_seconds;
+
+-- Where quizzes are abandoned — the question people stop on.
+select ref as stopped_on, count(*) as times, round(avg(n)) as avg_answered
+from public.signals where kind = 'quiz'
+group by ref order by times desc limit 20;
+
+-- The inbox.
+select created_at, ref as page, note from public.signals
+where kind = 'feedback' order by created_at desc;
+```
+
+Optional like the rest: without the table (or without the keys) the app posts
+nothing, the buttons still acknowledge, and nothing breaks.
+
 ## 3. Get your two keys
 
 **Settings → API** (or **Project Settings → API**):

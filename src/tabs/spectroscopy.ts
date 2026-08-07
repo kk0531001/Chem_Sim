@@ -1,5 +1,5 @@
 // Advanced (CCO) — Spectroscopy (IR / NMR / MS) + advanced organic synthesis.
-import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { SPECTROSCOPY_QUIZ } from './questions3';
 
@@ -103,7 +103,7 @@ function makeNMR(): HTMLElement {
   const shiftRows = NMR_SHIFTS.map(s => `<tr><td>${s.env}</td><td>${s.ppm}</td></tr>`).join('');
   const el = h('div', { class: 'cards' },
     cardWithMissions('¹H NMR — n+1 splitting predictor', splitMissions,
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'equivalent neighbours n'), nInput),
+      ctlRow('equivalent neighbours n', nInput),
       splitOut,
       h('h3', {}, 'Characteristic ¹H chemical shifts'),
       h('table', { class: 'ref-table', html: `<tr><th>environment</th><th>δ (ppm)</th></tr>${shiftRows}` }),
@@ -160,7 +160,7 @@ function makeMS(): HTMLElement {
   calc();
   const el = h('div', { class: 'cards' },
     card('Mass spec — DoU, nitrogen rule, isotopes',
-      h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'molecular formula'), formula),
+      ctlRow('molecular formula', formula),
       out,
     ),
     theory('Mass spectrometry essentials', `
@@ -201,19 +201,19 @@ function makeSynthesis(): HTMLElement {
       h('p', { class: 'muted' }, 'Retrosynthesis: identify the target\'s key C–C bonds, disconnect (⇒) to synthons, and map each disconnection to a forward reaction above.'),
     ),
     theory('Advanced synthesis & pericyclic reactions', `
-<h4>Pericyclic reactions (Woodward–Hoffmann)</h4>
+<h3>Pericyclic reactions (Woodward–Hoffmann)</h3>
 <ul>
 <li><b>Cycloadditions:</b> count π electrons. 4n+2 (e.g. 6, Diels–Alder) → thermal supra-supra allowed; 4n (e.g. 2+2) → photochemical only.</li>
 <li><b>Electrocyclic:</b> 6 π e⁻ thermal = disrotatory; photochemical = conrotatory (rules invert with electron count and with light).</li>
 <li><b>Sigmatropic:</b> [3,3] shifts (Cope, Claisen) proceed through a chair-like 6-membered TS.</li>
 </ul>
-<h4>Protecting groups</h4>
+<h3>Protecting groups</h3>
 <ul>
 <li>Alcohols → silyl ethers (TBS), removed by F⁻ (TBAF); or acetals for carbonyls, removed by aqueous acid.</li>
 <li>Amines → carbamates (Boc, removed by acid; Cbz, removed by hydrogenation).</li>
 <li>Protect, do the incompatible step, deprotect — essential when a reagent (Grignard, LiAlH₄) would attack an unprotected group.</li>
 </ul>
-<h4>Strategy</h4>
+<h3>Strategy</h3>
 <ul>
 <li>Match oxidation-state changes to reagents; control regio-/stereochemistry (Markovnikov vs anti-Markovnikov, syn vs anti addition).</li>
 <li>Enolate chemistry (aldol, Claisen, Michael, malonic/acetoacetic ester) builds most C–C bonds in multistep synthesis.</li>

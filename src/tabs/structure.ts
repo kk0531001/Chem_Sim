@@ -210,16 +210,16 @@ export const structureTab: TabDef = {
       sims: [makeFormula(), makeMassSpec(), makeIRChecklist(), makeNMRRef(), makeCombined()],
       quiz: quiz(STRUCTURE_QUIZ, 5),
       theory: theory('Theory — structure determination', `
-<h4>Step 1 — molecular formula & DoU</h4>
+<h3>Step 1 — molecular formula & DoU</h3>
 <span class="eq">\\(\\text{DoU} = \\dfrac{2C + 2 + N - H - X}{2}\\)</span>
 <ul><li>From MS (M⁺, isotopes, M+1 carbon count) or combustion analysis. Each ring/π bond = 1 DoU; 4 often means a benzene ring. Nitrogen rule: odd M⁺ ⇒ odd number of N.</li></ul>
-<h4>Step 2 — mass spectrometry</h4>
+<h3>Step 2 — mass spectrometry</h3>
 <ul><li>M⁺ = molar mass; base peak = most abundant fragment. Isotopes: Br → 1:1 M/M+2, Cl → 3:1, S → M+2 ~4%. M+1 ≈ 1.1%×(#C).</li>
 <li>Diagnostic losses: 15 (CH₃), 17/18 (OH/H₂O), 28 (CO), 29 (CHO/C₂H₅), 45 (COOH); 77 phenyl, 91 tropylium, 43 acylium.</li></ul>
-<h4>Step 3 — infrared (functional groups)</h4>
+<h3>Step 3 — infrared (functional groups)</h3>
 <ul><li>O–H alcohol (broad 3200–3550), acid (very broad 2500–3300), N–H (3300–3500, two bands = 1° amine), C–H (±3000 = sp²/sp³), C≡ (2100–2260), C=O (1670–1780, strong), C=C (1450–1680), C–O (1050–1300).</li>
 <li>Carbonyl position: acid chloride ~1800 &gt; ester ~1740 &gt; ketone ~1715 &gt; amide ~1650; conjugation lowers it.</li></ul>
-<h4>Step 4 — NMR (the skeleton)</h4>
+<h3>Step 4 — NMR (the skeleton)</h3>
 <ul><li>¹H: chemical shift = environment, integration = #H, n+1 splitting = neighbours, J = geometry. ¹³C/DEPT = carbon count and CH multiplicity.</li>
 <li>Assemble fragments consistent with the formula and DoU; verify every atom and every degree of unsaturation is accounted for.</li></ul>`),
     }));

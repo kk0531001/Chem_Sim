@@ -45,15 +45,19 @@ transpile('src/topics.ts', 'topics.mjs', [
   ["'./progress'", "'./stub.mjs'"],
   ["'./mode'", "'./stub.mjs'"],
 ]);
+// guides.ts imports nothing but a type, so it loads as-is.
+transpile('src/guides.ts', 'guides.mjs');
 transpile('src/router.ts', 'router.mjs', [
   ["'./topics'", "'./topics.mjs'"],
+  ["'./guides'", "'./guides.mjs'"],
 ]);
 
 const load = n => import(pathToFileURL(join(scratch, n)).href);
 
-let topics, router;
+let topics, router, guides;
 try {
   topics = await load('topics.mjs');
+  guides = await load('guides.mjs');
   router = await load('router.mjs');
 } catch (err) {
   console.error('FATAL: could not load topics.ts / router.ts —', err.message);
@@ -61,6 +65,7 @@ try {
 }
 
 const { TOPICS } = topics;
+const { GUIDES } = guides;
 const { parseRoute } = router;
 
 const failures = [];
@@ -104,9 +109,24 @@ for (const t of TOPICS) {
   }
   checks++;
 }
-for (const reserved of ['menu', 'topic']) {
+for (const reserved of ['menu', 'topic', 'guide']) {
   check(!seen.has(reserved), `"${reserved}" used as a slug/alias`, 'collides with a reserved path');
 }
+
+// ---- 2b. Competition guides (I.3): they are entry points from search, so a
+// broken guide URL is a broken ad. Same rules as topic slugs.
+for (const g of GUIDES) {
+  check(/^[a-z0-9]+(-[a-z0-9]+)*$/.test(g.slug), `guide slug "${g.slug}" is not kebab-case`, 'lowercase, digits, single hyphens');
+  check(!seen.has(g.slug), `guide slug "${g.slug}" collides with a topic`, 'one owner per URL');
+  const r = parseRoute(`/guide/${g.slug}`);
+  check(r.kind === 'guide' && r.slug === g.slug, `/guide/${g.slug} does not resolve`, `got ${JSON.stringify(r)}`);
+  const trailing = parseRoute(`/guide/${g.slug}/`);
+  check(trailing.kind === 'guide', `/guide/${g.slug}/ (trailing slash) does not resolve`, `got ${JSON.stringify(trailing)}`);
+  const upper = parseRoute(`/guide/${g.slug.toUpperCase()}`);
+  check(upper.kind === 'guide' && upper.slug === g.slug, `/guide/${g.slug.toUpperCase()} does not resolve`, `got ${JSON.stringify(upper)}`);
+}
+check(parseRoute('/guide/not-a-guide').kind === 'notfound',
+  'an unknown guide slug does not 404', 'it must reach the router 404, not a blank page');
 
 // ---- 3. Every slug and alias resolves to its own topic
 for (const t of TOPICS) {

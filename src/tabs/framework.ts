@@ -3,6 +3,7 @@
 // animation loops pause when hidden.
 import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, solvedWithPrefix, onProgressChange, isBookmarked, toggleBookmark } from '../progress';
 import { toExamTopic } from '../content/topicIds';
+import { signal, registerQuizReporter } from '../signals';
 import { CHEVRON_ICON } from '../icons';
 import { ID_PREFIX } from '../content/topicIds';
 import { MODULE_QUIZ_SIZE } from '../content/counts';
@@ -188,9 +189,15 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
     }
     let entry = roots.get(id);
     if (!entry) {
-      const root = h('div', { class: 'tab-root' });
-      view.appendChild(root);
       const def = defs.find(d => d.id === id)!;
+      // Every tab page gets its h1 HERE, not in topicPage(), because two tabs
+      // (the sandbox and the question bank) are exempt from the page contract
+      // and build their own layout — so a heading added there would leave
+      // exactly those two pages nameless. Visually hidden: the design carries
+      // the title in the breadcrumb above (docs-site pattern), but a document
+      // whose outline starts at h2 has no name to announce or to index.
+      const root = h('div', { class: 'tab-root' }, h('h1', { class: 'sr-only' }, def.label));
+      view.appendChild(root);
       const retry = () => {
         const failed = roots.get(id);
         runLifecycle(id, 'onDestroy', failed?.handle);
@@ -390,9 +397,43 @@ export interface QuizQ {
   why: string;
   /** Wrong-answer mental-model correction — shown below `why` when the student misses. */
   misconception?: string;
+  /**
+   * A SECOND, handwritten explanation of the same answer from a different angle
+   * (ROADMAP H.1) — revealed by the "Explain it differently" button, right or
+   * wrong. It must re-derive the answer by another route (picture, limiting
+   * case, analogy, unit argument), not restate `why` in new words: a student
+   * who presses that button has already read `why` and it did not land.
+   *
+   * Deliberately not AI-generated. H.3's model-backed version needs a proxy
+   * function, a rate limiter and a monthly bill for demand nobody has measured
+   * yet; a string on the questions that actually get missed costs nothing.
+   */
+  why2?: string;
 }
 
 let quizSeq = 0;
+
+/**
+ * "Was this explanation helpful?" (ROADMAP I.2) — one verdict per question id.
+ *
+ * A one-shot control: it asks once, records once, and replaces itself with the
+ * acknowledgement. There is no undo and no second vote, because the value of
+ * this data is in which explanations get flagged at all, not in a running
+ * tally that one irritated reader can drive.
+ */
+export function helpfulBar(questionId: string): HTMLElement {
+  const bar = h('div', { class: 'helpful' }, h('span', { class: 'helpful-q' }, 'Did this explanation help?'));
+  const vote = (verdict: 'yes' | 'no') => () => {
+    signal('explain', questionId, { note: verdict });
+    bar.replaceChildren(h('span', { class: 'helpful-q' },
+      verdict === 'yes' ? 'Thanks — noted.' : 'Thanks — this one is on the list to rewrite.'));
+  };
+  bar.append(
+    h('button', { type: 'button', class: 'helpful-btn', onclick: vote('yes') }, 'Helpful'),
+    h('button', { type: 'button', class: 'helpful-btn', onclick: vote('no') }, 'Not helpful'),
+  );
+  return bar;
+}
 
 /*
  * Accessibility notes on the pattern used here, because the obvious choice is
@@ -484,6 +525,17 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   };
   QUIZZES.push(jump);
 
+  // I.2: where students stop. Reported on leaving the page, not per question —
+  // the interesting number is the LAST position reached, and one row per quiz
+  // per visit says that. `reported` guards against a second identical row when
+  // a tab is hidden and shown again without the student answering anything.
+  let answeredCount = 0, reported = -1;
+  registerQuizReporter(() => {
+    if (answeredCount === 0 || answeredCount === reported) return null;
+    reported = answeredCount;
+    return { ref: ids[Math.min(i, qs.length - 1)], answered: answeredCount };
+  });
+
   // Options are a named group while they are options; on the "Done" screen the
   // container holds a single Restart button and must not claim to be one.
   function setOptsGrouped(on: boolean): void {
@@ -522,6 +574,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
       b.addEventListener('click', () => {
         if (answered) return;
         answered = true;
+        answeredCount++;
         const right = j === q.a;
         if (right) { score++; b.classList.add('correct'); markSolved(ids[i]); }
         else {
@@ -551,6 +604,21 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
         }
         whyEl.innerHTML = whyHtml;
         whyEl.classList.add(right ? 'good' : 'bad');
+        if (q.why2) {
+          // Offered whether or not they got it right: a lucky guess is exactly
+          // the case where one explanation has not landed. Hidden until asked
+          // for, because two explanations side by side read as noise to the
+          // student who already understood the first.
+          const alt = h('div', { class: 'why2', role: 'note', hidden: '' });
+          alt.innerHTML = `<strong>Another way to see it:</strong> ${q.why2}`;
+          const ask = button('Explain it differently', () => {
+            alt.hidden = false;
+            ask.remove();
+            typesetMath(alt);
+          }, 'why2-btn');
+          whyEl.append(ask, alt);
+        }
+        whyEl.append(helpfulBar(ids[i]));
         typesetMath(whyEl);
         updateProgressLine();
         nextBtn.style.display = '';
@@ -980,6 +1048,32 @@ export function slider(opts: {
   });
   return h('label', { class: 'ctl' },
     h('span', { class: 'ctl-label', id: labelId }, opts.label), input, valEl);
+}
+
+/**
+ * A caption + control row — the `.ctl` pattern that slider(), select() and
+ * numberInput() already produce, for the rows that are assembled by hand.
+ *
+ * Exists because 46 of those rows were built as `h('div', { class: 'ctl' }, …)`,
+ * and a <div> does not associate its caption with anything: every one of those
+ * controls announced as an unnamed edit box. A <label> wrapping ONE control
+ * names it implicitly, which is why that is the shape used whenever it can be.
+ *
+ * ponytail: a row with several controls stays a <div> and names each of them
+ * with the row caption — implicit association would only reach the first. That
+ * makes "A ± δA" the name of both the value and its uncertainty, which is
+ * coarse; per-control names would mean every call site passing two strings, and
+ * no call site has asked for that yet.
+ */
+export function ctlRow(label: string, ...controls: (Node | string | null)[]): HTMLElement {
+  const fields = controls.filter((c): c is HTMLElement =>
+    c instanceof HTMLElement && ['INPUT', 'SELECT', 'TEXTAREA'].includes(c.tagName));
+  const implicit = fields.length <= 1;
+  if (!implicit) {
+    for (const f of fields) if (!f.getAttribute('aria-label')) f.setAttribute('aria-label', label);
+  }
+  return h(implicit ? 'label' : 'div', { class: 'ctl' },
+    h('span', { class: 'ctl-label' }, label), ...controls);
 }
 
 export function select(

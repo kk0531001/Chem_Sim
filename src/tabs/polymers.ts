@@ -1,6 +1,6 @@
 // Polymers — monomer↔polymer explorer, MW/PDI/DP calculator, and the
 // addition-vs-condensation reference. (IChO area 12.)
-import { h, card, cardWithMissions, missionLadder, theory, select, quiz, numberInput, numVal, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { POLYMERS_QUIZ } from './questions5';
 
@@ -87,9 +87,9 @@ function makeMW(): HTMLElement {
   [mn, mw, mrep].forEach(i => i.addEventListener('input', calc));
   calc();
   const el = cardWithMissions('Molar mass, PDI & degree of polymerization', missions,
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Mₙ (number-avg)'), mn),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Mᵂ (weight-avg)'), mw),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'M of repeat unit'), mrep),
+    ctlRow('Mₙ (number-avg)', mn),
+    ctlRow('Mᵂ (weight-avg)', mw),
+    ctlRow('M of repeat unit', mrep),
     out,
     h('h3', {}, 'Carothers equation (step-growth)'),
     h('p', { html: 'DP = 1/(1−p) where p = fraction of end-groups reacted. p = 0.99 gives DP ≈ 100 only — so step-growth needs very high conversion and exact 1:1 stoichiometry for long chains.' }),
@@ -104,7 +104,7 @@ export const polymersTab: TabDef = {
       sims: [makeExplorer(), makeMW()],
       quiz: quiz(POLYMERS_QUIZ, 5),
       theory: theory('Theory — polymers (IChO area 12)', `
-<h4>Two mechanisms</h4>
+<h3>Two mechanisms</h3>
 <div class="table-scroll"><table><tr><th></th><th>addition (chain-growth)</th><th>condensation (step-growth)</th></tr>
 <tr><td>monomer</td><td>has C=C (vinyl)</td><td>two reactive groups (diol+diacid, diamine+diacid)</td></tr>
 <tr><td>by-product</td><td>none</td><td>small molecule (H₂O, HCl)</td></tr>
@@ -114,14 +114,14 @@ export const polymersTab: TabDef = {
 <li>Addition sub-types by chain end: radical (peroxide/AIBN), cationic (electron-rich monomer), anionic (electron-poor monomer).</li>
 <li>Carothers: DP = 1/(1−p) for step-growth — stoichiometric balance and high conversion are essential.</li>
 </ul>
-<h4>Structure → properties</h4>
+<h3>Structure → properties</h3>
 <ul>
 <li><b>Tacticity:</b> isotactic/syndiotactic chains pack into crystallites (strong, high-melting); atactic is amorphous/soft.</li>
 <li><b>Cross-linking:</b> none → thermoplastic (remeltable, recyclable); cross-linked → thermoset (Bakelite) or elastomer (vulcanized rubber).</li>
 <li><b>Molar mass:</b> Mₙ (number-avg), Mᵂ (weight-avg), PDI = Mᵂ/Mₙ ≥ 1; DP = Mₙ/M_repeat.</li>
 <li><b>Copolymers:</b> block, alternating, random, graft — each gives distinct material behaviour (SBS block rubber).</li>
 </ul>
-<h4>Biopolymer link</h4>
+<h3>Biopolymer link</h3>
 <ul>
 <li>Proteins (amino acids, peptide bonds), polysaccharides (sugars, glycosidic bonds), nucleic acids — all natural condensation polymers.</li>
 <li>Deduce the monomer from a backbone repeat: reverse the linkage and restore the lost small molecule (or the C=C).</li>

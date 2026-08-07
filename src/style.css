@@ -806,6 +806,77 @@ body { overflow: hidden; }
 }
 #home-link:hover { color: var(--ink); }
 
+/* Sidebar feedback trigger (I.2) — same weight as the home link above it: this
+   is an escape hatch, not a call to action. */
+#feedback-link {
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  border-top: 1px solid var(--rule);
+  padding: 13px 13px 0;
+  cursor: pointer;
+  text-align: center;
+}
+#feedback-link:hover { color: var(--ink); }
+
+#feedback-dialog {
+  /* The global reset zeroes margins, which also kills the UA's `margin: auto`
+     — the one line that centres a modal <dialog> in its viewport. */
+  margin: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 0;
+  max-width: 34rem;
+  width: calc(100vw - var(--s-6));
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-3);
+}
+#feedback-dialog::backdrop { background: rgb(0 0 0 / 0.4); }
+.feedback-form { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-5); }
+.feedback-form h2 { font-family: var(--serif); margin: 0; }
+.feedback-form label { font-size: 13px; font-weight: 600; }
+.feedback-form textarea {
+  font: inherit;
+  font-size: 14px;
+  padding: var(--s-3);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+  background: #fff;
+  color: var(--ink);
+  resize: vertical;
+}
+.feedback-note { font-size: 12px; color: var(--ink-faint); margin: 0; line-height: 1.5; }
+.feedback-status { font-size: 13px; margin: 0; min-height: 1.2em; color: var(--accent-dark); }
+.feedback-actions { display: flex; gap: var(--s-2); justify-content: flex-end; }
+
+/* Helpful / not helpful, under every graded explanation (I.2). */
+.helpful {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+  font-size: 12px;
+}
+.helpful-q { color: var(--ink-faint); }
+.helpful-btn {
+  font: inherit;
+  font-size: 12px;
+  padding: 3px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: color var(--t), border-color var(--t);
+}
+.helpful-btn:hover { color: var(--accent-dark); border-color: var(--accent); }
+
 #app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
 
 #topic-crumb {
@@ -1130,6 +1201,10 @@ body { overflow: hidden; }
   transition: box-shadow var(--t) ease;
 }
 .card:hover { box-shadow: var(--shadow-2); }
+/* min-width/flex above are what make a card a GRID ITEM in .cards. A card
+   nested inside another (structure.ts groups its unknowns that way) is not one:
+   it inherited the 300px floor and overflowed its 247px parent on a phone. */
+.card .card { min-width: 0; flex: none; max-width: none; }
 .card.wide { flex-basis: 640px; max-width: 920px; }
 .card h2 {
   font-family: var(--serif);
@@ -1200,6 +1275,18 @@ body { overflow: hidden; }
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* On a 375px screen a sim card's content box is ~247px, but a .ctl row asks for
+   120 (caption) + 80 (slider) + 72 (readout) + two 10px gaps = 292px of hard
+   minimums — so every slider row was overflowing its card and the readout was
+   clipped. Wrapping is the fix rather than shrinking any of the three: the
+   caption needs its words, and a slider narrower than ~80px cannot be dragged
+   accurately. */
+@media (max-width: 640px) {
+  .ctl { flex-wrap: wrap; }
+  .ctl-label { min-width: 100%; }
+  .ctl-val { min-width: 0; }
+}
+
 .ctl input[type='range'] {
   flex: 1;
   min-width: 80px;
@@ -1225,6 +1312,10 @@ body { overflow: hidden; }
   width: 14px; height: 14px; border-radius: 50%;
   background: var(--accent); border: 2px solid var(--paper-2);
 }
+/* A <select> is as wide as its longest option unless told otherwise, and
+   `min-width: auto` on a flex item means it refuses to shrink below that — so a
+   card on a phone was pushed sideways by one long option string. */
+.ctl select { min-width: 0; }
 .ctl select, .ctl input[type='number'], .ctl input[type='text'] {
   background: var(--paper-2);
   color: var(--ink);
@@ -1332,6 +1423,10 @@ body { overflow: hidden; }
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
   background: var(--paper-3);
   color: var(--ink);
+  /* An equation is one unbreakable line of monospace: on a narrow screen the
+     long ones pushed past the card instead of wrapping (they have no spaces to
+     wrap at). Scroll the equation, not the page. */
+  overflow-x: auto;
 }
 .theory ul, .theory ol { padding-left: 20px; }
 .trap { color: var(--accent-dark); font-weight: 550; }
@@ -1345,6 +1440,10 @@ body { overflow: hidden; }
   display: flex;
   align-items: center;
   gap: var(--s-2);
+  /* Wraps because the dots below carry a 24px hit area: on a 375px screen the
+     row (prev, label, dots, next) no longer fits on one line, and a pager that
+     overflows its card is worse than one that takes two rows. */
+  flex-wrap: wrap;
 }
 .mission-page-label {
   font-size: 10px;
@@ -1380,6 +1479,14 @@ body { overflow: hidden; }
 }
 .mission-dot.done { background: var(--green); border-color: var(--green); }
 .mission-dot.current { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-wash); }
+/* The dot stays 9px; the BUTTON grows to the 24x24 minimum around it, so the
+   thing you have to hit with a thumb is not the thing you can see. 9px dot +
+   3px of border + 12px padding = exactly 24. */
+.mission-dot {
+  box-sizing: content-box;
+  padding: 6px;
+  background-clip: content-box;
+}
 .mission-strip {
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
@@ -1535,6 +1642,25 @@ body { overflow: hidden; }
   color: var(--ink);
 }
 .quiz-why .misconception { margin-top: 12px; }
+
+/* "Explain it differently" (H.1): the alternate explanation, on request. */
+.btn.why2-btn {
+  display: block;
+  margin-top: var(--s-3);
+  font-size: 12.5px;
+  padding: 5px 11px;
+}
+.why2 {
+  margin-top: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: #f6f1e8;
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink);
+}
 .miscon-icon { width: 16px; height: 16px; flex-shrink: 0; color: #4a7ab0; margin-top: 2px; }
 
 /* ---- results: dark instrument readouts ---- */
@@ -2269,6 +2395,7 @@ body { overflow: hidden; }
   cursor: pointer;
   flex: none;
 }
+.search-close { min-height: 24px; }
 .search-close:hover { border-color: var(--accent); color: var(--accent-dark); }
 
 .search-results { overflow-y: auto; flex: 1; }
@@ -2399,3 +2526,69 @@ body { overflow: hidden; }
 .exam-frq { margin-top: var(--s-5); }
 .exam-frq h3 { font-family: var(--serif); font-size: 16px; margin-bottom: var(--s-2); }
 .exam-frq-part { margin-top: var(--s-3); font-size: 14px; }
+
+/* ---- competition study guides (I.3) ---- */
+.menu-guides { font-size: 13.5px; color: var(--ink-dim); margin: -22px 0 26px; }
+/* --accent-dark (4.82:1 on paper), not --accent (3.26:1): this is body-size
+   text, so it needs 4.5:1. --accent stays for borders, marks and display type,
+   which are judged at 3:1. */
+.link-btn {
+  font: inherit;
+  color: var(--accent-dark);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.link-btn:hover { color: var(--ink); }
+
+.guide-head { padding: 44px 0 10px; }
+.guide-head h1 {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-weight: 700;
+  margin-bottom: 10px;
+  max-width: 20ch;
+}
+.guide-head .section-lede { margin-bottom: var(--s-5); }
+.guide-stats { display: flex; flex-wrap: wrap; gap: var(--s-6); margin-bottom: var(--s-5); }
+.guide-stat { display: flex; flex-direction: column; }
+.guide-stat b { font-family: var(--serif); font-size: 1.9rem; line-height: 1.1; color: var(--accent); }
+.guide-stat span { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.02em; }
+.guide-cta { font-size: 15px; padding: 11px 20px; }
+.guide-free { font-size: 12.5px; color: var(--ink-faint); margin-top: var(--s-3); }
+
+/* The measure belongs to the PROSE, not the section: with max-width on
+   .guide-sect the module grid was squeezed into a 700px column and dropped to
+   two cards a row while 420px of the wrap sat empty. A child cannot widen past
+   its parent, so the limit goes on the paragraphs that need it. */
+.guide-sect { padding-top: 40px; }
+.guide-sect > p, .guide-sect > .guide-plan { max-width: 700px; }
+.guide-sect h2 { font-family: var(--serif); font-size: 1.35rem; margin-bottom: var(--s-3); }
+.guide-sect p { color: var(--ink-dim); font-size: 15px; line-height: 1.7; margin-bottom: var(--s-3); }
+.guide-link { color: var(--accent-dark); }
+.guide-caveat { font-size: 12.5px; color: var(--ink-faint); border-left: 2px solid var(--rule); padding-left: var(--s-3); }
+.guide-plan { list-style: none; counter-reset: step; padding: 0; }
+.guide-plan li { counter-increment: step; position: relative; padding-left: 38px; margin-bottom: var(--s-5); }
+.guide-plan li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-pill);
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--accent-dark);
+}
+.guide-plan li b { display: block; margin-bottom: 4px; color: var(--ink); }
+.guide-plan li p { margin: 0; }
+.guide-more { margin-top: var(--s-5); font-size: 13.5px; }
+/* The guide's own section spacing already separates the grid from the CTA. */
+.guide-sect .topic-grid + .guide-more { color: var(--ink-faint); }

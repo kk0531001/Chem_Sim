@@ -189,20 +189,20 @@ export const biophysTab: TabDef = {
       ])],
       quiz: quiz(BIOPHYS_QUIZ, 5),
       theory: theory('Theory — advanced thermo/kinetics & biochemistry (CCO PS4)', `
-<h4>Advanced kinetics</h4>
+<h3>Advanced kinetics</h3>
 <ul>
 <li><b>Steady-state approximation:</b> d[intermediate]/dt ≈ 0 → eliminate intermediates from the rate law (basis of Michaelis–Menten).</li>
 <li><b>Lindemann:</b> "unimolecular" gas reactions are 2nd order at low P (activation-limited), 1st order at high P.</li>
 <li><b>Transition-state theory (Eyring):</b> k = (k_B T/h)e^(−ΔG‡/RT); ΔS‡ &lt; 0 signals an ordered/associative TS.</li>
 <li>Chain reactions (initiation/propagation/termination); catalysis lowers Eₐ for both directions equally.</li>
 </ul>
-<h4>Statistical / advanced thermo</h4>
+<h3>Statistical / advanced thermo</h3>
 <span class="eq">N₂/N₁ = (g₂/g₁)e^(−ΔE/RT) &nbsp;·&nbsp; ΔG = ΔG° + RT ln Q</span>
 <ul>
 <li>Boltzmann populations feed rates, spectroscopic intensities and heat capacities.</li>
 <li>Chemical potential μ and activities generalize "concentration"; coupling adds free energies.</li>
 </ul>
-<h4>Biochemistry</h4>
+<h3>Biochemistry</h3>
 <ul>
 <li>Amino-acid zwitterions and pI; protein 1°–4° structure; peptide-bond planarity; denaturation.</li>
 <li>Enzyme kinetics (Michaelis–Menten, inhibitor types, k_cat/K_M); allosteric feedback regulation.</li>

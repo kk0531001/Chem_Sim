@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
     "audit": "node scripts/audit-content.mjs && node scripts/test-router.mjs && node scripts/test-recommend.mjs"
   },

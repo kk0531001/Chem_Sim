@@ -1,4 +1,5 @@
 import { topicById, topicBySlug } from './topics';
+import { guideBySlug } from './guides';
 
 // Minimal client-side router: page kinds, real URLs via the History
 // API. Netlify needs a SPA fallback (public/_redirects) so deep links and
@@ -8,6 +9,9 @@ export type Route =
   | { kind: 'menu' }
   | { kind: 'progress' }
   | { kind: 'topic'; id: string }
+  // I.3 competition landing pages. Keyed by SLUG, not by comp: the slug is the
+  // search phrase ("ccc-study-guide") and it is the reason the page exists.
+  | { kind: 'guide'; slug: string }
   | { kind: 'notfound'; path: string };
 
 export function parseRoute(pathname: string): Route {
@@ -15,6 +19,8 @@ export function parseRoute(pathname: string): Route {
   if (clean === '/') return { kind: 'home' };
   if (clean === '/menu') return { kind: 'menu' };
   if (clean === '/progress') return { kind: 'progress' };
+  const g = clean.match(/^\/guide\/([a-z0-9-]+)$/i);
+  if (g && guideBySlug(g[1].toLowerCase())) return { kind: 'guide', slug: g[1].toLowerCase() };
   const m = clean.match(/^\/topic\/([a-z0-9-]+)$/i);
   const topic = m && topicBySlug(m[1].toLowerCase());
   if (topic) return { kind: 'topic', id: topic.id };
@@ -25,6 +31,7 @@ export function routeToPath(route: Route): string {
   if (route.kind === 'home') return '/';
   if (route.kind === 'menu') return '/menu';
   if (route.kind === 'progress') return '/progress';
+  if (route.kind === 'guide') return `/guide/${route.slug}`;
   if (route.kind === 'notfound') return route.path;
   return `/topic/${topicById(route.id)?.slug ?? route.id}`;
 }

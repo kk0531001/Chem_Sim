@@ -89,7 +89,7 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
       dateOut,
     ),
     theory('Nuclear chemistry essentials', `
-<h4>Decay modes — what happens to (Z, A)</h4>
+<h3>Decay modes — what happens to (Z, A)</h3>
 <div class="table-scroll"><table><tr><th>mode</th><th>emits</th><th>Z</th><th>A</th><th>when</th></tr>
 <tr><td>alpha</td><td>⁴₂He</td><td>−2</td><td>−4</td><td>heavy nuclei (Z &gt; 83)</td></tr>
 <tr><td>beta⁻</td><td>e⁻ (n→p)</td><td>+1</td><td>0</td><td>too many neutrons (above belt)</td></tr>
@@ -245,13 +245,13 @@ function makeCoordination(): HTMLElement {
 <li>Ligand denticity: en, ox²⁻ bidentate; EDTA hexadentate. <b>Chelate effect</b>: polydentate binding is entropy-favored (more free particles released).</li>
 <li>Spectrochemical series: I⁻ &lt; Br⁻ &lt; Cl⁻ &lt; F⁻ &lt; OH⁻ &lt; H₂O &lt; NH₃ &lt; en &lt; NO₂⁻ &lt; CN⁻ ≈ CO.</li>
 </ul>
-<h4>Crystal-field splitting</h4>
+<h3>Crystal-field splitting</h3>
 <span class="eq">LFSE(oct) = (−0.4·n(t₂g) + 0.6·n(e_g))Δ₀ &nbsp;·&nbsp; low spin only when Δ₀ &gt; pairing energy</span>
 <ul>
 <li>t₂g (d<sub>xy</sub>, d<sub>xz</sub>, d<sub>yz</sub>) drops 0.4Δ₀; e_g (d<sub>z²</sub>, d<sub>x²−y²</sub>) rises 0.6Δ₀ — e_g points straight AT the ligands, which is why it costs more.</li>
 <li>Low spin happens only for d⁴–d⁷ octahedral with strong-field ligands.</li>
 </ul>
-<h4>Isomerism and naming</h4>
+<h3>Isomerism and naming</h3>
 <ul>
 <li>Isomers: ionization ([CoBr(NH₃)₅]SO₄ vs [CoSO₄(NH₃)₅]Br), linkage (NO₂⁻ vs ONO⁻), cis/trans, fac/mer, and optical (Δ/Λ for tris-chelates).</li>
 <li>Naming: ligands alphabetically, metal oxidation state in Roman numerals; -ate suffix if the complex is an anion (ferrate, cuprate).</li>

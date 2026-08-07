@@ -13,6 +13,7 @@ import { TOPICS, renderTopicCard, moduleProgress, type TopicMeta } from './topic
 import { TILE_HTML } from './home';
 import { onProgressChange } from './progress';
 import { activeMode, inScope, onModeChange, MODE_SHORT } from './mode';
+import { GUIDES } from './guides';
 
 const LEVELS = ['CCC', 'USNCO', 'CCO', 'IChO'] as const;
 type Level = (typeof LEVELS)[number];
@@ -39,7 +40,9 @@ function statusOf(t: TopicMeta): Exclude<Status, 'any'> | 'none' {
   return p.done === 0 ? 'todo' : p.done >= p.total ? 'done' : 'doing';
 }
 
-export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void): HTMLElement {
+export function buildMenuPage(
+  onOpen: (id: string) => void, onHome: () => void, onGuide: (slug: string) => void,
+): HTMLElement {
   const groupsOrder: string[] = [];
   const groups = new Map<string, typeof TOPICS>();
   for (const t of TOPICS) {
@@ -56,7 +59,15 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
   // it for them.
   let onlyInScope = false;
 
-  const searchIn = h('input', { type: 'text', placeholder: 'Search topics…', class: 'menu-search' });
+  // aria-label as well as the placeholder — the placeholder is not an
+  // accessible name (it vanishes on the first keystroke), and this is the only
+  // field on the page, so there is nothing else for AT to infer one from.
+  // The site search dialog (src/search.ts) already does this; it was the one
+  // input that didn't.
+  const searchIn = h('input', {
+    type: 'search', placeholder: 'Search topics…', class: 'menu-search',
+    'aria-label': 'Search topics',
+  });
   const body = h('div', {});
   const countNote = h('p', { class: 'menu-count' });
 
@@ -209,6 +220,15 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
       h('section', { style: 'padding:44px 0 10px' },
         h('h1', { style: 'font-family:var(--serif);font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700;margin-bottom:10px' }, 'All Topics'),
         h('p', { class: 'section-lede' }, `Browse the full syllabus — ${TOPICS.length} modules from foundations through the advanced CCO problem sets.`),
+        // I.3: the contest guides are entry points from search, but they are
+        // also the best answer to "where do I start" — so the directory names
+        // them rather than leaving them reachable only from Google.
+        h('p', { class: 'menu-guides' }, 'Preparing for one contest? ',
+          ...GUIDES.flatMap((g, i) => [
+            i ? ' · ' : '',
+            h('button', { type: 'button', class: 'link-btn', onclick: () => onGuide(g.slug) },
+              `${MODE_SHORT[g.comp]} study guide`),
+          ])),
         searchIn,
         h('div', { class: 'menu-filters' }, levelRow, statusRow, groupRow, scopeRow),
         h('div', { class: 'menu-count-row' }, countNote, clearBtn),

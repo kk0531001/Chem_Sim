@@ -187,7 +187,7 @@ export const advInorganicTab: TabDef = {
       ])],
       quiz: quiz(INORGANIC_QUIZ, 5),
       theory: theory('Theory — coordination, solid-state & descriptive (CCO PS3)', `
-<h4>Crystal / ligand field</h4>
+<h3>Crystal / ligand field</h3>
 <span class="eq">LFSE(oct) = (−0.4·n_t₂g + 0.6·n_e_g)Δ_o &nbsp;·&nbsp; Δ_t ≈ (4/9)Δ_o</span>
 <ul>
 <li>Low spin only for d⁴–d⁷ octahedral strong-field (Δ_o &gt; pairing energy). Tetrahedral ⇒ almost always high spin.</li>
@@ -195,14 +195,14 @@ export const advInorganicTab: TabDef = {
 <li>Colour: d–d transitions (weak, Laporte-forbidden) vs charge-transfer (intense — MnO₄⁻, CrO₄²⁻). d⁰ and d¹⁰ are colourless from d–d.</li>
 <li>Free-ion ground terms by Hund: d² ³F, d³ ⁴F, d⁵ ⁶S, etc. (max S then max L).</li>
 </ul>
-<h4>Solid state</h4>
+<h3>Solid state</h3>
 <ul>
 <li>Z per cell: SC 1, BCC 2, FCC 4. Packing: SC 52%, BCC 68%, FCC/HCP 74%. ρ = ZM/(N_A a³).</li>
 <li>Touching directions: SC edge (2r=a), BCC body diagonal (4r=a√3), FCC face diagonal (4r=a√2).</li>
 <li>Bragg nλ = 2d sinθ. Radius ratio sets the coordination number and structure type (NaCl vs CsCl vs ZnS).</li>
 <li>Defects: Schottky (paired vacancies, lowers ρ), Frenkel (ion to interstitial). Band theory: metal/semiconductor/insulator by gap size.</li>
 </ul>
-<h4>Descriptive & bonding models</h4>
+<h3>Descriptive & bonding models</h3>
 <ul>
 <li>Amphoterism, inert-pair effect, diagonal relationships, lanthanide contraction, HSAB, 18-electron rule, Ellingham diagrams.</li>
 </ul>`),

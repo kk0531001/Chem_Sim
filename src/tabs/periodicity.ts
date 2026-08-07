@@ -162,20 +162,20 @@ export const periodicityTab: TabDef = {
       sims: [makeTrends(), makeSlater(), makeAnomalies()],
       quiz: quiz(PERIODICITY_QUIZ, 5),
       theory: theory('Theory — periodicity (IChO area 4)', `
-<h4>The trends and their driver</h4>
+<h3>The trends and their driver</h3>
 <span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>
 <ul>
 <li>Across a period: Z_eff ↑ (same shell, poor mutual shielding) → radius ↓, IE ↑, EA more −ve, EN ↑.</li>
 <li>Down a group: new shells dominate → radius ↑, IE ↓, EN ↓; reactivity of metals ↑, of non-metals ↓.</li>
 <li>Isoelectronic series: more protons → smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
 </ul>
-<h4>Anomalies to explain, not memorize</h4>
+<h3>Anomalies to explain, not memorize</h3>
 <ul>
 <li>IE dips Be→B (new 2p subshell) and N→O (2p⁴ pairing repulsion); repeat in period 3.</li>
 <li>EA F &lt; Cl (small-atom electron–electron repulsion); noble gases and half/filled shells resist adding electrons.</li>
 <li>Successive-IE jumps reveal valence-electron count (group).</li>
 </ul>
-<h4>Descriptive consequences</h4>
+<h3>Descriptive consequences</h3>
 <ul>
 <li>Metallic ↔ non-metallic character; amphoterism (Al, Zn, Be, Sn, Pb); oxide acid–base trend across a period.</li>
 <li>Diagonal relationships (Li–Mg, Be–Al, B–Si); inert-pair effect for heavy p-block; lanthanide contraction (Zr ≈ Hf).</li>

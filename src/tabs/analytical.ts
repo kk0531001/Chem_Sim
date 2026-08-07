@@ -1,7 +1,7 @@
 // Advanced (CCO) — Analytical & quantitative chemistry.
 // EDTA complexometric titration curve, Debye-Hückel activity, gravimetric
 // factor and back-titration calculators.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { ANALYTICAL_QUIZ } from './questions3';
 
@@ -155,11 +155,11 @@ function makeGravimetric(): HTMLElement {
   gCalc();
   const el = card('Gravimetric factor & back-titration',
     h('h3', {}, 'Gravimetric analysis'),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'precipitate mass (g)'), mPpt),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'M analyte (g/mol)'), mmAnalyte),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'M precipitate (g/mol)'), mmPpt),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'a (analyte per ppt)'), aFac),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'b (ppt units)'), bFac),
+    ctlRow('precipitate mass (g)', mPpt),
+    ctlRow('M analyte (g/mol)', mmAnalyte),
+    ctlRow('M precipitate (g/mol)', mmPpt),
+    ctlRow('a (analyte per ppt)', aFac),
+    ctlRow('b (ppt units)', bFac),
     gOut,
     h('h3', {}, 'Back-titration recipe'),
     h('ol', {},
@@ -212,31 +212,31 @@ export const analyticalTab: TabDef = {
       sims: [makeEDTA(), makeActivity(), makeGravimetric(), makeSeparations()],
       quiz: quiz(ANALYTICAL_QUIZ, 5),
       theory: theory('Theory — analytical & quantitative chemistry (CCO PS1)', `
-<h4>Complexometric (EDTA) titrations</h4>
+<h3>Complexometric (EDTA) titrations</h3>
 <span class="eq">K′ = α₄·K_f &nbsp; (conditional formation constant)</span>
 <ul>
 <li>EDTA binds every metal 1:1 (hexadentate). α₄ = fraction as Y⁴⁻, rising with pH; buffer high so K′ is large.</li>
 <li>Metal-ion indicators (Eriochrome Black T, murexide) are themselves weaker complexing agents: EDTA strips the metal at the endpoint, freeing the differently-coloured indicator.</li>
 <li>Water hardness: titrate Ca²⁺+Mg²⁺ at pH 10 (total); mask Mg as Mg(OH)₂ at pH 12 for Ca²⁺ alone.</li>
 </ul>
-<h4>Activity & ionic strength</h4>
+<h3>Activity & ionic strength</h3>
 <span class="eq">I = ½Σcᵢzᵢ² &nbsp;·&nbsp; log γ± = −0.51 z₊z₋ √I  (limiting law) &nbsp;·&nbsp; a = γ±c</span>
 <ul>
 <li>Real equilibria use activities: K° = Π aᵢ^νᵢ. Adding an inert salt lowers γ±, so a sparingly-soluble salt dissolves MORE (diverse-ion/salt effect) — opposite to the common-ion effect.</li>
 <li>Davies extends validity to ~0.5 M; below ~0.01 M the limiting law suffices.</li>
 </ul>
-<h4>Gravimetry</h4>
+<h3>Gravimetry</h3>
 <ul>
 <li>Convert analyte to a pure, insoluble, filterable precipitate of known formula; dry/ignite to constant mass.</li>
 <li>Gravimetric factor scales precipitate mass → analyte mass. <span class="trap">Coprecipitation adds mass (result high); solubility losses on washing lower it.</span></li>
 </ul>
-<h4>Redox & other titrations</h4>
+<h3>Redox & other titrations</h3>
 <ul>
 <li>Permanganate — self-indicating (purple). Dichromate — needs an indicator. Iodometry — thiosulfate + starch (added near the end).</li>
 <li>Back-titration for slow or solid analytes. Karl Fischer for water. Gran plots linearize weak endpoints.</li>
 <li>Method of standard additions cancels matrix effects; internal standards correct instrument drift.</li>
 </ul>
-<h4>Separations</h4>
+<h3>Separations</h3>
 <ul>
 <li>Chromatography splits mixtures between a stationary and mobile phase: TLC/column/HPLC by polarity, GC by volatility, electrophoresis by charge/size.</li>
 <li>TLC: R_f = spot distance / solvent-front distance — characteristic in a fixed system. On silica, polar = low R_f.</li>

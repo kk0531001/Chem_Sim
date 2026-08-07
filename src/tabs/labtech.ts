@@ -1,7 +1,7 @@
 // Laboratory Skills — practical techniques: recrystallization, the distillation
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
-import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, numberInput, numVal, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
 import { topicPage } from './page';
 import { LABTECH_QUIZ } from './questions7';
 
@@ -69,10 +69,10 @@ function makeDistillation(): HTMLElement {
 <tr><td>steam distillation</td><td>water-immiscible, heat-sensitive high-boilers</td><td>P_total = ΣP; boils &lt; 100 °C</td></tr>
 <tr><td>vacuum distillation</td><td>compound decomposes before its BP</td><td>lower P → lower BP</td></tr></table>` }),
     h('h3', {}, 'Steam distillation calculator'),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'P_organic at boil (torr)'), pOrg),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'M_organic (g/mol)'), mOrg),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'M_water (g/mol)'), mWat),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'P_total (torr)'), pTot),
+    ctlRow('P_organic at boil (torr)', pOrg),
+    ctlRow('M_organic (g/mol)', mOrg),
+    ctlRow('M_water (g/mol)', mWat),
+    ctlRow('P_total (torr)', pTot),
     out,
     h('p', { class: 'trap' }, 'Azeotropes (e.g. 95.6% ethanol/water) cannot be separated further by distillation — the vapor has the same composition as the liquid.'),
   );
@@ -143,9 +143,9 @@ function makeStandardBuffer(): HTMLElement {
   };
   const el = card('Standard-solution & buffer preparation',
     h('h3', {}, 'Standard solution from a primary standard'),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'target molarity (M)'), molarity),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'flask volume (mL)'), volFlask),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'molar mass (g/mol)'), molarMass),
+    ctlRow('target molarity (M)', molarity),
+    ctlRow('flask volume (mL)', volFlask),
+    ctlRow('molar mass (g/mol)', molarMass),
     sOut,
     h('h3', {}, 'Buffer recipe (Henderson–Hasselbalch)'),
     slider({ label: 'weak-acid pKa', min: 2, max: 11, step: 0.01, value: pKa, fmt: v => v.toFixed(2), onInput: v => { pKa = v; bCalc(); } }),
@@ -287,10 +287,10 @@ function makeReference(): HTMLElement {
 <tr><td>molecular sieves (3Å/4Å)</td><td>trap water by size; give very dry solvents</td></tr></table>` }),
     h('h3', {}, 'Uncertainty propagation'),
     h('p', { class: 'muted' }, 'Sums/differences: add ABSOLUTE uncertainties in quadrature. Products/quotients: add RELATIVE uncertainties in quadrature.'),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'A'), a),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'σA'), ea),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'B'), b),
-    h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'σB'), eb),
+    ctlRow('A', a),
+    ctlRow('σA', ea),
+    ctlRow('B', b),
+    ctlRow('σB', eb),
     uOut,
     h('h3', {}, 'Lab safety essentials'),
     h('ul', {},
@@ -311,25 +311,25 @@ export const labTechTab: TabDef = {
       sims: [makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference()],
       quiz: quiz(LABTECH_QUIZ, 5),
       theory: theory('Theory — laboratory techniques', `
-<h4>Recrystallization</h4>
+<h3>Recrystallization</h3>
 <ul><li>Dissolve in the MINIMUM hot solvent; hot-filter (+ charcoal) to drop insoluble/coloured impurities; cool slowly to grow pure crystals; collect by vacuum filtration; wash with cold solvent.</li>
 <li>Ideal solvent: high hot solubility, low cold solubility. Recovery = mass − (cold solubility × volume).</li></ul>
-<h4>Distillation family</h4>
+<h3>Distillation family</h3>
 <ul><li><b>Simple</b>: large ΔBP. <b>Fractional</b>: close BPs — a column gives many plates. <b>Steam</b>: immiscible + heat-sensitive; boils where P_water + P_organic = P_total (below 100 °C); mass ratio = (P·M) ratio. <b>Vacuum</b>: lowers BP to avoid decomposition.</li>
 <li><span class="trap">Azeotropes have identical vapor/liquid composition and can't be split by ordinary distillation.</span></li></ul>
-<h4>Filtration</h4>
+<h3>Filtration</h3>
 <ul><li>Gravity (fluted paper, hot funnel): keep a hot solution dissolved while removing solids. Vacuum (Büchner): fast collection + drying of a solid.</li></ul>
-<h4>Liquid–liquid extraction</h4>
+<h3>Liquid–liquid extraction</h3>
 <span class="eq">\\(K = [A]_{org}/[A]_{aq}\\) &nbsp;·&nbsp; \\(\\text{fraction left} = \\left[V_{aq}/(V_{aq} + K V_{org})\\right]^n\\)</span>
 <ul><li>Several small extractions beat one big one. Acid/base extractions move a compound between layers by (de)protonation. Check densities to identify the layers; keep both until sure.</li></ul>
-<h4>Drying agents</h4>
+<h3>Drying agents</h3>
 <ul><li>MgSO₄ (fast, neutral), Na₂SO₄ (mild), CaCl₂ (not with OH/NH), K₂CO₃ (basic), molecular sieves (very dry). Swirl until the solid "swims" freely, then filter.</li></ul>
-<h4>Chromatography</h4>
+<h3>Chromatography</h3>
 <ul><li>Separates by differential partition between stationary and mobile phases: TLC/column by polarity (normal-phase silica → polar = low R_f), GC by volatility, HPLC by polarity (high-res), electrophoresis by charge/size.</li></ul>
-<h4>Preparing solutions</h4>
+<h3>Preparing solutions</h3>
 <ul><li>Primary standard (pure, stable, known formula: KHP, Na₂CO₃, K₂Cr₂O₇) → weigh accurately, dilute to the mark. Secondary standards (NaOH, HCl) must be standardized by titration.</li>
 <li>Buffer: pH = pKa + log([A⁻]/[HA]); choose pKa within ±1 of the target pH for good capacity.</li></ul>
-<h4>Uncertainty & safety</h4>
+<h3>Uncertainty & safety</h3>
 <ul><li>Accuracy (closeness to true) ≠ precision (reproducibility). Sums add absolute σ in quadrature; products add relative σ in quadrature. Report the correct sig figs.</li>
 <li>Acid to water; know GHS pictograms; segregate incompatibles; goggles/gloves/fume hood; know emergency equipment.</li></ul>`),
     }));

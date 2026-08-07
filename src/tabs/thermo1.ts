@@ -200,20 +200,20 @@ export const thermo1Tab: TabDef = {
       sims: [calCard, hessCard, bondCard, bhCard],
       quiz: quiz(THERMO1_QUIZ, 5),
       theory: theory('Theory & key equations — first law / enthalpy', `
-<h4>First law</h4>
+<h3>First law</h3>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
 <ul>
 <li>Gas expands → system does work → w &lt; 0. Constant volume: ΔU = q<sub>v</sub>. Constant pressure: ΔH = q<sub>p</sub>.</li>
 <li>ΔH = ΔU + Δ(PV) = ΔU + Δn<sub>gas</sub>RT for reactions.</li>
 </ul>
-<h4>Calorimetry</h4>
+<h3>Calorimetry</h3>
 <span class="eq">q = mcΔT (heating) &nbsp;·&nbsp; q = nΔH<sub>fus/vap</sub> (phase change, no ΔT!) &nbsp;·&nbsp; q<sub>cal</sub> = C<sub>cal</sub>ΔT</span>
 <ul>
 <li>Heating curve problems: sum each segment. Ice→steam: q₁(warm ice) + q₂(melt) + q₃(warm water) + q₄(boil) + q₅(warm steam).</li>
 <li>Water: c = 4.18 J/g·K, ΔH<sub>fus</sub> = 6.01 kJ/mol, ΔH<sub>vap</sub> = 40.7 kJ/mol.</li>
 <li><span class="trap">Bomb calorimeter measures ΔU (constant V), coffee-cup measures ΔH (constant P).</span></li>
 </ul>
-<h4>Enthalpies of formation</h4>
+<h3>Enthalpies of formation</h3>
 <span class="eq">ΔH°<sub>rxn</sub> = Σ nΔH°f(products) − Σ nΔH°f(reactants)</span>
 <ul>
 <li>ΔH°f = 0 for elements in their standard state: O₂(g), N₂(g), C(graphite), Br₂(l), Hg(l), S₈(s)… <span class="trap">not O(g), not C(diamond)</span>.</li>

@@ -167,7 +167,11 @@ export const qbankTab: TabDef = {
     const topicSel = h('select', { autocomplete: 'off' });
     for (const t of TOPICS) topicSel.appendChild(h('option', { value: t.id }, t.label));
     topicSel.addEventListener('change', () => { topic = topicSel.value; render(); });
-    const topicCtl = h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'topic'), topicSel);
+    // A <label>, matching what select() builds — as a <div> the caption was not
+    // associated with the control and the filter announced as an unnamed combo
+    // box. Hand-rolled here (rather than select()) only because the code below
+    // sets topicSel.value directly.
+    const topicCtl = h('label', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'topic'), topicSel);
 
     const compCtl = select('competition',
       [{ value: 'any', label: 'Any competition' }, ...COMPS.map(c => ({ value: c, label: COMP_LABEL[c] }))],
