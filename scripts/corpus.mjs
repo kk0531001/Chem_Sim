@@ -50,6 +50,7 @@ const { PART3 } = await load('bankPart3');
 const { CCO_SETS } = await load('bankCCO');
 const { INTEGRATED_SETS } = await load('bankIntegrated');
 const { OLYMPIAD_PAPERS } = await load('bankOlympiad');
+export { OLYMPIAD_PAPERS };
 
 export const QUIZ_BANKS = {
   quantum: QUANTUM_QUIZ, bonding: BONDING_QUIZ, stoich: STOICH_QUIZ,

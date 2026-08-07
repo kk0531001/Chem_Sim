@@ -2061,18 +2061,30 @@ Two items from the original list were deliberately **not** built:
   A regex version flags hundreds of correct answers, so it would be turned off
   within a day. Stays part of the human read-through in D.12.
 
-### D.10 Performance — **[ ]**
+### D.10 Performance — **[~] in progress**
 
-Today's build is a **single 1.74 MB JS chunk**: all 25 tabs are statically
-imported by `main.ts`, so a student opening one topic downloads all of them,
-Pixi included.
+Was a single 1.74 MB chunk. Lazy `DEFS` imports landed with D.1; what remained
+was that the **homepage** still dragged the whole corpus into the entry chunk.
 
-- [ ] `DEFS` entries become `() => import('./tabs/thermo1')`. This makes `mount`
-      async — which is exactly why **D.1 lands first**, and why a loading
-      skeleton (not homepage content) must render while the chunk arrives.
-- [ ] Pixi confined to the sandbox chunk
+- [x] `DEFS` entries are `() => import('./tabs/thermo1')`, mount is async, and a
+      failed/slow mount renders in the tab layer rather than as homepage content
+      (D.1).
+- [x] Pixi confined to the sandbox chunk (387 kB, fetched only when the sandbox
+      is opened).
+- [x] **The homepage no longer imports the corpus.** `home.ts` wanted three
+      numbers from `CORPUS_COUNTS`, which `registry.ts` derived from every bank
+      — so `index.js` carried all 972 questions to render a landing page.
+      `src/content/counts.ts` states the three numbers instead, and both
+      `auditCorpus()` (dev) and `npm run audit` (CI-able) check them against the
+      real arrays, so the stated figure cannot go stale silently. Entry chunk
+      **1.16 MB → 600 kB**; the corpus is now its own 563 kB chunk that only the
+      question bank and challenge ladder pull.
 - [ ] KaTeX fonts preloaded and subset; check whether every shipped face is used
-- [ ] Budget: first topic page under 400 kB of JS
+- [ ] Budget: first topic page under 400 kB of JS. The remaining entry weight is
+      KaTeX plus the Supabase client. Supabase is the honest next cut — reading a
+      lesson needs no auth, so the client belongs behind the sign-in path — but
+      it is a real refactor (the client is constructed at module load and used
+      synchronously), not a one-liner.
 
 ### D.11 Accessibility, second pass — **[ ]**
 

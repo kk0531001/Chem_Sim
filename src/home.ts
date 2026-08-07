@@ -4,7 +4,7 @@
 import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
 import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges } from './topics';
-import { CORPUS_COUNTS } from './content/registry';
+import { CORPUS_COUNTS } from './content/counts';
 import { CLOCK_ICON } from './icons';
 
 // The tile is a logo mark, and it always sits immediately before the word

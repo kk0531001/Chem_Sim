@@ -15,7 +15,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import katex from 'katex';
 import 'katex/contrib/mhchem';
-import { ALL_MC, ALL_FRQ, ROOT } from './corpus.mjs';
+import { ALL_MC, ALL_FRQ, OLYMPIAD_PAPERS, ROOT } from './corpus.mjs';
 
 const problems = [];
 const fail = (where, msg) => problems.push(`${where}: ${msg}`);
@@ -113,6 +113,21 @@ for (const file of readdirSync(TABS).filter(f => f.endsWith('.ts'))) {
     const [id, body] = [chunks[i], chunks[i + 1] ?? ''];
     if (!/\bhints:\s*\[/.test(body)) fail(id, `mission in ${file} has no hints`);
     if (!/\bprompt:/.test(body)) fail(id, `mission in ${file} has no prompt`);
+  }
+}
+
+// ---- 5. the homepage's stated corpus counts ----
+// src/content/counts.ts is stated, not derived, so the landing page can quote
+// it without importing every bank (D.10). That trade is only safe if something
+// checks it.
+const countsSrc = readFileSync(join(ROOT, 'src/content/counts.ts'), 'utf8');
+const stated = Object.fromEntries(
+  [...countsSrc.matchAll(/(mc|frq|papers):\s*(\d+)/g)].map(m => [m[1], Number(m[2])]),
+);
+const realCounts = { mc: ALL_MC.length, frq: ALL_FRQ.length, papers: OLYMPIAD_PAPERS.length };
+for (const k of ['mc', 'frq', 'papers']) {
+  if (stated[k] !== realCounts[k]) {
+    fail('src/content/counts.ts', `CORPUS_COUNTS.${k} says ${stated[k]}, the corpus has ${realCounts[k]}`);
   }
 }
 

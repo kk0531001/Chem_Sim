@@ -7,8 +7,9 @@
 // topic filtering, tiering and the challenge ladder (ROADMAP phases C and E)
 // are all queries over exactly this list.
 //
-// Importing every bank here is deliberate and costs nothing today: the build
-// already emits a single chunk containing all of them.
+// Importing every bank here pulls the whole corpus into whatever chunk reaches
+// this module, so nothing on the entry path may import it — the homepage gets
+// its three numbers from ./counts instead (ROADMAP D.10).
 import { qid, remapProgressIds, needsIdMigration, markIdMigrationDone } from '../progress';
 import type { QuizQ } from '../tabs/framework';
 import type { FRQ } from '../tabs/bankPart2';
@@ -17,6 +18,7 @@ import {
   type Comp, type ExamTopicId, type QuizModuleId, type Tier,
 } from './topicIds';
 import { TOPICS, topicById } from '../topics';
+import { CORPUS_COUNTS } from './counts';
 
 // ---- quiz banks (one per topic module) ----
 import { QUANTUM_QUIZ, BONDING_QUIZ, STOICH_QUIZ, THERMO1_QUIZ, THERMO2_QUIZ, EQUILIBRIUM_QUIZ } from '../tabs/questions1';
@@ -64,12 +66,10 @@ export const ALL_FRQ: FRQ[] = [
   ...OLYMPIAD_PAPERS.flatMap(p => p.partB),
 ];
 
-/**
- * The corpus in numbers. Every count is derived here so a page can never quote
- * a figure the corpus does not support — the homepage used to hard-code four
- * stats and three of them were wrong.
- */
-export const CORPUS_COUNTS = { mc: ALL_MC.length, frq: ALL_FRQ.length, papers: OLYMPIAD_PAPERS.length };
+// The corpus in numbers lives in ./counts, stated rather than derived, so that
+// the homepage can quote it without importing every question bank. auditCorpus()
+// below checks it against the real arrays.
+export { CORPUS_COUNTS };
 
 // ---- tier and competition scope ------------------------------------------
 //
@@ -287,6 +287,12 @@ export function auditTopicPages(): { problems: string[]; misconceptions: number 
  */
 export function auditCorpus(): string[] {
   const problems: string[] = [];
+  // The homepage quotes CORPUS_COUNTS without importing the banks; if a bank
+  // grew and nobody updated it, the landing page is now lying about the corpus.
+  const real = { mc: ALL_MC.length, frq: ALL_FRQ.length, papers: OLYMPIAD_PAPERS.length };
+  for (const k of ['mc', 'frq', 'papers'] as const) {
+    if (CORPUS_COUNTS[k] !== real[k]) problems.push(`CORPUS_COUNTS.${k} says ${CORPUS_COUNTS[k]}, the corpus has ${real[k]} — update src/content/counts.ts`);
+  }
   const seen = new Map<string, string>();
   for (const q of ALL_MC) {
     if (!q.id) { problems.push(`MC with no id: "${q.q.slice(0, 60)}"`); continue; }
