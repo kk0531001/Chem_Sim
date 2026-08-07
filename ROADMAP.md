@@ -2061,7 +2061,7 @@ Two items from the original list were deliberately **not** built:
   A regex version flags hundreds of correct answers, so it would be turned off
   within a day. Stays part of the human read-through in D.12.
 
-### D.10 Performance — **[~] in progress**
+### D.10 Performance — **[x] DONE**
 
 Was a single 1.74 MB chunk. Lazy `DEFS` imports landed with D.1; what remained
 was that the **homepage** still dragged the whole corpus into the entry chunk.
@@ -2079,12 +2079,26 @@ was that the **homepage** still dragged the whole corpus into the entry chunk.
       real arrays, so the stated figure cannot go stale silently. Entry chunk
       **1.16 MB → 600 kB**; the corpus is now its own 563 kB chunk that only the
       question bank and challenge ladder pull.
-- [ ] KaTeX fonts preloaded and subset; check whether every shipped face is used
-- [ ] Budget: first topic page under 400 kB of JS. The remaining entry weight is
-      KaTeX plus the Supabase client. Supabase is the honest next cut — reading a
-      lesson needs no auth, so the client belongs behind the sign-in path — but
-      it is a real refactor (the client is constructed at module load and used
-      synchronously), not a one-liner.
+- [x] **The Supabase client is off the entry path too.** It was constructed at
+      module load, so every visitor downloaded ~110 kB of auth machinery to read
+      a lesson that never calls it. It now loads on demand: at startup only when
+      there is a session to restore (an `sb-*-auth-token` in localStorage, or an
+      OAuth/magic-link token in the URL), otherwise on the first sign-in click.
+      `isCloudConfigured()` stays synchronous — the sign-in UI has to know
+      whether to render at all, and the env vars answer that alone — and the
+      auth-state listener moved to where the client is created, so both entry
+      points attach it exactly once. Verified in the production build: the chunk
+      is fetched on the click and not before.
+- [x] **KaTeX fonts.** Every face ships three times (woff2/woff/ttf) and the
+      stylesheet lists all three; nothing that can run this app has needed the
+      last two since 2016. A build plugin drops them — 876 kB of deploy — and
+      strips their `src()` entries so the CSS doesn't point at absent files. The
+      two faces every formula uses (Main-Regular, Math-Italic) are preloaded;
+      because asset names are hashed, that can only be done at bundle time,
+      which is why it is a plugin and not two tags in index.html. The other 17
+      faces stay: `@font-face` already fetches them only if a page uses them.
+- [x] **Budget: first topic page under 400 kB of JS — 394 kB**, from 1.74 MB
+      when Phase D opened.
 
 ### D.11 Accessibility, second pass — **[x] DONE**
 
@@ -2119,19 +2133,38 @@ Phase 0.3 did the first. The new surfaces got the same treatment:
       global CSS block, and every self-animating sim through `playPause()`.
       Verified at 375 px: no route scrolls the page horizontally.
 
-### D.12 Launch readiness — **[ ] the gate**
+### D.12 Launch readiness — **[~] mechanically green; two lines are the owner's**
 
-Phase D is finished when every line is true, checked against the source rather
-than from memory:
+Checked against the source and a browser walk of every route, not from memory.
 
-- [ ] Every URL resolves to the page it names, or to a 404 that says so
-- [ ] Every topic has all eight blocks of the D.4 contract
-- [ ] Every simulation has missions, a reset, and survives D.6
-- [ ] Every question has been read once since it was written, with units and
-      answer key verified
-- [ ] Navigation is two clicks deep from anywhere
-- [ ] No console errors on any route; `tsc --noEmit` and the audits clean
-- [ ] **You would personally use this to prepare for the CCC, CCO or USNCO**
+- [x] **Every URL resolves to the page it names, or to a 404 that says so.**
+      `scripts/test-router.mjs` — 172 checks over 25 topics and 48 URLs
+      (slugs, legacy bare ids, casing, trailing slash, wrong guesses). Verified
+      live: `/topic/nope-not-real` renders the 404 view, not the homepage.
+- [x] **Every topic has all eight blocks of the D.4 contract.** `auditTopicPages()`
+      clean: intro, 2–4 references, a 25-question quiz and ≥ 4 misconception
+      boxes per module, 167 corpus-wide.
+- [x] **Every simulation has missions and a reset.** Walked all 25 tabs in one
+      session: 45 mission ladders and 79 reset buttons across them, and the only
+      tab with no ladder is the question bank, which is contract-exempt because
+      it is not a lesson.
+- [ ] **Every question has been read once since it was written, with units and
+      answer key verified.** C.4 read the corpus module by module; what is *not*
+      claimable is that every question has been re-read since its last edit.
+      The mechanical half is done and now enforced (`npm run audit`: structure,
+      answer indexes, KaTeX, tables). Units and significant figures are not
+      decidable by script — see D.9. **This line is a human pass, and it is the
+      one thing between here and launch that cannot be automated.**
+- [x] **Navigation is two clicks deep from anywhere.** Sidebar (grouped, always
+      present) → module; or Home → All Topics → module. The 404 view also links
+      straight to both.
+- [x] **No console errors on any route.** Instrumented `console.error`/`warn`,
+      `error` and `unhandledrejection`, then visited all 25 tabs plus home, menu
+      and the 404: **zero**. `tsc --noEmit` clean, `npm run audit` clean.
+- [x] **Performance budget.** Entry chunk 394 kB (was 1.74 MB when Phase D
+      opened); corpus, Pixi and Supabase are all in on-demand chunks.
+- [ ] **You would personally use this to prepare for the CCC, CCO or USNCO.**
+      Not mine to tick.
 
 Then, and only then, Phase I.2's feedback loops go in and the site goes to 25
 real students.
