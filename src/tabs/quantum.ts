@@ -61,7 +61,7 @@ function drawOrbital(canvas: HTMLCanvasElement, id: OrbitalId): void {
   // nucleus + scale note
   ctx.fillStyle = '#ffe27a';
   ctx.beginPath(); ctx.arc(N / 2, N / 2, 2, 0, 7); ctx.fill();
-  ctx.fillStyle = '#5a6a7d'; ctx.font = '10px monospace';
+  ctx.fillStyle = '#8b9bb0'; ctx.font = '10px monospace';
   ctx.fillText(`${extent * 2} a₀ across · ${orb.plane ?? 'x–z'} slice`, 6, N - 8);
 }
 
@@ -75,14 +75,14 @@ function levelDiagram(canvas: HTMLCanvasElement, ni: number, nf: number): string
   ctx.font = '11px monospace';
   for (let n = 1; n <= 6; n++) {
     const y = Y(E(n));
-    ctx.strokeStyle = n === ni || n === nf ? '#ffe27a' : '#3a4a5d';
+    ctx.strokeStyle = n === ni || n === nf ? '#ffe27a' : '#55627a';
     ctx.lineWidth = n === ni || n === nf ? 2 : 1;
     ctx.beginPath(); ctx.moveTo(70, y); ctx.lineTo(W - 20, y); ctx.stroke();
     ctx.fillStyle = '#7d8fa3';
     ctx.textAlign = 'right';
     ctx.fillText(`n=${n}  ${E(n).toFixed(2)} eV`, 66, y + 3);
   }
-  ctx.fillStyle = '#5a6a7d'; ctx.textAlign = 'left';
+  ctx.fillStyle = '#8b9bb0'; ctx.textAlign = 'left';
   ctx.fillText('E = 0 (ionized)', 70, 14);
 
   const hi = Math.max(ni, nf), lo = Math.min(ni, nf);

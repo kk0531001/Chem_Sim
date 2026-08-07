@@ -1162,6 +1162,22 @@ body { overflow: hidden; }
   border-radius: var(--r-md);
   box-shadow: var(--shadow-1);
 }
+/* Shown while a lazily-imported tab's chunk is in flight. Three bars, roughly
+   the shape of a card's heading and two paragraphs — enough to say "content is
+   coming here", which an empty panel does not. The shimmer is decoration and is
+   flattened by the prefers-reduced-motion block at the top of this file. */
+.tab-loading { max-width: 680px; margin: 40px auto; display: flex; flex-direction: column; gap: var(--s-3); }
+.tab-loading-bar {
+  height: 18px;
+  border-radius: var(--r-sm);
+  background: linear-gradient(90deg, var(--paper-2) 25%, var(--paper-3) 37%, var(--paper-2) 63%);
+  background-size: 400% 100%;
+  animation: tab-loading-shimmer 1.4s ease-in-out infinite;
+}
+.tab-loading-bar:first-child { height: 28px; width: 55%; }
+.tab-loading-bar:nth-child(3) { width: 80%; }
+@keyframes tab-loading-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
 .tab-error h2 { font-family: var(--serif); font-size: 24px; margin-bottom: 12px; }
 .tab-error-message { color: var(--ink-dim); font-family: var(--mono); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
 .tab-error-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 22px; }
@@ -1561,6 +1577,14 @@ body { overflow: hidden; }
    inside the card instead of the page doing it. */
 .table-scroll { overflow-x: auto; max-width: 100%; }
 .table-scroll > .ref-table { width: auto; min-width: 100%; }
+/* …and the same escape without a wrapper, for the 19 tables built with
+   h('table') in the tab modules rather than written as an HTML string. A table
+   is display:block here purely so it can carry its own overflow; min-width
+   keeps a narrow one filling the card as before. This is the safety net — the
+   audit still enforces .table-scroll on the string-built ones, because a
+   wrapper is what the corpus files can be checked for (D.11). */
+.ref-table { display: block; width: max-content; min-width: 100%; max-width: 100%; overflow-x: auto; }
+.table-scroll > .ref-table { width: max-content; }
 /* tables that appear INSIDE dark readouts */
 .result .ref-table td, .result .ref-table th { border-color: var(--panel-border); }
 .result .ref-table th { background: var(--panel-2); color: #9aa4b0; }

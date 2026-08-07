@@ -131,6 +131,37 @@ for (const k of ['mc', 'frq', 'papers']) {
   }
 }
 
+// ---- 6. canvas contrast on the dark instrument panels ----
+// Every canvas in the app sits on the dark panel, and the colours are written
+// inline in each tab rather than as CSS variables, so nothing in a stylesheet
+// audit sees them. Text needs 4.5:1, meaningful graphics 3:1 (WCAG AA).
+// Only `fillStyle` can produce text — `fillText` paints with the fill colour —
+// so a `strokeStyle` is always a line and always judged at 3:1.
+const PANEL_BG = '#0e131c';
+// Colours that ARE the background: the plot's gridlines and the orbital plot's
+// own backdrop. A contrast rule on a background against itself is nonsense.
+const BACKDROP = new Set(['#161d2b', '#0b0e14']);
+const luminance = hex => {
+  const ch = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map(v => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+};
+const contrast = (a, b) => {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+};
+for (const file of readdirSync(TABS).filter(f => f.endsWith('.ts'))) {
+  const lines = readFileSync(join(TABS, file), 'utf8').split('\n');
+  lines.forEach((line, i) => {
+    const m = /(fillStyle|strokeStyle)\s*=\s*.(#[0-9a-fA-F]{6})/.exec(line);
+    if (!m || BACKDROP.has(m[2].toLowerCase())) return;
+    const isText = m[1] === 'fillStyle' && lines.slice(i, i + 4).some(l => /fillText/.test(l));
+    const need = isText ? 4.5 : 3;
+    const r = contrast(m[2].toLowerCase(), PANEL_BG);
+    if (r < need) fail(`${file}:${i + 1}`, `${m[2]} is ${r.toFixed(2)}:1 on the panel, ${isText ? 'canvas text' : 'a graphic'} needs ${need}:1`);
+  });
+}
+
 // ---- report ----
 console.log(`Checked ${ALL_MC.length} MC + ${ALL_FRQ.length} written problems.`);
 if (!problems.length) {

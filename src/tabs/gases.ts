@@ -71,7 +71,7 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void; dest
       const W = canvas.width, Hh = canvas.height;
       const boxW = W * (0.3 + 0.7 * (V - 5) / 45); // box width tracks V
       ctx.clearRect(0, 0, W, Hh);
-      ctx.strokeStyle = '#3a4a5d'; ctx.strokeRect(1, 1, boxW - 2, Hh - 2);
+      ctx.strokeStyle = '#55627a'; ctx.strokeRect(1, 1, boxW - 2, Hh - 2);
       ctx.fillStyle = '#6fc3ff';
       for (const p of pts) {
         p.x += p.vx; p.y += p.vy;
@@ -251,9 +251,9 @@ function makePhase(): HTMLElement {
     const X = (T: number) => 40 + ((T - d.tMin) / (d.tMax - d.tMin)) * (W - 55);
     const Y = (lp: number) => Hh - 30 - ((lp + 4) / 7) * (Hh - 45);
     ctx.clearRect(0, 0, W, Hh);
-    ctx.strokeStyle = '#3a4a5d';
+    ctx.strokeStyle = '#55627a';
     ctx.strokeRect(40, 15, W - 55, Hh - 45);
-    ctx.font = '10px monospace'; ctx.fillStyle = '#5a6a7d'; ctx.textAlign = 'center';
+    ctx.font = '10px monospace'; ctx.fillStyle = '#8b9bb0'; ctx.textAlign = 'center';
     for (let i = 0; i <= 5; i++) {
       const T = d.tMin + (i / 5) * (d.tMax - d.tMin);
       ctx.fillText(T.toFixed(0) + '°C', X(T), Hh - 16);

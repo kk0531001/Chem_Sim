@@ -180,6 +180,7 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
         e.handle = handle ?? undefined;
         typesetMath(e.root);
         labelCanvases(e.root);
+        markScrollableTables(e.root);
         // show() already ran its onShow before the module landed, with nothing
         // to call. Fire it now if this tab is still the one on screen.
         if (currentId === id) runLifecycle(id, 'onShow', e.handle);
@@ -189,6 +190,19 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
         if (mounted instanceof Promise) {
           entry = { root };
           roots.set(id, entry);
+          // A lazily-imported module arrives a chunk-fetch later. Until it does
+          // the panel is empty, which reads as "this page is broken" — the exact
+          // impression D.0 was about. role="status" (not "alert") so a screen
+          // reader hears it once, politely, and aria-busy marks the region as
+          // still filling in.
+          const skeleton = h('div', { class: 'tab-loading', role: 'status', 'aria-busy': 'true' },
+            h('span', { class: 'tab-loading-bar' }),
+            h('span', { class: 'tab-loading-bar' }),
+            h('span', { class: 'tab-loading-bar' }),
+            h('span', { class: 'sr-only' }, `Loading ${def.label ?? id}\u2026`),
+          );
+          root.appendChild(skeleton);
+          mounted.then(() => skeleton.remove(), () => skeleton.remove());
           mounted.then(settle, failMount);
         } else {
           entry = { root, handle: mounted ?? undefined };
@@ -213,6 +227,7 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
     if (activeEntry.failed) return;
     runLifecycle(id, 'onShow', activeEntry.handle);
     labelCanvases(activeEntry.root); // catches canvases the tab created after mount
+    markScrollableTables(activeEntry.root);  // measurable only now the root is displayed
     const btn = buttons.get(id);
     btn?.classList.add('active');
     // the active item is the current PAGE (each topic has its own URL), not
@@ -1015,6 +1030,7 @@ export function pills(sections: { label: string; el: HTMLElement }[]): HTMLEleme
     });
     sections.forEach((s, j) => { s.el.hidden = j !== i; });
     labelCanvases(sections[i].el);
+    markScrollableTables(sections[i].el);   // a panel just un-hidden can be measured
     if (moveFocus) btns[i].focus();
   }
   activate(0);
@@ -1058,6 +1074,35 @@ export function labelCanvases(root: HTMLElement): void {
     c.setAttribute('aria-label', name ?? 'Figure');
   }
 }
+
+/**
+ * A table that scrolls sideways inside its card is unreachable by keyboard
+ * unless something can focus the scroll container (WCAG 2.1.1 — Firefox does
+ * this for you, Chrome does not). Give one a tab stop only while it actually
+ * overflows: an unconditional tabindex would add ~20 dead stops per page for
+ * tables that fit.
+ */
+export function markScrollableTables(root: ParentNode = document): void {
+  for (const t of Array.from(root.querySelectorAll<HTMLElement>('.ref-table, .table-scroll'))) {
+    const scrolls = t.scrollWidth > t.clientWidth + 1;
+    if (scrolls === t.hasAttribute('tabindex')) continue;
+    if (scrolls) {
+      t.setAttribute('tabindex', '0');
+      t.setAttribute('role', 'region');
+      if (!t.hasAttribute('aria-label')) t.setAttribute('aria-label', `${nearestHeading(t) ?? 'Data'} table, scrollable`);
+    } else {
+      t.removeAttribute('tabindex');
+      t.removeAttribute('role');
+    }
+  }
+}
+// Overflow is a function of viewport width, so the pass has to re-run on resize
+// — a table that fits on a laptop overflows the moment the window is narrowed.
+let resizePass = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(resizePass);
+  resizePass = setTimeout(() => markScrollableTables(), 150) as unknown as number;
+});
 
 // ---- tiny canvas plotting ----
 export interface Series {

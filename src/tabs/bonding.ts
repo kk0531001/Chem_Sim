@@ -115,7 +115,7 @@ function moDiagram(canvas: HTMLCanvasElement, sp: MOSpecies): string {
     ctx.fillText(mo.name, x0 + totalW + 10, y + 4);
     ctx.textAlign = 'start';
   });
-  ctx.fillStyle = '#5a6a7d';
+  ctx.fillStyle = '#8b9bb0';
   ctx.fillText(piBelow ? 'π2p below σ2p (Z ≤ 7: s–p mixing)' : 'σ2p below π2p (O, F, Ne)', 10, 14);
 
   const mag = unpaired > 0 ? `paramagnetic (${unpaired} unpaired)` : 'diamagnetic';

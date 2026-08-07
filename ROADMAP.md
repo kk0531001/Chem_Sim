@@ -2086,17 +2086,38 @@ was that the **homepage** still dragged the whole corpus into the entry chunk.
       it is a real refactor (the client is constructed at module load and used
       synchronously), not a one-liner.
 
-### D.11 Accessibility, second pass — **[ ]**
+### D.11 Accessibility, second pass — **[x] DONE**
 
-Phase 0.3 did the first. The new surfaces need the same treatment:
+Phase 0.3 did the first. The new surfaces got the same treatment:
 
-- [ ] Collapsible nav, 404 view, filters and skeletons: keyboard reachable,
-      labelled, focus visible
-- [ ] Contrast audit on the dark instrument panels (the canvases sit at the edge
-      of AA on `--panel`)
-- [ ] Responsive tables everywhere, not only where an overflow was noticed
-- [ ] `prefers-reduced-motion` respected by the homepage scroll-reveal and every
-      sim animation
+- [x] Collapsible nav (native `<details>`/`<summary>`, keyboard-operable with no
+      focus management to get wrong), 404 view, and the question-bank filters:
+      every focusable control on those routes has an accessible name — checked
+      in the browser, not by eye.
+- [x] **Loading skeleton for lazily-imported tabs.** Between the click and the
+      chunk arriving the panel was simply empty, which reads as a broken page —
+      the exact impression D.0 existed to remove. Three shimmer bars plus a
+      `role="status"` / `aria-busy` region announcing "Loading <module>…".
+- [x] **Contrast audit on the dark instrument panels.** The canvas colours are
+      written inline in each tab, so no stylesheet audit could see them. Seven
+      failures found and fixed: `#5a6a7d` was being used for canvas *text* in
+      bonding, gases and quantum at 3.36:1, and `#3a4a5d` for the gas box
+      outline and the inactive energy levels at 2.05:1. Now `#8b9bb0` (6.57:1)
+      for text and `#55627a` (3.03:1) for lines. The check is section 6 of
+      `audit-content.mjs`, so it stays true: only `fillStyle` can paint text
+      (`fillText` uses the fill colour), so a `strokeStyle` is always judged at
+      the 3:1 graphic threshold, and the two backdrop colours are exempt.
+- [x] **Responsive tables everywhere, not only where an overflow was noticed.**
+      D.9 wrapped the 26 string-built tables; the 19 built with `h('table')`
+      could not be wrapped by an audit, so `.ref-table` now carries its own
+      `overflow-x` (`display:block; width:max-content; min-width:100%`). A table
+      that overflows also gets `tabindex="0"` + `role="region"` from
+      `markScrollableTables()` — a scroll container is unreachable by keyboard
+      in Chrome otherwise — and only while it overflows, so tables that fit
+      don't add ~20 dead tab stops per page. Re-runs on resize.
+- [x] `prefers-reduced-motion` — already respected by the homepage reveal, the
+      global CSS block, and every self-animating sim through `playPause()`.
+      Verified at 375 px: no route scrolls the page horizontally.
 
 ### D.12 Launch readiness — **[ ] the gate**
 
