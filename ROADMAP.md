@@ -2181,20 +2181,58 @@ real students.
 
 ---
 
-## Phase E — Progress, visible (1 week) · *was "Phase 4", then Phase D*
+## Phase E — Progress, visible — **[x] DONE**
 
 Accounts already exist. This is the **display layer** over Phase A's attempt log —
 which is why it must come after A, and why it's one week rather than three.
 
-- [ ] Dashboard route (`/progress`) — topics covered, accuracy, attempt count
-- [ ] Per-topic mastery bars in the sidebar and on topic cards
-- [ ] **Weak topics** — `accuracyByTopic()` sorted ascending, top 3 surfaced
-- [ ] **Quiz history** — recent attempts, filterable, with the ability to retry
-      exactly the ones you got wrong
-- [ ] **Streak** — consecutive days with ≥1 attempt, from `answered_at`
-- [ ] **Bookmarks** — `bookmarks` table, same RLS pattern; bookmark button on
-      topics and individual questions
-- [ ] Completed-lesson marking (explicit, plus auto when the quiz is finished)
+- [x] Dashboard route (`/progress`) — [progressPage.ts](src/progressPage.ts),
+      lazily imported by main.ts because it reads the corpus. Four bands:
+      instrument panel, weak topics, mastery, history (+ bookmarks when any).
+- [x] Per-topic mastery bars on topic cards — `progressStrip()` in
+      [topics.ts](src/topics.ts), on the one shared card renderer.
+- [x] **Weak topics** — `weakTopics(3)`, each with a one-click practice set.
+- [x] **Quiz history** — last 50, filterable to wrong-only, plus "retry the N
+      you got wrong".
+- [x] **Streak** — `streakDays()` was already there; `bestStreak()` is new, and
+      walks the day KEYS rather than the attempt window so it survives the cap.
+- [x] **Bookmarks** — `bookmarks` table + RLS ([SUPABASE_SETUP.md](SUPABASE_SETUP.md) §2c),
+      buttons on every quiz question, every written problem, and every module.
+- [x] Completed-lesson marking — **auto only**, see below.
+
+**Three decisions that were not on the list.**
+
+**1. The mastery list is keyed by exam topic, not module.** The roadmap asked
+for per-topic bars and the obvious reading was "one row per module", but the
+attempt log records `toExamTopic(q.topic)` — so `thermo1` and `thermo2` both
+write into `thermo` and a per-module accuracy column would have printed the
+same number twice and presented it as two measurements. Coverage and accuracy
+now share one key (the twelve `ExamTopicId`s), and modules get a coverage bar on
+their card, where there is nothing to be wrong about.
+
+**2. "Practice these" and "retry the wrong ones" are LINKS, not features.** D.8's
+results view already renders any corpus slice and already restores its filters
+from the query string, so the dashboard opens
+`/topic/qbank?part=results&status=wrong` and the work is done. What this cost
+was one real fix: `navigate()` discarded the search string and `showRoute`'s
+canonical `replaceState` stripped it again before the lazily-mounted tab could
+read it. Both now carry it — that is the whole of the retry-wrong feature.
+
+**3. Completed-lesson marking is automatic, with no manual override.** A module
+is complete when its quiz bank is fully solved; the card says so. An explicit
+toggle would be a second store answering a question the first one already
+answers, and the two would disagree the moment a bank grew.
+
+Also worth recording: **`MODULE_QUIZ_SIZE` in content/counts.ts** is the card
+bars' denominator, stated rather than derived for the D.10 reason (the homepage
+cannot import the banks to count them), and checked by `auditCorpus()` — five
+banks are larger than 25, so a constant would have shown "27/25". Solved counts
+come from `solvedWithPrefix()`, which counts by id namespace instead of
+enumerating questions, for the same reason.
+
+Verified: `tsc --noEmit` clean, `npm run audit` clean (172 router checks), zero
+console errors across `/`, `/menu`, `/progress`, a topic, the question bank and
+a 404, and no horizontal overflow at 375 px.
 
 ---
 

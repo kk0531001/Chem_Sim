@@ -79,6 +79,33 @@ This table is optional in the same way the rest of cloud sync is — without it
 (or without the env vars) the app still tracks attempts in localStorage and
 just doesn't sync them.
 
+## 2c. Create the `bookmarks` table (run the SQL)
+
+What the student has flagged to come back to — questions *and* whole modules.
+One store for both: a module id (`coordchem`) can never collide with a question
+id (`coo-014`), and a second table would mean a second sync path for a set of
+strings.
+
+```sql
+create table if not exists public.bookmarks (
+  user_id uuid not null references auth.users (id) on delete cascade,
+  question_id text not null,
+  created_at timestamptz not null default now(),
+  -- One row per user per item, so the app can upsert without checking first.
+  primary key (user_id, question_id)
+);
+
+alter table public.bookmarks enable row level security;
+
+create policy "users manage their own bookmarks"
+  on public.bookmarks for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+```
+
+Optional like the rest: without it, bookmarks live in localStorage and simply
+don't follow the user to another device.
+
 ## 3. Get your two keys
 
 **Settings → API** (or **Project Settings → API**):

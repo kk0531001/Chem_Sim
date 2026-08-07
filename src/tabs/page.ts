@@ -19,6 +19,7 @@
 import { h, card } from './framework';
 import { challengeLadder } from './challenge';
 import { topicById, type Ref } from '../topics';
+import { isBookmarked, toggleBookmark } from '../progress';
 
 /**
  * The official problem archives, shown under every module's reading list.
@@ -142,9 +143,22 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   const frag = document.createDocumentFragment();
 
   if (meta) {
+    // Module-level bookmark (E.5). It shares the question bookmark store —
+    // module ids and question ids can't collide — so "saved" means one thing
+    // across the site and the dashboard lists both from one read.
+    const bmBtn = h('button', { type: 'button', class: 'topic-bookmark', 'aria-pressed': 'false' });
+    const syncBm = (): void => {
+      const on = isBookmarked(id);
+      bmBtn.classList.toggle('on', on);
+      bmBtn.setAttribute('aria-pressed', String(on));
+      bmBtn.textContent = on ? 'Saved' : 'Save for later';
+    };
+    bmBtn.addEventListener('click', () => { toggleBookmark(id); syncBm(); });
+    syncBm();
     frag.append(h('section', { class: 'topic-intro' },
       h('h2', { class: 'sr-only' }, `About ${meta.title}`),
       h('p', { html: meta.intro }),
+      bmBtn,
     ));
   }
   frag.append(...(Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory]));

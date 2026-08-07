@@ -18,7 +18,7 @@ import {
   type Comp, type ExamTopicId, type QuizModuleId, type Tier,
 } from './topicIds';
 import { TOPICS, topicById } from '../topics';
-import { CORPUS_COUNTS } from './counts';
+import { CORPUS_COUNTS, MODULE_QUIZ_SIZE } from './counts';
 
 // ---- quiz banks (one per topic module) ----
 import { QUANTUM_QUIZ, BONDING_QUIZ, STOICH_QUIZ, THERMO1_QUIZ, THERMO2_QUIZ, EQUILIBRIUM_QUIZ } from '../tabs/questions1';
@@ -293,6 +293,19 @@ export function auditCorpus(): string[] {
   for (const k of ['mc', 'frq', 'papers'] as const) {
     if (CORPUS_COUNTS[k] !== real[k]) problems.push(`CORPUS_COUNTS.${k} says ${CORPUS_COUNTS[k]}, the corpus has ${real[k]} — update src/content/counts.ts`);
   }
+  // The topic cards' progress bars read their denominator from MODULE_QUIZ_SIZE
+  // (the homepage cannot import the banks to count them). A stale entry there
+  // shows "26/25 solved" on a card, which is worse than showing nothing.
+  for (const [module, bank] of Object.entries(QUIZ_BANKS)) {
+    const stated = MODULE_QUIZ_SIZE[module];
+    if (stated !== bank.length) {
+      problems.push(`MODULE_QUIZ_SIZE.${module} says ${stated ?? 'nothing'}, the bank has ${bank.length} — update src/content/counts.ts`);
+    }
+  }
+  for (const module of Object.keys(MODULE_QUIZ_SIZE)) {
+    if (!(module in QUIZ_BANKS)) problems.push(`MODULE_QUIZ_SIZE has "${module}", which is not a module with a quiz bank`);
+  }
+
   const seen = new Map<string, string>();
   for (const q of ALL_MC) {
     if (!q.id) { problems.push(`MC with no id: "${q.q.slice(0, 60)}"`); continue; }

@@ -10,7 +10,7 @@ import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
 import { INTEGRATED_SETS } from './bankIntegrated';
 import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
-import { isSolved, markSolved, unmarkSolved, wrongQuestionIds } from '../progress';
+import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, isBookmarked, toggleBookmark } from '../progress';
 import { tierOf, compsOf, query, type Indexable } from '../content/registry';
 import {
   COMPS, COMP_LABEL, DOMAINS, EXAM_TOPIC_IDS, EXAM_TOPIC_LABEL, TIER_LABEL,
@@ -52,6 +52,14 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
       solveBtn.className = done ? 'btn primary' : 'btn';
     }
     syncSolveBtn();
+    const bmBtn = button('', () => { toggleBookmark(id); syncBmBtn(); });
+    function syncBmBtn(): void {
+      const on = isBookmarked(id);
+      bmBtn.textContent = on ? 'Bookmarked — click to remove' : 'Bookmark';
+      bmBtn.className = on ? 'btn primary' : 'btn';
+      bmBtn.setAttribute('aria-pressed', String(on));
+    }
+    syncBmBtn();
     holder.replaceChildren(
       h('h3', {}, f.title),
       h('div', { class: 'result', html: f.prompt }),
@@ -65,7 +73,7 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
         });
         return h('div', { style: 'margin-top:14px' }, h('p', { html: `<b>${p.q}</b>` }), btn, sol);
       }),
-      h('div', { style: 'margin-top:16px' }, solveBtn),
+      h('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;margin-top:16px' }, solveBtn, bmBtn),
     );
     // Typeset immediately (prompt + pre-built, still-hidden solutions) rather
     // than waiting on the rAF-based observer, which can flash raw \( … \).
@@ -100,16 +108,14 @@ function officialPapersPanel(): HTMLElement {
 // (compsOf/tierOf), topic is indexed, and `completed` / `incorrect` read the
 // Phase-A progress store directly. Only **bookmarked** needs a store nothing
 // writes yet, so it is behind the capability check below rather than faked.
-type Status = 'any' | 'done' | 'wrong' | 'todo';
+type Status = 'any' | 'done' | 'wrong' | 'todo' | 'saved';
 const STATUS_LABEL: Record<Status, string> = {
   any: 'Any status',
   done: 'Completed',
   wrong: 'Answered incorrectly',
   todo: 'Not yet attempted',
+  saved: 'Bookmarked',
 };
-
-/** Phase E adds the bookmark store; until then the filter would be a lie. */
-const BOOKMARKS_AVAILABLE = false;
 
 export const qbankTab: TabDef = {
   id: 'qbank',
@@ -160,10 +166,7 @@ export const qbankTab: TabDef = {
       v => { tier = v === 'any' ? 'any' : (Number(v) as Tier); render(); }, 'any');
 
     const statusCtl = select('progress',
-      [
-        ...(Object.keys(STATUS_LABEL) as Status[]).map(s => ({ value: s, label: STATUS_LABEL[s] })),
-        ...(BOOKMARKS_AVAILABLE ? [{ value: 'saved', label: 'Bookmarked' }] : []),
-      ],
+      (Object.keys(STATUS_LABEL) as Status[]).map(s => ({ value: s, label: STATUS_LABEL[s] })),
       v => { status = v as Status; render(); }, 'any');
 
     function clearFilters(): void {
@@ -203,6 +206,7 @@ export const qbankTab: TabDef = {
       // ago can rotate out of the log and reappear here. Better an honest
       // approximation than an unbounded log to make it exact.
       if (status === 'todo' && (isSolved(q.id) || wrong.has(q.id))) return false;
+      if (status === 'saved' && !isBookmarked(q.id)) return false;
       return true;
     }
     const applyFilters = <T extends Indexable>(items: T[]): T[] => {

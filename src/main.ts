@@ -2,7 +2,7 @@ import './style.css';
 import { initTabs, h, autoTypeset, type TabDef, type TabsAPI } from './tabs/framework';
 import { buildHome, TILE_HTML } from './home';
 import { buildMenuPage } from './menu';
-import { initRouter, navigate, onRouteChange, routeToPath, type Route } from './router';
+import { initRouter, navigate, onRouteChange, parseRoute, routeToPath, type Route } from './router';
 import { TOPICS, topicById, difficultyBadges } from './topics';
 import { CLOCK_ICON, ARROW_ICON, topicIconSVG } from './icons';
 import { initProgress, needsIdMigration } from './progress';
@@ -78,6 +78,7 @@ const viewEl = document.getElementById('view')!;
 const brandEl = document.getElementById('brand')!;
 const homeLinkEl = document.getElementById('home-link')!;
 const menuLinkEl = document.getElementById('menu-link')!;
+const progressLinkEl = document.getElementById('progress-link')!;
 const crumbEl = document.getElementById('topic-crumb')!;
 const prereqEl = document.getElementById('topic-prereq')!;
 const footerEl = document.getElementById('topic-footer')!;
@@ -135,6 +136,27 @@ document.body.prepend(home);
 const menuPage = buildMenuPage(id => navigate({ kind: 'topic', id }), () => navigate({ kind: 'home' }));
 menuPage.hidden = true;
 document.body.appendChild(menuPage);
+
+// The dashboard reads the whole corpus (to count what a topic contains and to
+// name the questions in the history list), so it is loaded on FIRST VISIT to
+// /progress rather than statically — the same rule that keeps the homepage off
+// the question banks. Built once and then kept: it re-renders itself from the
+// progress store, so there is nothing to rebuild on a second visit.
+let progressPage: HTMLElement | null = null;
+let progressLoading = false;
+function showProgressPage(): void {
+  if (progressPage) { progressPage.hidden = false; return; }
+  if (progressLoading) return;
+  progressLoading = true;
+  void import('./progressPage').then(m => {
+    progressPage = m.buildProgressPage();
+    // A slow import can land after the user has already navigated on; only
+    // reveal it if /progress is still the route being shown.
+    progressPage.hidden = parseRoute(location.pathname).kind !== 'progress';
+    document.body.appendChild(progressPage);
+    autoTypeset(progressPage);
+  }).finally(() => { progressLoading = false; });
+}
 
 function updateTopicChrome(tabId: string): void {
   const idx = TOPICS.findIndex(t => t.id === tabId);
@@ -280,6 +302,8 @@ function showRoute(route: Route): void {
   menuPage.hidden = route.kind !== 'menu';
   notFoundEl.hidden = route.kind !== 'notfound';
   viewEl.hidden = route.kind === 'notfound';
+  if (route.kind === 'progress') showProgressPage();
+  else if (progressPage) progressPage.hidden = true;
 
   if (route.kind === 'notfound') {
     appEl.hidden = false;
@@ -293,7 +317,9 @@ function showRoute(route: Route): void {
     appEl.hidden = true;
     tabs?.suspend();
     lastTopicId = null;
-    document.title = route.kind === 'menu' ? `All Topics — ChemPrep` : BASE_TITLE;
+    document.title = route.kind === 'menu' ? 'All Topics — ChemPrep'
+      : route.kind === 'progress' ? 'Your Progress — ChemPrep'
+      : BASE_TITLE;
     return;
   }
   if (!VALID_IDS.has(route.id)) {
@@ -321,7 +347,11 @@ function showRoute(route: Route): void {
   // wherever the old page's focus happened to be.
   const topic = topicById(route.id);
   const canonicalPath = routeToPath(route);
-  if (location.pathname !== canonicalPath) history.replaceState({}, '', canonicalPath);
+  // The search string is CARRIED, not dropped: a tab can be handed a prepared
+  // view through it (the dashboard opens qbank on a filtered results page), and
+  // that tab reads location.search when it mounts — which happens after this,
+  // because tabs load lazily.
+  if (location.pathname !== canonicalPath) history.replaceState({}, '', canonicalPath + location.search);
   document.title = topic ? `${topic.title} — ChemPrep` : BASE_TITLE;
   if (lastTopicId && lastTopicId !== route.id) mainEl.focus({ preventScroll: true });
   lastTopicId = route.id;
@@ -333,6 +363,7 @@ showRoute(initRouter());
 brandEl.addEventListener('click', () => navigate({ kind: 'home' }));
 homeLinkEl.addEventListener('click', () => navigate({ kind: 'home' }));
 menuLinkEl.addEventListener('click', () => navigate({ kind: 'menu' }));
+progressLinkEl.addEventListener('click', () => { closeDrawer(); navigate({ kind: 'progress' }); });
 
 // ---- LaTeX / mhchem typesetting (KaTeX) across app view, home, and menu ----
 autoTypeset(viewEl, home, menuPage);

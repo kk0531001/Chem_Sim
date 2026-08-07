@@ -295,9 +295,50 @@ export const topicBySlug = (slug: string): TopicMeta | undefined => topicsBySlug
 // ---- shared card renderer (homepage teaser grid + menu directory) ----
 import { h } from './tabs/framework';
 import { topicIconSVG, CLOCK_ICON } from './icons';
+import { ID_PREFIX } from './content/topicIds';
+import { MODULE_QUIZ_SIZE } from './content/counts';
+import { solvedWithPrefix, onProgressChange } from './progress';
 
 export function difficultyBadges(diff: string[]): HTMLElement[] {
   return diff.map(d => h('span', { class: `badge badge-${d.toLowerCase()}` }, d));
+}
+
+/**
+ * The card's progress strip (ROADMAP E.3) — how much of this module's quiz is
+ * solved, and a "Complete" mark once all of it is.
+ *
+ * Counted by ID NAMESPACE rather than by enumerating the bank's questions:
+ * these cards render on the homepage and the menu, which are barred from
+ * importing the corpus (D.10). `solvedWithPrefix` + `MODULE_QUIZ_SIZE` answer
+ * it from two small tables instead of 1.16 MB of questions.
+ *
+ * A module with nothing solved shows NOTHING, not an empty bar — a first
+ * visitor would otherwise meet a wall of twenty-five zeroes, which reads as a
+ * debt rather than an invitation. The strip appears when there is progress to
+ * report, and updates in place because the cards are built before
+ * `initProgress()` has finished loading.
+ */
+function progressStrip(id: string): HTMLElement | null {
+  const prefix = ID_PREFIX[id as keyof typeof ID_PREFIX];
+  const total = MODULE_QUIZ_SIZE[id];
+  if (!prefix || !total) return null;   // sandbox and qbank have no quiz bank
+
+  const strip = h('div', { class: 'topic-progress', hidden: 'true' });
+  const paint = (): void => {
+    const done = Math.min(solvedWithPrefix(prefix), total);
+    strip.hidden = done === 0;
+    if (done === 0) return;
+    strip.replaceChildren(
+      h('div', { class: 'pbar', role: 'img', 'aria-label': `${done} of ${total} questions solved` },
+        h('div', { class: 'pbar-fill', style: `width:${Math.max(Math.round((done / total) * 100), 2)}%` })),
+      done === total
+        ? h('span', { class: 'topic-progress-done' }, 'Complete')
+        : h('span', { class: 'topic-progress-count' }, `${done}/${total}`),
+    );
+  };
+  paint();
+  onProgressChange(paint);
+  return strip;
 }
 
 export function renderTopicCard(
@@ -322,6 +363,7 @@ export function renderTopicCard(
       h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${t.estMinutes} min`),
       ...difficultyBadges(t.difficulty),
     ),
+    progressStrip(t.id),
     showPrereqs && prereqTitles.length
       ? h('p', { class: 'topic-prereq-line' }, `Prerequisite${prereqTitles.length > 1 ? 's' : ''}: ${prereqTitles.join(', ')}`)
       : null,

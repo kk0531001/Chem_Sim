@@ -26,14 +26,21 @@ function transpile(srcPath, outName, rewrites = []) {
   writeFileSync(join(scratch, outName), out);
 }
 
-// topics.ts pulls in h() and the icon set for renderTopicCard(); neither runs
-// at module load, so a stub is enough to reach TOPICS.
+// topics.ts pulls in h(), the icon set, the id prefixes, the bank sizes and the
+// progress store for renderTopicCard(); none of them runs at module load, so a
+// stub is enough to reach TOPICS. This test is about ROUTES — it must not start
+// dragging in the app's real modules just because a card renderer grew.
 writeFileSync(join(scratch, 'stub.mjs'),
-  'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n');
+  'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n' +
+  'export const ID_PREFIX = {};\nexport const MODULE_QUIZ_SIZE = {};\n' +
+  'export const solvedWithPrefix = () => 0;\nexport const onProgressChange = () => {};\n');
 
 transpile('src/topics.ts', 'topics.mjs', [
   ["'./tabs/framework'", "'./stub.mjs'"],
   ["'./icons'", "'./stub.mjs'"],
+  ["'./content/topicIds'", "'./stub.mjs'"],
+  ["'./content/counts'", "'./stub.mjs'"],
+  ["'./progress'", "'./stub.mjs'"],
 ]);
 transpile('src/router.ts', 'router.mjs', [
   ["'./topics'", "'./topics.mjs'"],

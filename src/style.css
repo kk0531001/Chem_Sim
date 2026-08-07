@@ -611,7 +611,11 @@ body { overflow: hidden; }
 /* ============================================================
    MENU PAGE (full topic directory)
    ============================================================ */
-#menu-page {
+/* Both full-page views scroll INSIDE themselves: <body> is overflow:hidden so
+   the app shell can own the viewport, and a page that relied on the document
+   scrolling would work by accident. */
+#menu-page,
+#progress-page {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -1742,3 +1746,325 @@ body { overflow: hidden; }
   flex: none;
   align-self: flex-start;
 }
+
+/* ============================================================
+   /progress — the dashboard (ROADMAP Phase E)
+
+   Headline figures live on ONE dark instrument panel, which is the
+   house idiom for a numeric readout (canvases, .result blocks). The
+   reading surfaces below it stay paper. Spacing, radius and duration
+   come from the D.7 token scale.
+   ============================================================ */
+
+.progress-title {
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-weight: 700;
+  margin: var(--s-6) 0 var(--s-2);
+}
+.progress-lede { color: var(--ink-dim); max-width: 60ch; }
+.progress-note {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  background: var(--accent-wash);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  font-size: 13.5px;
+  color: var(--ink-dim);
+  max-width: 72ch;
+}
+.progress-note b { color: var(--ink); }
+.progress-signedout { margin-top: var(--s-3); font-size: 13px; color: var(--ink-faint); }
+
+/* ---- instrument panel ---- */
+.readout-panel {
+  margin-top: var(--s-6);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--r-lg);
+  padding: var(--s-5) var(--s-5) var(--s-4);
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1fr 1fr;
+  gap: var(--s-5);
+  align-items: end;
+}
+.readout-label {
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #7d8792;
+  font-weight: 600;
+}
+.readout-value {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--panel-text);
+  margin-top: var(--s-2);
+}
+/* one hero figure per view */
+.readout-lead .readout-value { font-size: 52px; color: var(--accent-on-panel); }
+.readout-value small { font-size: 0.5em; color: #7d8792; margin-left: 2px; font-weight: 400; }
+.readout-sub { font-size: 12px; color: #7d8792; margin-top: var(--s-2); }
+
+.spark-wrap {
+  grid-column: 1 / -1;
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--panel-border);
+}
+.spark-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: #7d8792;
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+}
+.spark svg { display: block; width: 100%; height: 52px; }
+
+/* ---- sections ---- */
+.progress-section { margin-top: var(--s-7); }
+.progress-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--s-5);
+}
+.progress-section-head h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; }
+.progress-section-head p { font-size: 13px; color: var(--ink-faint); }
+
+/* ---- weak topics ---- */
+.weak-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
+.weak-card {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  padding: var(--s-4);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.weak-card h3 { font-family: var(--serif); font-size: 17px; font-weight: 600; }
+.weak-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+.weak-flag-icon { display: flex; }
+.weak-flag-icon svg { width: 13px; height: 13px; }
+.weak-num { font-family: var(--mono); font-size: 26px; font-weight: 500; line-height: 1; }
+.weak-num small { font-size: 0.5em; color: var(--ink-faint); font-weight: 400; }
+.weak-sub { font-size: 12.5px; color: var(--ink-faint); }
+/* keeps the buttons on one line across cards whose blurbs wrap differently */
+.weak-cta { margin-top: auto; }
+
+/* ---- coverage bar (also used on topic cards) ---- */
+.pbar { height: 10px; background: var(--paper-3); border-radius: 2px; overflow: hidden; }
+.pbar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 0 4px 4px 0;   /* rounded data-end, square at the baseline */
+}
+.pbar-fill.zero { background: var(--rule-2); }
+
+/* ---- mastery list (its own table view — the figures are all on screen) ---- */
+.mastery {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.mastery-group {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  padding: var(--s-3) var(--s-4) var(--s-2);
+  background: var(--paper-3);
+  border-bottom: 1px solid var(--rule);
+}
+.mastery-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.3fr) minmax(120px, 2.4fr) 62px 60px;
+  gap: var(--s-4);
+  align-items: center;
+  padding: 11px var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  font-size: 14px;
+}
+.mastery-row:last-child { border-bottom: 0; }
+.mastery-row:hover { background: var(--accent-wash); }
+.mastery-name { overflow: hidden; }
+.mastery-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  text-align: left;
+}
+.mastery-link:hover { color: var(--accent-dark); text-decoration: underline; }
+.mastery-frac,
+.mastery-acc {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;   /* a column of numbers, so aligned */
+  text-align: right;
+  color: var(--ink-dim);
+}
+.mastery-acc.none { color: var(--ink-faint); }
+.mastery-acc.low { color: var(--red); }
+
+/* ---- recent answers ---- */
+.progress-filters {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--s-4);
+}
+.progress-filters .spacer { flex: 1; }
+.history {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.history-row {
+  display: grid;
+  grid-template-columns: 26px 1fr 150px 92px;
+  gap: var(--s-3);
+  align-items: center;
+  padding: 10px var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  font-size: 13.5px;
+}
+.history-row:last-child { border-bottom: 0; }
+.history-row:hover { background: var(--accent-wash); }
+.history-row.clickable { cursor: pointer; }
+.history-q { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-dim); }
+.history-topic { font-size: 12px; color: var(--ink-faint); }
+.history-when {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.history-empty { padding: var(--s-4); }
+/* Right/wrong is a glyph plus a visually-hidden word, never colour alone:
+   --green and --red are ΔE 3.0 apart under deuteranopia. */
+.history-mark { display: flex; align-items: center; justify-content: center; }
+.history-mark svg { width: 14px; height: 14px; }
+.history-mark.ok { color: var(--green); }
+.history-mark.no { color: var(--red); }
+/* No status glyph on a bookmark — there is no right/wrong to report. */
+.bookmark-row { grid-template-columns: 1fr 150px 92px; }
+.bookmark-row .btn { font-size: 12px; padding: 3px 10px; justify-self: end; }
+
+@media (max-width: 860px) {
+  .readout-panel { grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+  .weak-grid { grid-template-columns: 1fr; }
+  .progress-section-head { flex-direction: column; align-items: flex-start; gap: var(--s-1); }
+  .mastery-row {
+    grid-template-columns: 1fr 58px 56px;
+    grid-template-areas: 'n f a' 'b b b';
+    gap: var(--s-2) var(--s-3);
+  }
+  .mastery-name { grid-area: n; }
+  .mastery-row .pbar { grid-area: b; }
+  .mastery-frac { grid-area: f; }
+  .mastery-acc { grid-area: a; }
+  .history-row { grid-template-columns: 24px 1fr 80px; }
+  .bookmark-row { grid-template-columns: 1fr 80px; }
+  .history-topic { display: none; }
+}
+
+/* Topic-card progress strip (E.3). Hidden entirely until there is progress to
+   report — see progressStrip() in topics.ts. */
+.topic-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+}
+.topic-progress .pbar { flex: 1; }
+.topic-progress-count,
+.topic-progress-done {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  flex: none;
+}
+.topic-progress-done {
+  color: var(--green);
+  font-family: var(--sans);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 10.5px;
+}
+
+/* ---- bookmarks (E.5) ---- */
+.quiz-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+.bookmark-btn {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 2px;
+  margin: -2px;
+  color: var(--ink-faint);
+  cursor: pointer;
+  line-height: 0;
+  flex: none;
+  border-radius: var(--r-sm);
+  transition: color var(--t);
+}
+.bookmark-btn svg { width: 16px; height: 16px; display: block; }
+.bookmark-btn:hover { color: var(--accent-dark); }
+/* "On" is the FILLED flag plus aria-pressed, never colour alone. */
+.bookmark-btn.on { color: var(--accent-dark); }
+.bookmark-btn.on svg path { fill: currentColor; }
+.topic-bookmark {
+  appearance: none;
+  margin-top: var(--s-3);
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  background: transparent;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: all var(--t);
+}
+.topic-bookmark:hover { border-color: var(--accent); color: var(--accent-dark); }
+.topic-bookmark.on { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-dark); }

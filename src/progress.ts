@@ -14,6 +14,7 @@ import type { SupabaseClient, User } from '@supabase/supabase-js';
 const LS_KEY = 'chemprep_solved_v1';
 const LS_ATTEMPTS = 'chemprep_attempts_v1';
 const LS_MIGRATED = 'chemprep_idmigration_v1';
+const LS_BOOKMARKS = 'chemprep_bookmarks_v1';
 
 // The one-time text-hash -> explicit-id rename (registry.ts's
 // migrateLegacyProgress) needs the WHOLE question corpus in memory to build its
@@ -63,7 +64,7 @@ function cloud(): Promise<SupabaseClient> | null {
     sb.auth.onAuthStateChange((_event, session) => {
       const wasSignedIn = !!user;
       user = session?.user ?? null;
-      if (user && !wasSignedIn) { void syncWithRemote(); void syncAttempts(); }
+      if (user && !wasSignedIn) { void syncWithRemote(); void syncAttempts(); void syncBookmarks(); }
       fire();
     });
     return sb;
@@ -85,6 +86,11 @@ function hasSessionToRestore(): boolean {
 }
 
 let solved = new Set<string>();
+// Bookmarks hold BOTH question ids and module ids in one set. They never
+// collide (question ids are `<prefix>-<nnn>`, module ids are bare words) and a
+// bookmark means the same thing either way: "come back to this". A second
+// store, a second table and a second sync path would buy nothing.
+let bookmarks = new Set<string>();
 let user: User | null = null;
 const listeners = new Set<() => void>();
 
@@ -121,6 +127,16 @@ function loadLocal(): void {
 }
 function saveLocal(): void {
   try { localStorage.setItem(LS_KEY, JSON.stringify([...solved])); } catch { /* ignore */ }
+}
+
+function loadBookmarks(): void {
+  try {
+    const raw = localStorage.getItem(LS_BOOKMARKS);
+    if (raw) bookmarks = new Set(JSON.parse(raw) as string[]);
+  } catch { /* ignore */ }
+}
+function saveBookmarks(): void {
+  try { localStorage.setItem(LS_BOOKMARKS, JSON.stringify([...bookmarks])); } catch { /* ignore */ }
 }
 
 // ---- attempt log persistence ----
@@ -278,6 +294,48 @@ export function streakDays(): number {
   return streak;
 }
 
+/**
+ * The longest run of consecutive active days ever recorded, anywhere in the
+ * log — the number `streakDays()` is measured against.
+ *
+ * Walks the day KEYS (which are kept for MAX_DAYS ≈ two years) rather than the
+ * attempt window, so it survives the attempt cap. Same noon anchor as
+ * `streakDays`, for the same daylight-saving reason.
+ */
+export function bestStreak(): number {
+  const days = [...activeDays].sort();
+  let best = 0, run = 0, prev = '';
+  for (const d of days) {
+    const expected = prev ? dayKey(new Date(prev + 'T12:00:00').getTime() + 864e5) : '';
+    run = d === expected ? run + 1 : 1;
+    if (run > best) best = run;
+    prev = d;
+  }
+  return best;
+}
+
+/**
+ * Answers per calendar day for the last `n` days, oldest first — the activity
+ * sparkline.
+ *
+ * Counted from the retained attempt WINDOW, not the lifetime aggregates, which
+ * hold no per-day counts. That window is capped (MAX_ATTEMPTS), so a student
+ * who answered more than a thousand questions inside the span will see the
+ * earliest days of it undercounted. The alternative is a per-day counter kept
+ * forever; a sparkline is not worth new permanent state.
+ */
+export function dailyCounts(n = 30): { day: string; n: number }[] {
+  const byDay = new Map<string, number>();
+  for (const a of attempts) byDay.set(dayKey(a.at), (byDay.get(dayKey(a.at)) ?? 0) + 1);
+  const out: { day: string; n: number }[] = [];
+  const noon = new Date(dayKey(Date.now()) + 'T12:00:00').getTime();
+  for (let i = n - 1; i >= 0; i--) {
+    const day = dayKey(noon - i * 864e5);
+    out.push({ day, n: byDay.get(day) ?? 0 });
+  }
+  return out;
+}
+
 /** Questions whose most recent answer was wrong — the personalised review set. */
 export function wrongQuestionIds(): string[] { return [...outstandingWrong]; }
 
@@ -318,6 +376,22 @@ export function remapProgressIds(map: Record<string, string>): number {
 export function isSolved(id: string): boolean { return solved.has(id); }
 export function solvedCount(): number { return solved.size; }
 export function solvedOf(ids: string[]): number { return ids.reduce((n, id) => n + (solved.has(id) ? 1 : 0), 0); }
+
+/**
+ * How many solved questions came from one id namespace — `solvedOf` for
+ * callers that must not load the questions to enumerate their ids.
+ *
+ * The topic cards need this: they render on the homepage, which is barred from
+ * importing the corpus (ROADMAP D.10). Every question id is minted
+ * `<namespace>-<nnn>` and `checkTables()` in topicIds.ts guarantees the
+ * namespaces are unique, so the prefix identifies the bank on its own.
+ */
+export function solvedWithPrefix(prefix: string): number {
+  let n = 0;
+  const p = prefix + '-';
+  for (const id of solved) if (id.startsWith(p)) n++;
+  return n;
+}
 export function onProgressChange(cb: () => void): void { listeners.add(cb); }
 
 export function markSolved(id: string): void {
@@ -336,6 +410,45 @@ export function unmarkSolved(id: string): void {
   fire();
   if (user) void cloud()?.then(sb => sb.from('solved').delete().match({ user_id: user!.id, question_id: id }))
     .then(res => { if (res?.error) console.warn('sync (delete) failed:', res.error.message); });
+}
+
+// ---- bookmarks ----
+// Same shape as the solved set: local first, upsert/delete on the row when
+// signed in, and a full merge on sign-in. Nothing here may throw when cloud
+// sync is unconfigured.
+export function isBookmarked(id: string): boolean { return bookmarks.has(id); }
+export function bookmarkIds(): string[] { return [...bookmarks]; }
+export function bookmarkCount(): number { return bookmarks.size; }
+
+export function toggleBookmark(id: string): boolean {
+  const on = !bookmarks.has(id);
+  if (on) bookmarks.add(id); else bookmarks.delete(id);
+  saveBookmarks();
+  fire();
+  if (user) {
+    void cloud()?.then(sb => on
+      ? sb.from('bookmarks').upsert({ user_id: user!.id, question_id: id })
+      : sb.from('bookmarks').delete().match({ user_id: user!.id, question_id: id }))
+      .then(res => { if (res?.error) console.warn('bookmark sync failed:', res.error.message); });
+  }
+  return on;
+}
+
+async function syncBookmarks(): Promise<void> {
+  const sb = user ? await cloud() : null;
+  if (!sb || !user) return;
+  const { data, error } = await sb.from('bookmarks').select('question_id').eq('user_id', user.id);
+  if (error) { console.warn('bookmark fetch failed:', error.message); return; }
+  const remote = new Set((data ?? []).map(r => r.question_id as string));
+  const localOnly = [...bookmarks].filter(id => !remote.has(id));
+  for (const id of remote) bookmarks.add(id);
+  saveBookmarks();
+  fire();
+  if (localOnly.length) {
+    const { error: upErr } = await sb.from('bookmarks')
+      .upsert(localOnly.map(question_id => ({ user_id: user!.id, question_id })));
+    if (upErr) console.warn('bookmark push failed:', upErr.message);
+  }
 }
 
 // ---- auth ----
@@ -480,11 +593,12 @@ async function syncAttempts(): Promise<void> {
 export async function initProgress(): Promise<void> {
   loadLocal();
   loadAttempts();
+  loadBookmarks();
   fire();
   if (!cloudConfigured || !hasSessionToRestore()) return;
   const sb = await cloud();
   if (!sb) return;
   const { data } = await sb.auth.getSession();
   user = data.session?.user ?? null;
-  if (user) { await syncWithRemote(); await syncAttempts(); }
+  if (user) { await syncWithRemote(); await syncAttempts(); await syncBookmarks(); }
 }

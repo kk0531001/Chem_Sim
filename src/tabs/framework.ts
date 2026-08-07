@@ -1,7 +1,7 @@
 // Tab framework + shared DOM/plot helpers for the topic modules.
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
-import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, onProgressChange } from '../progress';
+import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, onProgressChange, isBookmarked, toggleBookmark } from '../progress';
 import { toExamTopic } from '../content/topicIds';
 import { CHEVRON_ICON } from '../icons';
 import 'katex/dist/katex.min.css';
@@ -379,7 +379,19 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   // a screen reader reads "Question 7 of 25 · olympiad …" and then the new
   // question. That is why the progress line needs no live region of its own —
   // it is never announced out of context, and never mid-typing.
-  const head = h('div', { class: 'quiz-head', tabindex: -1 }, progress, qEl);
+  // Bookmarking is a toggle button, not a link or a checkbox: aria-pressed is
+  // what states "on", and the label has to change with it or a screen-reader
+  // user hears "Bookmark" on a question that already is one.
+  const bmBtn = h('button', { type: 'button', class: 'bookmark-btn', 'aria-pressed': 'false' });
+  bmBtn.addEventListener('click', () => { toggleBookmark(ids[i]); syncBookmark(); });
+  function syncBookmark(): void {
+    const on = i < qs.length && isBookmarked(ids[i]);
+    bmBtn.classList.toggle('on', on);
+    bmBtn.setAttribute('aria-pressed', String(on));
+    bmBtn.innerHTML = BOOKMARK_ICON + `<span class="sr-only">${on ? 'Bookmarked, click to remove' : 'Bookmark this question'}</span>`;
+  }
+  const head = h('div', { class: 'quiz-head', tabindex: -1 },
+    h('div', { class: 'quiz-head-row' }, progress, bmBtn), qEl);
   const optsEl = h('div', { class: 'quiz-opts' });
   const whyEl = h('div', { class: 'quiz-why', 'aria-live': 'polite', 'aria-atomic': 'true' });
   const nextBtn = button('Next question', () => { i++; render(true); }, 'primary');
@@ -403,6 +415,9 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
     whyEl.innerHTML = '';
     whyEl.className = 'quiz-why';
     nextBtn.style.display = 'none';
+    syncBookmark();
+    // Nothing to bookmark on the "Done" screen — it is not a question.
+    bmBtn.hidden = i >= qs.length;
     if (i >= qs.length) {
       setProgress('');
       qEl.innerHTML = `Done — score <b>${score}/${qs.length}</b> ` +
@@ -483,7 +498,9 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
 
 // ---- interactive simulation missions ----
 const CHECK_ICON = '<svg class="mission-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6.5 11.5 3 8l1.1-1.1 2.4 2.4 5.4-5.4L13 5.1z"/></svg>';
-const MISCON_ICON = '<svg class="miscon-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 3a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Zm-.75 2.5h1.5v4.5h-1.5V7.5Z"/></svg>';
+const BOOKMARK_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M4 2.5h8a.5.5 0 0 1 .5.5v10.2a.3.3 0 0 1-.47.25L8 10.6l-4.03 2.85a.3.3 0 0 1-.47-.25V3a.5.5 0 0 1 .5-.5Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+
+const MISCON_ICON ='<svg class="miscon-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 3a.75.75 0 1 1 0 1.5.75.75 0 0 1 0-1.5Zm-.75 2.5h1.5v4.5h-1.5V7.5Z"/></svg>';
 
 export interface MissionMeter {
   label: string;
