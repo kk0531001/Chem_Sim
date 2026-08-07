@@ -2244,22 +2244,58 @@ a 404, and no horizontal overflow at 375 px.
 
 ---
 
-## Phase F — Smarter learning (1–2 weeks) · *was "Phase 5", then Phase E*
+## Phase F — Smarter learning — **[x] DONE**
 
 Every item here is a query against the Phase A registry.
 
-- [ ] **Search** — client-side index over `TOPICS` + `ALL_QUESTIONS` titles and
-      prompt text. Keyboard-first (`/` to focus, arrows, enter). No dependency
-      needed at this size; a scored substring match is enough.
-- [ ] **Learning paths** — ordered topic sequences ("CCC in 6 weeks", "Organic
-      from scratch"). Data, not code: a new array in `topics.ts`.
-- [ ] **Recommended next lesson** — currently strictly linear via `TOPICS` order
-      in [main.ts](src/main.ts). Upgrade to consider prereqs met, weak topics,
-      and completion.
-- [ ] **Personalized review** — auto-built set from wrong answers, oldest-first.
-      This is the highest-value item in the phase; it is what turns the attempt
-      log into actual learning.
-- [ ] **Topic filtering** on the menu page — by group, difficulty, and completion
+- [x] **Search** — [search.ts](src/search.ts). A native `<dialog>`, `/` or
+      ⌘/Ctrl-K from any route, scored substring match, no dependency.
+- [x] **Learning paths** — the data already existed; what was missing was
+      knowing where you are in one. Now: a completion bar, an n/m count, ticked
+      steps and a Start/Continue button ([home.ts](src/home.ts)).
+- [x] **Recommended next lesson** — [recommend.ts](src/recommend.ts), with
+      eleven rules under test in `scripts/test-recommend.mjs`.
+- [x] **Personalized review** — `reviewQueue()` + the question bank's `review`
+      part. Oldest mistake first.
+- [x] **Topic filtering** on the menu page — level, progress and area chips,
+      with the filter state in the query string.
+
+**What the corpus forced.** Search wants every question; the questions are a
+566 kB on-demand chunk (D.10). Indexing at startup would have undone the
+performance phase for a feature most visits never use, so module hits answer
+instantly from the entry chunk and opening the overlay kicks off the corpus
+import — question hits fill into the same list a moment later, with the status
+line saying so. Entry chunk went 399 → 408 kB; the corpus stayed lazy.
+
+**Three things that only showed up by running it.**
+
+1. **Every page recommended the same module.** The weak-topic rule is correct
+   and produced one answer for the whole site, so all 25 footers were identical
+   — which reads as a broken card, not as advice. Gating it on having *finished*
+   the current module fixed it and made the card mean something specific: you
+   are done here, so go where you are weakest. Half a bank was tried first and
+   was not strict enough — most modules sit above half for anyone who has been
+   studying a while.
+2. **`?q=` deep links died on the second visit.** Tabs mount once, so a link
+   into a module already open re-showed the existing tab and no constructor ran.
+   `quiz()` now registers a jump handler and `initTabs` calls it on re-show;
+   both paths end in the same place.
+3. **Closing search stranded focus on the hidden input**, so `/` silently
+   stopped working — the shortcut ignores keys typed in a field and believed the
+   user was in one. `<dialog>` only restores focus when there was somewhere to
+   restore it to, and opening by keyboard means there usually isn't.
+
+**Consolidation.** Four places were computing "how much of this module is
+solved" and were on their way to four different answers; `moduleProgress()` /
+`moduleCompletion()` in topics.ts are now the one definition, returning null
+rather than zero for the sandbox and the question bank, because "no progress"
+and "not a lesson" are different facts.
+
+**Deliberately not built:** highlighting the matched substring in search results
+(question prompts are authoring source — KaTeX, mhchem and inline HTML — and
+highlighting inside that safely is more machinery than the feature is worth),
+and fuzzy matching (a scored substring match over 972 items is not the thing
+that limits this search).
 
 ---
 

@@ -7,6 +7,7 @@ import { TOPICS, topicById, difficultyBadges } from './topics';
 import { CLOCK_ICON, ARROW_ICON, topicIconSVG } from './icons';
 import { initProgress, needsIdMigration, onProgressChange } from './progress';
 import { recommendNext } from './recommend';
+import { initSearch } from './search';
 import { mountSidebarAccountPanel } from './authWidget';
 
 /**
@@ -79,6 +80,7 @@ const viewEl = document.getElementById('view')!;
 const brandEl = document.getElementById('brand')!;
 const homeLinkEl = document.getElementById('home-link')!;
 const menuLinkEl = document.getElementById('menu-link')!;
+const searchLinkEl = document.getElementById('search-link')!;
 const progressLinkEl = document.getElementById('progress-link')!;
 const crumbEl = document.getElementById('topic-crumb')!;
 const prereqEl = document.getElementById('topic-prereq')!;
@@ -388,6 +390,11 @@ brandEl.addEventListener('click', () => navigate({ kind: 'home' }));
 homeLinkEl.addEventListener('click', () => navigate({ kind: 'home' }));
 menuLinkEl.addEventListener('click', () => navigate({ kind: 'menu' }));
 progressLinkEl.addEventListener('click', () => { closeDrawer(); navigate({ kind: 'progress' }); });
+
+// Search is global: the overlay binds `/` and Cmd/Ctrl-K on the document, so it
+// works from the homepage and the menu too, not just inside the app shell.
+const search = initSearch();
+searchLinkEl.addEventListener('click', () => { closeDrawer(); search.open(); });
 
 // ---- LaTeX / mhchem typesetting (KaTeX) across app view, home, and menu ----
 autoTypeset(viewEl, home, menuPage);

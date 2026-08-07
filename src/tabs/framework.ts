@@ -274,6 +274,12 @@ export function initTabs(defs: TabDef[], nav: HTMLElement, view: HTMLElement, on
     btn?.setAttribute('aria-current', 'page');
     revealInNav(id);
     currentId = id;
+    // A `?q=` deep link into an ALREADY-MOUNTED tab: no constructor runs, so
+    // nothing else would move the quiz onto the linked question. On a first
+    // mount this is a no-op — the tab is still importing — and quiz() handles
+    // it itself before its first paint.
+    const linked = new URLSearchParams(location.search).get('q');
+    if (linked) focusQuestion(linked);
   }
 
   // Sidebar items are grouped by chemistry domain, each group a native
@@ -407,6 +413,21 @@ let quizSeq = 0;
  * red backgrounds and nothing else, so each graded button also gets an
  * .sr-only suffix, and the verdict is prepended to the live explanation.
  */
+/**
+ * Every live quiz's "jump to this question id" handler (F.1).
+ *
+ * Bounded by construction: tabs mount at most once each, so this holds one
+ * entry per quiz on the site (~30), not one per navigation. Question ids are
+ * unique corpus-wide, so at most one entry can ever claim a given id.
+ */
+const QUIZZES: ((id: string, repaint: boolean) => boolean)[] = [];
+
+/** Move whichever quiz owns this question id onto it. True if one did. */
+export function focusQuestion(id: string): boolean {
+  for (const jump of QUIZZES) if (jump(id, true)) return true;
+  return false;
+}
+
 export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   let i = 0, score = 0, answered = false;
   // Explicit ids, not qid(q.q). Keying progress on a hash of the prompt meant
@@ -437,6 +458,31 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   const nextBtn = button('Next question', () => { i++; render(true); }, 'primary');
   const wrap = h('div', { class: 'quiz' }, head, optsEl, whyEl, nextBtn);
   onProgressChange(() => { if (i < qs.length) updateProgressLine(); });
+
+  /**
+   * `?q=<id>` opens the quiz ON that question (ROADMAP F.1).
+   *
+   * `jump` is registered globally rather than read only at construction,
+   * because TABS MOUNT ONCE. Searching for a question in a module you have
+   * already opened re-shows the existing tab — no constructor runs, so a
+   * link-time-only read landed on the page but not the question. Both paths now
+   * end up here: a fresh mount jumps before its first paint (no flash of
+   * question 1), and a re-show is driven by initTabs calling focusQuestion.
+   *
+   * The parameter is NOT cleared as the student advances. It records where the
+   * link pointed, so a refresh lands in the same place; treating it as live
+   * position would mean rewriting the URL on every "Next question".
+   */
+  const jump = (id: string, repaint: boolean): boolean => {
+    const at = ids.indexOf(id);
+    if (at < 0) return false;
+    i = at;
+    if (repaint) render(true);
+    // After layout, or the scroll target has no position yet.
+    requestAnimationFrame(() => wrap.scrollIntoView({ block: 'center', behavior: 'auto' }));
+    return true;
+  };
+  QUIZZES.push(jump);
 
   // Options are a named group while they are options; on the "Done" screen the
   // container holds a single Restart button and must not claim to be one.
@@ -532,6 +578,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
     setProgress(`Question ${i + 1} of ${qs.length}${tier} · score ${score} · ${done}/${qs.length} solved`);
   }
 
+  jump(new URLSearchParams(location.search).get('q') ?? '', false);
   render();
   return wrap;
 }

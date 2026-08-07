@@ -33,7 +33,10 @@ const topicLabel = (id: string) =>
 
 // Reusable multi-part free-response browser (Prev / Next + per-part solutions).
 function frqBrowser(items: FRQ[], heading: string): HTMLElement {
-  let idx = 0;
+  // Same `?q=<id>` deep link the quiz honours (F.1) — a search result for a
+  // written problem has to land on that problem, not on problem 1 of 34.
+  const linked = new URLSearchParams(location.search).get('q');
+  let idx = Math.max(0, items.findIndex(f => f.id === linked));
   const holder = h('div', {});
   const pos = h('span', { class: 'muted' });
   const nav = h('div', { style: 'display:flex;align-items:center;gap:10px;margin-bottom:10px' },
