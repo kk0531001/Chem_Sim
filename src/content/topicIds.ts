@@ -80,6 +80,36 @@ export const EXAM_TOPIC_LABEL: Record<ExamTopicId, string> = {
   lab: 'Laboratory',
 };
 
+/**
+ * The exam topics grouped into the site's chemistry domains, for the question
+ * bank's two-level browse (ROADMAP D.8).
+ *
+ * Written down rather than derived. The obvious derivation — take each exam
+ * topic's modules and union their `TopicMeta.group` — is fuzzy where it matters:
+ * `descriptive` reaches modules in three different groups, so the answer would
+ * depend on which module happened to come first. Twelve entries maintained by
+ * hand beat a derivation that is wrong in the interesting cases.
+ */
+export const EXAM_TOPIC_DOMAIN: Record<ExamTopicId, string> = {
+  stoich: 'Foundations',
+  atomic: 'Foundations',
+  bonding: 'Foundations',
+  states: 'Physical Chemistry',
+  thermo: 'Physical Chemistry',
+  kinetics: 'Physical Chemistry',
+  equilibrium: 'Physical Chemistry',
+  acids: 'Physical Chemistry',
+  redox: 'Physical Chemistry',
+  organic: 'Organic Chemistry',
+  descriptive: 'Inorganic Chemistry',
+  lab: 'Laboratory Skills',
+};
+
+/** Domains in display order, each with the exam topics under it. */
+export const DOMAINS: readonly { name: string; topics: readonly ExamTopicId[] }[] =
+  ['Foundations', 'Physical Chemistry', 'Organic Chemistry', 'Inorganic Chemistry', 'Laboratory Skills']
+    .map(name => ({ name, topics: EXAM_TOPIC_IDS.filter(t => EXAM_TOPIC_DOMAIN[t] === name) }));
+
 // `stoich`, `equilibrium` and `bonding` are spelled the same in both unions.
 // That is a coincidence of naming, not an identity — never pass one where the
 // other is expected without going through the maps below.

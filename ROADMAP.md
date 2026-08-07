@@ -1989,16 +1989,42 @@ direct child of a theory body is a heading, list, table or equation, so a naive
 walk counts nothing. The number above comes from counting the text *inside*
 lists, so a 300-word `<ul>` cannot hide.
 
-### D.8 Question bank navigation — **[ ]**
+### D.8 Question bank navigation — **[x] DONE**
 
-The registry already answers these queries (`byTopic`, `byTier`, `byComp`,
-`query`); this is a UI over indexes that exist.
+The registry already answered these queries; this was a UI over indexes that
+exist, and no new index was added.
 
-- [ ] Two-level browse: domain → topic → tier (Bronze/Silver/Gold/Platinum)
-- [ ] Filters: competition · difficulty · topic · completed · **bookmarked** ·
-      **incorrect** · unattempted. The last three read Phase E state — ship the
-      first four now and leave the wiring behind a capability check.
-- [ ] Filter state in the URL query string, so a filtered view is shareable
+- [x] Two-level browse: domain → topic → tier, with per-topic solved counts.
+      `EXAM_TOPIC_DOMAIN` in topicIds.ts is **written down, not derived** — the
+      obvious derivation (union each exam topic's modules' `TopicMeta.group`) is
+      fuzzy exactly where it matters, since `descriptive` reaches modules in
+      three different groups and the answer would depend on which module came
+      first. Twelve hand-maintained entries beat a derivation that is wrong in
+      the interesting cases.
+- [x] **Six of the seven filters shipped, not four.** The roadmap assumed
+      `completed`/`incorrect`/`unattempted` needed Phase E; they don't —
+      `isSolved` and `wrongQuestionIds` are Phase-A progress and already there.
+      Only **bookmarked** needs a store nothing writes yet, and it sits behind
+      `BOOKMARKS_AVAILABLE` rather than being faked.
+- [x] "Not yet attempted" is an approximation and the source says so: it means
+      neither solved nor outstanding-wrong, and the attempt log is deliberately
+      capped, so a question answered wrong long ago can rotate out and reappear
+      as unattempted. An honest approximation beats an unbounded log.
+- [x] Filter state in the query string, both directions. Defaults are omitted
+      rather than written as `any`, so a shared link carries the filters someone
+      chose and not the ones they didn't.
+- [x] Deleted qbank's hard-coded copy of the twelve exam topics (three labels
+      had already drifted from `EXAM_TOPIC_LABEL`) — the exact drift the
+      two-vocabulary rule exists to prevent.
+
+**The browse counts lied in the first version, and fixing that changed the
+design.** Browse counts the whole corpus via `query()`, but the drill-down
+opened Part I — one 110-question bank — so "Stoichiometry · Gold 7" landed on a
+page reading "0 questions", because those seven Gold items live in the module
+quizzes and Part II. Either the browse had to shrink to one bank or the
+destination had to widen to the corpus; the corpus is what the student was
+promised, so drilling down now opens a **results view** that renders matching MC
+through `quiz()` and matching written problems through `frqBrowser()`.
 
 ### D.9 Error audit — **[ ] `scripts/audit-content.mjs`**
 
