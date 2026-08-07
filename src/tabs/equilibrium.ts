@@ -160,6 +160,10 @@ export const equilibriumTab: TabDef = {
       {
         id: 'msn-eq-05',
         prompt: 'Diluting raised the pH (fewer H⁺ overall) <em>and</em> raised the percent ionized at the same time. Is that a contradiction?',
+        hints: [
+          'Percent ionized is a ratio; [H⁺] is an amount. A ratio can rise while the quantity on top falls.',
+          'Kₐ is a constant at fixed temperature — nothing you do with a volumetric flask changes it.',
+        ],
         choices: [
           { label: 'No — a larger share of less acid', value: 'ok' },
           { label: 'Yes — one of them must be wrong', value: 'no' },
@@ -180,10 +184,10 @@ export const equilibriumTab: TabDef = {
       approxValid = okApprox;
       pctIonized = (approxX / C0) * 100;
       iceTable.innerHTML =
-        `<table class="ref-table"><tr><th></th><th>HA</th><th>H⁺</th><th>A⁻</th></tr>` +
+        `<div class="table-scroll"><table class="ref-table"><tr><th></th><th>HA</th><th>H⁺</th><th>A⁻</th></tr>` +
         `<tr><td>Initial</td><td>${C0.toFixed(3)}</td><td>≈0</td><td>0</td></tr>` +
         `<tr><td>Change</td><td>−x</td><td>+x</td><td>+x</td></tr>` +
-        `<tr><td>Equilibrium</td><td>${(C0 - x).toPrecision(3)}</td><td>${x.toPrecision(3)}</td><td>${x.toPrecision(3)}</td></tr></table>`;
+        `<tr><td>Equilibrium</td><td>${(C0 - x).toPrecision(3)}</td><td>${x.toPrecision(3)}</td><td>${x.toPrecision(3)}</td></tr></table></div>`;
       iceOut.innerHTML =
         `exact (quadratic): x = [H⁺] = <b>${x.toPrecision(3)} M</b> → pH = <b class="big">${(-Math.log10(x)).toFixed(2)}</b> · ${pct.toFixed(1)}% ionized<br>` +
         `approximation x ≈ √(K<sub>a</sub>C₀) = ${approxX.toPrecision(3)} — ` +
@@ -343,12 +347,12 @@ export const equilibriumTab: TabDef = {
 <li>Q uses the same expression with current (non-equilibrium) values. Q &lt; K → forward; Q &gt; K → reverse.</li>
 </ul>
 <h4>Le Chatelier — what actually changes K?</h4>
-<table><tr><th>stress</th><th>response</th><th>K changes?</th></tr>
+<div class="table-scroll"><table><tr><th>stress</th><th>response</th><th>K changes?</th></tr>
 <tr><td>add reactant</td><td>shift right</td><td>no</td></tr>
 <tr><td>shrink volume (gas)</td><td>shift to fewer gas moles</td><td>no</td></tr>
 <tr><td>add inert gas, constant V</td><td><b>no shift</b> (concentrations unchanged)</td><td>no</td></tr>
 <tr><td>raise T, endothermic fwd</td><td>shift right</td><td><b>K increases</b></td></tr>
-<tr><td>catalyst</td><td><b>no shift</b> — reaches equilibrium faster</td><td>no</td></tr></table>
+<tr><td>catalyst</td><td><b>no shift</b> — reaches equilibrium faster</td><td>no</td></tr></table></div>
 <h4>Quantitative tools</h4>
 <span class="eq">van 't Hoff: ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁)</span>
 <ul>

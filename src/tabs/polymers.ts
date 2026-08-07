@@ -105,11 +105,11 @@ export const polymersTab: TabDef = {
       quiz: quiz(POLYMERS_QUIZ, 5),
       theory: theory('Theory — polymers (IChO area 12)', `
 <h4>Two mechanisms</h4>
-<table><tr><th></th><th>addition (chain-growth)</th><th>condensation (step-growth)</th></tr>
+<div class="table-scroll"><table><tr><th></th><th>addition (chain-growth)</th><th>condensation (step-growth)</th></tr>
 <tr><td>monomer</td><td>has C=C (vinyl)</td><td>two reactive groups (diol+diacid, diamine+diacid)</td></tr>
 <tr><td>by-product</td><td>none</td><td>small molecule (H₂O, HCl)</td></tr>
 <tr><td>MW vs conversion</td><td>high MW early</td><td>high MW only near 100% conversion</td></tr>
-<tr><td>examples</td><td>PE, PP, PVC, PS, PTFE</td><td>PET, nylon, Bakelite, Kevlar, proteins</td></tr></table>
+<tr><td>examples</td><td>PE, PP, PVC, PS, PTFE</td><td>PET, nylon, Bakelite, Kevlar, proteins</td></tr></table></div>
 <ul>
 <li>Addition sub-types by chain end: radical (peroxide/AIBN), cationic (electron-rich monomer), anionic (electron-poor monomer).</li>
 <li>Carothers: DP = 1/(1−p) for step-growth — stoichiometric balance and high conversion are essential.</li>

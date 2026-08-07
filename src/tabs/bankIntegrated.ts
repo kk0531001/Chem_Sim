@@ -34,8 +34,8 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         id: 'int-thermo-eq-001',
         topic: 'thermo', title: 'ΔH° from the temperature dependence of K',
         prompt: 'For the equilibrium \\(\\ce{N2O4(g) <=> 2NO2(g)}\\), the equilibrium constant \\(K_p\\) was measured at four temperatures:'
-          + '<table style="margin:8px 0;border-collapse:separate;border-spacing:16px 3px"><tr><td>T / K</td><td>298</td><td>320</td><td>340</td><td>360</td></tr>'
-          + '<tr><td>K_p</td><td>0.15</td><td>0.73</td><td>2.59</td><td>7.9</td></tr></table>'
+          + '<div class="table-scroll"><table style="margin:8px 0;border-collapse:separate;border-spacing:16px 3px"><tr><td>T / K</td><td>298</td><td>320</td><td>340</td><td>360</td></tr>'
+          + '<tr><td>K_p</td><td>0.15</td><td>0.73</td><td>2.59</td><td>7.9</td></tr></table></div>'
           + 'A plot of \\(\\ln K_p\\) versus \\(1/T\\) is shown.' + vantHoffPlot,
         parts: [
           { q: '(a) Explain why a graph of ln K vs 1/T is used, and derive what its slope represents.', a: 'The van\'t Hoff equation \\(\\ln K = -\\dfrac{\\Delta H^\\circ}{R}\\cdot\\dfrac{1}{T} + \\dfrac{\\Delta S^\\circ}{R}\\) is linear in \\(1/T\\): plotting \\(\\ln K\\) vs \\(1/T\\) gives a straight line of <b>slope \\(-\\Delta H^\\circ/R\\)</b> and intercept \\(\\Delta S^\\circ/R\\). Linearising lets you extract both thermodynamic quantities from measurements at several temperatures.' },
@@ -173,8 +173,8 @@ export const INTEGRATED_SETS: ProblemSet[] = [
         id: 'int-cft-mag-002',
         topic: 'descriptive', title: 'Identifying complexes from a magnetic data table',
         prompt: 'Room-temperature magnetic moments (octahedral complexes):'
-          + '<table style="margin:8px 0;border-collapse:separate;border-spacing:16px 3px"><tr><td>complex</td><td>A</td><td>B</td><td>C</td><td>D</td></tr>'
-          + '<tr><td>μ_eff / BM</td><td>1.73</td><td>3.87</td><td>4.90</td><td>5.92</td></tr></table>'
+          + '<div class="table-scroll"><table style="margin:8px 0;border-collapse:separate;border-spacing:16px 3px"><tr><td>complex</td><td>A</td><td>B</td><td>C</td><td>D</td></tr>'
+          + '<tr><td>μ_eff / BM</td><td>1.73</td><td>3.87</td><td>4.90</td><td>5.92</td></tr></table></div>'
           + 'Use \\(\\mu = \\sqrt{n(n+2)}\\).',
         parts: [
           { q: '(a) Deduce the number of unpaired electrons in each.', a: '\\(\\sqrt{n(n+2)}\\): 1.73→<b>n=1</b>, 3.87→<b>n=3</b>, 4.90→<b>n=4</b>, 5.92→<b>n=5</b>. (Memorise: 1.73/2.83/3.87/4.90/5.92 for n = 1–5.)' },

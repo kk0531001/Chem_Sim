@@ -200,6 +200,10 @@ function makeAcidBase(): HTMLElement {
     {
       id: 'msn-aek-04',
       prompt: 'Now break it. Using the shock test below, add enough strong base to <b>exceed the buffer\'s capacity</b> entirely.',
+      hints: [
+        'Capacity is a number of moles, not a pH — how many moles of the acid component are there to consume?',
+        'The designer builds the buffer from 0.100 mol of each component, so push the NaOH slider to at least +0.100 mol.',
+      ],
       meter: () => ({ label: `${addX >= 0 ? `+${addX.toFixed(3)} mol NaOH` : `${(-addX).toFixed(3)} mol HCl`} · the buffer holds 0.100 mol of each`, pct: Math.min(100, (Math.abs(addX) / 0.10) * 100) }),
       check: () => Math.abs(addX) >= 0.10,
       explain: 'Past 0.100 mol the acid component is entirely consumed, there is nothing left to neutralise further additions, and the pH runs away exactly as unbuffered water would. <span class="trap">Capacity is set by the number of MOLES of each component, not by the pH the buffer holds.</span> That is why a buffer\'s concentration matters even though its pH does not depend on it.',
@@ -452,11 +456,11 @@ function makeKinetics(): HTMLElement {
   const MYSTERY = [0, 10, 20, 40, 60, 80].map(t => ({ t, A: 1 / (1 + 0.08 * t) }));
   const mysteryTable = h('div', {
     html: '<h3>Unknown sample — what order is it?</h3>'
-      + '<table class="ref-table"><tr><th>t (s)</th>'
+      + '<div class="table-scroll"><table class="ref-table"><tr><th>t (s)</th>'
       + MYSTERY.map(p => `<th>${p.t}</th>`).join('')
       + '</tr><tr><td>[A] (M)</td>'
       + MYSTERY.map(p => `<td>${p.A.toFixed(3)}</td>`).join('')
-      + '</tr></table><p class="muted">Reading an order off raw data is the single most common kinetics task on an olympiad paper. Don\'t guess from the shape of the decay — every order looks like "a curve going down". Test something quantitative.</p>',
+      + '</tr></table></div><p class="muted">Reading an order off raw data is the single most common kinetics task on an olympiad paper. Don\'t guess from the shape of the decay — every order looks like "a curve going down". Test something quantitative.</p>',
   });
 
   const kinMissions = missionLadder([
@@ -471,6 +475,10 @@ function makeKinetics(): HTMLElement {
     {
       id: 'msn-aek-06',
       prompt: 'Still at first order, drag <b>[A]₀</b> across its whole range and watch t½. What happens to it?',
+      hints: [
+        'Read t½ off the readout at the lowest [A]₀ and again at the highest — don\'t infer it from the shape of the curve.',
+        'For first order, t½ = ln2/k. Is [A]₀ anywhere in that expression?',
+      ],
       choices: [
         { label: 'Nothing — t½ is unchanged', value: 'same' },
         { label: 'It doubles when [A]₀ doubles', value: 'up' },
@@ -511,10 +519,10 @@ function makeKinetics(): HTMLElement {
       { xLabel: 't (s)', yLabel: order === 0 ? '[A] — linear!' : order === 1 ? 'ln[A] — linear!' : '1/[A] — linear!' });
     const tHalf = halfLife();
     out.innerHTML =
-      `<table class="ref-table"><tr><th>order</th><th>rate law</th><th>integrated</th><th>linear plot</th><th>t½</th></tr>` +
+      `<div class="table-scroll"><table class="ref-table"><tr><th>order</th><th>rate law</th><th>integrated</th><th>linear plot</th><th>t½</th></tr>` +
       `<tr><td>0</td><td>rate = k</td><td>[A] = [A]₀ − kt</td><td>[A] vs t</td><td>[A]₀/2k</td></tr>` +
       `<tr><td>1</td><td>rate = k[A]</td><td>ln[A] = ln[A]₀ − kt</td><td>ln[A] vs t</td><td>0.693/k (constant!)</td></tr>` +
-      `<tr><td>2</td><td>rate = k[A]²</td><td>1/[A] = 1/[A]₀ + kt</td><td>1/[A] vs t</td><td>1/(k[A]₀)</td></tr></table>` +
+      `<tr><td>2</td><td>rate = k[A]²</td><td>1/[A] = 1/[A]₀ + kt</td><td>1/[A] vs t</td><td>1/(k[A]₀)</td></tr></table></div>` +
       `Current: order ${order}, t½ = <b>${tHalf.toFixed(2)} s</b>. ` +
       (order === 1 ? 'Half-life independent of concentration — the radioactive-decay signature.' :
         order === 2 ? 'Half-life doubles each half-life — decays with a long tail.' :

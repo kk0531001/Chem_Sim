@@ -107,6 +107,10 @@ function makeSlater(): HTMLElement {
     {
       id: 'msn-per-01',
       prompt: 'Check the Z<sub>eff</sub> of <b>Na</b>\'s valence electron, then switch to <b>K</b> — same group, 8 more protons. Is K\'s Z<sub>eff</sub> much bigger, much smaller, or about the same as Na\'s?',
+      hints: [
+        'Read both numbers off the calculator before answering — this one punishes guessing from the proton count.',
+        'Z_eff = Z − S. Going Na → K adds 8 protons, but how much shielding do the 8 extra core electrons contribute?',
+      ],
       meter: () => ({ label: `${ELEMS[Z - 1]}: Zeff = ${slater(Z).zeff.toFixed(2)} — check both Na and K before answering`, pct: 0 }),
       choices: [
         { label: 'Much bigger (8 more protons)', value: 'bigger' },

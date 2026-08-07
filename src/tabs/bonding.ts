@@ -135,6 +135,10 @@ export const bondingTab: TabDef = {
       {
         id: 'msn-bon-01',
         prompt: 'Most shapes with lone pairs on the central atom are polar. Find one of the <b>two</b> shape classes here that has lone pairs on the central atom yet is still NONPOLAR overall.',
+        hints: [
+          'Step through the shapes and watch the polarity label — but ask why, not just which: do the bond dipoles cancel?',
+          'A dipole cancels when the arrangement is symmetric. Where do three lone pairs sit in a trigonal bipyramid, and two in an octahedron?',
+        ],
         meter: () => ({ label: `current: ${curShape} — ${VSEPR.find(v => v.code === curShape)!.polar}, ${VSEPR.find(v => v.code === curShape)!.lp} lone pair(s)`, pct: 0 }),
         choices: [
           { label: 'AX₂E₃ (linear, e.g. XeF₂)', value: 'AX₂E₃' },
@@ -169,6 +173,10 @@ export const bondingTab: TabDef = {
       {
         id: 'msn-bon-02',
         prompt: 'Every species below has an EVEN number of valence electrons — normally a strong hint that all of them pair up. Which one is paramagnetic anyway — the single most famous example of Lewis theory failing where MO theory succeeds?',
+        hints: [
+          'Build each diagram and count unpaired electrons in the filled orbitals — don\'t judge from the Lewis structure.',
+          'Look for a species whose last two electrons land in a degenerate π* pair: Hund\'s rule then puts one in each.',
+        ],
         meter: () => ({ label: `current: ${curMO}`, pct: 0 }),
         choices: [
           { label: 'O₂ (12 valence e⁻)', value: 'O₂' },

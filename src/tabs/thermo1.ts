@@ -126,9 +126,9 @@ export const thermo1Tab: TabDef = {
       const sum = ex.steps.reduce((a, s) => a + s.dH, 0);
       hessBox.innerHTML =
         `<p><b>Target:</b> ${ex.target}</p>` +
-        `<table class="ref-table"><tr><th>step</th><th>ΔH (kJ)</th><th>manipulation</th></tr>` +
+        `<div class="table-scroll"><table class="ref-table"><tr><th>step</th><th>ΔH (kJ)</th><th>manipulation</th></tr>` +
         ex.steps.map(s => `<tr><td>${s.eq}</td><td>${s.dH > 0 ? '+' : ''}${s.dH.toFixed(1)}</td><td>${s.op}</td></tr>`).join('') +
-        `</table><div class="result">Sum: ΔH = <b class="big">${sum > 0 ? '+' : ''}${sum.toFixed(1)} kJ/mol</b> (${sum < 0 ? 'exothermic' : 'endothermic'})</div>` +
+        `</table></div><div class="result">Sum: ΔH = <b class="big">${sum > 0 ? '+' : ''}${sum.toFixed(1)} kJ/mol</b> (${sum < 0 ? 'exothermic' : 'endothermic'})</div>` +
         `<p class="muted">Rules: reverse a step → flip the sign. Multiply a step → multiply ΔH. Enthalpy is a state function, so the path doesn't matter.</p>`;
     };
     const hessCard = card("Hess's law worked examples",
@@ -144,9 +144,9 @@ export const thermo1Tab: TabDef = {
       const sumB = rx.broken.reduce((a, [b, n]) => a + BOND_E[b] * n, 0);
       const sumF = rx.formed.reduce((a, [b, n]) => a + BOND_E[b] * n, 0);
       bondBox.innerHTML =
-        `<table class="ref-table"><tr><th></th><th>bonds</th><th>energy (kJ)</th></tr>` +
+        `<div class="table-scroll"><table class="ref-table"><tr><th></th><th>bonds</th><th>energy (kJ)</th></tr>` +
         `<tr><td>broken (costs)</td><td>${rx.broken.map(([b, n]) => `${n}× ${b} (${BOND_E[b]})`).join(', ')}</td><td>+${sumB}</td></tr>` +
-        `<tr><td>formed (pays back)</td><td>${rx.formed.map(([b, n]) => `${n}× ${b} (${BOND_E[b]})`).join(', ')}</td><td>−${sumF}</td></tr></table>` +
+        `<tr><td>formed (pays back)</td><td>${rx.formed.map(([b, n]) => `${n}× ${b} (${BOND_E[b]})`).join(', ')}</td><td>−${sumF}</td></tr></table></div>` +
         `<div class="result">ΔH ≈ Σ(broken) − Σ(formed) = ${sumB} − ${sumF} = <b class="big">${sumB - sumF > 0 ? '+' : ''}${sumB - sumF} kJ/mol</b></div>` +
         `<p class="muted">Estimates only (~±10%): tabulated bond energies are averages over many molecules. Exothermic = the new bonds are stronger than the old ones.</p>`;
     };

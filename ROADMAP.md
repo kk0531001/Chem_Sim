@@ -1632,7 +1632,7 @@ once, there, not twice:
 | 13 Competition relevance per topic | **G** (`comps` is a filter, never a copy) |
 | 14 SEO, sitemap, canonical, structured data | **I.1** — *except* the canonical-URL work, which D.0 forces early |
 
-### D.0 The "18 of 24 pages are broken" report — **[ ] P0, ~2 hours**
+### D.0 The "18 of 24 pages are broken" report — **[x] DONE** (commit a83495e)
 
 The reviewer's *observation* is real and the *diagnosis* is wrong, so fix the
 right thing. There is no mount failure, no lazy-`import()` rejection, no PixiJS
@@ -1674,7 +1674,7 @@ explanation either.
       wrong guesses (`thermodynamics-i`, `THERMO1`, `/topic/`, `/topic/x/y`).
       Cheap, and it is the exact class of bug that survives eyeballing.
 
-### D.1 Fault tolerance in the tab layer — **[ ] ~1 hour**
+### D.1 Fault tolerance in the tab layer — **[x] DONE** (same commit)
 
 The reviewer's remedy is right even though the premise was wrong: `initTabs` in
 [framework.ts:91](src/tabs/framework.ts) calls `def.mount(root)` with no guard.
@@ -2026,15 +2026,40 @@ destination had to widen to the corpus; the corpus is what the student was
 promised, so drilling down now opens a **results view** that renders matching MC
 through `quiz()` and matching written problems through `frqBrowser()`.
 
-### D.9 Error audit — **[ ] `scripts/audit-content.mjs`**
+### D.9 Error audit — **[x] DONE** — `scripts/audit-content.mjs`
 
-- [ ] Near-duplicate question detection (`auditCorpus` catches duplicate *ids*,
-      not two questions that ask the same thing in different words)
-- [ ] Missing `why`; mission without hints; answer index out of range
-- [ ] Unit and significant-figure check on every numeric answer
-- [ ] KaTeX parse failures collected at build time, not discovered in the browser
-- [ ] Tables that overflow their card (`.table-scroll` missing)
-- [ ] Dead code, unused assets, console errors on every route
+`npm run audit` = the content gate + the D.0 router test. It **exits non-zero**,
+which is the difference between it and `audit-corpus.mjs`: that one is a report
+to triage by hand, this one is a thing that can fail a build. Both now load the
+corpus through the shared `scripts/corpus.mjs` (transpile-to-scratch via the TS
+compiler API) instead of each carrying its own copy of the loader.
+
+- [x] Structural: missing `why`, empty question/option, answer index out of
+      range, duplicate id, FRQ with an unanswered sub-part. All clean.
+- [x] KaTeX/mhchem parse failures at build time. `typesetMath` renders with
+      `throwOnError: false` — correct at runtime, since a bad formula must not
+      blank a page, but it means a malformed formula ships as red text nobody
+      notices. The audit renders every `\(…\)`/`\[…\]`/`$$…$$` segment with
+      `throwOnError: true`. All 972 items clean.
+- [x] Tables without `.table-scroll` — **26 found, all fixed**. 17 were in the
+      exam banks (`bankPart2` alone had 14), the rest in theory blocks in
+      thermo1/aek/equilibrium/nuclear/organic1/organic3/polymers. Every one of
+      them would have pushed the page sideways on a phone.
+- [x] Missions without hints — **7 found, all written** (aek ×2, bonding ×2,
+      equilibrium, gases, periodicity). Missions live in the tab modules, which
+      can't be loaded outside a browser, so this check reads the source text
+      between one `id: 'msn-…'` and the next.
+- [x] No console errors on the routes checked in the dev server.
+
+Two items from the original list were deliberately **not** built:
+
+- **Near-duplicate by meaning.** C.4 already established that a token metric
+  can't see the same fact asked in different words, and `audit-corpus.mjs`
+  already has the Jaccard version for what it *can* catch. The real fix is a
+  per-question fact tag — content work, not a script.
+- **Unit and significant-figure checking.** Not decidable from an option string.
+  A regex version flags hundreds of correct answers, so it would be turned off
+  within a day. Stays part of the human read-through in D.12.
 
 ### D.10 Performance — **[ ]**
 

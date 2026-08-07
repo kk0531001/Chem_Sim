@@ -178,11 +178,11 @@ export const organic1Tab: TabDef = {
       quiz: quiz(ORGANIC1_QUIZ, 5),
       theory: theory('Theory — organic bonding, stereochem quick hits, mechanism summary', `
 <h4>The four mechanisms at a glance</h4>
-<table><tr><th></th><th>rate law</th><th>stereo</th><th>substrate</th><th>needs</th></tr>
+<div class="table-scroll"><table><tr><th></th><th>rate law</th><th>stereo</th><th>substrate</th><th>needs</th></tr>
 <tr><td><b>SN2</b></td><td>k[RX][Nu]</td><td>inversion (backside)</td><td>Me &gt; 1° &gt; 2° (never 3°)</td><td>strong Nu, aprotic best</td></tr>
 <tr><td><b>SN1</b></td><td>k[RX]</td><td>racemization</td><td>3° &gt; 2° (+benzylic/allylic)</td><td>weak Nu, protic, stable cation</td></tr>
 <tr><td><b>E2</b></td><td>k[RX][B]</td><td>anti-periplanar H required</td><td>3° &gt; 2° &gt; 1°</td><td>strong base</td></tr>
-<tr><td><b>E1</b></td><td>k[RX]</td><td>Zaitsev alkene</td><td>3° &gt; 2°</td><td>weak base, heat</td></tr></table>
+<tr><td><b>E1</b></td><td>k[RX]</td><td>Zaitsev alkene</td><td>3° &gt; 2°</td><td>weak base, heat</td></tr></table></div>
 <ul>
 <li>Leaving group quality = weak base: I⁻ &gt; Br⁻ &gt; Cl⁻ ≫ F⁻; TsO⁻ excellent; HO⁻ terrible (protonate it first!).</li>
 <li>Zaitsev (more substituted alkene) vs Hofmann (bulky base → less substituted). E2 on cyclohexanes: leaving group must be axial.</li>

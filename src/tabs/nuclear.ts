@@ -90,11 +90,11 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
     ),
     theory('Nuclear chemistry essentials', `
 <h4>Decay modes — what happens to (Z, A)</h4>
-<table><tr><th>mode</th><th>emits</th><th>Z</th><th>A</th><th>when</th></tr>
+<div class="table-scroll"><table><tr><th>mode</th><th>emits</th><th>Z</th><th>A</th><th>when</th></tr>
 <tr><td>alpha</td><td>⁴₂He</td><td>−2</td><td>−4</td><td>heavy nuclei (Z &gt; 83)</td></tr>
 <tr><td>beta⁻</td><td>e⁻ (n→p)</td><td>+1</td><td>0</td><td>too many neutrons (above belt)</td></tr>
 <tr><td>beta⁺ / EC</td><td>e⁺ (p→n)</td><td>−1</td><td>0</td><td>too many protons (below belt)</td></tr>
-<tr><td>gamma</td><td>photon</td><td>0</td><td>0</td><td>excited nucleus relaxes</td></tr></table>
+<tr><td>gamma</td><td>photon</td><td>0</td><td>0</td><td>excited nucleus relaxes</td></tr></table></div>
 <ul>
 <li>Balance nuclear equations by conserving both A (top) and Z (bottom).</li>
 <li>Belt of stability: light nuclei want N ≈ Z; heavy nuclei want N/Z ≈ 1.5. Magic numbers (2, 8, 20, 28, 50, 82, 126) = extra stability.</li>

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "audit": "node scripts/audit-content.mjs && node scripts/test-router.mjs"
   },
   "devDependencies": {
     "@tweakpane/core": "^2.0.5",

@@ -56,7 +56,7 @@ export const paper2: OlympiadPaper = {
     {
       id: 'mock2-b-003',
       topic: 'kinetics', title: 'B3 — Rate law from initial rates',
-      prompt: 'For \\(\\ce{A + B -> products}\\):<br><table class="ref-table"><tr><th>[A]₀ (M)</th><th>[B]₀ (M)</th><th>rate (M/s)</th></tr><tr><td>0.10</td><td>0.10</td><td>2.0×10⁻³</td></tr><tr><td>0.20</td><td>0.10</td><td>4.0×10⁻³</td></tr><tr><td>0.20</td><td>0.30</td><td>4.0×10⁻³</td></tr></table>',
+      prompt: 'For \\(\\ce{A + B -> products}\\):<br><div class="table-scroll"><table class="ref-table"><tr><th>[A]₀ (M)</th><th>[B]₀ (M)</th><th>rate (M/s)</th></tr><tr><td>0.10</td><td>0.10</td><td>2.0×10⁻³</td></tr><tr><td>0.20</td><td>0.10</td><td>4.0×10⁻³</td></tr><tr><td>0.20</td><td>0.30</td><td>4.0×10⁻³</td></tr></table></div>',
       parts: [
         { q: '(a) Determine the rate law and overall order.', a: 'First order in A, zero order in B → rate = k[A]. Overall order = <b>1</b>.' },
         { q: '(b) Calculate the rate constant k with units.', a: 'k = rate/[A] = 2.0×10⁻³ / 0.10 = <b>2.0×10⁻² s⁻¹</b>.' },

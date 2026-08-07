@@ -353,6 +353,10 @@ function makeCC(): HTMLElement {
     {
       id: 'msn-gases-06',
       prompt: 'Now go the other way. A laboratory autoclave sterilises at <b>2 atm</b>. Set the external pressure there and read off the temperature water boils at.',
+      hints: [
+        'Select water as the liquid first — the boiling point shown belongs to whichever liquid is loaded.',
+        'Boiling happens where the vapour pressure equals the external pressure, so push the external pressure slider up to 2 atm.',
+      ],
       meter: () => ({ label: liq.name === 'water' ? `${Pext.toFixed(2)} atm → boils at ${(boilT() - 273.15).toFixed(1)} °C` : 'select water first', pct: liq.name === 'water' ? Math.min(100, (Pext / 2) * 100) : 0 }),
       check: () => liq.name === 'water' && Pext >= 1.95,
       explain: 'About <b>121 °C</b> — and that is exactly why autoclaves are pressurised. Steam at 121 °C kills bacterial spores that survive at 100 °C indefinitely. A domestic pressure cooker does the same thing at a milder ~1.8 atm to cut cooking times.',

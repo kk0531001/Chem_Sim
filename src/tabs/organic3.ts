@@ -57,10 +57,10 @@ function makeRadicalSelectivity(): HTMLElement {
     const pct = (x: number) => ((x / tot) * 100).toFixed(1);
     out.innerHTML =
       `<span class="eq">\\(\\text{product \\%} = (\\text{number of H of that type}) \\times (\\text{per-H relative rate})\\)</span>` +
-      `<table class="ref-table"><tr><th>site</th><th>#H</th><th>per-H rate</th><th>weight</th><th>% product</th></tr>` +
+      `<div class="table-scroll"><table class="ref-table"><tr><th>site</th><th>#H</th><th>per-H rate</th><th>weight</th><th>% product</th></tr>` +
       `<tr><td>1° (primary)</td><td>${nP}</td><td>${r.p}</td><td>${wp.toFixed(0)}</td><td><b>${pct(wp)}%</b></td></tr>` +
       `<tr><td>2° (secondary)</td><td>${nS}</td><td>${r.s}</td><td>${ws.toFixed(0)}</td><td><b>${pct(ws)}%</b></td></tr>` +
-      `<tr><td>3° (tertiary)</td><td>${nT}</td><td>${r.t}</td><td>${wt.toFixed(0)}</td><td><b>${pct(wt)}%</b></td></tr></table>` +
+      `<tr><td>3° (tertiary)</td><td>${nT}</td><td>${r.t}</td><td>${wt.toFixed(0)}</td><td><b>${pct(wt)}%</b></td></tr></table></div>` +
       (hal.startsWith('Br')
         ? '<span class="muted">Bromination is <b>highly selective</b> — the 3° product dominates even when 3° H are few, because Br• abstraction is endothermic → a late, radical-like TS (Hammond).</span>'
         : '<span class="muted">Chlorination is <b>nearly statistical</b> — with many 1° H, the 1° product often wins despite lower per-H reactivity. Its early TS barely distinguishes the sites.</span>');
