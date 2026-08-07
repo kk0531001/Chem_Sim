@@ -1,7 +1,7 @@
 // Tab framework + shared DOM/plot helpers for the topic modules.
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
-import { isSolved, markSolved, recordAttempt, solvedOf, onProgressChange } from '../progress';
+import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, onProgressChange } from '../progress';
 import { toExamTopic } from '../content/topicIds';
 import { CHEVRON_ICON } from '../icons';
 import 'katex/dist/katex.min.css';
@@ -507,7 +507,19 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
   const solved = defs.map(d => isSolved(d.id));
   const hintIdx = defs.map(() => 0);
   const announce = h('div', { class: 'sr-only', 'aria-live': 'polite', 'aria-atomic': 'true' });
-  const wrap = h('div', { class: 'mission-ladder', role: 'region', 'aria-label': 'Missions' }, announce);
+
+  // ---- pager ----
+  // One mission on screen at a time. A card with three missions stacked was
+  // taller than the simulation it belonged to, which pushed the actual controls
+  // below the fold — the ladder was crowding out the thing it teaches.
+  const pageLabel = h('span', { class: 'mission-page-label' });
+  const prevBtn = h('button', { type: 'button', class: 'btn mission-page-btn', 'aria-label': 'Previous mission' }, '‹');
+  const nextBtn = h('button', { type: 'button', class: 'btn mission-page-btn', 'aria-label': 'Next mission' }, '›');
+  const dots = h('div', { class: 'mission-dots' });
+  const pager = h('div', { class: 'mission-pager' }, prevBtn, pageLabel, dots, nextBtn);
+  let view = 0;
+
+  const wrap = h('div', { class: 'mission-ladder', role: 'region', 'aria-label': 'Missions' }, announce, pager);
 
   interface Row {
     def: MissionDef;
@@ -534,13 +546,38 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
   // second tab, or a cloud sync landing, fires onProgressChange instead.
   function paintSolved(i: number): void {
     const r = rows[i];
-    r.success.innerHTML = `${CHECK_ICON}<span><strong>Mission complete.</strong> ${defs[i].explain ?? ''}</span>`;
+    r.success.replaceChildren(
+      h('span', { html: `${CHECK_ICON}<span><strong>Mission complete.</strong> ${defs[i].explain ?? ''}</span>` }),
+      // Replay exists because a mission could previously complete itself: any
+      // tick where check() happened to pass marked it solved, so a student who
+      // simply dragged a slider across the target arrived at a finished mission
+      // they never attempted. That is fixed going forward, but the stored
+      // completions it already created are permanent without a way out.
+      button('Replay', () => replay(i), 'mission-replay'),
+    );
     r.success.hidden = false;
     r.meterWrap.hidden = true;
     typesetMath(r.success);
     if (r.verifyBtn) r.verifyBtn.disabled = true;
     if (r.choiceBar) for (const b of r.choiceBar.querySelectorAll('button')) b.disabled = true;
     if (r.numInput) r.numInput.disabled = true;
+  }
+
+  /** Put a solved mission back into play, and forget that it was solved. */
+  function replay(i: number): void {
+    const r = rows[i];
+    solved[i] = false;
+    unmarkSolved(defs[i].id);
+    r.success.hidden = true;
+    r.feedback.textContent = '';
+    r.hintBox.hidden = true;
+    r.hintBox.replaceChildren();
+    hintIdx[i] = 0;
+    if (r.verifyBtn) r.verifyBtn.disabled = false;
+    if (r.choiceBar) for (const b of r.choiceBar.querySelectorAll('button')) b.disabled = false;
+    if (r.numInput) { r.numInput.disabled = false; r.numInput.value = ''; }
+    view = i;
+    refreshLocks();
   }
 
   function setSolved(i: number): void {
@@ -550,6 +587,9 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
     paintSolved(i);
     announce.textContent = `Mission complete: ${defs[i].prompt.replace(/<[^>]+>/g, '')}`;
     refreshLocks();
+    // Stay on the mission just solved so its explanation can be read — the
+    // explanation IS the teaching — but tell the reader where to go next.
+    nextBtn.classList.toggle('mission-next-ready', i === view && view < defs.length - 1);
   }
 
   // Redraw one row's proximity meter. Separated from tick() so unlocking a
@@ -574,6 +614,31 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
       r.root.classList.toggle('mission-solved', solved[i]);
       paintMeter(i);
     });
+    paintPager();
+  }
+
+  /** Show only the mission being viewed, and update the pager chrome. */
+  function paintPager(): void {
+    view = Math.max(0, Math.min(defs.length - 1, view));
+    rows.forEach((r, i) => { r.root.hidden = i !== view; });
+    pageLabel.textContent = `Mission ${view + 1} of ${defs.length}`;
+    prevBtn.disabled = view === 0;
+    nextBtn.disabled = view === defs.length - 1;
+    // A dot per mission: filled when solved, ringed for the one you are on.
+    // Cheaper to read at a glance than the label, and it restores the sense of
+    // a LADDER that showing one mission at a time would otherwise lose.
+    dots.replaceChildren(...defs.map((_, i) => {
+      const d = h('button', {
+        type: 'button',
+        class: `mission-dot${solved[i] ? ' done' : ''}${i === view ? ' current' : ''}`,
+        'aria-label': `Mission ${i + 1}${solved[i] ? ', complete' : ''}`,
+        'aria-current': i === view ? 'true' : 'false',
+        onclick: () => { view = i; paintPager(); },
+      });
+      return d;
+    }));
+    // The pager is noise on a single-mission card.
+    pager.hidden = defs.length < 2;
   }
 
   function wrongFeedback(i: number, msg: string): void {
@@ -670,14 +735,33 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
     refreshLocks();
   });
 
+  /**
+   * Repaint the live meters. It does NOT complete anything.
+   *
+   * It used to: any mission without `choices`/`numeric` was marked solved the
+   * instant `check()` returned true on a tick. That sounds generous and is
+   * actually the "missions are already finished" bug — a student dragging a
+   * slider to see what it does sweeps THROUGH the target value, the tick fires
+   * mid-drag, and the mission completes before they have understood, or even
+   * read, what it asked. Measured on a clean profile: sweeping every control
+   * once, as anyone exploring would, self-completed **16 of 68 missions** with
+   * no answer ever submitted. Worse, completion is permanent, so every later
+   * visit shows a mission the student never actually did.
+   *
+   * Completing a mission is now always a deliberate act — "Check answer", a
+   * choice, or a submitted number. The meter still gives live feedback while
+   * you experiment, which is the part that was genuinely useful.
+   */
   function tick(): void {
-    const open = firstOpen();
-    rows.forEach((r, i) => {
-      paintMeter(i);
-      if (solved[i] || i > open) return;
-      if (!r.def.verify && !r.def.choices && !r.def.numeric && r.def.check?.()) setSolved(i);
-    });
+    rows.forEach((_, i) => paintMeter(i));
   }
+
+  prevBtn.addEventListener('click', () => { view--; paintPager(); });
+  nextBtn.addEventListener('click', () => {
+    view++;
+    nextBtn.classList.remove('mission-next-ready');
+    paintPager();
+  });
 
   typesetMath(wrap);
   // Paint the missions this student already finished in an earlier session.
@@ -685,6 +769,9 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
   // itself — testing `isSolved(id) && !solved[i]` can never fire, which left a
   // returning student looking at a solved mission with its controls still live.
   solved.forEach((s, i) => { if (s) paintSolved(i); });
+  // Open on the first UNSOLVED mission: a returning student wants the one they
+  // still owe, not a wall of things they already did.
+  view = Math.min(firstOpen(), defs.length - 1);
   refreshLocks();
   tick();
   return { el: wrap, tick };
