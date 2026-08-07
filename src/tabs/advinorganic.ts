@@ -1,5 +1,5 @@
 // Advanced (CCO) — Coordination/CFT + solid-state + descriptive inorganic.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, pills, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { INORGANIC_QUIZ } from './questions4';
 
@@ -70,6 +70,7 @@ function makeLFSE(): HTMLElement {
   }
   const countUnpaired = (e: number, slots: number) => (e <= slots ? e : 2 * slots - e);
   const el = cardWithMissions('Ligand-field stabilization energy (LFSE)', missions,
+    task('Sweep the d count in a weak field and find the two maxima, then switch to strong field and see where they move.'),
     slider({ label: 'd electrons', min: 0, max: 10, step: 1, value: d, onInput: v => { d = v; calc(); } }),
     select('field strength', [{ value: 'weak', label: 'weak field (high spin)' }, { value: 'strong', label: 'strong field (low spin, oct only)' }], v => { strong = v === 'strong'; calc(); }, 'weak'),
     select('geometry', [{ value: 'oct', label: 'octahedral' }, { value: 'tet', label: 'tetrahedral' }], v => { geom = v as 'oct' | 'tet'; calc(); }, 'oct'),
@@ -127,6 +128,7 @@ function makeSolidState(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions('Unit cell — density, radius, packing', missions,
+    task('Change the lattice at fixed edge length and molar mass, and watch the density follow the number of atoms per cell.'),
     select('lattice', Object.entries(CELLS).map(([k, v]) => ({ value: k, label: v.name })), v => { cell = v as keyof typeof CELLS; calc(); }, cell),
     slider({ label: 'edge a (pm)', min: 200, max: 600, step: 1, value: a, onInput: v => { a = v; calc(); } }),
     slider({ label: 'molar mass (g/mol)', min: 1, max: 250, step: 0.5, value: M, fmt: v => v.toFixed(1), onInput: v => { M = v; calc(); } }),
@@ -148,6 +150,7 @@ function makeSolidState(): HTMLElement {
 function makeDescriptive(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Advanced descriptive inorganic',
+      task('Name one example of your own for each pattern before you accept that you know it.'),
       h('h3', {}, 'Periodic patterns'),
       h('ul', {},
         h('li', { html: '<b>Amphoterism:</b> Al, Zn, Sn, Pb, Be oxides/hydroxides dissolve in both acid and base ([Al(OH)₄]⁻).' }),
@@ -164,6 +167,7 @@ function makeDescriptive(): HTMLElement {
       ),
     ),
     card('HSAB & metal extraction',
+      task('Match a few ores to their metals and check whether HSAB predicted the oxide-or-sulfide split correctly.'),
       h('ul', {},
         h('li', { html: '<b>Hard–Soft Acid–Base:</b> hard acids (H⁺, Al³⁺, Fe³⁺) bind hard bases (F⁻, O-donors); soft acids (Ag⁺, Hg²⁺, Pt²⁺) bind soft bases (I⁻, S, P, CN⁻).' }),
         h('li', { html: 'Explains ore types: hard Mg/Al as oxides/carbonates; soft Cu/Ag/Hg as sulfides.' }),

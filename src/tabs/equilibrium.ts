@@ -1,6 +1,6 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
-import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, numberInput, numVal, type TabDef, type TabHandle, ctlRow } from './framework';
+import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, numberInput, numVal, type TabDef, type TabHandle, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { EQUILIBRIUM_QUIZ } from './questions1';
 
@@ -114,6 +114,7 @@ export const equilibriumTab: TabDef = {
 
     const note = (msg: string) => { eventOut.textContent = msg; };
     const simCard = cardWithMissions('Live equilibrium: N₂O₄(g) ⇌ 2NO₂(g)  (colorless ⇌ brown, ΔH° = +57 kJ)', missions,
+      task('Disturb the mixture with each button in turn and watch Q move away from K and then back.'),
       play.el, simCanvas, qkOut,
       h('div', {},
         button('+0.5 M N₂O₄', () => { A += 0.5; note('Added reactant → Q < K → shifts right: some of the added N₂O₄ converts, but [N₂O₄] still ends higher than before.'); }),
@@ -196,6 +197,7 @@ export const equilibriumTab: TabDef = {
       iceMissions.tick();
     }
     const iceCard = cardWithMissions('ICE table solver: HA ⇌ H⁺ + A⁻', iceMissions,
+      task('Push the concentration down at fixed pKa until the small-x approximation stops being safe, and watch the table report it.'),
       slider({ label: 'pKa', min: 1, max: 10, step: 0.05, value: pKa, fmt: v => `${v.toFixed(2)} (Ka=${Math.pow(10, -v).toExponential(1)})`, onInput: v => { pKa = v; iceCalc(); } }),
       slider({ label: 'C₀ (M)', min: 0.001, max: 1, step: 0.001, value: C0, fmt: v => v.toFixed(3), onInput: v => { C0 = v; iceCalc(); } }),
       iceTable, iceOut,
@@ -325,6 +327,7 @@ export const equilibriumTab: TabDef = {
     }
     [catIn, anIn].forEach(i => i.addEventListener('input', qCalc));
     const kspCard = cardWithMissions('Ksp — solubility equilibria', kspMissions,
+      task('Add a common ion and watch molar solubility fall, then use the mixing check below to decide whether a precipitate forms.'),
       select('salt', SALTS.map(s2 => ({ value: s2.name, label: `${s2.name} (Ksp ${s2.ksp.toExponential(1)})` })), v => { salt = SALTS.find(s2 => s2.name === v)!; kspCalc(); }, salt.name),
       slider({ label: `[common ion] log₁₀`, min: -4, max: 0, step: 0.1, value: logC, fmt: v => `${Math.pow(10, v).toExponential(1)} M`, onInput: v => { logC = v; kspCalc(); } }),
       kspOut,

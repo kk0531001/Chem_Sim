@@ -100,7 +100,7 @@ function addReset(el: HTMLElement): void {
   // handler is what calls missions.tick() — so the meters follow the reset
   // without this knowing anything about them. Solved missions stay solved:
   // they are progress, not card state.
-  const btn = h('button', { type: 'button', class: 'btn card-reset', onclick: () => resetControls(el) }, 'Reset');
+  const btn = h('button', { type: 'button', class: 'btn btn-quiet card-reset', onclick: () => resetControls(el) }, 'Reset');
   btn.setAttribute('aria-label', `Reset ${el.querySelector('h2')?.textContent ?? 'this simulation'} to its starting values`);
   // Inside the h2, not after it: the card title already carries the rule under
   // the header, so the button rides on that line instead of pushing the
@@ -181,6 +181,14 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   }
   if (import.meta.env.DEV) {
     if (!sims.querySelector('.mission-ladder')) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);
+    // Every simulation card states its job in one imperative sentence. Checked
+    // here rather than in the type because a card is assembled from a plain
+    // children list — the type cannot see whether one of them is a task().
+    for (const c of sims.querySelectorAll<HTMLElement>('section.card')) {
+      if (!c.querySelector('.card-task')) {
+        console.error(`[page contract] ${id}: sim card "${c.querySelector('h2')?.textContent?.trim()}" has no task() line`);
+      }
+    }
     if (!frag.querySelector('.theory')) console.error(`[page contract] ${id}: no theory block`);
   }
   return frag;

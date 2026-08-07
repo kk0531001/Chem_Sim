@@ -472,6 +472,37 @@ async function syncBookmarks(): Promise<void> {
   }
 }
 
+// ---- where the student was ---------------------------------------------
+/**
+ * The last module opened, so a reload can offer to continue it.
+ *
+ * DEVICE-LOCAL and deliberately not synced: "where I was" is a property of the
+ * tab you left open, not of the account — pushing it to the cloud would mean a
+ * phone opened at breakfast rewriting the laptop's Continue button.
+ *
+ * Only the id and a timestamp are stored. The POSITION inside the module is
+ * already recorded, by the solved set: `moduleProgress(id)` in topics.ts turns
+ * it into done/total. A second copy of that number here would be one more
+ * thing to keep in sync, and it would go stale the moment a question is
+ * answered from search or from the question bank.
+ */
+const LS_LAST = 'chemprep_lasttopic_v1';
+export interface LastTopic { id: string; at: number }
+
+export function setLastTopic(id: string): void {
+  try { localStorage.setItem(LS_LAST, JSON.stringify({ id, at: Date.now() })); } catch { /* ignore */ }
+  fire();
+}
+
+export function lastTopic(): LastTopic | null {
+  try {
+    const raw = localStorage.getItem(LS_LAST);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<LastTopic>;
+    return typeof v?.id === 'string' && typeof v.at === 'number' ? { id: v.id, at: v.at } : null;
+  } catch { return null; }
+}
+
 // ---- auth ----
 export function isCloudConfigured(): boolean { return cloudConfigured; }
 export function currentEmail(): string | null { return user?.email ?? null; }

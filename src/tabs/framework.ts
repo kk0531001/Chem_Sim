@@ -2,8 +2,11 @@
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
 import { isSolved, markSolved, unmarkSolved, recordAttempt, solvedOf, solvedWithPrefix, onProgressChange, isBookmarked, toggleBookmark } from '../progress';
-import { toExamTopic } from '../content/topicIds';
+import { toExamTopic, isExamTopicId, EXAM_TOPIC_LABEL } from '../content/topicIds';
 import { signal, registerQuizReporter } from '../signals';
+import { weakTopics } from '../progress';
+import { recommendNext } from '../recommend';
+import { navigate } from '../router';
 import { CHEVRON_ICON } from '../icons';
 import { ID_PREFIX } from '../content/topicIds';
 import { MODULE_QUIZ_SIZE } from '../content/counts';
@@ -548,6 +551,33 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
     }
   }
 
+  /**
+   * The end of a quiz is the one moment a student has nothing to do, so it has
+   * to hand them the next thing rather than only offering the same 25 questions
+   * again. Order of preference:
+   *   1. their weakest exam topic — the bank, filtered to it;
+   *   2. failing enough data for that (weakTopics needs 4 attempts in a topic),
+   *      the ordinary next-lesson recommendation, which always has an answer.
+   * Restart drops to quiet: it is available, but it is not the advice.
+   */
+  function doneActions(): (HTMLElement | string)[] {
+    const restart = button('Restart quiz', () => { i = 0; score = 0; render(true); }, 'btn-quiet');
+    const weak = weakTopics(1)[0];
+    if (weak && isExamTopicId(weak.topic)) {
+      const label = EXAM_TOPIC_LABEL[weak.topic];
+      const go = button(`Practise ${label}`, () => navigate({ kind: 'topic', id: 'qbank' }, false,
+        '?' + new URLSearchParams({ part: 'results', topic: weak.topic })), 'primary');
+      return [h('p', { class: 'quiz-next-line' },
+        `Weakest area so far: ${label} — ${Math.round(weak.accuracy * 100)}% of ${weak.seen} answered right.`),
+        go, restart];
+    }
+    const rec = recommendNext(qs[0]?.topic ?? '');
+    if (!rec) return [restart];
+    return [h('p', { class: 'quiz-next-line' }, `Next: ${rec.topic.title} — ${rec.reason}.`),
+      button(`Open ${rec.topic.title}`, () => navigate({ kind: 'topic', id: rec.topic.id }), 'primary'),
+      restart];
+  }
+
   function render(moveFocus = false): void {
     answered = false;
     whyEl.innerHTML = '';
@@ -561,7 +591,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
       qEl.innerHTML = `Done — score <b>${score}/${qs.length}</b> ` +
         (score === qs.length ? '— perfect!' : score >= Math.ceil(qs.length * 0.7) ? '— solid!' : '— review the theory panel and retry.');
       setOptsGrouped(false);
-      optsEl.replaceChildren(button('Restart quiz', () => { i = 0; score = 0; render(true); }, 'primary'));
+      optsEl.replaceChildren(...doneActions());
       if (moveFocus) head.focus();
       return;
     }
@@ -964,9 +994,25 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
   return { el: wrap, tick };
 }
 
+/**
+ * The one-sentence brief for a simulation card: what to DO with it.
+ *
+ * A card title names the physics ("Maxwell–Boltzmann speed distribution"); it
+ * does not tell a student who has never seen the plot which slider to move or
+ * what they are supposed to notice. Imperative, one sentence, no hedging — it
+ * is an instruction, not a summary of the theory block.
+ *
+ * Pass it anywhere in the card's children; `cardWithMissions` hoists it to sit
+ * directly under the title, above the mission ladder.
+ */
+export function task(text: string): HTMLElement {
+  return h('p', { class: 'card-task' }, text);
+}
+
 /** Card with missions pinned above the simulation controls. */
 export function cardWithMissions(title: string, missions: MissionLadderHandle, ...children: (Node | string)[]): HTMLElement {
-  return h('section', { class: 'card' }, h('h2', {}, title), missions.el, ...children);
+  const [brief, rest] = takeTask(children);
+  return h('section', { class: 'card' }, h('h2', {}, title), brief, missions.el, ...rest);
 }
 
 // Append screen-reader-only text to an element, once.
@@ -999,13 +1045,32 @@ export function h<K extends keyof HTMLElementTagNameMap>(
 }
 
 export function card(title: string, ...children: (Node | string | null | undefined)[]): HTMLElement {
-  return h('section', { class: 'card' }, h('h2', {}, title), ...children);
+  const [brief, rest] = takeTask(children);
+  return h('section', { class: 'card' }, h('h2', {}, title), brief, ...rest);
+}
+
+/**
+ * Pull a `task()` line out of a card's children so it can be placed directly
+ * under the title, wherever the call site happened to pass it. Hoisting rather
+ * than adding a parameter keeps the brief next to the controls it describes in
+ * the source, and means no call site can accidentally file it below the canvas.
+ */
+type Child = Node | string | null | undefined;
+function takeTask(children: Child[]): [Child, Child[]] {
+  const rest = [...children];
+  const at = rest.findIndex(c => c instanceof HTMLElement && c.classList.contains('card-task'));
+  return at < 0 ? [null, rest] : [rest.splice(at, 1)[0], rest];
 }
 
 // Collapsible theory/reference block. `html` may contain markup.
+//
+// A short block opens itself. Collapsing three sentences buys no scroll and
+// costs a click, and the panel-per-pill modules are mostly short blocks — the
+// long module-level ones (which are the reason the control exists) stay shut.
+const THEORY_AUTO_OPEN = 700;   // chars of markup, not of prose — close enough
 export function theory(title: string, html: string, open = false): HTMLElement {
   const d = h('details', { class: 'theory' }, h('summary', {}, title), h('div', { html }));
-  if (open) d.setAttribute('open', '');
+  if (open || html.length <= THEORY_AUTO_OPEN) d.setAttribute('open', '');
   return d;
 }
 

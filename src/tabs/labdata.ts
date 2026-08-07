@@ -1,6 +1,6 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
-import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { LABDATA_QUIZ } from './questions2';
 
@@ -70,8 +70,9 @@ function makeBeer(): HTMLElement {
 
   const el = h('div', { class: 'cards' },
     cardWithMissions('Beer\'s law: calibration curve → unknown', beerMissions,
+      task('Read the unknown off the fitted line, then regenerate the noise and see how much the answer moves.'),
       slider({ label: 'unknown\'s A', min: 0.05, max: 1.5, step: 0.01, value: unknownA, fmt: v => v.toFixed(2), onInput: v => { unknownA = v; draw(); } }),
-      button('new calibration data (fresh noise)', regenerate, 'primary'),
+      button('new calibration data (fresh noise)', regenerate),
       canvas, out,
     ),
     theory('Spectrophotometry essentials', `
@@ -128,6 +129,7 @@ function makeSigFigs(): HTMLElement {
 
   return h('div', { class: 'cards' },
     card('Sig fig counter',
+      task('Type the awkward cases — leading zeros, trailing zeros, a pH — and check your count against the rules below.'),
       ctlRow('number', input),
       sfOut,
       h('h3', {}, 'Rules for calculations'),
@@ -144,6 +146,7 @@ function makeSigFigs(): HTMLElement {
       errOut,
     ),
     card('Glassware — precision you can claim',
+      task('Before quoting any volume, find the piece of glassware in this table and let it fix your decimal places.'),
       h('table', { class: 'ref-table', html: `
 <tr><th>glassware</th><th>typical uncertainty</th><th>use for</th></tr>
 <tr><td>analytical balance</td><td>±0.0001 g</td><td>weighing by difference</td></tr>
@@ -161,6 +164,7 @@ function makeSigFigs(): HTMLElement {
 function makeTechnique(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Titration technique — the classic exam questions',
+      task('For each line, say which way the reported concentration moves before you read on.'),
       h('ul', {},
         h('li', { html: 'Rinse the buret <b>with the titrant</b> (water left inside would dilute it → volume reads high).' }),
         h('li', { html: '<span class="trap">The Erlenmeyer flask may be wet with distilled water — moles of analyte are unchanged, so NO error!</span> The single most-tested titration concept.' }),
@@ -172,6 +176,7 @@ function makeTechnique(): HTMLElement {
       ),
     ),
     card('General technique & error direction reasoning',
+      task('Practise the drill: trace one mistake through the formula and state the direction of the final error.'),
       h('ul', {},
         h('li', { html: '<b>Weigh by difference</b>: (container + sample) − (container) — cancels container error and hygroscopic drift.' }),
         h('li', { html: '<b>Heat to constant mass</b>: repeat heat/cool/weigh until mass stops changing — otherwise hydrate water remains → mass reads high.' }),
@@ -267,6 +272,7 @@ function makeUncertainty(): HTMLElement {
 
   return h('div', { class: 'cards' },
     card('Uncertainty propagation',
+      task('Enter three measurements with their uncertainties and find which one dominates the result.'),
       h('p', { class: 'muted' }, 'Compute A·B/C with its uncertainty:'),
       ctlRow('A ± δA', A, dA),
       ctlRow('B ± δB', B, dB),
@@ -274,6 +280,7 @@ function makeUncertainty(): HTMLElement {
       propOut,
     ),
     cardWithMissions('Q-test for outliers', qMissions,
+      task('Paste a small data set with one suspect value and check whether Q actually lets you reject it.'),
       ctlRow('values (comma-sep)', vals),
       qOut,
     ),
@@ -284,6 +291,7 @@ function makeUncertainty(): HTMLElement {
 function makeQualTests(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Qualitative functional-group tests',
+      task('For each pair of similar groups, find the test that distinguishes them.'),
       h('table', { class: 'ref-table', html: `
 <tr><th>test / reagent</th><th>positive result</th><th>detects</th></tr>
 <tr><td>Tollens (Ag(NH₃)₂⁺)</td><td>silver mirror</td><td>aldehyde (not ketone)</td></tr>
@@ -299,6 +307,7 @@ function makeQualTests(): HTMLElement {
       h('p', { class: 'muted' }, 'Strategy: 2,4-DNP first confirms a carbonyl, then Tollens/iodoform narrows aldehyde vs methyl ketone. Bromine water and Baeyer both flag unsaturation; combine tests to pin the group.'),
     ),
     card('Cation / anion & gas tests',
+      task('Plan the order you would run these in to identify an unknown salt.'),
       h('ul', {},
         h('li', { html: '<b>Flame:</b> Li crimson, Na yellow, K lilac, Ca brick-red, Ba green, Cu blue-green.' }),
         h('li', { html: '<b>Halides + AgNO₃:</b> Cl⁻ white, Br⁻ cream, I⁻ yellow; AgCl dissolves in dilute NH₃.' }),

@@ -1,6 +1,6 @@
 // Organic II: alkene addition (Markovnikov), EAS directing effects,
 // carbonyl reaction map, molecular symmetry / point groups.
-import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { ORGANIC2_QUIZ } from './questions2';
 
@@ -28,6 +28,7 @@ function makeAddition(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     card('Alkene addition predictor', select('reaction', opts, set, '0'), out,
+      task('Run the same alkene through each reagent and watch which ones follow Markovnikov and which deliberately break it.'),
       h('p', { class: 'muted' }, 'Markovnikov = "the rich get richer": H goes to the carbon that already has more H\'s, because that puts the + charge on the more substituted carbon.'),
     ),
     theory('Addition chemistry essentials', `
@@ -101,6 +102,7 @@ function makeEAS(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     cardWithMissions('EAS directing effects — where does the electrophile go?', missions,
+      task('Step through the substituents and check the attack positions against whether the attached atom donates or withdraws.'),
       select('substituent already on ring', EAS_SUBS.map((s, i) => ({ value: String(i), label: `${s.g} (${s.cls})` })), set, '0'),
       ring, out,
       h('p', { class: 'muted' }, 'Green = favored attack positions. Rule of thumb: lone pair on the attached atom → o/p director; positive/π-withdrawing attached atom → meta.'),
@@ -139,6 +141,7 @@ function makeCarbonyl(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     card('Carbonyl reaction map',
+      task('Work through the combinations and separate the ones that add from the ones that substitute.'),
       select('reaction', CARBONYL.map((c, i) => ({ value: String(i), label: c.combo })), set, '0'),
       out,
       h('p', { class: 'muted' }, 'One idea unifies it all: a nucleophile attacks the δ+ carbonyl carbon. Aldehydes/ketones ADD; acid derivatives SUBSTITUTE (the leaving group departs).'),
@@ -182,6 +185,7 @@ function makeSymmetry(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     card('Point group identifier',
+      task('Assign each molecule yourself with the flowchart below before you look at the answer.'),
       select('molecule', POINT_GROUPS.map((p, i) => ({ value: String(i), label: p.mol })), set, '0'),
       out,
       h('h3', {}, 'The decision flowchart'),
@@ -227,11 +231,13 @@ function makeAromaticity(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     card('Hückel aromaticity checker',
+      task('Test each ring against all four criteria, and find the ones that fail on planarity rather than on electron count.'),
       select('ring system', RINGS.map(r => ({ value: r.name, label: r.name })), set, RINGS[0].name),
       out,
       h('p', { class: 'muted' }, 'Aromatic needs ALL of: cyclic, planar, fully conjugated, and 4n+2 π electrons. Fail planarity (COT) → nonaromatic; hit 4n while planar → antiaromatic (destabilized).'),
     ),
     card('Conformational analysis (chair cyclohexane)',
+      task('Read this with a chair drawn in front of you, and check the axial requirement for E2 on your own example.'),
       h('ul', {},
         h('li', { html: 'Chair is the low-energy conformer; ring-flip interconverts axial ↔ equatorial.' }),
         h('li', { html: 'Bulky groups prefer <b>equatorial</b> to avoid 1,3-diaxial strain — the bigger the A-value, the stronger the preference (t-Bu ≈ 4.9 kcal/mol locks the ring).' }),

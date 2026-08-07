@@ -1,6 +1,6 @@
 // Acid-base (titration curves), electrochemistry (galvanic cells + Nernst),
 // kinetics (integrated rate laws + Arrhenius). Three pill sections.
-import { h, cardWithMissions, missionLadder, theory, slider, select, pills, plot, linspace, quiz, type TabDef } from './framework';
+import { h, cardWithMissions, missionLadder, theory, slider, select, pills, plot, linspace, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { AEK_QUIZ } from './questions2';
 
@@ -211,6 +211,7 @@ function makeAcidBase(): HTMLElement {
   ]);
 
   const bufferCard = cardWithMissions('Buffer designer & shock test', bufMissions,
+    task('Design a buffer at a target pH, then add strong acid or base and watch how little the pH moves until the buffer is spent.'),
     slider({ label: 'target pH', min: 2.5, max: 11.5, step: 0.1, value: targetPH, fmt: v => v.toFixed(1), onInput: v => { targetPH = v; designCalc(); } }),
     designOut,
     h('h3', {}, 'Hit the buffer with strong acid/base'),
@@ -221,7 +222,9 @@ function makeAcidBase(): HTMLElement {
   shockCalc();
 
   return h('div', { class: 'cards' },
-    cardWithMissions('Titration simulator: acid + NaOH', titrMissions, controls, curveCanvas, liveOut, out),
+    cardWithMissions('Titration simulator: acid + NaOH', titrMissions,
+      task('Titrate a weak acid and find the two landmarks: the half-equivalence point where pH = pKa, and the equivalence point, which is not at pH 7.'),
+      controls, curveCanvas, liveOut, out),
     bufferCard,
     theory('Acid–base essentials', `
 <span class="eq">pH = −log[H⁺] · pH + pOH = 14 (25 °C) · K<sub>a</sub>K<sub>b</sub> = K<sub>w</sub> · pK<sub>a</sub> + pK<sub>b</sub> = 14</span>
@@ -348,6 +351,7 @@ function makeElectro(): HTMLElement {
     },
   ]);
   const faradayCard = cardWithMissions('Electrolysis / Faraday calculator', farMissions,
+    task('Change the current and the time, then switch to a product with a different n and see how much less metal the same charge deposits.'),
     select('product', PLATE.map(p => ({ value: p.name, label: `${p.name} (n=${p.n})` })), v => { plate = PLATE.find(p => p.name === v)!; farCalc(); }, plate.name),
     slider({ label: 'current (A)', min: 0.1, max: 20, step: 0.1, value: amps, fmt: v => v.toFixed(1), onInput: v => { amps = v; farCalc(); } }),
     slider({ label: 'time (min)', min: 1, max: 240, step: 1, value: mins, onInput: v => { mins = v; farCalc(); } }),
@@ -400,6 +404,7 @@ function makeElectro(): HTMLElement {
   ]);
 
   const latCard = cardWithMissions('Latimer diagram & disproportionation', latMissions,
+    task('Read across each series and find the species whose left potential is smaller than its right — those are the ones that disproportionate.'),
     select('element series', LATIMERS.map(l => ({ value: l.name, label: l.name })), v => { lat = LATIMERS.find(l => l.name === v)!; latCalc(); }, lat.name),
     latOut,
     h('p', { class: 'muted' }, 'Potentials are intensive — to get E° for a non-adjacent couple, weight by electron count: E° = Σ(nᵢE°ᵢ)/Σnᵢ, never a plain average.' ),
@@ -408,6 +413,7 @@ function makeElectro(): HTMLElement {
 
   const el = h('div', { class: 'cards' },
     cardWithMissions('Galvanic cell builder', cellMissions,
+      task('Pair two half-cells, check which one is the cathode, then drag log Q to see how far the Nernst term can move E.'),
       select('half-cell 1', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c1 = COUPLES.find(c => c.label === v)!; recompute(); }, c1.label),
       select('half-cell 2', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c2 = COUPLES.find(c => c.label === v)!; recompute(); }, c2.label),
       out,
@@ -560,6 +566,7 @@ function makeKinetics(): HTMLElement {
 
   const el = h('div', { class: 'cards' },
     cardWithMissions('Integrated rate laws — find the order from the straight line', kinMissions,
+      task('Switch the order and watch which of the three plots straightens — that is exactly how the order is determined from data.'),
       select('order', [{ value: '0', label: '0th order' }, { value: '1', label: '1st order' }, { value: '2', label: '2nd order' }],
         v => { order = Number(v) as 0 | 1 | 2; draw(); }, '1'),
       slider({ label: 'k', min: 0.02, max: 1, step: 0.01, value: k, fmt: v => v.toFixed(2), onInput: v => { k = v; draw(); } }),
@@ -567,6 +574,7 @@ function makeKinetics(): HTMLElement {
       cCanvas, linCanvas, out, mysteryTable,
     ),
     cardWithMissions('Arrhenius: temperature sensitivity', arrMissions,
+      task('Raise Ea and see how much more the same 10 K change in temperature multiplies the rate.'),
       slider({ label: 'Ea (kJ/mol)', min: 10, max: 200, step: 1, value: Ea, onInput: v => { Ea = v; arrCalc(); } }),
       slider({ label: 'T₁ (K)', min: 250, max: 400, step: 1, value: T1, onInput: v => { T1 = v; arrCalc(); } }),
       slider({ label: 'T₂ (K)', min: 250, max: 400, step: 1, value: T2, onInput: v => { T2 = v; arrCalc(); } }),

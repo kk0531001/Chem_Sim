@@ -1,7 +1,7 @@
 // Advanced (CCO) — Analytical & quantitative chemistry.
 // EDTA complexometric titration curve, Debye-Hückel activity, gravimetric
 // factor and back-titration calculators.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { ANALYTICAL_QUIZ } from './questions3';
 
@@ -92,6 +92,7 @@ function makeEDTA(): HTMLElement {
   ]);
 
   const el = cardWithMissions('EDTA complexometric titration', missions,
+    task('Lower the buffer pH and watch the endpoint break shrink as protonation eats the conditional formation constant.'),
     select('metal ion', METALS.map(m => ({ value: m.name, label: `${m.name} (log K_f ${m.logKf})` })), v => { metal = METALS.find(m => m.name === v)!; draw(); }, metal.name),
     slider({ label: 'buffer pH', min: 3, max: 12, step: 1, value: pH, onInput: v => { pH = v; draw(); } }),
     slider({ label: 'analyte conc (M)', min: 0.001, max: 0.05, step: 0.001, value: C0, fmt: v => v.toFixed(3), onInput: v => { C0 = v; draw(); } }),
@@ -129,6 +130,7 @@ function makeActivity(): HTMLElement {
       `<span class="muted">Effective (thermodynamic) activity a = γ±·c = ${(gamma * c).toExponential(2)} M. Higher-charge ions drop γ± fastest — the ionic atmosphere screens them, so a saturated salt actually raises the solubility of AgCl (the diverse-ion effect).</span>`;
   }
   const el = card('Ionic strength & activity (Debye–Hückel / Davies)',
+    task('Raise the concentration and see how far the activity coefficient falls from 1 — then compare a 1:1 salt with a 2:2 one.'),
     select('salt', SALTS.map(s => ({ value: s.name, label: s.name })), v => { salt = SALTS.find(s => s.name === v)!; calc(); }, salt.name),
     slider({ label: 'concentration (M)', min: 0.001, max: 0.5, step: 0.001, value: c, fmt: v => v.toFixed(3), onInput: v => { c = v; calc(); } }),
     out,
@@ -154,6 +156,7 @@ function makeGravimetric(): HTMLElement {
   [mPpt, mmAnalyte, mmPpt, aFac, bFac].forEach(i => i.addEventListener('input', gCalc));
   gCalc();
   const el = card('Gravimetric factor & back-titration',
+    task('Work one gravimetric result through, checking that the stoichiometric factor is the right way up.'),
     h('h3', {}, 'Gravimetric analysis'),
     ctlRow('precipitate mass (g)', mPpt),
     ctlRow('M analyte (g/mol)', mmAnalyte),
@@ -186,6 +189,7 @@ function makeSeparations(): HTMLElement {
       `<br><span class="muted">R_f is characteristic of a compound in a fixed system, so it aids identification. On normal-phase silica: polar spots low, non-polar spots high.</span>`;
   }
   const el = card('Separations — TLC R_f & chromatography',
+    task('Compute an R_f, then use the table below to pick the method you would actually run for a given separation.'),
     slider({ label: 'spot distance (cm)', min: 0, max: 6, step: 0.1, value: spot, fmt: v => v.toFixed(1), onInput: v => { spot = Math.min(v, front); calc(); } }),
     slider({ label: 'solvent front (cm)', min: 1, max: 8, step: 0.1, value: front, fmt: v => v.toFixed(1), onInput: v => { front = v; calc(); } }),
     out,

@@ -1,6 +1,6 @@
 // Gases, IMFs, phase diagrams, solutions: kinetic gas box, Maxwell-Boltzmann,
 // interactive phase diagrams, colligative properties.
-import { h, card, playPause, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle } from './framework';
+import { h, card, playPause, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, type TabDef, type TabHandle, task } from './framework';
 import { topicPage } from './page';
 import { GASES_QUIZ } from './questions2';
 
@@ -91,6 +91,7 @@ function makeGasBox(): { el: HTMLElement; setVisible: (v: boolean) => void; dest
   resync();
 
   const el = cardWithMissions('Kinetic molecular theory: the gas box (PV = nRT)', missions,
+    task('Change one of n, T and V at a time and watch what the pressure does before you reason about why.'),
     slider({ label: 'n (mol)', min: 0.2, max: 3, step: 0.1, value: n, fmt: v => v.toFixed(1), onInput: v => { n = v; resync(); } }),
     slider({ label: 'T (K)', min: 50, max: 1000, step: 10, value: T, onInput: v => { T = v; resync(); } }),
     slider({ label: 'V (L)', min: 5, max: 50, step: 1, value: V, onInput: v => { V = v; resync(); } }),
@@ -148,6 +149,7 @@ function makeMB(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions('Maxwell–Boltzmann speed distribution', missions,
+    task('Swap between a light gas and a heavy one at fixed T, then raise T and watch the peak move and flatten.'),
     select('gas', GASES.map((g, i) => ({ value: String(i), label: g.name })), v => { gasIdx = Number(v); draw(); }, '2'),
     slider({ label: 'T (K)', min: 100, max: 900, step: 10, value: T, onInput: v => { T = v; draw(); } }),
     canvas, out,
@@ -314,6 +316,7 @@ function makePhase(): HTMLElement {
   window.addEventListener('mouseup', () => { dragging = false; });
 
   const el = cardWithMissions('Phase diagram — click/drag the red point', missions,
+    task('Drag the point across each boundary, then switch to CO₂ and find what water\'s tilted fusion line does that CO₂\'s does not.'),
     select('substance', [{ value: 'water', label: 'H₂O (negative-slope fusion line)' }, { value: 'co2', label: 'CO₂ (dry ice, sublimes)' }],
       v => { substance = v as 'water' | 'co2'; pt = substance === 'water' ? [25, 0] : [-40, 0]; draw(); }, 'water'),
     canvas, out,
@@ -386,6 +389,7 @@ function makeCC(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions('Clausius–Clapeyron: vapor pressure & boiling', missions,
+    task('Lower the external pressure and find the temperature at which the liquid boils.'),
     select('liquid', LIQUIDS.map(l => ({ value: l.name, label: `${l.name} (ΔHvap ${l.dH} kJ/mol)` })), v => { liq = LIQUIDS.find(l => l.name === v)!; calc(); }, liq.name),
     slider({ label: 'T (°C)', min: -20, max: 150, step: 1, value: Tc, onInput: v => { Tc = v; calc(); } }),
     slider({ label: 'external P (atm)', min: 0.05, max: 2, step: 0.01, value: Pext, fmt: v => v.toFixed(2), onInput: v => { Pext = v; calc(); } }),
@@ -408,6 +412,7 @@ function makeColligative(): HTMLElement {
       `<span class="muted">i = van 't Hoff factor: NaCl→2, CaCl₂→3, glucose→1 (real i is a bit lower from ion pairing). Colligative = counts particles, doesn't care what they are.</span>`;
   };
   const el = card('Colligative properties calculator',
+    task('Change i from 1 to 3 at fixed molality to see that it is particle count, not identity, that shifts the boiling and freezing points.'),
     slider({ label: 'molality (mol/kg)', min: 0.1, max: 5, step: 0.1, value: m, fmt: v => v.toFixed(1), onInput: v => { m = v; calc(); } }),
     slider({ label: 'i (particles)', min: 1, max: 4, step: 1, value: i, onInput: v => { i = v; calc(); } }),
     out,

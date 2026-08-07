@@ -1,6 +1,6 @@
 // Periodicity — interactive trends explorer, Slater's-rules Z_eff calculator,
 // and the anomaly/amphoterism reference. (IChO area 4.)
-import { h, card, cardWithMissions, missionLadder, theory, select, plot, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, plot, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { PERIODICITY_QUIZ } from './questions5';
 
@@ -48,6 +48,7 @@ function makeTrends(): HTMLElement {
     out.innerHTML = `Showing <b>${LABEL[prop]}</b>.<br>${note}`;
   }
   const el = card('Periodic trends explorer',
+    task('Switch between the four properties and find where each one breaks its trend across a period.'),
     select('property', [
       { value: 'ie1', label: 'first ionization energy' },
       { value: 'radius', label: 'atomic radius' },
@@ -130,6 +131,7 @@ function makeSlater(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions("Slater's rules — effective nuclear charge", missions,
+    task('Step across a period and then down a group, and compare how Z_eff changes in each direction.'),
     select('element', ELEMS.map((s, i) => ({ value: String(i + 1), label: `${s} (Z=${i + 1})` })), v => { Z = Number(v); calc(); }, String(Z)),
     out,
   );
@@ -140,6 +142,7 @@ function makeSlater(): HTMLElement {
 function makeAnomalies(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Anomalies, diagonals & amphoterism',
+      task('Learn each anomaly with its reason attached — the exam asks why, not which.'),
       h('h3', {}, 'Trend-breaking anomalies (know the WHY)'),
       h('ul', {},
         h('li', { html: '<b>IE dip Be→B:</b> B\'s electron leaves a higher-energy 2p, shielded by the 2s².' }),

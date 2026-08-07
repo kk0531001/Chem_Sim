@@ -8,6 +8,10 @@ export type Route =
   | { kind: 'home' }
   | { kind: 'menu' }
   | { kind: 'progress' }
+  // "What should I do right now" — the Continue block and three ways out.
+  // A route of its own rather than a homepage anchor so it can be bookmarked
+  // and pinned; personal, so it is kept out of the sitemap like /progress.
+  | { kind: 'today' }
   | { kind: 'topic'; id: string }
   // I.3 competition landing pages. Keyed by SLUG, not by comp: the slug is the
   // search phrase ("ccc-study-guide") and it is the reason the page exists.
@@ -19,6 +23,7 @@ export function parseRoute(pathname: string): Route {
   if (clean === '/') return { kind: 'home' };
   if (clean === '/menu') return { kind: 'menu' };
   if (clean === '/progress') return { kind: 'progress' };
+  if (clean === '/today') return { kind: 'today' };
   const g = clean.match(/^\/guide\/([a-z0-9-]+)$/i);
   if (g && guideBySlug(g[1].toLowerCase())) return { kind: 'guide', slug: g[1].toLowerCase() };
   const m = clean.match(/^\/topic\/([a-z0-9-]+)$/i);
@@ -31,6 +36,7 @@ export function routeToPath(route: Route): string {
   if (route.kind === 'home') return '/';
   if (route.kind === 'menu') return '/menu';
   if (route.kind === 'progress') return '/progress';
+  if (route.kind === 'today') return '/today';
   if (route.kind === 'guide') return `/guide/${route.slug}`;
   if (route.kind === 'notfound') return route.path;
   return `/topic/${topicById(route.id)?.slug ?? route.id}`;

@@ -54,14 +54,14 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
     function syncSolveBtn(): void {
       const done = isSolved(id);
       solveBtn.textContent = done ? '✓ Solved — click to unmark' : 'Mark as solved';
-      solveBtn.className = done ? 'btn primary' : 'btn';
+      solveBtn.className = done ? 'btn btn-quiet on' : 'btn btn-quiet';
     }
     syncSolveBtn();
     const bmBtn = button('', () => { toggleBookmark(id); syncBmBtn(); });
     function syncBmBtn(): void {
       const on = isBookmarked(id);
       bmBtn.textContent = on ? 'Bookmarked — click to remove' : 'Bookmark';
-      bmBtn.className = on ? 'btn primary' : 'btn';
+      bmBtn.className = on ? 'btn btn-quiet on' : 'btn btn-quiet';
       bmBtn.setAttribute('aria-pressed', String(on));
     }
     syncBmBtn();
@@ -75,7 +75,7 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
           const hidden = sol.style.display === 'none';
           sol.style.display = hidden ? '' : 'none';
           btn.textContent = hidden ? 'Hide solution' : 'Show solution';
-        });
+        }, 'btn-quiet');
         return h('div', { style: 'margin-top:14px' }, h('p', { html: `<b>${p.q}</b>` }), btn, sol);
       }),
       h('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;margin-top:16px' }, solveBtn, bmBtn),

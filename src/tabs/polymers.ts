@@ -1,6 +1,6 @@
 // Polymers — monomer↔polymer explorer, MW/PDI/DP calculator, and the
 // addition-vs-condensation reference. (IChO area 12.)
-import { h, card, cardWithMissions, missionLadder, theory, select, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { POLYMERS_QUIZ } from './questions5';
 
@@ -31,6 +31,7 @@ function makeExplorer(): HTMLElement {
         : '<br><span class="muted">Step-growth: any two ends couple, expelling a small molecule; high MW needs near-complete conversion and 1:1 stoichiometry.</span>');
   };
   const el = card('Monomer ↔ polymer explorer',
+    task('For each polymer, work back from the repeat unit to the monomer before reading the answer.'),
     select('polymer', POLYMERS.map(p => ({ value: p.name, label: p.name })), set, POLYMERS[0].name),
     out,
     h('p', { class: 'muted' }, 'To find a monomer from a repeat unit: for addition polymers restore the C=C; for condensation polymers split the ester/amide linkage and add back the lost H₂O/HCl.'),
@@ -87,6 +88,7 @@ function makeMW(): HTMLElement {
   [mn, mw, mrep].forEach(i => i.addEventListener('input', calc));
   calc();
   const el = cardWithMissions('Molar mass, PDI & degree of polymerization', missions,
+    task('Move Mw and Mn apart and watch the dispersity, then check what conversion Carothers demands for a long chain.'),
     ctlRow('Mₙ (number-avg)', mn),
     ctlRow('Mᵂ (weight-avg)', mw),
     ctlRow('M of repeat unit', mrep),

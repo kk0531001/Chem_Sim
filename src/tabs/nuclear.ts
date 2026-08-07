@@ -1,5 +1,5 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle, task } from './framework';
 import { topicPage } from './page';
 import { NUCLEAR_QUIZ } from './questions2';
 
@@ -80,8 +80,9 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
 
   const el = h('div', { class: 'cards' },
     card('Radioactive decay — stochastic simulation',
+      task('Watch a short half-life run and see the count fluctuate around the smooth curve — decay is statistical, not scheduled.'),
       slider({ label: 't½ (s)', min: 2, max: 30, step: 1, value: tHalf, onInput: v => { tHalf = v; } }),
-      button('restart', reset, 'primary'),
+      button('restart', reset),
       h('div', { style: 'display:flex;gap:12px;flex-wrap:wrap;margin-top:8px' }, gridCanvas, curveCanvas),
       out,
       h('h3', {}, 'Carbon-14 dating (t½ = 5730 y)'),
@@ -234,6 +235,7 @@ function makeCoordination(): HTMLElement {
 
   const el = h('div', { class: 'cards' },
     cardWithMissions('Crystal field explorer', missions,
+      task('Hold the metal fixed and move the ligand along the spectrochemical series until the complex flips from high to low spin.'),
       select('metal ion', METALS.map(m => ({ value: m.name, label: `${m.name} (d${m.d})` })), v => { metal = METALS.find(m => m.name === v)!; fill(); }, metal.name),
       select('ligand', LIGANDS.map(l => ({ value: l.name, label: l.name })), v => { ligand = LIGANDS.find(l => l.name === v)!; fill(); }, ligand.name),
       select('geometry', [{ value: 'oct', label: 'octahedral (ML₆)' }, { value: 'tet', label: 'tetrahedral (ML₄)' }], v => { geom = v as 'oct' | 'tet'; fill(); }, 'oct'),
@@ -265,6 +267,7 @@ function makeCoordination(): HTMLElement {
 function makeDescriptive(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Flame tests & ion colors',
+      task('Cover the right-hand column and test yourself on the colours, both ways.'),
       h('table', { class: 'ref-table', html: `
 <tr><th>species</th><th>color</th><th>species</th><th>color</th></tr>
 <tr><td>Li⁺ flame</td><td>crimson</td><td>Cu²⁺(aq)</td><td>blue</td></tr>
@@ -277,6 +280,7 @@ function makeDescriptive(): HTMLElement {
 <tr><td>I₂ in hexane</td><td>purple</td><td>Co²⁺(aq)</td><td>pink</td></tr>` }),
     ),
     card('Gas & ion identification tests',
+      task('Learn each test as a pair — the observation and what it rules out as well as what it confirms.'),
       h('ul', {},
         h('li', { html: '<b>H₂</b>: squeaky pop with lit splint. <b>O₂</b>: relights glowing splint. <b>CO₂</b>: turns limewater milky.' }),
         h('li', { html: '<b>NH₃</b>: turns damp red litmus blue; white smoke with HCl.' }),
@@ -287,6 +291,7 @@ function makeDescriptive(): HTMLElement {
       ),
     ),
     card('Periodic patterns worth memorizing',
+      task('Check each pattern against an example you can name before moving on.'),
       h('ul', {},
         h('li', { html: 'Diagonal relationships: Li~Mg, Be~Al, B~Si.' }),
         h('li', { html: 'Amphoteric oxides/hydroxides: Al₂O₃, ZnO, BeO, PbO, SnO — dissolve in both acid and base.' }),

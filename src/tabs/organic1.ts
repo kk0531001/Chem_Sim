@@ -1,6 +1,6 @@
 // Organic I: substrate/mechanism decision engine (SN1/SN2/E1/E2),
 // pKa ladder, carbocation stability.
-import { h, card, cardWithMissions, missionLadder, theory, select, plot, linspace, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, plot, linspace, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { ORGANIC1_QUIZ } from './questions2';
 
@@ -131,6 +131,7 @@ export const organic1Tab: TabDef = {
       deciderMissions.tick();
     }
     const deciderCard = cardWithMissions('SN1 / SN2 / E1 / E2 decision engine', deciderMissions,
+      task('Change one variable at a time — substrate, then nucleophile, then solvent — and find the single switch that flips substitution to elimination.'),
       select('substrate', SUBSTRATES, v => { sub = v as Sub; update(); }, sub),
       select('nucleophile/base', REAGENTS, v => { reag = v as Reag; update(); }, reag),
       select('solvent', SOLVENTS, v => { solv = v as Solv; update(); }, solv),
@@ -152,6 +153,7 @@ export const organic1Tab: TabDef = {
         `<span class="muted">Rule: an acid is deprotonated by the conjugate base of any acid with a higher pKa. That's why NaOH (H₂O: 15.7) deprotonates phenol (10) but NaHCO₃ (H₂CO₃: 6.3) does not.</span>`;
     };
     const ladderCard = card('pKa ladder — who deprotonates whom?',
+      task('Put two acids side by side and check which direction the proton transfer actually runs.'),
       select('acid 1', PKAS.map((p, i) => ({ value: String(i), label: `${p.acid} (pKa ${p.pka})` })), v => { a1 = Number(v); ladderCalc(); }, String(a1)),
       select('acid 2', PKAS.map((p, i) => ({ value: String(i), label: `${p.acid} (pKa ${p.pka})` })), v => { a2 = Number(v); ladderCalc(); }, String(a2)),
       ladderOut,
@@ -168,6 +170,7 @@ export const organic1Tab: TabDef = {
 
     // carbocation stability
     const cationCard = card('Carbocation stability (drives SN1/E1 and rearrangements)',
+      task('Read the ordering, then ask of any SN1 substrate whether a hydride shift would give it a better cation.'),
       h('p', { html: '<b>3° > 2° ≫ 1° > methyl</b> — each alkyl group donates electron density (hyperconjugation + induction).' }),
       h('p', { html: 'Resonance beats substitution: <b>benzylic ≈ allylic ≈ 3°</b>. Adjacent lone pairs help enormously (oxocarbenium in acetal chemistry).' }),
       h('p', { html: '<span class="trap">Never form a carbocation next to a carbonyl or on a vinyl/aryl carbon — destabilized.</span>' }),

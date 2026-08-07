@@ -1,5 +1,5 @@
 // Advanced (CCO) — Advanced thermo/kinetics + biochemistry.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, pills, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, pills, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { BIOPHYS_QUIZ } from './questions4';
 
@@ -71,6 +71,7 @@ function makeMM(): HTMLElement {
   ]);
 
   const el = cardWithMissions('Enzyme kinetics — Michaelis–Menten & Lineweaver–Burk', missions,
+    task('Add each inhibitor in turn and watch which of V_max and K_M moves — that is how the two types are told apart.'),
     slider({ label: 'V_max', min: 20, max: 200, step: 5, value: Vmax, onInput: v => { Vmax = v; draw(); } }),
     slider({ label: 'K_M', min: 0.3, max: 8, step: 0.1, value: Km, fmt: v => v.toFixed(1), onInput: v => { Km = v; draw(); } }),
     select('inhibitor', [{ value: 'none', label: 'none' }, { value: 'comp', label: 'competitive' }, { value: 'noncomp', label: 'non-competitive' }], v => { inhib = v as typeof inhib; draw(); }, 'none'),
@@ -108,6 +109,7 @@ function makeEyring(): HTMLElement {
       `<br><span class="muted">Arrhenius lumps everything into A and Eₐ; Eyring/transition-state theory separates the enthalpy and entropy of activation.</span>`;
   }
   const el = card('Transition-state theory (Eyring)',
+    task('Hold ΔH‡ fixed and change ΔS‡ to see how much rate an ordered transition state costs.'),
     slider({ label: 'ΔH‡ (kJ/mol)', min: 20, max: 150, step: 1, value: dH, onInput: v => { dH = v; draw(); } }),
     slider({ label: 'ΔS‡ (J/mol·K)', min: -120, max: 80, step: 2, value: dS, onInput: v => { dS = v; draw(); } }),
     canvas, out,
@@ -134,6 +136,7 @@ function makeBoltzmann(): HTMLElement {
       `<span class="muted">This distribution underlies reaction rates (fraction above Eₐ), spectroscopic intensities, and heat capacities. As T→∞ the ratio → 1 (levels equally populated).</span>`;
   }
   const el = card('Boltzmann distribution — populating energy levels',
+    task('Find the temperature at which the upper level is meaningfully populated for a given gap.'),
     slider({ label: 'ΔE (kJ/mol)', min: 1, max: 40, step: 1, value: dE, onInput: v => { dE = v; draw(); } }),
     slider({ label: 'T (K)', min: 100, max: 1200, step: 10, value: T, onInput: v => { T = v; draw(); } }),
     canvas, out,
@@ -146,6 +149,7 @@ function makeBoltzmann(): HTMLElement {
 function makeBiochem(): HTMLElement {
   return h('div', { class: 'cards' },
     card('Amino acids, proteins & nucleic acids',
+      task('Work out the charge on a named amino acid at pH 2, 7 and 12 as you read.'),
       h('h3', {}, 'Amino acids'),
       h('ul', {},
         h('li', { html: '20 α-amino acids; at physiological pH exist as <b>zwitterions</b> (NH₃⁺/COO⁻).' }),
@@ -164,6 +168,7 @@ function makeBiochem(): HTMLElement {
       ),
     ),
     card('Bioenergetics & metabolism',
+      task('For each coupled process, check which step is exergonic and what it is paying for.'),
       h('ul', {},
         h('li', { html: '<b>ATP</b> hydrolysis ΔG°′ ≈ −31 kJ/mol; couples to drive endergonic steps (free energies add).' }),
         h('li', { html: 'Electron transport: NADH→O₂, E°′ ≈ +1.14 V, ΔG = −nFE°′ ≪ 0 — powers chemiosmotic ATP synthesis.' }),

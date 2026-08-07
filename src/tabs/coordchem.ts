@@ -1,7 +1,7 @@
 // Inorganic — coordination & organometallic chemistry: HSAB, Jahn–Teller,
 // ligand substitution (labile/inert + trans effect), the chelate/macrocyclic
 // effect, isomerism, and 18-electron counting.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { COORDCHEM_QUIZ } from './questions6';
 
@@ -61,6 +61,7 @@ function makeJahnTeller(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions('Jahn–Teller distortion predictor (octahedral)', missions,
+    task('Step through the d counts and find the ones with unevenly filled e_g orbitals — those are the strong distortions.'),
     slider({ label: 'd-electron count', min: 0, max: 10, step: 1, value: d, fmt: v => `d${v}`, onInput: v => { d = v; draw(); } }),
     select('spin state', [{ value: 'high', label: 'high-spin' }, { value: 'low', label: 'low-spin' }], v => { spin = v as 'high' | 'low'; draw(); }, spin),
     out,
@@ -124,6 +125,7 @@ function makeElectronCount(): HTMLElement {
       slider({ label: `# ${L.name} (${L.e}e)`, min: 0, max: 6, step: 1, value: counts[L.name] || 0, onInput: v => { counts[L.name] = v; compute(); } })));
   }
   const el = cardWithMissions('18-electron rule — electron counter', missions,
+    task('Count a complex you know, then break the rule deliberately and see which geometries tolerate it.'),
     select('metal (group e⁻, covalent method)', Object.keys(METALS).map(m => ({ value: m, label: `${m} (${METALS[m]})` })), v => { metal = v; compute(); }, metal),
     select('complex charge', ['-2', '-1', '0', '1', '2'].map(c => ({ value: c, label: c })), v => { charge = Number(v); compute(); }, '0'),
     ligRows, out,
@@ -137,6 +139,7 @@ function makeElectronCount(): HTMLElement {
 // ---- HSAB reference ----
 function makeHSAB(): HTMLElement {
   return card('HSAB — hard & soft acids and bases',
+    task('Predict which of two salts is the insoluble one, then check it against the table.'),
     h('p', {}, '"Hard likes hard, soft likes soft." Hard = small, high charge, low polarizability (ionic bonding); soft = large, polarizable (covalent bonding).'),
     h('table', { class: 'ref-table', html: `
 <tr><th></th><th>hard</th><th>borderline</th><th>soft</th></tr>
@@ -153,6 +156,7 @@ function makeHSAB(): HTMLElement {
 // ---- ligand substitution + chelate ----
 function makeSubstitution(): HTMLElement {
   return card('Ligand substitution, lability & the chelate effect',
+    task('Classify a metal ion as labile or inert from its d count before reading the list.'),
     h('h3', {}, 'Labile vs inert (kinetic)'),
     h('ul', {},
       h('li', {}, 'Inert (slow exchange): d³ and low-spin d⁶ (e.g. Cr³⁺, Co³⁺, Pt²⁺) — high crystal-field activation energy.'),
@@ -174,6 +178,7 @@ function makeSubstitution(): HTMLElement {
 // ---- isomerism ----
 function makeIsomerism(): HTMLElement {
   return card('Advanced coordination — isomerism',
+    task('For each isomer type, draw both forms of the example given before moving on.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>type</th><th>description</th><th>example</th></tr>
 <tr><td>geometric</td><td>cis / trans, fac / mer</td><td>[Pt(NH₃)₂Cl₂], [Co(NH₃)₃Cl₃]</td></tr>

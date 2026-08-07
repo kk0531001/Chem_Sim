@@ -1,5 +1,5 @@
 // Chemical bonding: VSEPR geometry explorer + MO diagrams for diatomics.
-import { h, cardWithMissions, missionLadder, theory, select, quiz, type TabDef } from './framework';
+import { h, cardWithMissions, missionLadder, theory, select, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { BONDING_QUIZ } from './questions1';
 
@@ -160,6 +160,7 @@ export const bondingTab: TabDef = {
       vseprMissions.tick();
     };
     const vseprCard = cardWithMissions('VSEPR geometry explorer', vseprMissions,
+      task('Work down the AXₙEₘ list and note how each added lone pair bends the shape away from the electron geometry.'),
       select('shape class', VSEPR.map(v => ({ value: v.code, label: `${v.code} — ${v.mGeom}` })), setShape, 'AX₂E₂'),
       shapeBox, infoBox,
     );
@@ -195,6 +196,7 @@ export const bondingTab: TabDef = {
       moMissions.tick();
     };
     const moCard = cardWithMissions('MO diagram — period 2 diatomics', moMissions,
+      task('Fill each diatomic in turn and read the bond order and the unpaired electrons straight off the diagram.'),
       select('species', MO_SPECIES.map(s => ({ value: s.label, label: s.label })), setMO, 'O₂'),
       moCanvas, moOut,
     );

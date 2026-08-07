@@ -3,8 +3,9 @@
 // simulation in the hero, figure panels with captions elsewhere).
 import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
-import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges, moduleCompletion } from './topics';
-import { onProgressChange } from './progress';
+import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges, moduleCompletion, moduleProgress, topicById } from './topics';
+import { onProgressChange, lastTopic } from './progress';
+import { recommendNext } from './recommend';
 import { CORPUS_COUNTS } from './content/counts';
 import { CLOCK_ICON } from './icons';
 
@@ -255,6 +256,51 @@ function competitionCard(name: string, badge: string, line: string): HTMLElement
   );
 }
 
+/**
+ * "Continue — <module>", for someone who has been here before.
+ *
+ * OMITTED ENTIRELY for a first-time visitor — not rendered as an empty state.
+ * A "you have no progress yet" panel above the fold is a worse first
+ * impression than the hero it would be pushing down, and there is nothing the
+ * reader can do about it except the thing the hero already asks them to do.
+ *
+ * It repaints on `onProgressChange`, which `setLastTopic` fires — so leaving a
+ * module updates it without the homepage knowing anything about routing.
+ * Exported because /today is this block and almost nothing else.
+ */
+export function continueBlock(onEnter: (id: string) => void): { el: HTMLElement; refresh: () => void } {
+  const el = h('section', { class: 'continue', 'aria-label': 'Pick up where you left off' });
+  function refresh(): void {
+    const last = lastTopic();
+    const topic = last ? topicById(last.id) : null;
+    el.hidden = !topic;
+    if (!topic) { el.replaceChildren(); return; }
+    // The position inside the module, read from the solved set rather than
+    // stored alongside the id — see setLastTopic. Modules with no bank of
+    // their own (the sandbox, the question bank) simply have no meter.
+    const p = moduleProgress(topic.id);
+    const pct = p ? Math.round((p.done / p.total) * 100) : 0;
+    const next = recommendNext(topic.id);
+    const kids: (HTMLElement | null)[] = [
+      h('p', { class: 'continue-eyebrow' }, 'Pick up where you left off'),
+      h('button', { class: 'btn-hero continue-cta', type: 'button', onclick: () => onEnter(topic.id) },
+        `Continue — ${topic.title}`),
+      p ? h('div', { class: 'continue-meter' },
+        h('div', { class: 'pbar', role: 'img', 'aria-label': `${p.done} of ${p.total} questions solved` },
+          h('div', { class: `pbar-fill${p.done ? '' : ' zero'}`, style: `width:${p.done ? Math.max(pct, 2) : 0}%` })),
+        h('span', { class: 'continue-count' }, `${p.done}/${p.total} solved`),
+      ) : null,
+      next ? h('button', {
+        class: 'btn btn-quiet continue-next', type: 'button', onclick: () => onEnter(next.topic.id),
+      }, `Recommended next: ${next.topic.title}`) : null,
+    ];
+    el.replaceChildren(...kids.filter((k): k is HTMLElement => k !== null));
+  }
+  refresh();
+  onProgressChange(refresh);
+  return { el, refresh };
+}
+
 export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void): HTMLElement {
   const progress = h('div', { class: 'scroll-progress' });
 
@@ -272,6 +318,16 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
 
   // ---- hero ----
   const sim = makeHeroSim();
+  // One filled accent button per screen. For a returning student the Continue
+  // block below IS the call to action, so "Start learning" — which for them
+  // means "start over at Quantum" — steps down to a ghost rather than
+  // competing with it. Re-checked on every repaint, because the block can
+  // appear while this page is open (another tab, a fresh sign-in).
+  const startBtn = h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning');
+  const cont = continueBlock(onEnter);
+  const syncStart = (): void => { startBtn.className = cont.el.hidden ? 'btn-hero' : 'btn-ghost'; };
+  syncStart();
+  onProgressChange(syncStart);
   const hero = h('section', { class: 'hero' },
     h('div', {},
       h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
@@ -282,12 +338,13 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
       h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
         `${TOPICS.length} interactive modules — quantum orbitals to enzyme kinetics — plus ${CORPUS_COUNTS.mc} exam-style questions, ${CORPUS_COUNTS.frq} multi-part written problems and ${CORPUS_COUNTS.papers} full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.`),
       h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
-        h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning'),
+        startBtn,
         h('button', {
           class: 'btn-ghost',
           onclick: () => document.querySelector('.topics')?.scrollIntoView({ behavior: 'smooth' }),
         }, 'Browse the modules'),
       ),
+      cont.el,
     ),
     h('div', { class: 'hero-in', style: 'transition-delay:.1s' },
       h('div', { class: 'figure' }, sim.canvas),

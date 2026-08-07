@@ -1,7 +1,7 @@
 // Laboratory Skills — practical techniques: recrystallization, the distillation
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
-import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { LABTECH_QUIZ } from './questions7';
 
@@ -29,6 +29,7 @@ function makeRecryst(): HTMLElement {
       `<br><span class="muted">Ideal solvent: high hot / low cold solubility; impurities either stay dissolved cold or are removed by hot filtration (+ charcoal for colour).</span>`;
   }
   const el = card('Recrystallization — solubility & % recovery',
+    task('Narrow the gap between hot and cold solubility and watch the recovery collapse.'),
     // Clamped against each other: hot < cold would draw a solubility curve that
     // FALLS with temperature, which is not the chemistry this card is about.
     slider({ label: 'hot solubility (g/100 mL)', min: 5, max: 60, step: 1, value: sHot, onInput: v => { sHot = Math.max(v, sCold); draw(); } }),
@@ -62,6 +63,7 @@ function makeDistillation(): HTMLElement {
   }
   [pOrg, mOrg, mWat, pTot].forEach(i => i.addEventListener('input', calc));
   const el = card('Distillation — simple / fractional / steam / vacuum',
+    task('Pick the right method for a given pair of liquids, then use the calculator below on a steam distillation.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>method</th><th>when to use</th><th>key idea</th></tr>
 <tr><td>simple distillation</td><td>ΔBP &gt; ~25–30 °C, one volatile component</td><td>one vapor–liquid equilibrium</td></tr>
@@ -102,6 +104,7 @@ function makeExtraction(): HTMLElement {
       `<span class="muted">Splitting the same solvent into more, smaller portions always extracts more. In an acid/base extraction you can also switch a compound between layers by (de)protonating it (e.g. wash out RCOOH with NaHCO₃).</span>`;
   }
   const el = card('Liquid–liquid extraction — multiple extractions win',
+    task('Hold the total solvent volume fixed and split it into more portions to see how much more you recover.'),
     slider({ label: 'partition coeff K = org/aq', min: 0.5, max: 20, step: 0.5, value: K, fmt: v => v.toFixed(1), onInput: v => { K = v; draw(); } }),
     slider({ label: 'aqueous volume (mL)', min: 10, max: 100, step: 5, value: Vaq, onInput: v => { Vaq = v; draw(); } }),
     slider({ label: 'total organic solvent (mL)', min: 10, max: 100, step: 5, value: Vorg, onInput: v => { Vorg = v; draw(); } }),
@@ -142,6 +145,7 @@ function makeStandardBuffer(): HTMLElement {
         : 'Good: pH is within ±1 of pKa, so buffer capacity is high.');
   };
   const el = card('Standard-solution & buffer preparation',
+    task('Work out the mass to weigh for a standard, then design a buffer at a pH away from the pKa and check the ratio.'),
     h('h3', {}, 'Standard solution from a primary standard'),
     ctlRow('target molarity (M)', molarity),
     ctlRow('flask volume (mL)', volFlask),
@@ -228,6 +232,7 @@ function makeChromatography(): HTMLElement {
   ]);
 
   const el = cardWithMissions('Chromatography — TLC, column & method choice', tlcMissions,
+    task('Change the eluent polarity and watch the R_f move, then find the polarity that puts a spot in the useful 0.3–0.5 window.'),
     spotCtl,
     slider({ label: 'solvent front (cm)', min: 1, max: 8, step: 0.1, value: front, fmt: v => v.toFixed(1), onInput: v => { front = v; spot = Math.min(spot, front); reanchor(); calc(); } }),
     slider({
@@ -272,6 +277,7 @@ function makeReference(): HTMLElement {
   };
   [a, ea, b, eb].forEach(i => i.addEventListener('input', uCalc));
   const el = card('Filtration · drying agents · uncertainty · safety',
+    task('Choose the filtration method and drying agent for a workup you have actually done.'),
     h('h3', {}, 'Filtration: gravity vs vacuum'),
     h('table', { class: 'ref-table', html: `
 <tr><th>method</th><th>use it to…</th></tr>

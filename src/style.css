@@ -1350,6 +1350,24 @@ body { overflow: hidden; }
   color: #fff;
 }
 .btn.primary:hover { background: var(--accent-darker); }
+/* The third weight, under .btn and .btn.primary.
+   A page is allowed exactly ONE filled accent button — the thing to do next.
+   Everything that is available but not the point (Reset, Save for later, Show
+   solution, Mark as solved) is quiet: no fill, no border, still a real button
+   with a real hit area and a real focus ring. `.on` is the state tint for the
+   quiet toggles, deliberately a wash rather than a fill so a bookmarked
+   question does not outrank "Next question". */
+.btn-quiet {
+  background: none;
+  border-color: transparent;
+  color: var(--ink-dim);
+}
+.btn-quiet:hover { background: var(--paper-2); border-color: var(--rule-2); color: var(--ink); }
+.btn-quiet.on {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+  color: var(--accent-dark);
+}
 
 .pill-bar { display: flex; gap: 8px; margin: 0 auto 18px; flex-wrap: wrap; max-width: 1480px; }
 .pill {
@@ -1769,7 +1787,92 @@ body { overflow: hidden; }
   margin-bottom: 9px;
 }
 .quiz-q { font-size: 14.5px; font-weight: 600; line-height: 1.55; color: var(--ink); margin-bottom: 13px; }
+/* ============================================================
+   Continue block (homepage hero + /today) and the sidebar
+   mastery strip. Both are "where was I" surfaces: quiet type,
+   one accent, and nothing that competes with the module list.
+   ============================================================ */
+.continue {
+  margin-top: var(--s-5);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+  max-width: 30rem;
+}
+.continue[hidden] { display: none; }
+.continue-eyebrow {
+  margin: 0 0 var(--s-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.continue-cta { margin-bottom: var(--s-3); }
+.continue-meter { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-2); }
+.continue-meter .pbar { flex: 1; }
+.continue-count { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); }
+.continue-next { margin-left: -14px; font-size: 13px; }
+
+.today-page { min-height: 100vh; background: var(--paper); }
+/* Centred column, and only a column: /today is one decision wide. */
+.today-col {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: clamp(48px, 12vh, 120px) var(--s-5);
+}
+.today-col h1 { font-family: var(--serif); font-size: 34px; margin: 0 0 var(--s-5); }
+.today-col .continue { border-top: none; margin-top: 0; padding-top: 0; }
+.today-empty { color: var(--ink-dim); font-size: 14.5px; line-height: 1.6; }
+.today-empty[hidden] { display: none; }
+.today-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin-top: var(--s-6);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+
+.mastery-strip {
+  margin-top: auto;   /* pinned to the foot of the sidebar column */
+  border-top: 1px solid var(--rule);
+  padding: 10px 14px 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+}
+/* The strip supplies the separator for the whole footer block; a second rule
+   8px below it reads as a mistake. */
+.mastery-strip + #progress-panel { border-top: none; padding-top: 8px; }
+.mastery-weak {
+  appearance: none;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--accent-dark);
+  cursor: pointer;
+  text-align: left;
+}
+.mastery-weak:hover { text-decoration: underline; }
+
+/* The one-line brief under a simulation title. Sized between the title and the
+   body copy, and not a .muted aside — it is the instruction, so it reads at
+   full contrast. */
+.card-task {
+  margin: -2px 0 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+  max-width: 62ch;
+}
+
 .quiz-opts { display: flex; flex-direction: column; gap: 8px; }
+/* End-of-quiz: the buttons sit in .quiz-opts, so they inherit the column —
+   align them left and let the sentence above them read as prose. */
+.quiz-opts .btn { align-self: flex-start; }
+.quiz-next-line { margin: 0 0 4px; font-size: 13.5px; color: var(--ink-dim); }
 .quiz-opt {
   text-align: left;
   background: var(--paper-2);
@@ -2335,6 +2438,18 @@ body { overflow: hidden; }
   transition: border-color var(--t), color var(--t);
 }
 #search-link:hover { border-color: var(--accent); color: var(--ink); }
+.search-link-icon {
+  display: inline-flex;
+  flex: none;
+  width: 15px;
+  height: 15px;
+  color: var(--ink-faint);
+}
+.search-link-icon svg { width: 100%; height: 100%; }
+/* The label takes the slack so the kbd hint stays pinned to the right edge —
+   that is what makes the control read as a field with an affordance in it
+   rather than as a button with a long name. */
+.search-link-text { flex: 1; font-weight: 500; }
 #search-link kbd {
   font-family: var(--mono);
   font-size: 10.5px;

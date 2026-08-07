@@ -66,7 +66,7 @@ try {
 
 const { TOPICS } = topics;
 const { GUIDES } = guides;
-const { parseRoute } = router;
+const { parseRoute, routeToPath } = router;
 
 const failures = [];
 const fail = (what, detail) => failures.push(`${what}\n      ${detail}`);
@@ -109,7 +109,7 @@ for (const t of TOPICS) {
   }
   checks++;
 }
-for (const reserved of ['menu', 'topic', 'guide']) {
+for (const reserved of ['menu', 'topic', 'guide', 'progress', 'today']) {
   check(!seen.has(reserved), `"${reserved}" used as a slug/alias`, 'collides with a reserved path');
 }
 
@@ -158,6 +158,13 @@ for (const [path, why] of [
 // ---- 6. The two static routes
 check(parseRoute('/').kind === 'home', '/ is not home', `got ${JSON.stringify(parseRoute('/'))}`);
 check(parseRoute('/menu').kind === 'menu', '/menu is not menu', `got ${JSON.stringify(parseRoute('/menu'))}`);
+check(parseRoute('/progress').kind === 'progress', '/progress is not progress', `got ${JSON.stringify(parseRoute('/progress'))}`);
+// /today is bookmarkable and pinnable — a 404 there is a broken home screen icon.
+for (const [path, why] of [['/today', 'plain'], ['/today/', 'trailing slash']]) {
+  const r = parseRoute(path);
+  check(r.kind === 'today', `${path} (${why}) is not the today route`, `got ${JSON.stringify(r)}`);
+}
+check(routeToPath({ kind: 'today' }) === '/today', 'today does not round-trip to /today', `got ${routeToPath({ kind: 'today' })}`);
 
 // ---- 7. Unknown paths are notfound — never a silent homepage
 const unknown = [
@@ -177,7 +184,7 @@ for (const path of unknown) {
 // ---- 8. The core invariant, stated once and directly
 const homeOnly = ['/', '', '//'].map(p => parseRoute(p));
 check(homeOnly.every(r => r.kind === 'home'), 'the root path must be home', JSON.stringify(homeOnly));
-const shouldNotBeHome = [...unknown, '/topic/thermodynamics-i', '/menu'];
+const shouldNotBeHome = [...unknown, '/topic/thermodynamics-i', '/menu', '/today', '/progress'];
 for (const path of shouldNotBeHome) {
   check(parseRoute(path).kind !== 'home',
     `${path} resolved to home`,

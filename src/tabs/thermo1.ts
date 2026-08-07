@@ -1,5 +1,5 @@
 // Thermodynamics I: first law, calorimetry, Hess's law, bond enthalpies.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { THERMO1_QUIZ } from './questions1';
 
@@ -109,6 +109,7 @@ export const thermo1Tab: TabDef = {
       calMissions.tick();
     }
     const calCard = cardWithMissions('Calorimetry: mix two substances (q = mcΔT)', calMissions,
+      task('Mix two substances and watch where the final temperature lands — push the specific heats apart and see which one moves further.'),
       select('substance 1', SUBSTANCES.map(s => ({ value: s.name, label: `${s.name} (c=${s.c})` })), v => { sA = SUBSTANCES.find(s => s.name === v)!; calRedraw(); }, sA.name),
       slider({ label: 'mass 1 (g)', min: 10, max: 500, value: mA, onInput: v => { mA = v; calRedraw(); } }),
       slider({ label: 'T₁ (°C)', min: 0, max: 100, value: tA, onInput: v => { tA = v; calRedraw(); } }),
@@ -132,6 +133,7 @@ export const thermo1Tab: TabDef = {
         `<p class="muted">Rules: reverse a step → flip the sign. Multiply a step → multiply ΔH. Enthalpy is a state function, so the path doesn't matter.</p>`;
     };
     const hessCard = card("Hess's law worked examples",
+      task('Read each worked cycle and check which equations were reversed or doubled before they were added.'),
       select('target reaction', HESS.map(e => ({ value: e.name, label: e.name })), setHess, HESS[0].name),
       hessBox,
     );
@@ -168,6 +170,7 @@ export const thermo1Tab: TabDef = {
     ]);
 
     const bondCard = cardWithMissions('ΔH from bond enthalpies', bondMissions,
+      task('Choose a reaction and count the bonds broken against the bonds formed to get ΔH from the table alone.'),
       select('reaction', BOND_RXNS.map(r => ({ value: r.name, label: r.name })), setBondRxn, BOND_RXNS[0].name),
       bondBox,
     );
@@ -187,6 +190,7 @@ export const thermo1Tab: TabDef = {
         `<span class="muted">The large negative lattice energy is the pay-off that makes ionic-solid formation favourable despite the endothermic sublimation and ionization steps. Higher ionic charge and smaller ions ⇒ more exothermic U (MgO ≫ NaCl).</span>`;
     };
     const bhCard = card('Born–Haber cycle — lattice energy',
+      task('Adjust each measured step of the NaCl cycle and watch the lattice energy that has to close the loop.'),
       slider({ label: 'ΔH_sub metal (kJ/mol)', min: 50, max: 200, step: 1, value: bhSub, onInput: v => { bhSub = v; bhCalc(); } }),
       slider({ label: 'IE metal (kJ/mol)', min: 300, max: 900, step: 1, value: bhIE, onInput: v => { bhIE = v; bhCalc(); } }),
       slider({ label: '½ dissociation X₂ (kJ/mol)', min: 50, max: 250, step: 1, value: bhDiss, onInput: v => { bhDiss = v; bhCalc(); } }),

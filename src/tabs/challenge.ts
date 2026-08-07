@@ -30,7 +30,7 @@ function frqItem(f: FRQ): HTMLElement {
   function syncBtn(): void {
     const done = isSolved(f.id);
     solveBtn.textContent = done ? '✓ Solved — click to unmark' : 'Mark as solved';
-    solveBtn.className = done ? 'btn primary' : 'btn';
+    solveBtn.className = done ? 'btn btn-quiet on' : 'btn btn-quiet';
   }
   syncBtn();
   const el = h('div', { class: 'challenge-frq' },
@@ -43,7 +43,7 @@ function frqItem(f: FRQ): HTMLElement {
         const hidden = sol.style.display === 'none';
         sol.style.display = hidden ? '' : 'none';
         btn.textContent = hidden ? 'Hide solution' : 'Show solution';
-      });
+      }, 'btn-quiet');
       return h('div', { style: 'margin-top:12px' }, h('p', { html: `<b>${p.q}</b>` }), btn, sol);
     }),
     h('div', { style: 'margin-top:12px' }, solveBtn),

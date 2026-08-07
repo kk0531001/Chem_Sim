@@ -200,7 +200,7 @@ export function buildProgressPage(): HTMLElement {
             h('p', { class: 'weak-sub' }, `${stat.correct} of ${stat.seen} correct`),
             h('div', { class: 'weak-cta' },
               h('button', {
-                type: 'button', class: i === 0 ? 'btn primary' : 'btn',
+                type: 'button', class: 'btn',
                 onclick: () => openBank({ topic: t }),
               }, `Practice ${n} questions`)),
           );

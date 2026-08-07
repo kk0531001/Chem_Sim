@@ -63,6 +63,10 @@ export const CLOCK_ICON = svg(`
 export const ARROW_ICON = svg(`
   <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`);
 
+export const SEARCH_ICON = svg(`
+  <circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`);
+
 /** Disclosure marker for the collapsible sidebar groups; CSS rotates it when open. */
 export const CHEVRON_ICON = svg(`
   <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`);

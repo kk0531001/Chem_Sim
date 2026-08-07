@@ -55,7 +55,10 @@ export function mountSidebarAccountPanel(container: HTMLElement): void {
 
   function render(): void {
     container.replaceChildren();
-    const rows: (Node | string)[] = [h('div', { class: 'pp-count' }, h('b', {}, String(solvedCount())), ' solved')];
+    // No solved count here: the mastery strip immediately above this panel
+    // carries it, alongside the streak and the weakest topic. Two copies of the
+    // same number in one footer is one copy too many.
+    const rows: (Node | string)[] = [];
     if (!isCloudConfigured()) {
       rows.push(h('div', { class: 'pp-note' }, 'Saved on this device. Add Supabase keys to sync across devices.'));
       container.append(...rows);

@@ -1,11 +1,11 @@
 import './style.css';
 import { initTabs, h, autoTypeset, type TabDef, type TabsAPI } from './tabs/framework';
-import { buildHome, TILE_HTML } from './home';
+import { buildHome, continueBlock, TILE_HTML } from './home';
 import { buildMenuPage } from './menu';
 import { initRouter, navigate, onRouteChange, parseRoute, routeToPath, type Route } from './router';
 import { TOPICS, topicById, difficultyBadges } from './topics';
-import { CLOCK_ICON, ARROW_ICON, topicIconSVG } from './icons';
-import { initProgress, needsIdMigration, onProgressChange } from './progress';
+import { CLOCK_ICON, ARROW_ICON, SEARCH_ICON, topicIconSVG } from './icons';
+import { initProgress, needsIdMigration, onProgressChange, setLastTopic, streakDays, solvedCount, weakTopics } from './progress';
 import { recommendNext } from './recommend';
 import { initSearch } from './search';
 import { MODES, MODE_SHORT, MODE_LABEL, activeMode, setMode, onModeChange } from './mode';
@@ -14,6 +14,7 @@ import { mountFeedback } from './feedback';
 import { buildGuidePage } from './guide';
 import { guideBySlug } from './guides';
 import { viewTopic, reportQuizzes } from './signals';
+import { EXAM_TOPIC_LABEL, isExamTopicId } from './content/topicIds';
 
 /**
  * The sidebar, and the loader for each module behind it.
@@ -149,6 +150,37 @@ const menuPage = buildMenuPage(
 );
 menuPage.hidden = true;
 document.body.appendChild(menuPage);
+
+// ---- /today ----------------------------------------------------------------
+// One question — "what should I do right now" — and nothing else on the page to
+// answer it with. The Continue block is the homepage's, not a copy: a second
+// implementation of "where was I" is a second thing to get out of step.
+//
+// Deliberately NOT a dashboard. Numbers belong on /progress; this route exists
+// to be opened and left within about five seconds.
+const todayCont = continueBlock(id => navigate({ kind: 'topic', id }));
+const todayPage = h('div', { class: 'today-page', hidden: true },
+  h('main', { class: 'today-col' },
+    h('h1', {}, 'Today'),
+    todayCont.el,
+    h('p', { class: 'today-empty' },
+      'Nothing open yet — start anywhere below and this page will remember where you were.'),
+    h('div', { class: 'today-links' },
+      h('button', { type: 'button', class: 'btn btn-quiet', onclick: () => navigate({ kind: 'menu' }) }, 'All topics'),
+      h('button', { type: 'button', class: 'btn btn-quiet', onclick: () => navigate({ kind: 'topic', id: 'qbank' }) }, 'Question bank'),
+      h('button', { type: 'button', class: 'btn btn-quiet', onclick: () => navigate({ kind: 'progress' }) }, 'Your progress'),
+    ),
+  ),
+);
+document.body.appendChild(todayPage);
+// The one-line empty state belongs to /today, not to the block: here the page
+// would otherwise be a heading and three links with a hole in the middle.
+const paintToday = (): void => {
+  todayCont.refresh();
+  todayPage.querySelector<HTMLElement>('.today-empty')!.hidden = !todayCont.el.hidden;
+};
+onProgressChange(paintToday);
+paintToday();
 
 // I.3 competition landing pages. Built on first visit, not at startup: they are
 // entry points from search, so a reader who arrives anywhere else should not pay
@@ -349,6 +381,7 @@ function showRoute(route: Route): void {
 
   home.hidden = route.kind !== 'home';
   menuPage.hidden = route.kind !== 'menu';
+  todayPage.hidden = route.kind !== 'today';
   if (route.kind === 'guide') showGuide(route.slug);
   else for (const el of guidePages.values()) el.hidden = true;
   notFoundEl.hidden = route.kind !== 'notfound';
@@ -370,6 +403,7 @@ function showRoute(route: Route): void {
     lastTopicId = null;
     document.title = route.kind === 'menu' ? 'All Topics — ChemPrep'
       : route.kind === 'progress' ? 'Your Progress — ChemPrep'
+      : route.kind === 'today' ? 'Today — ChemPrep'
       : route.kind === 'guide' ? `${guideBySlug(route.slug)?.title ?? 'Study guide'} — ChemPrep`
       : BASE_TITLE;
     return;
@@ -407,6 +441,11 @@ function showRoute(route: Route): void {
   document.title = topic ? `${topic.title} — ChemPrep` : BASE_TITLE;
   if (lastTopicId && lastTopicId !== route.id) mainEl.focus({ preventScroll: true });
   lastTopicId = route.id;
+  // Persisted (not just held in `lastTopicId`, which dies with the tab) so the
+  // homepage and /today can offer to continue after a reload. Writing it here
+  // rather than on click covers every way into a module: the sidebar, search,
+  // a deep link, the next-lesson footer.
+  setLastTopic(route.id);
 }
 
 onRouteChange(showRoute);
@@ -435,6 +474,14 @@ progressLinkEl.addEventListener('click', () => { closeDrawer(); navigate({ kind:
 // works from the homepage and the menu too, not just inside the app shell.
 const search = initSearch();
 searchLinkEl.addEventListener('click', () => { closeDrawer(); search.open(); });
+// Shaped like a search field rather than a nav item, and saying what it
+// searches: "Search" alone read as a page you navigate to, and nobody presses a
+// shortcut they have not been shown. The count is deliberately a floor — it
+// cannot go stale downwards, and the registry stays lazily imported.
+searchLinkEl.innerHTML =
+  `<span class="search-link-icon">${SEARCH_ICON}</span>` +
+  '<span class="search-link-text">Search 850+ questions</span>' +
+  `<kbd>${/Mac|iP(hone|ad|od)/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'}</kbd>`;
 
 // ---- competition mode (Phase G) ----
 //
@@ -471,6 +518,44 @@ searchLinkEl.addEventListener('click', () => { closeDrawer(); search.open(); });
 
 // ---- LaTeX / mhchem typesetting (KaTeX) across app view, home, and menu ----
 autoTypeset(viewEl, home, menuPage);
+
+// ---- mastery strip (sidebar footer) ----------------------------------------
+// Three facts, always on screen: the streak (the reason to come back tomorrow),
+// the total solved (the reason today counted), and the weakest topic (the thing
+// to do next). It is a strip and not a panel on purpose — the sidebar's job is
+// the module list, and this may not compete with it.
+//
+// The weakest item DROPS OUT below weakTopics()'s evidence threshold rather
+// than showing a placeholder: naming someone's "weakest topic" off two answers
+// is a guess, and a wrong one steers them for days.
+{
+  // Its own element in the sidebar footer, NOT inside #progress-panel: the
+  // account panel calls replaceChildren() on every progress change, so anything
+  // parked in there is wiped the first time a question is answered.
+  const strip = h('div', { class: 'mastery-strip' });
+  const panel = document.getElementById('progress-panel')!;
+  panel.parentElement!.insertBefore(strip, panel);
+  const paint = (): void => {
+    const days = streakDays();
+    const solved = solvedCount();
+    const weak = weakTopics(1)[0];
+    const bits: (HTMLElement | string)[] = [
+      h('span', {}, `${days}-day streak`),
+      ' · ',
+      h('span', {}, `${solved} solved`),
+    ];
+    if (weak) {
+      bits.push(' · ', h('button', {
+        type: 'button', class: 'mastery-weak',
+        onclick: () => navigate({ kind: 'topic', id: 'qbank' }, false,
+          '?' + new URLSearchParams({ part: 'results', topic: weak.topic })),
+      }, `Weakest: ${isExamTopicId(weak.topic) ? EXAM_TOPIC_LABEL[weak.topic] : weak.topic} ${Math.round(weak.accuracy * 100)}%`));
+    }
+    strip.replaceChildren(...bits);
+  };
+  paint();
+  onProgressChange(paint);
+}
 
 // ---- progress / account panel ----
 mountSidebarAccountPanel(document.getElementById('progress-panel')!);

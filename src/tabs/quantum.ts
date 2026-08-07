@@ -1,6 +1,6 @@
 // Quantum mechanics & atomic structure: hydrogen orbital viewer,
 // energy levels / spectral series, electron configuration builder.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { QUANTUM_QUIZ } from './questions1';
 
@@ -193,6 +193,7 @@ export const quantumTab: TabDef = {
       orbMissions.tick();
     };
     const orbCard = cardWithMissions('Hydrogen orbital viewer — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)', orbMissions,
+      task('Step through the orbitals and count the nodes, watching where the wavefunction changes sign.'),
       select('orbital', Object.keys(ORBITALS).map(k => ({ value: k, label: k.replace('z2', ' z²').replace('x2y2', ' x²−y²') })), drawOrb, '2pz'),
       orbCanvas, orbDesc,
       h('p', { class: 'trap' }, 'This plots ψ itself, not |ψ|². The two colours are the SIGN of the wavefunction — and sign is the whole point: bonding vs antibonding overlap depends on it. |ψ|² would be positive everywhere and the nodes would be the only structure left. Squaring loses exactly the information you need for MO theory.'),
@@ -217,6 +218,7 @@ export const quantumTab: TabDef = {
     };
     drawRadial();
     const radCard = card('Radial distribution — where the electron actually is',
+      task('Compare the 2s curve with 2p and find the inner lobe that makes 2s the lower-energy orbital.'),
       radCanvas,
       h('p', {}, '2s has a small inner lobe that penetrates close to the nucleus — closer than 2p. That penetration is why 2s is lower in energy than 2p in multi-electron atoms (it feels a larger Z_eff).'),
     );
@@ -257,6 +259,7 @@ export const quantumTab: TabDef = {
 
     const redraw = () => { lvlOut.innerHTML = levelDiagram(lvlCanvas, ni, nf); lvlMissions.tick(); };
     const lvlCard = cardWithMissions('Energy levels & spectral lines (Rydberg)', lvlMissions,
+      task('Choose a starting and ending level and read off the wavelength — then find the jumps that land in the visible.'),
       slider({ label: 'initial n', min: 1, max: 6, value: ni, onInput: v => { ni = v; redraw(); } }),
       slider({ label: 'final n', min: 1, max: 6, value: nf, onInput: v => { nf = v; redraw(); } }),
       lvlCanvas, lvlOut,
@@ -267,6 +270,7 @@ export const quantumTab: TabDef = {
     const cfgOut = h('div', {});
     const setZ = (Z: number) => { cfgOut.innerHTML = configHTML(Z); };
     const cfgCard = card('Electron configuration builder (H → Kr)',
+      task('Sweep Z through the first four rows and stop at Cr and Cu, where the filling order breaks.'),
       slider({ label: 'Z', min: 1, max: 36, value: 26, onInput: setZ }),
       cfgOut,
     );

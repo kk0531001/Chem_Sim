@@ -1,5 +1,5 @@
 // Thermodynamics II: entropy (microstates), Gibbs energy, ΔG° ↔ K.
-import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, lnFactorial, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { THERMO2_QUIZ } from './questions1';
 
@@ -50,6 +50,7 @@ export const thermo2Tab: TabDef = {
       microMissions.tick();
     };
     const microCard = cardWithMissions('Entropy = counting microstates (S = k ln W)', microMissions,
+      task('Increase the number of molecules and watch how fast ln W — and so the entropy — grows.'),
       slider({ label: 'N molecules', min: 4, max: 200, step: 2, value: 40, onInput: drawMicro }),
       microCanvas, microOut,
     );
@@ -112,6 +113,7 @@ export const thermo2Tab: TabDef = {
       gibbsMissions.tick();
     };
     const gibbsCard = cardWithMissions('ΔG = ΔH − TΔS explorer', gibbsMissions,
+      task('Set the signs of ΔH and ΔS, then find the temperature where the line crosses ΔG = 0.'),
       slider({ label: 'ΔH (kJ/mol)', min: -300, max: 300, step: 2, value: dH, onInput: v => { dH = v; drawGibbs(); } }),
       slider({ label: 'ΔS (J/mol·K)', min: -400, max: 400, step: 2, value: dS, onInput: v => { dS = v; drawGibbs(); } }),
       gibbsCanvas, gibbsOut,
@@ -128,6 +130,7 @@ export const thermo2Tab: TabDef = {
         `<br><span class="muted">Every ~5.7 kJ/mol of ΔG° at 298 K shifts K by a factor of 10.</span>`;
     };
     const kCard = card('ΔG° = −RT ln K converter',
+      task('Change ΔG° by a few kJ/mol and see how large a change that makes in K.'),
       slider({ label: 'ΔG° (kJ/mol)', min: -60, max: 60, step: 1, value: dG0, onInput: v => { dG0 = v; kCalc(); } }),
       slider({ label: 'T (K)', min: 100, max: 1200, step: 1, value: Tk, onInput: v => { Tk = v; kCalc(); } }),
       kOut,

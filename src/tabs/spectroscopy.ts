@@ -1,5 +1,5 @@
 // Advanced (CCO) — Spectroscopy (IR / NMR / MS) + advanced organic synthesis.
-import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, pills, quiz, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { SPECTROSCOPY_QUIZ } from './questions3';
 
@@ -43,6 +43,7 @@ function makeIR(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     cardWithMissions('IR functional-group band finder', missions,
+      task('Look up each group\'s band, then practise the left-to-right reading order on a spectrum of your own.'),
       select('functional group', IR_BANDS.map(b => ({ value: b.group, label: b.group })), set, IR_BANDS[6].group),
       out,
       h('p', { class: 'muted' }, 'Read an IR left→right: check 3000 first (O–H/N–H, and sp² vs sp³ C–H), then the triple-bond window (~2200), then the carbonyl (~1700), then the fingerprint (<1500).'),
@@ -103,6 +104,7 @@ function makeNMR(): HTMLElement {
   const shiftRows = NMR_SHIFTS.map(s => `<tr><td>${s.env}</td><td>${s.ppm}</td></tr>`).join('');
   const el = h('div', { class: 'cards' },
     cardWithMissions('¹H NMR — n+1 splitting predictor', splitMissions,
+      task('Set the neighbour count and predict the multiplet and its intensities before the readout does.'),
       ctlRow('equivalent neighbours n', nInput),
       splitOut,
       h('h3', {}, 'Characteristic ¹H chemical shifts'),
@@ -160,6 +162,7 @@ function makeMS(): HTMLElement {
   calc();
   const el = h('div', { class: 'cards' },
     card('Mass spec — DoU, nitrogen rule, isotopes',
+      task('Type a molecular formula and check the degrees of unsaturation against the structure you expect.'),
       ctlRow('molecular formula', formula),
       out,
     ),
@@ -196,6 +199,7 @@ function makeSynthesis(): HTMLElement {
   };
   const el = h('div', { class: 'cards' },
     card('Named-reaction & synthesis map',
+      task('Look up what each reaction makes, then use it backwards: given the product, name the disconnection.'),
       select('reaction', REACTIONS.map(r => ({ value: r.name, label: r.name })), set, REACTIONS[0].name),
       out,
       h('p', { class: 'muted' }, 'Retrosynthesis: identify the target\'s key C–C bonds, disconnect (⇒) to synthons, and map each disconnection to a forward reaction above.'),

@@ -1,7 +1,7 @@
 // Spectroscopy — structure determination: degrees of unsaturation, mass-spec
 // interpretation (isotopes, nitrogen rule, fragment losses), an IR functional-
 // group checklist, combined IR+NMR+MS unknowns, and reference tables.
-import { h, card, cardWithMissions, missionLadder, theory, slider, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { STRUCTURE_QUIZ } from './questions7';
 
@@ -56,6 +56,7 @@ function makeFormula(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions('Molecular formula → degrees of unsaturation', missions,
+    task('Build a formula and check the degrees of unsaturation, then find a combination that forces a benzene ring.'),
     slider({ label: 'carbons (C)', min: 1, max: 20, step: 1, value: C, onInput: v => { C = v; draw(); } }),
     slider({ label: 'hydrogens (H)', min: 0, max: 42, step: 1, value: H, onInput: v => { H = v; draw(); } }),
     slider({ label: 'nitrogens (N)', min: 0, max: 4, step: 1, value: N, onInput: v => { N = v; draw(); } }),
@@ -96,6 +97,7 @@ function makeMassSpec(): HTMLElement {
       `<span class="muted">Each ¹³C (1.1% natural abundance) adds one mass unit — a rough carbon count from the isotope peak.</span>`;
   }
   const el = cardWithMissions('Mass spectrometry toolkit', missions,
+    task('Get the carbon count from the M+1 peak, then match an M/M+2 ratio against the table below.'),
     h('h3', {}, 'Carbon count from the M+1 peak'),
     slider({ label: 'M+1 intensity (% of M)', min: 0, max: 22, step: 0.1, value: m1, fmt: v => v.toFixed(1), onInput: v => { m1 = v; cCalc(); } }),
     cOut,
@@ -150,7 +152,9 @@ function makeIRChecklist(): HTMLElement {
     cb.addEventListener('change', () => { state[b.id] = cb.checked; draw(); });
     return h('label', { class: 'ctl' }, h('span', { class: 'ctl-label' }, `${b.label} — ${b.group}`), cb);
   });
-  const el = card('IR band checklist → functional groups', ...boxes, out);
+  const el = card('IR band checklist → functional groups',
+    task('Tick the bands you can actually see in a spectrum and read off which functional groups survive.'),
+    ...boxes, out);
   draw();
   return el;
 }
@@ -159,13 +163,14 @@ function makeIRChecklist(): HTMLElement {
 function unknown(title: string, data: string, answer: string): HTMLElement {
   const ans = h('div', { class: 'result', html: answer });
   ans.style.display = 'none';
-  const btn = h('button', { class: 'btn primary', onclick: () => { ans.style.display = ans.style.display === 'none' ? '' : 'none'; } }, 'Show / hide solution');
+  const btn = h('button', { class: 'btn btn-quiet', onclick: () => { ans.style.display = ans.style.display === 'none' ? '' : 'none'; } }, 'Show / hide solution');
   return h('div', { class: 'card', style: 'background:transparent;box-shadow:none;padding:0' },
     h('h3', {}, title), h('div', { html: data }), btn, ans);
 }
 
 function makeCombined(): HTMLElement {
   return card('Combined IR + NMR + MS unknowns',
+    task('Solve each unknown yourself in the order given — formula, groups, skeleton — before opening the solution.'),
     h('p', { class: 'muted' }, 'Strategy: (1) molecular formula from MS → degrees of unsaturation; (2) IR → functional groups; (3) ¹H NMR shifts, integration & splitting → assemble the skeleton; (4) check against the formula.'),
     unknown('Unknown A',
       'MS: M⁺ = 58 (even → 0 or even N). IR: strong 1715 cm⁻¹, no O–H/N–H. ¹H NMR: singlet, 6H, δ 2.1.',
@@ -185,6 +190,7 @@ function makeCombined(): HTMLElement {
 // ---- NMR reference ----
 function makeNMRRef(): HTMLElement {
   return card('¹H NMR reference (shifts, splitting, patterns)',
+    task('Use this to place a shift, and note which regions are close enough to be confused.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>δ (ppm)</th><th>proton type</th></tr>
 <tr><td>0.9–1.5</td><td>alkyl C–H (CH₃, CH₂)</td></tr>

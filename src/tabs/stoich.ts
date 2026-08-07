@@ -1,6 +1,6 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { STOICH_QUIZ } from './questions1';
 
@@ -83,6 +83,7 @@ export const stoichTab: TabDef = {
     }
 
     const limCard = cardWithMissions('Limiting reagent visualizer', limMissions,
+      task('Pick a reaction, then change the two starting amounts until the reactant that runs out first changes over.'),
       select('reaction', REACTIONS.map(r => ({ value: r.name, label: r.name })), name => {
         rx = REACTIONS.find(r => r.name === name)!;
         rebuildControls();
@@ -149,6 +150,7 @@ export const stoichTab: TabDef = {
     molCalc();
 
     const solCard = cardWithMissions('Solution chemistry tools', molMissions,
+      task('Work one solution both ways: make a molarity from a weighed solid, then dilute it to a target concentration.'),
       h('h3', {}, 'Molarity: dissolve a solid'),
       ctlRow('mass (g)', gIn),
       ctlRow('molar mass (g/mol)', mmIn),
@@ -172,6 +174,7 @@ export const stoichTab: TabDef = {
     [actualIn, theoIn].forEach(i => i.addEventListener('input', yCalc));
     yCalc();
     const yieldCard = card('Percent yield',
+      task('Enter an actual and a theoretical mass to see the yield, then follow the recipe below to turn mass percents into a formula.'),
       ctlRow('actual (g)', actualIn),
       ctlRow('theoretical (g)', theoIn),
       yOut,

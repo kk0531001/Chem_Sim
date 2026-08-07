@@ -1,7 +1,7 @@
 // Physical Chemistry — advanced topics: van't Hoff (K vs T), Clausius–Clapeyron,
 // concentration cells, real gases (van der Waals / Z), heat capacities +
 // Kirchhoff, catalysis energy profile, and coupled/complex equilibria.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { PHYSCHEM_QUIZ } from './questions6';
 
@@ -66,6 +66,7 @@ function makeVantHoff(): HTMLElement {
   ]);
 
   const el = cardWithMissions('van\'t Hoff — how K depends on temperature', missions,
+    task('Flip the sign of ΔH° and watch which way heating moves K.'),
     slider({ label: 'ΔH° (kJ/mol)', min: -120, max: 120, step: 5, value: dH, onInput: v => { dH = v; draw(); } }),
     slider({ label: 'ΔS° (J/mol·K)', min: -150, max: 150, step: 5, value: dS, onInput: v => { dS = v; draw(); } }),
     slider({ label: 'temperature T (K)', min: 250, max: 600, step: 5, value: T, onInput: v => { T = v; draw(); } }),
@@ -111,6 +112,7 @@ function makeClausius(): HTMLElement {
   }
   [P1, T1, dHv, T2].forEach(i => i.addEventListener('input', calc));
   const el = card('Clausius–Clapeyron — vapor pressure vs temperature',
+    task('Enter one known vapour pressure and predict a second temperature, then check what raising ΔH_vap does to the slope.'),
     ctlRow('P₁ (atm)', P1),
     ctlRow('T₁ (K)', T1),
     ctlRow('ΔH_vap (kJ/mol)', dHv),
@@ -135,6 +137,7 @@ function makeConcCell(): HTMLElement {
       `<span class="muted">Driven entirely by the entropy of dilution — no net chemical change, just transport of ions down the gradient.</span>`;
   }
   const el = card('Concentration cell EMF',
+    task('Widen the gap between the two concentrations and watch a cell built from identical electrodes produce a voltage.'),
     select('electrons transferred n', [1, 2, 3].map(v => ({ value: String(v), label: `n = ${v}` })), v => { n = Number(v); calc(); }, String(n)),
     slider({ label: 'concentrated side (M)', min: 0.01, max: 2, step: 0.01, value: cHigh, fmt: v => v.toFixed(2), onInput: v => { cHigh = v; calc(); } }),
     slider({ label: 'dilute side (M)', min: 0.001, max: 1, step: 0.001, value: cLow, fmt: v => v.toFixed(3), onInput: v => { cLow = Math.min(v, cHigh); calc(); } }),
@@ -180,6 +183,7 @@ function makeRealGas(): HTMLElement {
       `<span class="muted">At the Boyle temperature the two corrections cancel and Z ≈ 1 over a wide low-pressure range. Raise T to flatten the dip.</span>`;
   }
   const el = card('Real gases — van der Waals & the compression factor',
+    task('Find the temperature at which Z stops dipping below 1 — that is attraction losing to molecular volume.'),
     select('gas', GASES.map(g => ({ value: g.name, label: g.name })), v => { gas = GASES.find(g => g.name === v)!; draw(); }, gas.name),
     slider({ label: 'temperature (K)', min: 150, max: 600, step: 10, value: T, onInput: v => { T = v; draw(); } }),
     canvas, out,
@@ -220,6 +224,7 @@ function makeHeatCap(): HTMLElement {
   }
   [dCp, dH1, T1, T2].forEach(i => i.addEventListener('input', kcalc));
   const el = card('Heat capacities & Kirchhoff\'s law',
+    task('Compare the three gas models against equipartition, then use Kirchhoff below to move a ΔH to another temperature.'),
     select('gas model', MODELS.map(x => ({ value: x.name, label: x.name })), v => { m = MODELS.find(x => x.name === v)!; calc(); }, m.name),
     out,
     h('h3', {}, 'Kirchhoff — enthalpy at another temperature'),
@@ -259,6 +264,7 @@ function makeCatalysis(): HTMLElement {
       `<span class="muted">It lowers the barrier for forward AND reverse equally, so equilibrium is reached faster, never shifted.</span>`;
   }
   const el = card('Catalysis — lowering the activation barrier',
+    task('Drop the catalysed barrier and read the rate ratio — and confirm ΔH_rxn never moves.'),
     slider({ label: 'uncatalyzed Ea (kJ/mol)', min: 40, max: 160, step: 5, value: Ea, onInput: v => { Ea = v; EaCat = Math.min(EaCat, v); draw(); } }),
     slider({ label: 'catalyzed Ea (kJ/mol)', min: 10, max: 140, step: 5, value: EaCat, onInput: v => { EaCat = v; draw(); } }),
     slider({ label: 'ΔH_rxn (kJ/mol)', min: -100, max: 60, step: 5, value: dHrxn, onInput: v => { dHrxn = v; draw(); } }),
@@ -303,6 +309,7 @@ function makeComplexEq(): HTMLElement {
       `<span class="muted">Successive constants decrease (K₁ > K₂ > …) — statistical + charge/steric factors. Overall β₄ = 10^(${logK.reduce((a, b) => a + b, 0).toFixed(1)}). Raise [NH₃] (lower p[NH₃]) to push toward the deep-blue tetraammine.</span>`;
   }
   const el = card('Complex equilibria — stepwise formation & speciation',
+    task('Sweep the free-ligand concentration and find the point where each complex in turn is the dominant species.'),
     slider({ label: 'p[NH₃] (−log[NH₃])', min: 0, max: 6, step: 0.1, value: pNH3, fmt: v => v.toFixed(1), onInput: v => { pNH3 = v; draw(); } }),
     canvas, out,
   );

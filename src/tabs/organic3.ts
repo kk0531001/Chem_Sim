@@ -1,7 +1,7 @@
 // Organic III — synthesis & advanced mechanisms: retrosynthesis, protecting
 // groups, radical mechanisms + selectivity, rearrangements, and an intro to
 // pericyclic reactions (Woodward–Hoffmann).
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { ORGANIC3_QUIZ } from './questions6';
 
@@ -67,6 +67,7 @@ function makeRadicalSelectivity(): HTMLElement {
     missions.tick();
   }
   const el = cardWithMissions('Radical halogenation — selectivity calculator', missions,
+    task('Set the hydrogen counts for a real substrate, then switch chlorine to bromine and watch selectivity beat statistics.'),
     select('halogen', Object.keys(HAL).map(k => ({ value: k, label: k })), v => { hal = v as keyof typeof HAL; calc(); }, hal),
     slider({ label: '# of 1° H', min: 0, max: 12, step: 1, value: nP, onInput: v => { nP = v; calc(); } }),
     slider({ label: '# of 2° H', min: 0, max: 12, step: 1, value: nS, onInput: v => { nS = v; calc(); } }),
@@ -81,6 +82,7 @@ function makeRadicalSelectivity(): HTMLElement {
 // ---- retrosynthesis reference ----
 function makeRetro(): HTMLElement {
   return card('Retrosynthesis & multi-step planning',
+    task('Pick a target from the table and name the disconnection before you read the reagent equivalent.'),
     h('p', {}, 'Reason BACKWARD from the target (TM): make a disconnection ⇒ synthons ⇒ their real reagent equivalents. Interleave FGIs (functional-group interconversions) to install the right handle for each key C–C bond.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>synthon (idealized)</th><th>reagent equivalent</th><th>forms</th></tr>
@@ -96,6 +98,7 @@ function makeRetro(): HTMLElement {
 // ---- protecting groups ----
 function makeProtecting(): HTMLElement {
   return card('Protecting groups (orthogonal deprotection)',
+    task('Find two protecting groups in the table that can be removed independently — that pairing is what orthogonality means.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>group protected</th><th>protecting group</th><th>installed by</th><th>removed by</th></tr>
 <tr><td>ketone / aldehyde</td><td>cyclic acetal (1,3-dioxolane)</td><td>diol, H⁺ (−H₂O)</td><td>aqueous acid</td></tr>
@@ -111,6 +114,7 @@ function makeProtecting(): HTMLElement {
 // ---- rearrangements ----
 function makeRearrangements(): HTMLElement {
   return card('Rearrangements',
+    task('For each row, identify which group migrates and to what electron-deficient atom.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>rearrangement</th><th>substrate → product</th><th>driving force</th></tr>
 <tr><td>1,2-hydride / alkyl shift</td><td>less-stable → more-stable carbocation</td><td>cation stability (SN1/E1 skeletal change)</td></tr>
@@ -126,6 +130,7 @@ function makeRearrangements(): HTMLElement {
 // ---- pericyclic ----
 function makePericyclic(): HTMLElement {
   return card('Intro to pericyclic reactions (Woodward–Hoffmann)',
+    task('Count the electrons first, then read off whether heat or light gives con- or disrotatory closure.'),
     h('p', {}, 'Concerted, single-step reactions with a cyclic transition state and NO intermediate. Three families: cycloadditions, electrocyclizations, and sigmatropic shifts. Stereochemistry is set by orbital symmetry.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>reaction</th><th>example</th><th>rule</th></tr>

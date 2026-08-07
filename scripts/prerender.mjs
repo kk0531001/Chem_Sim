@@ -119,13 +119,13 @@ await writeFile(join(DIST, '_redirects'),
   ['/menu', ...GUIDES.map(g => `/guide/${g.slug}`), ...TOPICS.map(t => `/topic/${t.slug}`)]
     .map(u => `${u}  ${u}/index.html  200`).join('\n') + '\n\n' + redirects);
 
-// Only pages that are the same for everyone. /progress is one signed-in user's
-// history; there is nothing there to index.
+// Only pages that are the same for everyone. /progress and /today are one
+// student's own state; there is nothing there to index.
 const urls = ['/', '/menu', ...GUIDES.map(g => `/guide/${g.slug}`), ...TOPICS.map(t => `/topic/${t.slug}`)];
 await writeFile(join(DIST, 'sitemap.xml'),
   '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
   urls.map(u => `  <url><loc>${SITE_URL}${u}</loc></url>`).join('\n') + '\n</urlset>\n');
 await writeFile(join(DIST, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /progress\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+  `User-agent: *\nAllow: /\nDisallow: /progress\nDisallow: /today\n\nSitemap: ${SITE_URL}/sitemap.xml\n`);
 
 console.log(`prerendered ${written} pages + sitemap.xml (${urls.length} urls) + robots.txt at ${SITE_URL}`);
