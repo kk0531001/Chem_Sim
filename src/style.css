@@ -2321,3 +2321,81 @@ body { overflow: hidden; }
 @media (max-width: 640px) {
   .search-dialog { margin-top: var(--s-4); max-height: calc(100vh - 2 * var(--s-4)); }
 }
+
+/* ============================================================
+   Competition mode (Phase G)
+   ============================================================ */
+#mode-picker {
+  margin: 14px 14px 0;
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+.mode-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.mode-btns { display: flex; flex-wrap: wrap; gap: 4px; }
+.mode-btn {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--ink-dim);
+  background: var(--paper);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-sm);
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: all var(--t);
+}
+.mode-btn:hover { border-color: var(--accent); color: var(--ink); }
+.mode-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+/* "Beyond CCC" — a mark on the card, never a reason to hide it. */
+.topic-scope {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  background: var(--paper-3);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-pill);
+  padding: 1px 7px;
+}
+
+/* ---- timed exam run (G.4) ---- */
+.exam-mode-note { margin-bottom: var(--s-3); font-size: 12px; }
+.exam-disclaimer { margin-top: var(--s-2); line-height: 1.5; }
+.exam-clock-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  margin-top: var(--s-4);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--rule);
+}
+.exam-clock-spacer { flex: 1; }
+.exam-clock {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;   /* digits must not shuffle each second */
+  color: var(--ink);
+  line-height: 1;
+}
+/* Over the pace is stated in words too ("over by 3:20") — never colour alone. */
+.exam-clock.over { color: var(--red); }
+.exam-clock-note { font-size: 12px; color: var(--ink-faint); }
+.exam-frq { margin-top: var(--s-5); }
+.exam-frq h3 { font-family: var(--serif); font-size: 16px; margin-bottom: var(--s-2); }
+.exam-frq-part { margin-top: var(--s-3); font-size: 14px; }

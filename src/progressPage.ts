@@ -17,11 +17,12 @@ import {
   dailyCounts, recentAttempts, wrongQuestionIds, bookmarkIds, toggleBookmark,
   onProgressChange, currentEmail, isCloudConfigured,
 } from './progress';
-import { ALL_MC, ALL_FRQ, byTopic, questionById, QUIZ_BANKS } from './content/registry';
+import { ALL_MC, ALL_FRQ, byTopic, byComp, questionById, QUIZ_BANKS } from './content/registry';
 import { DOMAINS, EXAM_TOPIC_LABEL, type ExamTopicId } from './content/topicIds';
 import { TOPICS, topicById } from './topics';
 import { TILE_HTML } from './home';
 import { navigate } from './router';
+import { activeMode, activeComp, onModeChange, MODE_SHORT } from './mode';
 
 // ---- shared marks ---------------------------------------------------------
 
@@ -119,6 +120,13 @@ export function buildProgressPage(): HTMLElement {
     const seen = Object.values(acc).reduce((n, t) => n + t.seen, 0);
     const correct = Object.values(acc).reduce((n, t) => n + t.correct, 0);
     const solvedTotal = solvedOf(allIds);
+    // Readiness is scoped by the registry's own comp index, so it can never
+    // disagree with what the question bank shows for the same mode.
+    const mode = activeMode();
+    const comp = activeComp();
+    const scopedIds = comp ? byComp(comp).map(q => q.id) : allIds;
+    const scopedDone = solvedOf(scopedIds);
+    const readiness = scopedIds.length ? scopedDone / scopedIds.length : 0;
     const wrong = wrongQuestionIds();
     const marks = bookmarkIds();
     const modulesTouched = TOPICS.filter(t => {
@@ -147,8 +155,16 @@ export function buildProgressPage(): HTMLElement {
         readout('MC accuracy', seen ? String(Math.round((correct / seen) * 100)) : '—', seen ? '%' : '',
           seen ? `${seen} graded answer${seen === 1 ? '' : 's'}` : 'answer a quiz to start'),
         readout('Current streak', String(streakDays()), 'd', `best ${bestStreak()} days`),
-        readout('Modules started', String(modulesTouched), `/${moduleCount}`,
-          `${moduleCount - modulesTouched} not yet opened`),
+        // In a competition mode the fourth readout becomes READINESS: what
+        // fraction of the questions actually in scope for that exam you have
+        // solved. "72% CCC-ready" is a far better motivator than a raw count,
+        // and unlike the corpus-wide figure it stops counting material the
+        // student will never be asked (ROADMAP G).
+        mode === 'all'
+          ? readout('Modules started', String(modulesTouched), `/${moduleCount}`,
+              `${moduleCount - modulesTouched} not yet opened`)
+          : readout(`${MODE_SHORT[mode]} ready`, String(Math.round(readiness * 100)), '%',
+              `${scopedDone} of ${scopedIds.length} in scope`),
         h('div', { class: 'spark-wrap' },
           h('div', { class: 'spark-head' },
             h('span', {}, 'Answers per day · last 30'),
@@ -296,6 +312,7 @@ export function buildProgressPage(): HTMLElement {
   // bookmark toggled here (or an answer synced in from another device) repaints
   // rather than going stale behind the user's back.
   onProgressChange(() => { if (!page.hidden) render(); });
+  onModeChange(() => { if (!page.hidden) render(); });
   return page;
 }
 

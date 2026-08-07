@@ -298,6 +298,7 @@ import { topicIconSVG, CLOCK_ICON } from './icons';
 import { ID_PREFIX } from './content/topicIds';
 import { MODULE_QUIZ_SIZE } from './content/counts';
 import { solvedWithPrefix, onProgressChange } from './progress';
+import { activeMode, inScope, onModeChange, MODE_SHORT } from './mode';
 
 export function difficultyBadges(diff: string[]): HTMLElement[] {
   return diff.map(d => h('span', { class: `badge badge-${d.toLowerCase()}` }, d));
@@ -331,6 +332,37 @@ export function moduleProgress(id: string): { done: number; total: number } | nu
 export function moduleCompletion(id: string): number {
   const p = moduleProgress(id);
   return p ? p.done / p.total : 0;
+}
+
+/** Is this module on the syllabus for the active competition mode (Phase G)? */
+export function moduleInScope(id: string, m = activeMode()): boolean {
+  const meta = topicById(id);
+  return !meta || inScope(meta.difficulty, m);
+}
+
+/**
+ * The "not on this syllabus" mark (Phase G).
+ *
+ * Out-of-scope modules are MARKED, NEVER HIDDEN. A student in CCC mode who
+ * wants to read about coordination chemistry should be told it is beyond the
+ * contest, not have the site pretend it doesn't exist — the mode is there to
+ * prioritise, and a directory that silently loses a third of its entries reads
+ * as broken. Hiding is offered as an explicit filter on the menu instead, where
+ * the student is the one asking for it.
+ */
+function scopeMark(id: string): HTMLElement | null {
+  const meta = topicById(id);
+  if (!meta) return null;
+  const mark = h('span', { class: 'topic-scope', hidden: 'true' });
+  const paint = (): void => {
+    const m = activeMode();
+    const out = m !== 'all' && !inScope(meta.difficulty, m);
+    mark.hidden = !out;
+    if (out) mark.textContent = `Beyond ${MODE_SHORT[m]}`;
+  };
+  paint();
+  onModeChange(paint);
+  return mark;
 }
 
 /**
@@ -391,6 +423,7 @@ export function renderTopicCard(
     h('div', { class: 'topic-meta' },
       h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${t.estMinutes} min`),
       ...difficultyBadges(t.difficulty),
+      scopeMark(t.id),
     ),
     progressStrip(t.id),
     showPrereqs && prereqTitles.length

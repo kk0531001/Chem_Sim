@@ -10,7 +10,9 @@ import { PART3 } from './bankPart3';
 import { CCO_SETS } from './bankCCO';
 import { INTEGRATED_SETS } from './bankIntegrated';
 import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
+import { examRun, planFor } from './examRun';
 import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, reviewQueue, isBookmarked, toggleBookmark } from '../progress';
+import { activeComp } from '../mode';
 import { tierOf, compsOf, query, questionsByIds, type Indexable } from '../content/registry';
 import {
   COMPS, COMP_LABEL, DOMAINS, EXAM_TOPIC_IDS, EXAM_TOPIC_LABEL, TIER_LABEL,
@@ -123,9 +125,14 @@ const STATUS_LABEL: Record<Status, string> = {
 export const qbankTab: TabDef = {
   id: 'qbank',
   mount(root) {
-    let part: '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' | 'review' = '1';
+    let part: '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' | 'review' | 'exam' = '1';
     let topic = 'all';
-    let comp: Comp | 'any' = 'any';
+    // Seeded from the competition mode (Phase G): the mode is the student's
+    // standing answer to "which exam am I preparing for", and the bank's own
+    // filter is the same question. It stays a real filter — changing it here
+    // does NOT change the site-wide mode, because narrowing one view is a
+    // different intent from switching what you are training for.
+    let comp: Comp | 'any' = activeComp() ?? 'any';
     let tier: Tier | 'any' = 'any';
     let status: Status = 'any';
     let ccoSet = CCO_SETS[0].id;
@@ -136,7 +143,7 @@ export const qbankTab: TabDef = {
     const content = h('div', {});
     const countNote = h('span', { class: 'muted' });
 
-    type Part = '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' | 'review';
+    type Part = '1' | '2' | '3' | 'cco' | 'integrated' | 'olympiad' | 'browse' | 'results' | 'review' | 'exam';
     const partBtns = new Map<string, HTMLButtonElement>();
     const PARTS: [Part, string][] = [
       ['review', 'Review your mistakes'],
@@ -147,6 +154,7 @@ export const qbankTab: TabDef = {
       ['cco', 'CCO Problem Sets'],
       ['integrated', 'Integrated Challenges'],
       ['olympiad', 'Olympiad Questions'],
+      ['exam', 'Timed exam'],
     ];
     const partBar = h('div', { class: 'pill-bar' },
       ...PARTS.map(([p, label]) => {
@@ -279,13 +287,13 @@ export const qbankTab: TabDef = {
       // the filter row and shuffle are all hidden for it — every one of them
       // would either fight the ordering or silently empty the queue.
       const isSet = part === 'cco' || part === 'integrated' || part === 'olympiad'
-        || part === 'browse' || part === 'review';
+        || part === 'browse' || part === 'review' || part === 'exam';
       topicCtl.style.display = isSet ? 'none' : '';
       filterRow.style.display = isSet ? 'none' : '';
       shuffleBtn.style.display = isSet ? 'none' : '';
       ccoCtl.style.display = part === 'cco' ? '' : 'none';
       intCtl.style.display = part === 'integrated' ? '' : 'none';
-      olyCtl.style.display = part === 'olympiad' ? '' : 'none';
+      olyCtl.style.display = part === 'olympiad' || part === 'exam' ? '' : 'none';
     }
 
     // An empty list after filtering is not the same thing as an empty topic,
@@ -452,6 +460,13 @@ export const qbankTab: TabDef = {
           h('p', { class: 'section-lede', style: 'margin-bottom:12px' }, `${set.label} — ${set.blurb}`),
           frqBrowser(set.problems, `${set.label} — reason through every part before revealing the solution`),
         );
+        return;
+      }
+      if (part === 'exam') {
+        const paper = OLYMPIAD_PAPERS.find(p => p.id === olyPaper)!;
+        const plan = planFor(paper);
+        countNote.textContent = ` ${plan.mcCount} MC + ${plan.writtenCount} written · ~${plan.minutes} min`;
+        content.append(examRun(paper, () => { part = 'olympiad'; syncPills(); render(); }));
         return;
       }
       if (part === 'olympiad') {

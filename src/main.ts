@@ -8,6 +8,7 @@ import { CLOCK_ICON, ARROW_ICON, topicIconSVG } from './icons';
 import { initProgress, needsIdMigration, onProgressChange } from './progress';
 import { recommendNext } from './recommend';
 import { initSearch } from './search';
+import { MODES, MODE_SHORT, MODE_LABEL, activeMode, setMode, onModeChange } from './mode';
 import { mountSidebarAccountPanel } from './authWidget';
 
 /**
@@ -81,6 +82,7 @@ const brandEl = document.getElementById('brand')!;
 const homeLinkEl = document.getElementById('home-link')!;
 const menuLinkEl = document.getElementById('menu-link')!;
 const searchLinkEl = document.getElementById('search-link')!;
+const modePickerEl = document.getElementById('mode-picker')!;
 const progressLinkEl = document.getElementById('progress-link')!;
 const crumbEl = document.getElementById('topic-crumb')!;
 const prereqEl = document.getElementById('topic-prereq')!;
@@ -395,6 +397,39 @@ progressLinkEl.addEventListener('click', () => { closeDrawer(); navigate({ kind:
 // works from the homepage and the menu too, not just inside the app shell.
 const search = initSearch();
 searchLinkEl.addEventListener('click', () => { closeDrawer(); search.open(); });
+
+// ---- competition mode (Phase G) ----
+//
+// A row of radio-behaving buttons rather than a <select>: there are five, they
+// are the site's primary framing, and a picker you can see the state of at a
+// glance is worth the extra 40px in a sidebar this tall.
+{
+  const btns = MODES.map(m => {
+    const b = h('button', {
+      type: 'button', class: 'mode-btn', title: MODE_LABEL[m],
+      onclick: () => setMode(m),
+    }, MODE_SHORT[m]);
+    return [m, b] as const;
+  });
+  modePickerEl.append(
+    h('span', { class: 'mode-label' }, 'Preparing for'),
+    h('div', { class: 'mode-btns' }, ...btns.map(([, b]) => b)),
+  );
+  const sync = (): void => {
+    for (const [m, b] of btns) {
+      const on = m === activeMode();
+      b.classList.toggle('active', on);
+      // aria-pressed, not aria-checked: these are toggle buttons in a group,
+      // not a native radio set, and pressed is what a button can honestly claim.
+      b.setAttribute('aria-pressed', String(on));
+    }
+  };
+  sync();
+  onModeChange(sync);
+  // The mode changes what the footer recommends and what the cards are marked
+  // with, so a switch has to repaint the page you are already on.
+  onModeChange(() => { if (lastTopicId) updateTopicChrome(lastTopicId); });
+}
 
 // ---- LaTeX / mhchem typesetting (KaTeX) across app view, home, and menu ----
 autoTypeset(viewEl, home, menuPage);

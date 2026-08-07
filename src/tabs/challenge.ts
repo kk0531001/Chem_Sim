@@ -6,6 +6,7 @@
 import { h, card, quiz, button, typesetMath, type QuizQ } from './framework';
 import type { FRQ } from './bankPart2';
 import { ladderFor, type Indexable } from '../content/registry';
+import { activeComp, activeMode, onModeChange, MODE_SHORT } from '../mode';
 import { TIER_LABEL, type Tier } from '../content/topicIds';
 import { isSolved, markSolved, unmarkSolved, onProgressChange } from '../progress';
 
@@ -60,13 +61,26 @@ function frqItem(f: FRQ): HTMLElement {
  * rung here.
  */
 export function challengeLadder(moduleId: string): HTMLElement | null {
-  const ladder = ladderFor(moduleId);
-  if (TIERS.every(t => ladder[t].length === 0)) return null;
+  // Unscoped, and only to decide whether this module has a ladder AT ALL.
+  // The per-render ladder below is scoped to the active competition (Phase G),
+  // which can legitimately empty it — that is a state to explain, not a reason
+  // to drop the card out of the page contract.
+  if (TIERS.every(t => ladderFor(moduleId)[t].length === 0)) return null;
 
   const body = h('div', { class: 'challenge-ladder' });
 
   function render(): void {
     body.replaceChildren();
+    // Rebuilt per render rather than captured once: switching competition mode
+    // changes which questions are in scope, and a ladder that kept its original
+    // contents would quietly contradict the mode picker above it.
+    const ladder = ladderFor(moduleId, activeComp());
+    if (TIERS.every(t => ladder[t].length === 0)) {
+      body.append(h('p', { class: 'muted' },
+        `Nothing in this module is in scope for ${MODE_SHORT[activeMode()]}. `
+        + 'Switch to All competitions to see the full ladder.'));
+      return;
+    }
     let unlocked = true;
     let prevLabel = '';
     for (const t of TIERS) {
@@ -94,6 +108,7 @@ export function challengeLadder(moduleId: string): HTMLElement | null {
 
   render();
   onProgressChange(render);
+  onModeChange(render);
 
   return card('Challenge ladder',
     h('p', { class: 'section-lede', style: 'margin-bottom:14px' },

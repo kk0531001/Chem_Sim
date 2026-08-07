@@ -35,7 +35,18 @@ export const weakTopics = () => state.weak;
 export const onProgressChange = () => {};
 `);
 writeFileSync(join(scratch, 'stub.mjs'),
-  'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n');
+  'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n' +
+  'export const MODE_SHORT = {};\nexport const onModeChange = () => {};\n');
+// Competition mode, stubbed so the rules can be exercised in each one.
+writeFileSync(join(scratch, 'mode.mjs'), `
+import { compsForDifficulty } from './topicIds.mjs';
+export const state = { mode: 'all' };
+export const activeMode = () => state.mode;
+export const activeComp = () => (state.mode === 'all' ? undefined : state.mode);
+export const inScope = (d, m = state.mode) => m === 'all' || compsForDifficulty(d).includes(m);
+export const onModeChange = () => {};
+export const MODE_SHORT = { all: 'All', ccc: 'CCC', usnco: 'USNCO', cco: 'CCO', icho: 'IChO' };
+`);
 
 transpile('src/content/topicIds.ts', 'topicIds.mjs');
 transpile('src/content/counts.ts', 'counts.mjs');
@@ -45,20 +56,22 @@ transpile('src/topics.ts', 'topics.mjs', [
   ["'./content/topicIds'", "'./topicIds.mjs'"],
   ["'./content/counts'", "'./counts.mjs'"],
   ["'./progress'", "'./progress.mjs'"],
+  ["'./mode'", "'./mode.mjs'"],
 ]);
 transpile('src/recommend.ts', 'recommend.mjs', [
   ["'./topics'", "'./topics.mjs'"],
   ["'./content/topicIds'", "'./topicIds.mjs'"],
   ["'./content/counts'", "'./counts.mjs'"],
   ["'./progress'", "'./progress.mjs'"],
+  ["'./mode'", "'./mode.mjs'"],
 ]);
 
 const load = n => import(pathToFileURL(join(scratch, n)).href);
 
-let recommend, progress, topicIds, counts;
+let recommend, progress, topicIds, counts, modeMod, topicsMod;
 try {
-  [recommend, progress, topicIds, counts] = await Promise.all(
-    ['recommend.mjs', 'progress.mjs', 'topicIds.mjs', 'counts.mjs'].map(load));
+  [recommend, progress, topicIds, counts, modeMod, topicsMod] = await Promise.all(
+    ['recommend.mjs', 'progress.mjs', 'topicIds.mjs', 'counts.mjs', 'mode.mjs', 'topics.mjs'].map(load));
 } catch (err) {
   console.error('FATAL: could not load recommend.ts —', err.message);
   process.exit(1);
@@ -73,6 +86,7 @@ let failures = 0;
 function check(name, fn) {
   state.solved = {};
   state.weak = [];
+  modeMod.state.mode = 'all';
   try {
     fn();
     console.log(`  ok   ${name}`);
@@ -187,6 +201,41 @@ check('the sandbox and the question bank are never recommended as a lesson', () 
   setDone('quantum', 0.2);
   const r = recommendNext('bonding');
   if (['sandbox', 'qbank'].includes(r.topic.id)) throw new Error(`recommended ${r.topic.id}`);
+});
+
+check('in CCC mode, an off-syllabus module is never recommended', () => {
+  modeMod.state.mode = 'ccc';
+  setDone('quantum', 1);
+  // coordchem/advinorganic/physchem etc. are CCO/IChO-pitched; in CCC mode the
+  // recommendation must not send a student to any of them.
+  const offSyllabus = Object.keys(MODULE_QUIZ_SIZE).filter(id => {
+    const t = topicsMod.topicById(id);
+    return t && !modeMod.inScope(t.difficulty, 'ccc');
+  });
+  if (!offSyllabus.length) throw new Error('test is vacuous — no module is off the CCC syllabus');
+  for (const id of Object.keys(MODULE_QUIZ_SIZE)) {
+    const r = recommendNext(id);
+    if (r && offSyllabus.includes(r.topic.id)) {
+      throw new Error(`from ${id}, recommended off-syllabus module ${r.topic.id}`);
+    }
+  }
+});
+
+check('switching mode changes the recommendation, not the data', () => {
+  setDone('quantum', 1);
+  setDone('bonding', 1);
+  setDone('nuclear', 1);
+  state.weak = [{ topic: 'descriptive', accuracy: 0.35, seen: 20 }];
+  modeMod.state.mode = 'all';
+  const anyMode = recommendNext('quantum');
+  modeMod.state.mode = 'ccc';
+  const cccMode = recommendNext('quantum');
+  if (!anyMode || !cccMode) throw new Error('a mode must never empty the footer');
+  // Both must still be real recommendations with reasons; only the pick differs.
+  if (!anyMode.reason || !cccMode.reason) throw new Error('recommendation without a reason');
+  if (!modeMod.inScope(cccMode.topic.difficulty, 'ccc')) {
+    throw new Error(`CCC mode picked ${cccMode.topic.id}, which is off the CCC syllabus`);
+  }
 });
 
 if (failures) {

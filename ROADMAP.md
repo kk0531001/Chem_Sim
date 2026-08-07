@@ -2299,21 +2299,54 @@ that limits this search).
 
 ---
 
-## Phase G — Competition modes (1 week) · *was "Phase 6", then Phase F*
+## Phase G — Competition modes — **[x] DONE**
 
 > "Support multiple Olympiads without duplicating lessons."
 
 Correct instinct, and the `comps` field from Phase A is exactly how you avoid the
 duplication. A mode is a **filter over shared content**, never a second copy.
 
-- [ ] Mode selector: CCC · USNCO · CCO · IChO, persisted per user
-- [ ] Mode filters: which questions appear, which tier is emphasized, which
-      topics are in scope (IChO covers material CCC does not), and which
-      recommendations surface
-- [ ] Progress tracked per mode — "72% CCC-ready" is a far better motivator than
-      a raw solved count
-- [ ] Mode-specific exam simulation: correct question count, correct time limit,
-      correct part structure. `bankOlympiad.ts` already has the shape for this.
+- [x] Mode selector: All · CCC · USNCO · CCO · IChO in the sidebar,
+      [mode.ts](src/mode.ts), persisted to localStorage.
+- [x] Mode filters — recommendations, the challenge ladder, the question bank's
+      competition filter, a "Beyond CCC" mark on cards and an opt-in
+      on-syllabus-only filter on the menu.
+- [x] Progress tracked per mode — the dashboard's fourth readout becomes
+      "26% CCC ready", scoped through the registry's own `byComp` index.
+- [x] Mode-specific exam simulation — [examRun.ts](src/tabs/examRun.ts), a new
+      `Timed exam` part in the question bank.
+
+**Marked, never hidden.** Out-of-scope modules stay in the directory with a
+"Beyond CCC" chip; hiding them is an explicit filter the student turns on. A
+mode is there to prioritise, and a directory that silently loses a third of its
+entries reads as broken. The one place scope IS a hard filter is the
+recommendation — being *sent* somewhere off-syllabus is wrong advice, while
+browsing there deliberately is not.
+
+**Scope is a module-level fact, never a per-question one.** `compsOf()` derives
+a question's competitions from its module's difficulty, so every question in a
+bank carries the same set: filtering a module's own quiz by competition would
+either change nothing or empty it. What a mode legitimately says is
+"coordination chemistry is not on the CCC syllabus".
+
+**The bug the rules check caught.** `equilibrium` is pitched at CCC but lists
+`thermo2` (USNCO-only) as a prerequisite, so the "go and finish the
+prerequisite" rule — the most helpful one — sent CCC students off their own
+syllabus. Rule 1 and the rule-4 fallback are both scope-checked now, and
+`scripts/test-recommend.mjs` covers it in 13 rules.
+
+**On the exam timings.** The repo has never stated an official exam duration,
+and this did not start: the mock papers claim to match *structure and
+difficulty*, never timing, and a made-up "60 minutes" beside a contest name
+would be the first unverified exam fact in the codebase — and would look
+authoritative. `ALLOWANCE` in examRun.ts is **practice pacing** (2.5 min per MC,
+15 min per written problem) and every string says so. If real durations are ever
+sourced, replace that one constant. The clock never blocks anything either: past
+the budget it turns red, says "over by 3:20", and lets the student keep working,
+because a timer that locks you out of the question you were mid-way through
+teaches only not to use the timer.
+
+Entry chunk 408 → 410 kB.
 
 ---
 

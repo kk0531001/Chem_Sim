@@ -18,6 +18,7 @@
 import { TOPICS, topicById, moduleProgress, moduleCompletion, type TopicMeta } from './topics';
 import { modulesForExamTopic, examTopicsOf, EXAM_TOPIC_LABEL, isExamTopicId, type QuizModuleId } from './content/topicIds';
 import { weakTopics } from './progress';
+import { activeMode, inScope } from './mode';
 
 export interface Recommendation {
   topic: TopicMeta;
@@ -37,8 +38,16 @@ const PREREQ_MET = 0.5;
 /** Re-exported so the rules check can assert on it without importing topics. */
 export const completion = moduleCompletion;
 
-/** Does this module have a quiz bank at all? Sandbox and the bank itself don't. */
-const isLesson = (t: TopicMeta): boolean => moduleProgress(t.id) !== null;
+/**
+ * Does this module have a quiz bank AND belong on the active syllabus (G)?
+ *
+ * Scope is a hard filter here, unlike on the cards where it is only a mark:
+ * a recommendation is the site telling you what to do next, and pointing a CCC
+ * student at coordination chemistry is simply wrong advice. Browsing to it
+ * deliberately stays possible; being sent there does not.
+ */
+const isLesson = (t: TopicMeta): boolean =>
+  moduleProgress(t.id) !== null && inScope(t.difficulty, activeMode());
 
 const prereqsMet = (t: TopicMeta): boolean =>
   t.prereqs.every(p => completion(p) >= PREREQ_MET);
@@ -71,10 +80,15 @@ export function recommendNext(currentId: string): Recommendation | null {
   const unfinished = (t: TopicMeta): boolean => t.id !== currentId && completion(t.id) < 1;
 
   // 1. a prerequisite of the current module that hasn't been met
+  //
+  // Scope-checked like every other rule, and NOT hypothetically: `equilibrium`
+  // is pitched at CCC but lists `thermo2` (USNCO-only) as a prerequisite, so
+  // without this a CCC student was sent to a module outside their contest by
+  // the one rule meant to be the most helpful.
   if (started && current) {
     const gap = current.prereqs
       .map(topicById)
-      .find((p): p is TopicMeta => !!p && completion(p.id) < PREREQ_MET);
+      .find((p): p is TopicMeta => !!p && isLesson(p) && completion(p.id) < PREREQ_MET);
     if (gap) {
       return { topic: gap, reason: `${current.title} builds on it, and you haven't worked through it yet` };
     }
@@ -120,8 +134,10 @@ export function recommendNext(currentId: string): Recommendation | null {
     };
   }
 
-  // 4. whatever comes next in the list, finished or not
-  const fallback = TOPICS[idx + 1] ?? TOPICS.find(t => t.id !== currentId);
+  // 4. whatever comes next in the list, finished or not — but still in scope.
+  // The last resort is allowed to recommend something already completed; it is
+  // NOT allowed to recommend material the student's contest doesn't cover.
+  const fallback = after.find(isLesson) ?? TOPICS[idx + 1] ?? TOPICS.find(t => t.id !== currentId);
   return fallback ? { topic: fallback, reason: 'next in the sequence' } : null;
 }
 

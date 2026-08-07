@@ -12,6 +12,7 @@ import { h } from './tabs/framework';
 import { TOPICS, renderTopicCard, moduleProgress, type TopicMeta } from './topics';
 import { TILE_HTML } from './home';
 import { onProgressChange } from './progress';
+import { activeMode, inScope, onModeChange, MODE_SHORT } from './mode';
 
 const LEVELS = ['CCC', 'USNCO', 'CCO', 'IChO'] as const;
 type Level = (typeof LEVELS)[number];
@@ -49,6 +50,11 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
   let level: Level | 'any' = 'any';
   let status: Status = 'any';
   let group = 'any';
+  // Off-syllabus modules are SHOWN by default even in a competition mode —
+  // marked, not hidden (see scopeMark in topics.ts). This chip is how a student
+  // asks for them to go away, which is a different thing from the site deciding
+  // it for them.
+  let onlyInScope = false;
 
   const searchIn = h('input', { type: 'text', placeholder: 'Search topics…', class: 'menu-search' });
   const body = h('div', {});
@@ -63,6 +69,7 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
     if (st && st in STATUS_LABEL) status = st as Status;
     const g = p.get('group');
     if (g && groupsOrder.includes(g)) group = g;
+    if (p.get('syllabus') === '1') onlyInScope = true;
     const q = p.get('q');
     if (q) searchIn.value = q;
   }
@@ -75,6 +82,7 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
     if (level !== 'any') p.set('level', level);
     if (status !== 'any') p.set('status', status);
     if (group !== 'any') p.set('group', group);
+    if (onlyInScope) p.set('syllabus', '1');
     if (searchIn.value.trim()) p.set('q', searchIn.value.trim());
     const qs = p.toString();
     history.replaceState({}, '', location.pathname + (qs ? '?' + qs : ''));
@@ -122,10 +130,15 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
   const groupRow = chipRow<string>('Area',
     [{ value: 'any', label: 'All areas' }, ...groupsOrder.map(g => ({ value: g, label: g }))],
     () => group, v => { group = v; });
+  // Only meaningful in a competition mode — in "All competitions" every module
+  // is in scope, so the chip would be a control that does nothing.
+  const scopeRow = chipRow<'all' | 'scope'>('Syllabus',
+    [{ value: 'all', label: 'Everything' }, { value: 'scope', label: 'On syllabus only' }],
+    () => (onlyInScope ? 'scope' : 'all'), v => { onlyInScope = v === 'scope'; });
 
   const clearBtn = h('button', { type: 'button', class: 'btn menu-clear' }, 'Clear filters');
   clearBtn.addEventListener('click', () => {
-    level = 'any'; status = 'any'; group = 'any'; searchIn.value = '';
+    level = 'any'; status = 'any'; group = 'any'; onlyInScope = false; searchIn.value = '';
     syncChips(); render();
   });
 
@@ -133,6 +146,7 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
     const f = searchIn.value.trim().toLowerCase();
     if (f && !(t.title.toLowerCase().includes(f) || t.blurb.toLowerCase().includes(f) || t.tag.toLowerCase().includes(f))) return false;
     if (level !== 'any' && !t.difficulty.includes(level)) return false;
+    if (onlyInScope && !inScope(t.difficulty, activeMode())) return false;
     if (group !== 'any' && t.group !== group) return false;
     if (status !== 'any') {
       const s = statusOf(t);
@@ -159,7 +173,11 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
         ),
       );
     }
-    const filtered = level !== 'any' || status !== 'any' || group !== 'any' || !!searchIn.value.trim();
+    // The syllabus chip only exists in a competition mode; in "All" it would be
+    // a control with nothing to filter.
+    scopeRow.hidden = activeMode() === 'all';
+    (scopeRow.querySelectorAll('.pill')[1] as HTMLElement).textContent = `${MODE_SHORT[activeMode()]} only`;
+    const filtered = level !== 'any' || status !== 'any' || group !== 'any' || onlyInScope || !!searchIn.value.trim();
     countNote.textContent = filtered
       ? `${shownTotal} of ${TOPICS.length} modules match`
       : `${TOPICS.length} modules`;
@@ -178,6 +196,9 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
   // The progress filters and the cards' own bars both read the progress store,
   // which finishes loading (and can sync from the cloud) after this is built.
   onProgressChange(render);
+  // A mode switch changes both the syllabus chip and the "Beyond CCC" marks the
+  // cards carry, so the directory repaints with it.
+  onModeChange(() => { syncChips(); render(); });
 
   return h('div', { id: 'menu-page' },
     h('div', { class: 'home-wrap' },
@@ -189,7 +210,7 @@ export function buildMenuPage(onOpen: (id: string) => void, onHome: () => void):
         h('h1', { style: 'font-family:var(--serif);font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700;margin-bottom:10px' }, 'All Topics'),
         h('p', { class: 'section-lede' }, `Browse the full syllabus — ${TOPICS.length} modules from foundations through the advanced CCO problem sets.`),
         searchIn,
-        h('div', { class: 'menu-filters' }, levelRow, statusRow, groupRow),
+        h('div', { class: 'menu-filters' }, levelRow, statusRow, groupRow, scopeRow),
         h('div', { class: 'menu-count-row' }, countNote, clearBtn),
       ),
       body,
