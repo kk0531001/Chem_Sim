@@ -31,7 +31,16 @@ import { EXAM_TOPIC_LABEL, isExamTopicId } from './content/topicIds';
  * and must match that module's run in TOPICS.
  */
 const LAZY: { id: string; label: string; group: string; load: () => Promise<{ default?: unknown } & Record<string, unknown>> }[] = [
-  { id: 'sandbox', label: 'Sandbox', group: 'Playground', load: () => import('./tabs/sandbox') },
+  // W3.5: below the drawer breakpoint the sandbox loads a static stand-in.
+  // The choice has to be made HERE, in the loader, not inside sandbox.ts:
+  // that module reaches pixi.js through sim.ts and tweakpane through ui.ts at
+  // import time, so an early return inside mount() would still have cost a
+  // phone both libraries. Read at mount, so a resized window gets the right one
+  // on the next visit to the tab.
+  { id: 'sandbox', label: 'Sandbox', group: 'Playground',
+    load: () => window.matchMedia('(max-width: 899px)').matches
+      ? import('./tabs/sandboxSmall')
+      : import('./tabs/sandbox') },
   // Foundations
   { id: 'quantum', label: 'Quantum', group: 'Foundations', load: () => import('./tabs/quantum') },
   { id: 'periodicity', label: 'Periodicity', group: 'Foundations', load: () => import('./tabs/periodicity') },

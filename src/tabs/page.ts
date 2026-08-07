@@ -109,6 +109,39 @@ function addReset(el: HTMLElement): void {
   el.classList.add('has-reset');
 }
 
+/** Plain section header over an existing block (W3.1). No rail, no scroll-spy. */
+function sectionHead(text: string): HTMLElement {
+  return h('h2', { class: 'section-head' }, text);
+}
+
+/**
+ * Collapse a simulation card to its title and task line (W3.2).
+ *
+ * Class toggle rather than <details>, because the card is a `section.card` that
+ * needsReset(), labelCanvases() and auditTopicPages() all select — rehoming its
+ * children under a <summary> would break three passes to save one CSS rule.
+ *
+ * Animation loops idle while collapsed: `playPause().playing()` reports false
+ * inside `.card.collapsed`, which is the gate all three animated tabs read.
+ */
+function makeCollapsible(el: HTMLElement, open: boolean): void {
+  const h2 = el.querySelector('h2');
+  if (!h2) return;
+  const title = h2.textContent?.trim() ?? 'this simulation';
+  const btn = h('button', { type: 'button', class: 'btn btn-quiet card-toggle' });
+  const sync = (): void => {
+    const shown = !el.classList.contains('collapsed');
+    btn.textContent = shown ? 'Hide' : 'Show';
+    btn.setAttribute('aria-expanded', String(shown));
+    btn.setAttribute('aria-label', `${shown ? 'Hide' : 'Show'} ${title}`);
+  };
+  btn.addEventListener('click', () => { el.classList.toggle('collapsed'); sync(); });
+  el.classList.toggle('collapsed', !open);
+  el.classList.add('has-toggle');
+  h2.append(btn);
+  sync();
+}
+
 export interface TopicPageBlocks {
   /**
    * The simulation / tool region in reading order: a run of cards, or a single
@@ -161,10 +194,15 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
       bmBtn,
     ));
   }
-  frag.append(...(Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory]));
+  // Learn · Practice · Prove (W3.1) — three words over the order the page
+  // already had. "Learn" is omitted by the pills modules, whose theory sits
+  // inside each panel next to the simulation it explains rather than up here.
+  const theoryBlocks = Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory];
+  if (theoryBlocks.length) frag.append(sectionHead('Learn'));
+  frag.append(...theoryBlocks);
 
   const sims = h('div', { class: 'cards' }, ...blocks.sims);
-  frag.append(sims);
+  frag.append(sectionHead('Practice'), sims);
 
   const rest = h('div', { class: 'cards' },
     card('Quick quiz', blocks.quiz),
@@ -172,12 +210,22 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
     challengeLadder(id),
     meta && meta.refs.length ? references(meta.refs) : null,
   );
-  frag.append(rest);
+  frag.append(sectionHead('Prove'), rest);
 
   // Reset lands after the page is assembled so it sees cards built by either
   // layout (a plain run, or panels inside pills()).
-  for (const c of sims.querySelectorAll<HTMLElement>('section.card')) {
+  const simCards = Array.from(sims.querySelectorAll<HTMLElement>('section.card'));
+  for (const c of simCards) {
     if (needsReset(c)) addReset(c);
+  }
+
+  // First sim open, the rest collapsed (W3.2) — a topic page opens on ONE thing
+  // to do instead of five stacked instruments.
+  //
+  // Skipped for pills() layouts: there the cards are already one-at-a-time
+  // behind a tablist, and collapsing them would hide the only card in view.
+  if (!sims.querySelector('.pill-bar')) {
+    simCards.forEach((c, i) => makeCollapsible(c, i === 0));
   }
   if (import.meta.env.DEV) {
     if (!sims.querySelector('.mission-ladder')) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);

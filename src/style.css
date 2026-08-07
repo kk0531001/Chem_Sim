@@ -998,7 +998,7 @@ body { overflow: hidden; }
   justify-content: space-between;
   align-items: center;
   gap: 14px;
-  padding: 16px 32px;
+  padding: 8px 24px;
   border-top: 1px solid var(--rule);
 }
 #topic-footer:empty { display: none; }
@@ -1025,17 +1025,19 @@ body { overflow: hidden; }
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
   border-radius: var(--r-lg);
-  padding: 10px 16px;
+  padding: 6px 12px;
   cursor: pointer;
   transition: box-shadow var(--t) ease, transform var(--t) ease, border-color var(--t) ease;
 }
 .next-lesson-card:hover { border-color: var(--accent); box-shadow: var(--shadow-2); transform: translateY(-2px); }
-.next-lesson-icon { width: 26px; height: 26px; color: var(--accent-dark); flex-shrink: 0; }
+.next-lesson-icon { width: 18px; height: 18px; color: var(--accent-dark); flex-shrink: 0; }
 .next-lesson-icon svg { width: 100%; height: 100%; }
-.next-lesson-body { display: flex; flex-direction: column; gap: 2px; }
+/* One wrapping ROW, not a four-row stack: this footer never scrolls away, so
+   every pixel it takes is taken from the lesson for the whole session. */
+.next-lesson-body { display: flex; flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
 .next-lesson-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink-faint); }
 .next-lesson-title { font-family: var(--serif); font-size: 14.5px; font-weight: 700; color: var(--ink); }
-.next-lesson-meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.next-lesson-meta { display: flex; align-items: center; gap: 6px; }
 .next-lesson-arrow { width: 16px; height: 16px; color: var(--ink-faint); flex-shrink: 0; }
 .next-lesson-arrow svg { width: 100%; height: 100%; }
 
@@ -1112,7 +1114,8 @@ body { overflow: hidden; }
 .cards > .pills { flex: 1 1 100%; min-width: 0; }
 
 /* Reset sits on the card's title rule, right-aligned against it. */
-.card.has-reset > h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card.has-reset > h2,
+.card.has-toggle > h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .card-reset { font-size: 11.5px; padding: 3px 11px; flex: none; }
 
 /* Play/pause sits above the canvas it controls, not in the control stack —
@@ -1868,6 +1871,28 @@ body { overflow: hidden; }
   max-width: 62ch;
 }
 
+/* ---- Learn / Practice / Prove section heads (W3.1) ----
+   Three words naming the shape of the page. Deliberately quieter than a card
+   title: they label the blocks, they are not content themselves. */
+.section-head {
+  margin: var(--s-6) 0 var(--s-3);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.section-head:first-child { margin-top: var(--s-4); }
+
+/* ---- collapsed simulation cards (W3.2) ----
+   Title and task line only; everything else — controls, canvas, missions,
+   Reset — is out until the student opens the card. */
+.card.collapsed > *:not(h2):not(.card-task) { display: none; }
+.card.collapsed .card-reset { display: none; }
+.card.collapsed .card-task { margin-bottom: 0; }
+.card-toggle { font-size: 11.5px; padding: 3px 11px; flex: none; margin-left: auto; }
+
 .quiz-opts { display: flex; flex-direction: column; gap: 8px; }
 /* End-of-quiz: the buttons sit in .quiz-opts, so they inherit the column —
    align them left and let the sentence above them read as prose. */
@@ -1958,6 +1983,27 @@ body { overflow: hidden; }
   .feature, .feature.right { grid-template-columns: 1fr; }
   .feature.right .feature-text { order: 1; }
   .feature.right .feature-visual { order: 2; }
+
+  /* W3.3: a canvas authored at 460 px must not force the page sideways on a
+     390 px phone. Width from the card, height from the authored aspect —
+     plot() then re-renders at the real size (see plotResize in framework.ts),
+     so labels stay 10 px instead of being scaled down with the bitmap. */
+  .card canvas, .card svg { width: 100%; height: auto; }
+  /* The footer earns even less room on a phone: title and arrow, nothing else.
+     (Its reason line and metadata stay in the card's aria-label.) */
+  #topic-footer { padding: 6px 14px; }
+  .next-lesson-label, .next-lesson-why, .next-lesson-meta { display: none; }
+
+  /* W3.4: quiz options are the one control a phone user hits over and over. */
+  .quiz-opt {
+    width: 100%;
+    min-height: 48px;
+    padding: 12px 14px;
+    font-size: 15px;   /* 16px-ish: also stops iOS zooming the page on tap */
+    line-height: 1.45;
+  }
+  .quiz-opts { gap: 10px; }
+  .quiz-opts .btn { align-self: stretch; min-height: 48px; }
 }
 
 .results-head {
@@ -2323,11 +2369,9 @@ body { overflow: hidden; }
 /* The reason a lesson was recommended (F.3). Quiet — it explains the title
    above it, and must never compete with it for attention. */
 .next-lesson-why {
-  display: block;
   font-size: 11.5px;
   line-height: 1.45;
   color: var(--ink-faint);
-  margin-top: 2px;
   max-width: 34ch;
 }
 

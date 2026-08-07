@@ -1229,7 +1229,11 @@ export function playPause(onChange: (playing: boolean) => void): { el: HTMLButto
   };
   btn.addEventListener('click', () => { playing = !playing; paint(); onChange(playing); });
   paint();
-  return { el: btn, playing: () => playing };
+  // A COLLAPSED card is not playing (W3.2). Reported here rather than by each
+  // loop, because `visible && play.playing()` is already the one gate all three
+  // animated tabs consult — a second flag would be a second thing to forget.
+  // The student's own choice is untouched, so expanding resumes where it was.
+  return { el: btn, playing: () => playing && !btn.closest('.card.collapsed') };
 }
 
 let pillSeq = 0;
@@ -1379,10 +1383,43 @@ export interface PlotOpts {
   legend?: boolean;
 }
 
+// ---- responsive plots (W3.3) ----
+//
+// Below the mobile breakpoint the stylesheet lets a canvas fill its card, which
+// on its own would just SCALE the bitmap — a 460 px plot squeezed into a 350 px
+// card takes its 10 px tick labels down to 7.6 px, which is where a chart stops
+// being readable on the device it matters most on.
+//
+// So the last plot() call is remembered per canvas and replayed at the new
+// backing size. Replay rather than a redraw callback because plot() is the only
+// thing that knows how to draw a plot: no call site changes, and a tab that
+// redraws on its own (an animated sim) overwrites this on its next frame anyway.
+const lastPlot = new WeakMap<HTMLCanvasElement, { series: Series[]; opts: PlotOpts; ratio: number }>();
+const plotResize = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(entries => {
+  for (const e of entries) {
+    const c = e.target as HTMLCanvasElement;
+    const last = lastPlot.get(c);
+    // clientWidth is 0 inside a collapsed card — leave the backing store alone
+    // and let the next expand fire the observer again.
+    const w = Math.round(c.clientWidth);
+    if (!last || w < 120 || w === c.width) continue;
+    c.width = w;
+    c.height = Math.round(w * last.ratio);
+    plot(c, last.series, last.opts);
+  }
+});
+
 export function plot(canvas: HTMLCanvasElement, series: Series[], opts: PlotOpts = {}): void {
+  if (!lastPlot.has(canvas)) plotResize?.observe(canvas);
+  // The aspect ratio is fixed at the size the module authored, so a resize
+  // changes how big the plot is and never what shape it is.
+  lastPlot.set(canvas, { series, opts, ratio: (lastPlot.get(canvas)?.ratio ?? canvas.height / canvas.width) });
   const ctx = canvas.getContext('2d')!;
   const W = canvas.width, Hh = canvas.height;
-  const padL = 46, padR = 10, padT = 10, padB = 30;
+  // padR carries the last x tick label, which is centred on the axis end: at
+  // phone width a 4-digit tick ("3000") runs off the canvas with the desktop
+  // 10 px, so narrow plots get enough room for half of one.
+  const padL = 46, padR = W < 380 ? 22 : 10, padT = 10, padB = 30;
   ctx.clearRect(0, 0, W, Hh);
 
   let xMin = opts.xMin ?? Infinity, xMax = opts.xMax ?? -Infinity;
