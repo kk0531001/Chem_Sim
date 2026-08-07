@@ -9,7 +9,7 @@
 // tracking, streaks and personalised review are all aggregations over
 // *attempts* (including the wrong ones), and the solved set throws away
 // everything except the final success. See ROADMAP.md Phase A.3.
-import { createClient, type SupabaseClient, type User } from '@supabase/supabase-js';
+import type { SupabaseClient, User } from '@supabase/supabase-js';
 
 const LS_KEY = 'chemprep_solved_v1';
 const LS_ATTEMPTS = 'chemprep_attempts_v1';
@@ -39,8 +39,50 @@ const MAX_DAYS = 800;        // streaks over two years, ~9 KB
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const supabase: SupabaseClient | null =
-  url && anon ? createClient(url, anon) : null;
+const cloudConfigured = !!(url && anon);
+
+/**
+ * The Supabase client is LOADED ON DEMAND, not at startup (ROADMAP D.10).
+ *
+ * Reading a lesson needs no account, but the client was constructed at module
+ * load, so every visitor downloaded ~110 kB of auth machinery to look at a
+ * page that never calls it. Now it arrives with the first thing that actually
+ * needs a network round-trip: signing in, or restoring a session that already
+ * exists.
+ *
+ * `isCloudConfigured()` stays synchronous — the sign-in UI has to know whether
+ * to render at all, and that is answerable from the env vars alone.
+ */
+let clientPromise: Promise<SupabaseClient> | null = null;
+function cloud(): Promise<SupabaseClient> | null {
+  if (!cloudConfigured) return null;
+  clientPromise ??= import('@supabase/supabase-js').then(m => {
+    const sb = m.createClient(url!, anon!);
+    // One listener per client, attached where the client is created so both
+    // entry points (restore-on-load and sign-in) get it exactly once.
+    sb.auth.onAuthStateChange((_event, session) => {
+      const wasSignedIn = !!user;
+      user = session?.user ?? null;
+      if (user && !wasSignedIn) { void syncWithRemote(); void syncAttempts(); }
+      fire();
+    });
+    return sb;
+  });
+  return clientPromise;
+}
+
+/**
+ * Is there a session to restore? Supabase keeps it under `sb-<ref>-auth-token`
+ * in localStorage; an OAuth or magic-link return instead carries the token in
+ * the URL. Either means load the client at startup — anything else means a
+ * signed-out reader, who should never pay for it.
+ */
+function hasSessionToRestore(): boolean {
+  try {
+    if (location.hash.includes('access_token') || new URLSearchParams(location.search).has('code')) return true;
+    return Object.keys(localStorage).some(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+  } catch { return false; }
+}
 
 let solved = new Set<string>();
 let user: User | null = null;
@@ -283,11 +325,8 @@ export function markSolved(id: string): void {
   solved.add(id);
   saveLocal();
   fire();
-  if (supabase && user) {
-    supabase.from('solved').upsert({ user_id: user.id, question_id: id }).then(({ error }) => {
-      if (error) console.warn('sync (upsert) failed:', error.message);
-    });
-  }
+  if (user) void cloud()?.then(sb => sb.from('solved').upsert({ user_id: user!.id, question_id: id }))
+    .then(res => { if (res?.error) console.warn('sync (upsert) failed:', res.error.message); });
 }
 
 export function unmarkSolved(id: string): void {
@@ -295,20 +334,18 @@ export function unmarkSolved(id: string): void {
   solved.delete(id);
   saveLocal();
   fire();
-  if (supabase && user) {
-    supabase.from('solved').delete().match({ user_id: user.id, question_id: id }).then(({ error }) => {
-      if (error) console.warn('sync (delete) failed:', error.message);
-    });
-  }
+  if (user) void cloud()?.then(sb => sb.from('solved').delete().match({ user_id: user!.id, question_id: id }))
+    .then(res => { if (res?.error) console.warn('sync (delete) failed:', res.error.message); });
 }
 
 // ---- auth ----
-export function isCloudConfigured(): boolean { return supabase !== null; }
+export function isCloudConfigured(): boolean { return cloudConfigured; }
 export function currentEmail(): string | null { return user?.email ?? null; }
 
 export async function signInWithEmail(email: string): Promise<{ ok: boolean; msg: string }> {
-  if (!supabase) return { ok: false, msg: 'Cloud sync is not configured.' };
-  const { error } = await supabase.auth.signInWithOtp({
+  const sb = await cloud();
+  if (!sb) return { ok: false, msg: 'Cloud sync is not configured.' };
+  const { error } = await sb.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.origin },
   });
@@ -321,8 +358,9 @@ export async function signInWithEmail(email: string): Promise<{ ok: boolean; msg
 // returns here already signed in (onAuthStateChange picks it up). Requires
 // the Google provider to be enabled in Supabase (Authentication → Providers).
 export async function signInWithGoogle(): Promise<{ ok: boolean; msg: string }> {
-  if (!supabase) return { ok: false, msg: 'Cloud sync is not configured.' };
-  const { error } = await supabase.auth.signInWithOAuth({
+  const sb = await cloud();
+  if (!sb) return { ok: false, msg: 'Cloud sync is not configured.' };
+  const { error } = await sb.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo: window.location.origin },
   });
@@ -330,8 +368,9 @@ export async function signInWithGoogle(): Promise<{ ok: boolean; msg: string }> 
 }
 
 export async function signOut(): Promise<void> {
-  if (!supabase) return;
-  await supabase.auth.signOut();
+  const sb = await cloud();
+  if (!sb) return;
+  await sb.auth.signOut();
   user = null;
   fire();
 }
@@ -339,8 +378,9 @@ export async function signOut(): Promise<void> {
 // Merge remote rows with the local set, and push any local-only ids up so
 // progress recorded while signed out (or on another device) isn't lost.
 async function syncWithRemote(): Promise<void> {
-  if (!supabase || !user) return;
-  const { data, error } = await supabase.from('solved').select('question_id').eq('user_id', user.id);
+  const sb = user ? await cloud() : null;
+  if (!sb || !user) return;
+  const { data, error } = await sb.from('solved').select('question_id').eq('user_id', user.id);
   if (error) { console.warn('sync (fetch) failed:', error.message); return; }
   const remote = new Set((data ?? []).map(r => r.question_id as string));
   const localOnly = [...solved].filter(id => !remote.has(id));
@@ -349,16 +389,17 @@ async function syncWithRemote(): Promise<void> {
   fire();
   if (localOnly.length) {
     const rows = localOnly.map(question_id => ({ user_id: user!.id, question_id }));
-    const { error: upErr } = await supabase.from('solved').upsert(rows);
+    const { error: upErr } = await sb.from('solved').upsert(rows);
     if (upErr) console.warn('sync (push) failed:', upErr.message);
   }
 }
 
 // Re-push the whole solved set (used after an id remap rewrote it).
 async function pushSolvedFull(): Promise<void> {
-  if (!supabase || !user || solved.size === 0) return;
+  const sb = user && solved.size ? await cloud() : null;
+  if (!sb || !user) return;
   const rows = [...solved].map(question_id => ({ user_id: user!.id, question_id }));
-  const { error } = await supabase.from('solved').upsert(rows);
+  const { error } = await sb.from('solved').upsert(rows);
   if (error) console.warn('solved re-push failed:', error.message);
 }
 
@@ -367,7 +408,8 @@ async function pushSolvedFull(): Promise<void> {
 // merge — but a retried push must not duplicate rows, which is why each
 // attempt carries a client-generated uuid primary key and this upserts.
 async function pushAttempts(rows: Attempt[]): Promise<void> {
-  if (!supabase || !user || rows.length === 0) return;
+  const sb = user && rows.length ? await cloud() : null;
+  if (!sb || !user) return;
   const payload = rows.map(a => ({
     id: a.id,
     user_id: user!.id,
@@ -377,7 +419,7 @@ async function pushAttempts(rows: Attempt[]): Promise<void> {
     chosen: a.chosen,
     answered_at: new Date(a.at).toISOString(),
   }));
-  const { error } = await supabase.from('attempts').upsert(payload);
+  const { error } = await sb.from('attempts').upsert(payload);
   if (error) { console.warn('attempt sync failed:', error.message); return; }
   const pushed = new Set(rows.map(r => r.id));
   for (const a of attempts) if (pushed.has(a.id)) a.synced = true;
@@ -389,8 +431,9 @@ async function pushAttempts(rows: Attempt[]): Promise<void> {
 // to, so a device that already counted an attempt locally and then sees the
 // same row come back from the server doesn't double-count it.
 async function syncAttempts(): Promise<void> {
-  if (!supabase || !user) return;
-  const { data, error } = await supabase
+  const sb = user ? await cloud() : null;
+  if (!sb || !user) return;
+  const { data, error } = await sb
     .from('attempts')
     .select('id, question_id, topic, correct, chosen, answered_at')
     .eq('user_id', user.id)
@@ -438,14 +481,10 @@ export async function initProgress(): Promise<void> {
   loadLocal();
   loadAttempts();
   fire();
-  if (!supabase) return;
-  const { data } = await supabase.auth.getSession();
+  if (!cloudConfigured || !hasSessionToRestore()) return;
+  const sb = await cloud();
+  if (!sb) return;
+  const { data } = await sb.auth.getSession();
   user = data.session?.user ?? null;
   if (user) { await syncWithRemote(); await syncAttempts(); }
-  supabase.auth.onAuthStateChange((_event, session) => {
-    const wasSignedIn = !!user;
-    user = session?.user ?? null;
-    if (user && !wasSignedIn) { void syncWithRemote(); void syncAttempts(); }
-    fire();
-  });
 }
