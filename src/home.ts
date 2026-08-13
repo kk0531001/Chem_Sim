@@ -281,15 +281,27 @@ export function continueBlock(onEnter: (id: string) => void): { el: HTMLElement;
     const p = moduleProgress(topic.id);
     const pct = p ? Math.round((p.done / p.total) * 100) : 0;
     const next = recommendNext(topic.id);
+    // One line saying what the next move IS, derived from the same solved
+    // count as the meter rather than stored — a second source would be a
+    // second thing to get out of step with the bar sitting next to it.
+    const step = !p ? topic.blurb
+      : p.done === 0 ? `Nothing answered yet — the quiz opens with ${Math.min(5, p.total)} warm-ups.`
+      : p.done >= p.total ? 'Quiz complete — the challenge ladder is what is left.'
+      : `${p.total - p.done} of ${p.total} questions still unanswered.`;
     const kids: (HTMLElement | null)[] = [
       h('p', { class: 'continue-eyebrow' }, 'Pick up where you left off'),
-      h('button', { class: 'btn-hero continue-cta', type: 'button', onclick: () => onEnter(topic.id) },
-        `Continue — ${topic.title}`),
+      h('h2', { class: 'continue-title' }, topic.title),
+      h('p', { class: 'continue-step' }, step),
       p ? h('div', { class: 'continue-meter' },
         h('div', { class: 'pbar', role: 'img', 'aria-label': `${p.done} of ${p.total} questions solved` },
           h('div', { class: `pbar-fill${p.done ? '' : ' zero'}`, style: `width:${p.done ? Math.max(pct, 2) : 0}%` })),
         h('span', { class: 'continue-count' }, `${p.done}/${p.total} solved`),
       ) : null,
+      // THE one accent button on this card. "Recommended next" is a different
+      // module, so it stays a quiet alternative — two filled buttons side by
+      // side is two primary actions, which is none.
+      h('button', { class: 'btn-hero continue-cta', type: 'button', onclick: () => onEnter(topic.id) },
+        `Resume ${topic.title}`),
       next ? h('button', {
         class: 'btn btn-quiet continue-next', type: 'button', onclick: () => onEnter(next.topic.id),
       }, `Recommended next: ${next.topic.title}`) : null,
@@ -483,16 +495,21 @@ export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void):
   );
 
   // ---- 05 · the full catalog, grouped by domain ----
+  // The catalogue is the SECONDARY way in, and it now looks like one: 27 equal
+  // tiles competing at full weight was a decision the reader had to make before
+  // they could start. The Resume card in the hero is the primary route; this is
+  // the fallback for someone who wants something else, so it renders compact
+  // and unemphasised under a lower-case aside of a heading.
   const groupsInOrder = [...new Set(TOPICS.map(t => t.group))];
   const topics = h('section', { class: 'topics' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '05'), h('h2', {}, 'The whole syllabus, module by module')),
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '05'), h('h2', {}, 'or jump to a topic')),
     h('p', { class: 'section-lede reveal' },
       'Each module pairs hands-on simulations with the key equations and the traps examiners reuse, then tests you with a 25-question quiz — five warm-ups, twenty at contest level.'),
     ...groupsInOrder.flatMap(g => [
       h('h3', { class: 'topic-group-head reveal' }, g),
       h('div', { class: 'topic-grid' },
         ...TOPICS.filter(t => t.group === g)
-          .map((t, i) => renderTopicCard(t, onEnter, ' reveal', `transition-delay:${(i % 3) * 60}ms`)),
+          .map((t, i) => renderTopicCard(t, onEnter, ' reveal compact', `transition-delay:${(i % 3) * 60}ms`)),
       ),
     ]),
     h('div', { style: 'text-align:center;margin-top:34px' },

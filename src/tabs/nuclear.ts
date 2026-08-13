@@ -1,5 +1,5 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, type TabDef, type TabHandle, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, folded, type TabDef, type TabHandle, task } from './framework';
 import { topicPage } from './page';
 import { NUCLEAR_QUIZ } from './questions2';
 
@@ -49,7 +49,7 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
   }
   let acc = 0;
   function frame(): void {
-    if (visible && running) {
+    if (visible && running && !folded(gridCanvas)) {
       const dt = 1 / 60;
       tElapsed += dt;
       acc += dt;

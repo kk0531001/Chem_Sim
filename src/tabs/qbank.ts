@@ -4,6 +4,7 @@
 // Part III = laboratory practical scenarios
 // CCO     = advanced CCO problem sets PS1–PS4 (multi-part, worked)
 import { h, card, quiz, button, select, typesetMath, type TabDef, type QuizQ } from './framework';
+import { fold } from './page';
 import { PART1 } from './bankPart1';
 import { PART2, type FRQ } from './bankPart2';
 import { PART3 } from './bankPart3';
@@ -424,7 +425,19 @@ export const qbankTab: TabDef = {
       return out;
     }
 
+    // ONE hero here too: every view below appends its cards to `content`, and
+    // several append three or four (Browse by topic is one card per domain,
+    // Olympiad Questions is the past-paper panel plus Part A plus Part B). The
+    // fold pass is ONE place after the fact rather than a decision repeated in
+    // each of the ten branches — every branch already returns early, which is
+    // exactly why the pass cannot live inside them.
     function render(): void {
+      renderView();
+      const cards = Array.from(content.children).filter((c): c is HTMLElement => c.matches('section.card'));
+      for (const c of cards.slice(1)) fold(c, c.querySelector('.section-lede, .muted')?.textContent?.trim() ?? '');
+    }
+
+    function renderView(): void {
       writeUrl();
       content.replaceChildren();
       if (part === 'review') { content.append(...reviewView()); return; }
@@ -476,11 +489,15 @@ export const qbankTab: TabDef = {
       if (part === 'olympiad') {
         const paper = OLYMPIAD_PAPERS.find(p => p.id === olyPaper)!;
         countNote.textContent = ` Part A: ${paper.partA.length} MC · Part B: ${paper.partB.length} written`;
+        // Paper first, archive last: the hero of this view is the mock paper
+        // you came to sit, and the links to the official PDFs are a reference
+        // shelf beside it. They used to be the first card, which made the
+        // fold pass promote the shelf and bury Part A.
         content.append(
-          officialPapersPanel(),
-          h('p', { class: 'section-lede', style: 'margin-top:20px;margin-bottom:12px' }, `${paper.label} — ${paper.blurb} All original, written to match the real contest format.`),
+          h('p', { class: 'section-lede', style: 'margin-bottom:12px' }, `${paper.label} — ${paper.blurb} All original, written to match the real contest format.`),
           card(`Part A — multiple choice (${paper.partA.length} questions)`, quiz(paper.partA)),
           frqBrowser(paper.partB, 'Part B — written problems (work each part before revealing)'),
+          officialPapersPanel(),
         );
         return;
       }
@@ -507,7 +524,16 @@ export const qbankTab: TabDef = {
       h('div', { class: 'cards' },
         h('section', { class: 'card wide' },
           h('h2', {}, 'Exam-style question bank'),
-          h('p', {}, 'Original practice written in the format and difficulty of the CCC / CCO / USNCO exam sections: Part I multiple choice, Part II free-response with worked solutions, Part III laboratory practicals, the advanced CCO problem sets (PS1–PS4), Integrated Challenges — multi-topic problems that demand experimental design, data interpretation, graph analysis, and open-response reasoning — and Olympiad Questions: five full-length mock papers (Part A + Part B) plus links to the official past papers. Nothing here is copied from real papers.'),
+          // Seven lines of "what this is" pushed the first question below the
+          // fold on a laptop. It is orientation, not the tool — it reads once
+          // and then never again, which is what a fold is for.
+          fold(
+            h('div', {},
+              h('p', {}, 'Original practice written in the format and difficulty of the CCC / CCO / USNCO exam sections: Part I multiple choice, Part II free-response with worked solutions, Part III laboratory practicals, the advanced CCO problem sets (PS1–PS4), Integrated Challenges — multi-topic problems that demand experimental design, data interpretation, graph analysis, and open-response reasoning — and Olympiad Questions: five full-length mock papers (Part A + Part B) plus links to the official past papers. Nothing here is copied from real papers.'),
+            ),
+            'Every question here is original, written to match the real exam formats',
+            'What is in this bank',
+          ),
           partBar,
           h('div', { style: 'display:flex;gap:14px;align-items:center;flex-wrap:wrap' }, topicCtl, ccoCtl, intCtl, olyCtl, shuffleBtn, countNote),
           filterRow,

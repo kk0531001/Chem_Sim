@@ -1207,6 +1207,19 @@ export function prefersReducedMotion(): boolean {
 }
 
 /**
+ * Is this element inside a collapsed block? The one place the site asks that
+ * question, so a loop cannot be gated on a stale idea of what "hidden" means.
+ *
+ * `details:not([open])` covers both wrappers a simulation can sit in: the fold
+ * that topicPage() puts every non-hero block into, and a <details> a module
+ * nested itself. A loop that reads this idles while folded and picks up on the
+ * next frame after the student opens the block — no toggle listener to wire up.
+ */
+export function folded(el: Element): boolean {
+  return !!el.closest('details:not([open])');
+}
+
+/**
  * Play/pause for a simulation that would otherwise animate the moment you open
  * the page (ROADMAP D.6).
  *
@@ -1229,11 +1242,11 @@ export function playPause(onChange: (playing: boolean) => void): { el: HTMLButto
   };
   btn.addEventListener('click', () => { playing = !playing; paint(); onChange(playing); });
   paint();
-  // A COLLAPSED card is not playing (W3.2). Reported here rather than by each
-  // loop, because `visible && play.playing()` is already the one gate all three
+  // A FOLDED card is not playing. Reported here rather than by each loop,
+  // because `visible && play.playing()` is already the one gate all three
   // animated tabs consult — a second flag would be a second thing to forget.
   // The student's own choice is untouched, so expanding resumes where it was.
-  return { el: btn, playing: () => playing && !btn.closest('.card.collapsed') };
+  return { el: btn, playing: () => playing && !folded(btn) };
 }
 
 let pillSeq = 0;

@@ -517,6 +517,39 @@ body { overflow: hidden; }
 .topic-card:focus-within { box-shadow: var(--shadow-3); transform: translateY(-3px); }
 .topic-card.span2 { grid-column: span 2; }
 @media (max-width: 700px) { .topic-card.span2 { grid-column: span 1; } }
+
+/* ---- the catalogue, demoted ----
+   The homepage's primary route is the Resume card; this grid is the "or
+   something else" fallback. Same cards, one step down in weight: flat until
+   hovered, tighter, and one line of blurb instead of three. Nothing here
+   changes what a card IS — only how loudly it asks to be chosen. */
+/* Keyed on the cards, not on an ancestor class, so the homepage catalogue and
+   the competition guides' module lists get the same grid from one rule. */
+.topic-grid:has(.topic-card.compact) {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--s-3);
+}
+.topic-card.compact {
+  padding: var(--s-4);
+  background: none;
+  border-color: var(--rule);
+  box-shadow: none;
+}
+.topic-card.compact:hover,
+.topic-card.compact:focus-within { background: var(--paper-2); box-shadow: var(--shadow-1); }
+.topic-card.compact h3 { font-size: 15px; margin-bottom: var(--s-1); }
+.topic-card.compact p {
+  font-size: 12.5px;
+  margin-bottom: var(--s-3);
+  /* One line of blurb. The full text is still on the card in the Menu
+     directory, which is where someone comparing modules actually goes. */
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.topic-card.compact .topic-card-top { margin-bottom: var(--s-2); }
 .topic-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .topic-icon {
   display: inline-flex;
@@ -1114,8 +1147,7 @@ body { overflow: hidden; }
 .cards > .pills { flex: 1 1 100%; min-width: 0; }
 
 /* Reset sits on the card's title rule, right-aligned against it. */
-.card.has-reset > h2,
-.card.has-toggle > h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.card.has-reset > h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .card-reset { font-size: 11.5px; padding: 3px 11px; flex: none; }
 
 /* Play/pause sits above the canvas it controls, not in the control stack —
@@ -1696,7 +1728,35 @@ body { overflow: hidden; }
   color: var(--panel-text);
   font-variant-numeric: tabular-nums;
 }
-.result b, .result strong { color: #ffffff; }
+/* ---- ONE emphasized number per readout ----
+   A readout used to shout every value at once: each <b> white and bold, a
+   .big in accent, a .trap in accent, an .eq in blue — five competing emphases
+   in a box that answers one question. Now there is a hierarchy: ONE headline
+   number, mono and large, and everything else is quiet supporting text.
+
+   Done here rather than at the ~92 call sites because the emphasis is a
+   property of the readout, not of any one module's markup — and the markup
+   already tells us which number is the headline (`.big`, or failing that the
+   readout's first top-level <b>). */
+.result b, .result strong {
+  color: var(--panel-text);
+  font-weight: 600;
+}
+.result .big,
+.result:not(:has(.big)) > b:first-of-type {
+  display: block;
+  font-family: var(--mono);
+  font-size: 21px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: #ffffff;
+}
+/* At most one semantic colour at a time. A readout that already has its
+   headline number does not also get an accent trap line or a blue equation —
+   the second colour is what turns a readout into a ransom note. */
+.result:has(.big) .trap,
+.result:has(.big) .eq { color: var(--panel-text); }
+
 .big { font-size: 16.5px; color: var(--accent-on-panel); font-family: var(--mono); }
 
 /* .muted is used BOTH as body copy on a card (light) and inside a .result
@@ -1792,8 +1852,10 @@ body { overflow: hidden; }
 .quiz-q { font-size: 14.5px; font-weight: 600; line-height: 1.55; color: var(--ink); margin-bottom: 13px; }
 /* ============================================================
    Continue block (homepage hero + /today) and the sidebar
-   mastery strip. Both are "where was I" surfaces: quiet type,
-   one accent, and nothing that competes with the module list.
+   mastery strip. Both are "where was I" surfaces. The Continue
+   block is now the homepage's PRIMARY route — module name,
+   next step, meter, one accent button — and the module grid
+   below it is the demoted alternative (.topic-card.compact).
    ============================================================ */
 .continue {
   margin-top: var(--s-5);
@@ -1810,7 +1872,26 @@ body { overflow: hidden; }
   text-transform: uppercase;
   color: var(--ink-faint);
 }
-.continue-cta { margin-bottom: var(--s-3); }
+/* The card's own subject line: the module, at heading weight, so the reader
+   sees WHAT they are resuming before they read the button that does it. */
+.continue-title {
+  margin: 0 0 var(--s-1);
+  font-family: var(--serif);
+  font-size: 25px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+/* One line on what is left to do. Body weight, not a badge — it is the reason
+   to press the button, so it reads as a sentence. */
+.continue-step {
+  margin: 0 0 var(--s-3);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+  max-width: 46ch;
+}
+.continue-cta { margin-top: var(--s-3); margin-bottom: var(--s-3); }
 .continue-meter { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-2); }
 .continue-meter .pbar { flex: 1; }
 .continue-count { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); }
@@ -1885,13 +1966,96 @@ body { overflow: hidden; }
 }
 .section-head:first-child { margin-top: var(--s-4); }
 
-/* ---- collapsed simulation cards (W3.2) ----
-   Title and task line only; everything else — controls, canvas, missions,
-   Reset — is out until the student opens the card. */
-.card.collapsed > *:not(h2):not(.card-task) { display: none; }
-.card.collapsed .card-reset { display: none; }
-.card.collapsed .card-task { margin-bottom: 0; }
-.card-toggle { font-size: 11.5px; padding: 3px 11px; flex: none; margin-left: auto; }
+/* ---- folded blocks: ONE hero per page, everything else behind <details> ----
+   A topic page opens on its primary simulation. Every other block — the
+   secondary sims, the calculators, the quiz, the ladder, the references — is a
+   collapsed native <details>, so open/close state, keyboard operation and
+   find-in-page reveal are the platform's job rather than ours.
+
+   The summary carries the block title plus a one-line hint of what is inside.
+   The wrapped card's own h2 is HIDDEN, not removed: nearestHeading() still
+   needs it to name the card's canvases. */
+.fold {
+  flex: 1 1 100%;
+  /* A flex item defaults to min-width:auto, i.e. "never narrower than my
+     content" — which on a phone let a long serif title push the whole summary
+     row past the viewport. The .card children of .cards carry a 300px floor
+     for the same reason; a fold is a full-width row and wants no floor at all. */
+  min-width: 0;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-lg);
+  background: var(--paper-2);
+}
+.fold[open] { box-shadow: var(--shadow-1); }
+.fold-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;               /* Firefox */
+  transition: background var(--t) ease;
+}
+.fold-head::-webkit-details-marker { display: none; }
+.fold-head:hover { background: var(--paper-3); }
+.fold-head::before {
+  content: '▸';
+  font-size: 11px;
+  color: var(--accent);
+  transition: transform var(--t) ease;
+}
+.fold[open] > .fold-head::before { transform: rotate(90deg); }
+.fold-title {
+  font-family: var(--serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  /* Shrinkable, so a long title wraps inside the summary instead of widening
+     it. The hint gives up its room first (it truncates), the title second. */
+  flex: 0 1 auto;
+  min-width: 0;
+}
+/* The hint is the first thing to give up room: it is a preview of the block,
+   not a second title, so it truncates rather than wrapping the summary to two
+   lines. */
+.fold-hint {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+}
+/* The hint is a preview, so it goes away once the block is open: for a sim it
+   is the card's own task() line clipped to 90 chars, and showing both would be
+   the same sentence twice, the shorter one first. */
+.fold[open] > .fold-head > .fold-hint { display: none; }
+.fold-head .card-reset { margin-left: auto; }
+/* Inside a fold the card is the details' body — the fold already draws the
+   frame, so the card gives up its own border, shadow and width constraints. */
+.fold > .card,
+.fold > .card:hover {
+  border: 0;
+  background: none;
+  box-shadow: none;
+  max-width: none;
+  min-width: 0;
+  padding: 0 var(--s-4) var(--s-4);
+}
+.fold > .card > h2 { display: none; }
+
+/* THE hero: the page's primary simulation, full-width and always open. */
+.sim-hero { flex: 1 1 100%; max-width: none; }
+
+/* On a phone there is no room for a title AND a preview of the block on one
+   line — sharing it wrapped the serif title to one word per line. The title
+   wins: it is what the reader is choosing between. */
+@media (max-width: 640px) {
+  .fold-hint { display: none; }
+  .fold > .card { padding: 0 var(--s-3) var(--s-3); }
+}
 
 .quiz-opts { display: flex; flex-direction: column; gap: 8px; }
 /* End-of-quiz: the buttons sit in .quiz-opts, so they inherit the column —

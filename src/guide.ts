@@ -82,7 +82,9 @@ export function buildGuidePage(
         h('h2', {}, `The ${modules.length} modules in scope`),
         h('p', { class: 'section-lede' },
           'In syllabus order — each one is a lesson, a simulation with missions, and a 25-question quiz.'),
-        h('div', { class: 'topic-grid' }, ...modules.map(t => renderTopicCard(t, onOpen, '', '', true))),
+        // Compact, like the homepage catalogue: this list supports the guide's
+        // own hero ("Start in <comp> mode") rather than competing with it.
+        h('div', { class: 'topic-grid' }, ...modules.map(t => renderTopicCard(t, onOpen, ' compact', '', true))),
         h('p', { class: 'guide-more' },
           h('button', { type: 'button', class: 'btn', onclick: onMenu }, 'Browse all topics'),
           ' — including the material beyond ', MODE_SHORT[guide.comp], ', if you are aiming past it.'),

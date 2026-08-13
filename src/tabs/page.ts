@@ -16,7 +16,7 @@
 // challengeLadder() and TopicMeta: framework → challenge → registry → topics →
 // framework is a cycle, and a cycle whose modules build top-level constants is
 // an initialisation-order bug waiting for someone at 3am.
-import { h, card } from './framework';
+import { h, card, folded } from './framework';
 import { challengeLadder } from './challenge';
 import { topicById, type Ref } from '../topics';
 import { isBookmarked, toggleBookmark } from '../progress';
@@ -100,7 +100,13 @@ function addReset(el: HTMLElement): void {
   // handler is what calls missions.tick() — so the meters follow the reset
   // without this knowing anything about them. Solved missions stay solved:
   // they are progress, not card state.
-  const btn = h('button', { type: 'button', class: 'btn btn-quiet card-reset', onclick: () => resetControls(el) }, 'Reset');
+  // preventDefault because fold() moves this button onto a <summary>, where an
+  // unhandled click is the toggle's default action — resetting a folded card
+  // would otherwise close it.
+  const btn = h('button', {
+    type: 'button', class: 'btn btn-quiet card-reset',
+    onclick: (e: Event) => { e.preventDefault(); resetControls(el); },
+  }, 'Reset');
   btn.setAttribute('aria-label', `Reset ${el.querySelector('h2')?.textContent ?? 'this simulation'} to its starting values`);
   // Inside the h2, not after it: the card title already carries the rule under
   // the header, so the button rides on that line instead of pushing the
@@ -114,32 +120,83 @@ function sectionHead(text: string): HTMLElement {
   return h('h2', { class: 'section-head' }, text);
 }
 
+// One line of "what is in here", shown on a folded block's summary. Long
+// enough for a task() sentence, short enough to stay on one line at card width.
+const HINT_MAX = 90;
+
+function clip(s: string): string {
+  const t = s.replace(/\s+/g, ' ').trim();
+  if (t.length <= HINT_MAX) return t;
+  const cut = t.lastIndexOf(' ', HINT_MAX);
+  return `${t.slice(0, cut > 40 ? cut : HINT_MAX)}…`;
+}
+
 /**
- * Collapse a simulation card to its title and task line (W3.2).
- *
- * Class toggle rather than <details>, because the card is a `section.card` that
- * needsReset(), labelCanvases() and auditTopicPages() all select — rehoming its
- * children under a <summary> would break three passes to save one CSS rule.
- *
- * Animation loops idle while collapsed: `playPause().playing()` reports false
- * inside `.card.collapsed`, which is the gate all three animated tabs read.
+ * The hint for a block, taken from what the module already wrote: a simulation
+ * states its job in `task()`, a composed card in its `.section-lede`. Derived
+ * rather than passed in, so no call site has to keep a second summary in sync
+ * with the sentence already on screen.
  */
-function makeCollapsible(el: HTMLElement, open: boolean): void {
-  const h2 = el.querySelector('h2');
-  if (!h2) return;
-  const title = h2.textContent?.trim() ?? 'this simulation';
-  const btn = h('button', { type: 'button', class: 'btn btn-quiet card-toggle' });
-  const sync = (): void => {
-    const shown = !el.classList.contains('collapsed');
-    btn.textContent = shown ? 'Hide' : 'Show';
-    btn.setAttribute('aria-expanded', String(shown));
-    btn.setAttribute('aria-label', `${shown ? 'Hide' : 'Show'} ${title}`);
-  };
-  btn.addEventListener('click', () => { el.classList.toggle('collapsed'); sync(); });
-  el.classList.toggle('collapsed', !open);
-  el.classList.add('has-toggle');
-  h2.append(btn);
-  sync();
+function hintFor(el: HTMLElement, fallback = ''): string {
+  const src = el.querySelector('.card-task, .section-lede')?.textContent ?? '';
+  const first = src.split(/(?<=[.?!])\s/)[0] ?? '';
+  return clip(first || fallback);
+}
+
+/**
+ * Demote a block to a collapsed native <details> — the decluttering pass. Every
+ * block except the hero simulation goes through here.
+ *
+ * The card is WRAPPED, not re-parented under the <summary>: it is a
+ * `section.card` that needsReset(), labelCanvases() and auditTopicPages() all
+ * select, and rehoming its children would break three passes to save one CSS
+ * rule. The summary carries the title, so the card's own h2 is hidden by CSS
+ * (`.card.folded > h2`) rather than removed — `nearestHeading()` still finds it
+ * when labelling canvases. Only the Reset button rides up onto the summary line.
+ *
+ * Animation loops idle while folded: `playPause().playing()` reports false
+ * inside a closed <details>, which is the gate all three animated tabs already
+ * read — expanding resumes at the student's own play/pause choice.
+ */
+export function fold(el: HTMLElement, hint: string, name?: string): HTMLElement {
+  const reset = el.querySelector<HTMLElement>('.card-reset');
+  // Lifted before the title is read: addReset() appends it inside the h2, so
+  // textContent would otherwise come back as "Diffusion boxReset".
+  reset?.remove();
+  // `name` is for the callers with no card to read a title off — the Question
+  // Bank folds a block of prose, which has no h2 of its own.
+  const title = name ?? (el.querySelector('h2')?.textContent?.trim() || 'Details');
+  const summary = h('summary', { class: 'fold-head' },
+    h('span', { class: 'fold-title' }, title),
+    hint ? h('span', { class: 'fold-hint' }, hint) : null,
+  );
+  if (reset) summary.append(reset);
+  if (el.matches('.card')) el.classList.add('folded');
+  // Swap the empty <details> in FIRST, then move the card into it. The obvious
+  // `el.replaceWith(fold(el))` throws HierarchyRequestError, because the
+  // replacement contains the node being replaced. `replaceWith` is a no-op on a
+  // parentless node, so this same order also works for a card built inline.
+  const d = h('details', { class: 'fold' }, summary);
+  el.replaceWith(d);
+  d.append(el);
+  return d;
+}
+
+/**
+ * theory() already builds a <details>, so it only needs shutting and a hint —
+ * no wrapper. Closed even when short (theory() auto-opens a brief block): the
+ * page opens on the simulation, not on prose.
+ */
+function shutTheory(t: HTMLElement): void {
+  t.removeAttribute('open');
+  const s = t.querySelector('summary');
+  if (!s || s.querySelector('.fold-hint')) return;
+  s.append(h('span', { class: 'fold-hint' }, clip((t.textContent ?? '').slice(s.textContent?.length ?? 0))));
+}
+
+/** fold() for the two blocks a module is allowed not to have. */
+function foldIf(el: HTMLElement | null, hint: string): HTMLElement | null {
+  return el && fold(el, hint);
 }
 
 export interface TopicPageBlocks {
@@ -199,16 +256,18 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   // inside each panel next to the simulation it explains rather than up here.
   const theoryBlocks = Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory];
   if (theoryBlocks.length) frag.append(sectionHead('Learn'));
+  theoryBlocks.forEach(shutTheory);
   frag.append(...theoryBlocks);
 
   const sims = h('div', { class: 'cards' }, ...blocks.sims);
   frag.append(sectionHead('Practice'), sims);
 
   const rest = h('div', { class: 'cards' },
-    card('Quick quiz', blocks.quiz),
-    ...(blocks.extra ?? []),
-    challengeLadder(id),
-    meta && meta.refs.length ? references(meta.refs) : null,
+    fold(card('Quick quiz', blocks.quiz), 'Multiple choice, with the trap explained after each answer'),
+    ...(blocks.extra ?? []).map(c => fold(c, hintFor(c))),
+    foldIf(challengeLadder(id), 'Bronze to Platinum problems, each tier unlocking the next'),
+    foldIf(meta && meta.refs.length ? references(meta.refs) : null,
+      'Textbook chapters for this module, plus the official past-paper archives'),
   );
   frag.append(sectionHead('Prove'), rest);
 
@@ -219,14 +278,29 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
     if (needsReset(c)) addReset(c);
   }
 
-  // First sim open, the rest collapsed (W3.2) — a topic page opens on ONE thing
-  // to do instead of five stacked instruments.
+  // ONE hero per VIEW: the first simulation runs full-width and open, every
+  // other sim folds. A topic page opens on one thing to do, not five stacked
+  // instruments.
   //
-  // Skipped for pills() layouts: there the cards are already one-at-a-time
-  // behind a tablist, and collapsing them would hide the only card in view.
-  if (!sims.querySelector('.pill-bar')) {
-    simCards.forEach((c, i) => makeCollapsible(c, i === 0));
+  // A pills() layout is several views behind a tablist, so each PANEL gets its
+  // own hero rather than the page getting one. Treating pills as a single view
+  // and skipping it (the first version of this) left the seven multi-panel
+  // modules showing two or three instruments at once — exactly what the hero is
+  // for. A panel holding one card is already a hero and nothing folds.
+  //
+  // After the reset pass on purpose — addReset() needs the h2 before fold()
+  // lifts the button onto the summary.
+  const panels = Array.from(sims.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
+  const views: HTMLElement[][] = panels.length
+    ? panels.map(p => Array.from(p.children).filter((c): c is HTMLElement => c.matches('section.card')))
+    : [blocks.sims];
+  for (const cards of views) {
+    cards[0]?.classList.add('sim-hero');
+    for (const c of cards.slice(1)) fold(c, hintFor(c));
   }
+  // The pills modules keep their theory inside the panel, beside the simulation
+  // it explains. Same treatment as a module-level block — it is prose either way.
+  sims.querySelectorAll<HTMLElement>('details.theory').forEach(shutTheory);
   if (import.meta.env.DEV) {
     if (!sims.querySelector('.mission-ladder')) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);
     // Every simulation card states its job in one imperative sentence. Checked
@@ -238,6 +312,22 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
       }
     }
     if (!frag.querySelector('.theory')) console.error(`[page contract] ${id}: no theory block`);
+    // ONE hero, everything else folded, and every folded animation actually
+    // idle. The last clause is the one worth checking by machine: a sim that
+    // keeps its rAF loop running behind a closed <details> looks completely
+    // correct on screen and only shows up as a warm laptop.
+    // A hidden tabpanel is not on screen, so its hero does not count against
+    // the one-open rule — the reader sees one panel at a time.
+    const open = Array.from(frag.querySelectorAll<HTMLElement>('section.card'))
+      .filter(c => !folded(c) && !c.closest('[role="tabpanel"][hidden]') && !c.parentElement?.closest('section.card'));
+    if (open.length > 1) {
+      console.error(`[page contract] ${id}: ${open.length} blocks open at once — the page must open on ONE hero`);
+    }
+    for (const b of frag.querySelectorAll<HTMLElement>('.play-pause')) {
+      if (b.closest('.fold') && !folded(b)) {
+        console.error(`[page contract] ${id}: "${b.closest('.card')?.querySelector('h2')?.textContent?.trim()}" animates inside a fold that reports itself open`);
+      }
+    }
   }
   return frag;
 }
