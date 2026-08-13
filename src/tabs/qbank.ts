@@ -4,7 +4,45 @@
 // Part III = laboratory practical scenarios
 // CCO     = advanced CCO problem sets PS1–PS4 (multi-part, worked)
 import { h, card, quiz, button, select, typesetMath, type TabDef, type QuizQ } from './framework';
-import { fold } from './page';
+// The Question Bank is NOT a topic page — it is one tool with ten views behind
+// a filter bar, not a sequence of lessons — so it keeps the fold that topic
+// pages retired when they became routed sections. This is the only caller left,
+// which is why the helper moved here from page.ts.
+const HINT_MAX = 90;
+
+function clip(s: string): string {
+  const t = s.replace(/\s+/g, ' ').trim();
+  if (t.length <= HINT_MAX) return t;
+  const cut = t.lastIndexOf(' ', HINT_MAX);
+  return `${t.slice(0, cut > 40 ? cut : HINT_MAX)}…`;
+}
+
+/**
+ * Demote a block to a collapsed native <details>.
+ *
+ * The card is WRAPPED, not re-parented under the <summary>: it is a
+ * `section.card` that other passes select, and rehoming its children would
+ * break them to save one CSS rule. The summary carries the title, so the card's
+ * own h2 is hidden by CSS (`.card.folded > h2`) rather than removed.
+ */
+function fold(el: HTMLElement, hint: string, name?: string): HTMLElement {
+  // `name` is for a block with no card to read a title off — the bank folds a
+  // block of prose, which has no h2 of its own.
+  const title = name ?? (el.querySelector('h2')?.textContent?.trim() || 'Details');
+  const summary = h('summary', { class: 'fold-head' },
+    h('span', { class: 'fold-title' }, title),
+    hint ? h('span', { class: 'fold-hint' }, clip(hint)) : null,
+  );
+  if (el.matches('.card')) el.classList.add('folded');
+  // Swap the empty <details> in FIRST, then move the card into it. The obvious
+  // `el.replaceWith(fold(el))` throws HierarchyRequestError, because the
+  // replacement contains the node being replaced. `replaceWith` is a no-op on a
+  // parentless node, so this same order also works for a card built inline.
+  const d = h('details', { class: 'fold' }, summary);
+  el.replaceWith(d);
+  d.append(el);
+  return d;
+}
 import { PART1 } from './bankPart1';
 import { PART2, type FRQ } from './bankPart2';
 import { PART3 } from './bankPart3';

@@ -1404,7 +1404,49 @@ body { overflow: hidden; }
   color: var(--accent-dark);
 }
 
-.pill-bar { display: flex; gap: 8px; margin: 0 auto 18px; flex-wrap: wrap; max-width: 1480px; }
+.pill-bar, .section-steps { display: flex; gap: 8px; margin: 0 auto 18px; flex-wrap: wrap; max-width: 1480px; }
+/* The stepper's pills are real links (crawlable, cmd-clickable), not buttons. */
+a.pill { text-decoration: none; display: inline-block; }
+
+/* ---- section stepper + guided-path footer (the paginated topic page) ---- */
+.section-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  max-width: 1480px;
+  margin: var(--s-6) auto 0;
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--rule);
+}
+.section-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--ink);
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-4);
+  max-width: 42%;
+  transition: border-color var(--t), color var(--t);
+}
+.section-step.next { text-align: right; }
+.section-step:hover { border-color: var(--accent); color: var(--accent-dark); }
+.section-step-label {
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.section-step-title { font-weight: 600; }
+.section-step-blank { flex: 0 1 auto; }
+.section-pos {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
 .pill {
   background: var(--paper-2);
   border: 1px solid var(--rule-2);
@@ -2046,8 +2088,9 @@ body { overflow: hidden; }
 }
 .fold > .card > h2 { display: none; }
 
-/* THE hero: the page's primary simulation, full-width and always open. */
-.sim-hero { flex: 1 1 100%; max-width: none; }
+/* The one-hero rule is gone: a topic page shows exactly one section, so every
+   block is the hero of its own route. Sections run full width. */
+.topic-sections > * { flex: 1 1 100%; max-width: none; }
 
 /* On a phone there is no room for a title AND a preview of the block on one
    line — sharing it wrapped the serif title to one word per line. The title
@@ -2099,6 +2142,27 @@ body { overflow: hidden; }
 #nav-toggle, #nav-backdrop { display: none; }
 
 @media (max-width: 900px) {
+  /* Eight wrapped pills pushed the actual lesson off the first screen. One
+     scrolling row instead: the stepper stays a complete list of the topic (it
+     is the only overview of it there is), but costs one line. The current pill
+     is scrolled into view by the stepper itself. */
+  .section-steps {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-bottom: var(--s-4);
+    /* Full-bleed so the row scrolls edge to edge rather than in a slot with
+       cropped pills at both ends. */
+    padding-inline: var(--s-4);
+    margin-inline: calc(-1 * var(--s-4));
+  }
+  .section-steps::-webkit-scrollbar { display: none; }
+  .section-steps .pill { white-space: nowrap; flex: 0 0 auto; max-width: 62vw; overflow: hidden; text-overflow: ellipsis; }
+  /* The position indicator is the first thing to go when the two step buttons
+     need the width; the footer still says where you are going. */
+  .section-pos { display: none; }
+  .section-step { max-width: 47%; }
+
   #nav-toggle {
     display: block;
     position: fixed;

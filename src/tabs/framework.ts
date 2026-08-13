@@ -1207,16 +1207,22 @@ export function prefersReducedMotion(): boolean {
 }
 
 /**
- * Is this element inside a collapsed block? The one place the site asks that
- * question, so a loop cannot be gated on a stale idea of what "hidden" means.
+ * Is this element off-screen — collapsed, or not in the document at all? The
+ * one place the site asks that question, so a loop cannot be gated on a stale
+ * idea of what "hidden" means.
  *
- * `details:not([open])` covers both wrappers a simulation can sit in: the fold
- * that topicPage() puts every non-hero block into, and a <details> a module
- * nested itself. A loop that reads this idles while folded and picks up on the
- * next frame after the student opens the block — no toggle listener to wire up.
+ * Two cases, and a simulation's animation loop must idle in both:
+ *  - `details:not([open])`: a <details> the module nested itself.
+ *  - `!isConnected`: the section is not the current route, so topicPage() has
+ *    it detached. The rAF loop belongs to the TAB (its handle cancels it when
+ *    the topic is left), so between sections of one topic the loop stays alive
+ *    and this is what makes it stop painting.
+ *
+ * Either way a loop that reads this picks up again on the next frame after the
+ * block comes back — no toggle or route listener to wire up.
  */
 export function folded(el: Element): boolean {
-  return !!el.closest('details:not([open])');
+  return !el.isConnected || !!el.closest('details:not([open])');
 }
 
 /**

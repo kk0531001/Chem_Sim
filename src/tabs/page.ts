@@ -1,25 +1,32 @@
-// The page contract (ROADMAP D.4).
+// The page contract, second edition: a topic is a SEQUENCE OF ROUTED SECTIONS,
+// not one scrolling page.
 //
-// Every topic page is: introduction · theory · simulations (each with its
-// missions and a reset) · quiz (with misconception boxes) · challenge ladder ·
-// references — in that order, with those heading levels. `topicPage()` is the
-// one place that order exists, so a module cannot silently omit a block.
+// Every block a module builds — the intro, each theory block, each simulation,
+// the quiz, the challenge ladder, the references — becomes its own named route
+// under `/topic/<slug>/<section>`, and exactly one of them is in the document
+// at a time. Structure now enforces one-thing-per-view: there is no fold to
+// leave open, no tablist to leave on the wrong panel, and no "hero" rule to
+// get wrong, because there is only ever one thing on screen.
 //
-// WHAT ENFORCES THE CONTRACT IS THE TYPE, not an audit script: `sims`, `quiz`
-// and `theory` are required fields of a non-empty tuple type, and `intro` /
-// `refs` are required on TopicMeta. Six of the eight blocks are therefore a
-// compile error to leave out. Only the two that are counts rather than
-// presence — missions inside a sim, misconceptions inside a bank — need the
-// runtime check in auditTopicPages().
+// WHAT ENFORCES THE CONTRACT IS STILL THE TYPE: `sims`, `quiz` and `theory` are
+// required fields of a non-empty tuple type, and `intro` / `refs` are required
+// on TopicMeta, so most of the blocks are a compile error to leave out. What
+// the type cannot see — missions inside a sim, misconceptions inside a bank —
+// is still checked by auditTopicPages(). What the ONE-HERO rule used to check
+// is now checked by the host: one section mounted, nothing animating outside it
+// (see the rAF guard in sectionHost.ts).
 //
 // Lives in its own file rather than framework.ts because it needs
 // challengeLadder() and TopicMeta: framework → challenge → registry → topics →
 // framework is a cycle, and a cycle whose modules build top-level constants is
 // an initialisation-order bug waiting for someone at 3am.
-import { h, card, folded } from './framework';
+import { h, card } from './framework';
 import { challengeLadder } from './challenge';
 import { topicById, type Ref } from '../topics';
 import { isBookmarked, toggleBookmark } from '../progress';
+import { createSectionHost, type SectionSource } from '../sectionHost';
+import type { SectionDef, Position } from '../spine';
+import { navigate, onRouteChange, parseRoute } from '../router';
 
 /**
  * The official problem archives, shown under every module's reading list.
@@ -100,12 +107,9 @@ function addReset(el: HTMLElement): void {
   // handler is what calls missions.tick() — so the meters follow the reset
   // without this knowing anything about them. Solved missions stay solved:
   // they are progress, not card state.
-  // preventDefault because fold() moves this button onto a <summary>, where an
-  // unhandled click is the toggle's default action — resetting a folded card
-  // would otherwise close it.
   const btn = h('button', {
     type: 'button', class: 'btn btn-quiet card-reset',
-    onclick: (e: Event) => { e.preventDefault(); resetControls(el); },
+    onclick: () => resetControls(el),
   }, 'Reset');
   btn.setAttribute('aria-label', `Reset ${el.querySelector('h2')?.textContent ?? 'this simulation'} to its starting values`);
   // Inside the h2, not after it: the card title already carries the rule under
@@ -115,122 +119,213 @@ function addReset(el: HTMLElement): void {
   el.classList.add('has-reset');
 }
 
-/** Plain section header over an existing block (W3.1). No rail, no scroll-spy. */
-function sectionHead(text: string): HTMLElement {
-  return h('h2', { class: 'section-head' }, text);
+// ---- turning a module's blocks into named sections -------------------------
+
+interface Block extends SectionDef { el: HTMLElement }
+
+/**
+ * A section's slug is derived from its own heading, so the URL says what the
+ * page is (`/topic/chemical-equilibrium/le-chatelier-box`) and REORDERING a
+ * module's blocks cannot repoint anybody's bookmark — the guarantee an index
+ * would not give.
+ *
+ * ponytail: renaming a card's title does change its URL. The blast radius is
+ * small by construction — the spine falls back to the topic's first section
+ * rather than 404ing — and the alternative is an explicit slug argument
+ * threaded through all 25 modules. Upgrade path: add an optional slug to the
+ * card helper the first time a rename actually matters.
+ */
+const SUB = '₀₁₂₃₄₅₆₇₈₉';
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+
+function slugify(text: string): string {
+  const s = text.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    // Formula digits FIRST. Stripping them instead turns
+    // "N₂O₄ ⇌ 2NO₂" into "n-o-2no", which names nothing.
+    .replace(/[₀-₉]/g, c => String(SUB.indexOf(c)))
+    .replace(/[⁰-⁹]/g, c => String(SUP.indexOf(c)))
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (s.length <= 40) return s || 'section';
+  // Cut at a word boundary — a slug ending mid-word reads like a truncation bug.
+  const cut = s.slice(0, 41).lastIndexOf('-');
+  return (cut > 12 ? s.slice(0, cut) : s.slice(0, 40)) || 'section';
 }
 
-// One line of "what is in here", shown on a folded block's summary. Long
-// enough for a task() sentence, short enough to stay on one line at card width.
-const HINT_MAX = 90;
+function titleOf(el: HTMLElement, fallback: string): string {
+  // Before addReset(), deliberately — otherwise every sim would be called
+  // "Diffusion boxReset". The theory blocks carry a long subtitle after an
+  // em dash that a stepper has no room for.
+  const raw = el.querySelector('h2, summary')?.textContent?.trim() ?? '';
+  return (raw.split(' — ')[0] || fallback).trim();
+}
 
-function clip(s: string): string {
-  const t = s.replace(/\s+/g, ' ').trim();
-  if (t.length <= HINT_MAX) return t;
-  const cut = t.lastIndexOf(' ', HINT_MAX);
-  return `${t.slice(0, cut > 40 ? cut : HINT_MAX)}…`;
+function block(el: HTMLElement, fallbackTitle: string, taken: Set<string>, forceSlug?: string): Block {
+  const title = forceSlug ? fallbackTitle : titleOf(el, fallbackTitle);
+  let slug = forceSlug ?? slugify(title);
+  // Two cards with the same heading in one module is legal and happens; the
+  // second gets a numbered slug rather than silently stealing the first's URL.
+  for (let n = 2; taken.has(slug); n++) slug = `${forceSlug ?? slugify(title)}-${n}`;
+  taken.add(slug);
+  return { slug, title, el };
 }
 
 /**
- * The hint for a block, taken from what the module already wrote: a simulation
- * states its job in `task()`, a composed card in its `.section-lede`. Derived
- * rather than passed in, so no call site has to keep a second summary in sync
- * with the sentence already on screen.
+ * Flatten the simulation region into one section per card.
+ *
+ * The `pills()` tablist is retired: a module that used it was already several
+ * views behind a sub-navigation, and those views are now sections of the spine
+ * like any other. Its panels are unwrapped in place, so acids/redox/kinetics
+ * keeps each theory block next to the simulation it explains — as its own
+ * section, in the same order the pills had them.
  */
-function hintFor(el: HTMLElement, fallback = ''): string {
-  const src = el.querySelector('.card-task, .section-lede')?.textContent ?? '';
-  const first = src.split(/(?<=[.?!])\s/)[0] ?? '';
-  return clip(first || fallback);
+function simBlocks(sims: readonly HTMLElement[], taken: Set<string>): Block[] {
+  const out: Block[] = [];
+  for (const node of sims) {
+    const panels = Array.from(node.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
+    if (!panels.length) { out.push(block(node, 'Simulation', taken)); continue; }
+    for (const panel of panels) {
+      for (const child of Array.from(panel.children)) {
+        if (child instanceof HTMLElement && child.matches('section.card, details.theory')) {
+          out.push(block(child, 'Simulation', taken));
+        }
+      }
+    }
+  }
+  return out;
+}
+
+// ---- the section navigation ------------------------------------------------
+
+/**
+ * Every jump between sections is a real `<a href>`, not a button: these are
+ * pages, so cmd-click, middle-click and "copy link address" must all work, and
+ * a crawler must be able to follow them. The click handler only takes over the
+ * PLAIN left click, which is the one the History API should serve.
+ */
+function sectionLink(topicId: string, slug: string | null, text: string, cls: string): HTMLAnchorElement {
+  return h('a', {
+    class: cls,
+    href: `/topic/${topicById(topicId)?.slug ?? topicId}${slug ? `/${slug}` : ''}`,
+    onclick: (e: Event) => {
+      const me = e as MouseEvent;
+      if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button !== 0) return;
+      e.preventDefault();
+      navigate(slug ? { kind: 'topic', id: topicId, section: slug } : { kind: 'topic', id: topicId });
+    },
+  }, text) as HTMLAnchorElement;
 }
 
 /**
- * Demote a block to a collapsed native <details> — the decluttering pass. Every
- * block except the hero simulation goes through here.
+ * The stepper: every section of this topic, current one marked, each a direct
+ * jump. It doubles as the "what is in this topic" overview that a single
+ * scrolling page used to give you by scrolling.
  *
- * The card is WRAPPED, not re-parented under the <summary>: it is a
- * `section.card` that needsReset(), labelCanvases() and auditTopicPages() all
- * select, and rehoming its children would break three passes to save one CSS
- * rule. The summary carries the title, so the card's own h2 is hidden by CSS
- * (`.card.folded > h2`) rather than removed — `nearestHeading()` still finds it
- * when labelling canvases. Only the Reset button rides up onto the summary line.
- *
- * Animation loops idle while folded: `playPause().playing()` reports false
- * inside a closed <details>, which is the gate all three animated tabs already
- * read — expanding resumes at the student's own play/pause choice.
+ * It is the ONLY sub-navigation on a topic page — it replaced the pills
+ * tablist rather than joining it. Not the ARIA tabs pattern, deliberately:
+ * these are links to pages, and promising tab semantics (arrow-key movement
+ * within one document) for something that changes the URL would be a lie to a
+ * screen-reader user.
  */
-export function fold(el: HTMLElement, hint: string, name?: string): HTMLElement {
-  const reset = el.querySelector<HTMLElement>('.card-reset');
-  // Lifted before the title is read: addReset() appends it inside the h2, so
-  // textContent would otherwise come back as "Diffusion boxReset".
-  reset?.remove();
-  // `name` is for the callers with no card to read a title off — the Question
-  // Bank folds a block of prose, which has no h2 of its own.
-  const title = name ?? (el.querySelector('h2')?.textContent?.trim() || 'Details');
-  const summary = h('summary', { class: 'fold-head' },
-    h('span', { class: 'fold-title' }, title),
-    hint ? h('span', { class: 'fold-hint' }, hint) : null,
+/**
+ * The app scrolls inside the tab root, not the window — `window.scrollTo` is a
+ * no-op here and `scrollIntoView` would move whichever ancestor it likes. Walk
+ * up to whatever is actually doing the scrolling and put it back to the top.
+ */
+function scrollToTop(from: HTMLElement): void {
+  for (let p = from.parentElement; p; p = p.parentElement) {
+    if (/(auto|scroll)/.test(getComputedStyle(p).overflowY)) { p.scrollTop = 0; return; }
+  }
+  window.scrollTo({ top: 0 });
+}
+
+function stepper(topicId: string, pos: Position): HTMLElement {
+  const nav = h('nav', { class: 'section-steps', 'aria-label': 'Sections of this topic' });
+  for (const s of pos.sections) {
+    const current = s.slug === pos.current.slug;
+    const a = sectionLink(topicId, s.slug, s.title, `pill${current ? ' active' : ''}`);
+    if (current) a.setAttribute('aria-current', 'page');
+    nav.append(a);
+  }
+  return nav;
+}
+
+/**
+ * The guided path: one step back, one step forward, and where you are.
+ *
+ * Both ends come from the spine, so the last section of a topic offers the NEXT
+ * TOPIC and the very last section of the spine offers the menu instead. A
+ * cross-topic step is named by its TOPIC ("← Acids, Redox & Kinetics"), never
+ * by a section title: it lands on that topic's entry point, and a button that
+ * named a specific section would be promising a destination it does not go to.
+ */
+function sectionFooter(pos: Position): HTMLElement {
+  const step = (ref: typeof pos.prev, dir: 'prev' | 'next') => {
+    const arrow = dir === 'prev' ? '←' : '→';
+    if (!ref) {
+      // Only at the two ends of the whole spine. Forward, the honest offer is
+      // the directory; backward there is simply nothing before the first page.
+      return dir === 'next'
+        ? h('a', { class: 'section-step next', href: '/menu', onclick: (e: Event) => { e.preventDefault(); navigate({ kind: 'menu' }); } },
+            h('span', { class: 'section-step-label' }, 'Finished'),
+            h('span', { class: 'section-step-title' }, 'Back to topics →'))
+        : h('span', { class: 'section-step-blank' });
+    }
+    const label = ref.crossesTopic ? (dir === 'prev' ? 'Previous topic' : 'Next topic') : (dir === 'prev' ? 'Previous' : 'Next');
+    const a = sectionLink(ref.topicId, ref.slug, '', `section-step ${dir}`);
+    a.append(
+      h('span', { class: 'section-step-label' }, label),
+      h('span', { class: 'section-step-title' }, dir === 'prev' ? `${arrow} ${ref.title}` : `${ref.title} ${arrow}`),
+    );
+    // The arrow glyph alone says nothing, and the title alone says nothing
+    // about direction — the accessible name has to carry both.
+    a.setAttribute('aria-label', `${label}: ${ref.title}`);
+    return a;
+  };
+  return h('nav', { class: 'section-foot', 'aria-label': 'Section navigation' },
+    step(pos.prev, 'prev'),
+    h('span', { class: 'section-pos' }, `Section ${pos.indexInTopic + 1} of ${pos.topicLength}`),
+    step(pos.next, 'next'),
   );
-  if (reset) summary.append(reset);
-  if (el.matches('.card')) el.classList.add('folded');
-  // Swap the empty <details> in FIRST, then move the card into it. The obvious
-  // `el.replaceWith(fold(el))` throws HierarchyRequestError, because the
-  // replacement contains the node being replaced. `replaceWith` is a no-op on a
-  // parentless node, so this same order also works for a card built inline.
-  const d = h('details', { class: 'fold' }, summary);
-  el.replaceWith(d);
-  d.append(el);
-  return d;
-}
-
-/**
- * theory() already builds a <details>, so it only needs shutting and a hint —
- * no wrapper. Closed even when short (theory() auto-opens a brief block): the
- * page opens on the simulation, not on prose.
- */
-function shutTheory(t: HTMLElement): void {
-  t.removeAttribute('open');
-  const s = t.querySelector('summary');
-  if (!s || s.querySelector('.fold-hint')) return;
-  s.append(h('span', { class: 'fold-hint' }, clip((t.textContent ?? '').slice(s.textContent?.length ?? 0))));
-}
-
-/** fold() for the two blocks a module is allowed not to have. */
-function foldIf(el: HTMLElement | null, hint: string): HTMLElement | null {
-  return el && fold(el, hint);
 }
 
 export interface TopicPageBlocks {
   /**
    * The simulation / tool region in reading order: a run of cards, or a single
-   * `pills()` wrapper containing them. At least one — a topic page with nothing
-   * to drive is a textbook, and this is not a textbook.
+   * `pills()` wrapper containing them. At least one — a topic with nothing to
+   * drive is a textbook, and this is not a textbook. Each card becomes its own
+   * routed section.
    */
   sims: [HTMLElement, ...HTMLElement[]];
   /** The module's quiz body — `quiz(BANK, 5)`. Wrapped in its card here. */
   quiz: HTMLElement;
   /**
-   * `theory(title, html)`, rendered directly under the intro.
+   * `theory(title, html)` — its own section, or several.
    *
-   * An ARRAY, possibly empty, for the multi-topic modules built out of
-   * `pills()`: acids/redox/kinetics carries one theory block per panel, sitting
-   * beside the simulation it explains, and hoisting those into one block at the
-   * top would separate each from what it describes. Those pass `[]` here and
-   * the DEV check below verifies the blocks exist somewhere on the page — the
-   * one block of the eight whose presence the type cannot prove.
+   * An ARRAY, possibly empty, for the modules built out of `pills()`:
+   * acids/redox/kinetics carries one theory block per panel, and those are
+   * picked up from the panels instead, keeping each next to the simulation it
+   * explains in the section order.
    */
   theory: HTMLElement | HTMLElement[];
-  /** Cards that belong after the quiz but before the challenge ladder. Rare. */
+  /** Blocks that belong after the quiz but before the challenge ladder. Rare. */
   extra?: HTMLElement[];
 }
 
 /**
- * Assemble one topic page. `id` is the TopicMeta id — the intro, the references
- * and the challenge ladder are all looked up from it, so a page can never
- * disagree with the metadata the menu and homepage show for the same module.
+ * Assemble one topic's sections and hand back the element to append.
+ *
+ * `id` is the TopicMeta id — the intro, the references and the challenge ladder
+ * are all looked up from it, so a page can never disagree with the metadata the
+ * menu and homepage show for the same module.
+ *
+ * The return value is still a fragment appended by the module, so no module
+ * changed: what it contains is a single host element that swaps its one child
+ * as the route changes.
  */
 export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment {
   const meta = topicById(id);
-  const frag = document.createDocumentFragment();
+  const taken = new Set<string>();
+  const sections: Block[] = [];
 
   if (meta) {
     // Module-level bookmark (E.5). It shares the question bookmark store —
@@ -245,89 +340,136 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
     };
     bmBtn.addEventListener('click', () => { toggleBookmark(id); syncBm(); });
     syncBm();
-    frag.append(h('section', { class: 'topic-intro' },
-      h('h2', { class: 'sr-only' }, `About ${meta.title}`),
+    sections.push(block(h('section', { class: 'topic-intro' },
+      h('h2', {}, `About ${meta.title}`),
       h('p', { html: meta.intro }),
       bmBtn,
-    ));
+    ), 'Overview', taken, 'overview'));
   }
-  // Learn · Practice · Prove (W3.1) — three words over the order the page
-  // already had. "Learn" is omitted by the pills modules, whose theory sits
-  // inside each panel next to the simulation it explains rather than up here.
+
   const theoryBlocks = Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory];
-  if (theoryBlocks.length) frag.append(sectionHead('Learn'));
-  theoryBlocks.forEach(shutTheory);
-  frag.append(...theoryBlocks);
-
-  const sims = h('div', { class: 'cards' }, ...blocks.sims);
-  frag.append(sectionHead('Practice'), sims);
-
-  const rest = h('div', { class: 'cards' },
-    fold(card('Quick quiz', blocks.quiz), 'Multiple choice, with the trap explained after each answer'),
-    ...(blocks.extra ?? []).map(c => fold(c, hintFor(c))),
-    foldIf(challengeLadder(id), 'Bronze to Platinum problems, each tier unlocking the next'),
-    foldIf(meta && meta.refs.length ? references(meta.refs) : null,
-      'Textbook chapters for this module, plus the official past-paper archives'),
-  );
-  frag.append(sectionHead('Prove'), rest);
-
-  // Reset lands after the page is assembled so it sees cards built by either
-  // layout (a plain run, or panels inside pills()).
-  const simCards = Array.from(sims.querySelectorAll<HTMLElement>('section.card'));
-  for (const c of simCards) {
-    if (needsReset(c)) addReset(c);
+  for (const t of theoryBlocks) {
+    // theory() builds a <details>; as a section of its own there is nothing
+    // left to collapse it for, so it opens.
+    t.setAttribute('open', '');
+    sections.push(block(t, 'Theory', taken));
   }
 
-  // ONE hero per VIEW: the first simulation runs full-width and open, every
-  // other sim folds. A topic page opens on one thing to do, not five stacked
-  // instruments.
-  //
-  // A pills() layout is several views behind a tablist, so each PANEL gets its
-  // own hero rather than the page getting one. Treating pills as a single view
-  // and skipping it (the first version of this) left the seven multi-panel
-  // modules showing two or three instruments at once — exactly what the hero is
-  // for. A panel holding one card is already a hero and nothing folds.
-  //
-  // After the reset pass on purpose — addReset() needs the h2 before fold()
-  // lifts the button onto the summary.
-  const panels = Array.from(sims.querySelectorAll<HTMLElement>('[role="tabpanel"]'));
-  const views: HTMLElement[][] = panels.length
-    ? panels.map(p => Array.from(p.children).filter((c): c is HTMLElement => c.matches('section.card')))
-    : [blocks.sims];
-  for (const cards of views) {
-    cards[0]?.classList.add('sim-hero');
-    for (const c of cards.slice(1)) fold(c, hintFor(c));
+  const simSections = simBlocks(blocks.sims, taken);
+  // Reset lands before the sections are handed over, and before addReset()
+  // appends its button into the h2 that titleOf() reads.
+  for (const s of simSections) {
+    if (s.el.matches('section.card') && needsReset(s.el)) addReset(s.el);
+    s.el.setAttribute('open', '');   // no-op on a card, opens a panel's theory
   }
-  // The pills modules keep their theory inside the panel, beside the simulation
-  // it explains. Same treatment as a module-level block — it is prose either way.
-  sims.querySelectorAll<HTMLElement>('details.theory').forEach(shutTheory);
+  sections.push(...simSections);
+
+  sections.push(block(card('Quick quiz', blocks.quiz), 'Quick quiz', taken, 'quiz'));
+  for (const c of blocks.extra ?? []) sections.push(block(c, 'More', taken));
+  const ladder = challengeLadder(id);
+  if (ladder) sections.push(block(ladder, 'Challenge ladder', taken, 'challenge'));
+  if (meta && meta.refs.length) sections.push(block(references(meta.refs), 'References', taken, 'references'));
+
+  // ---- host + routing ------------------------------------------------------
+  // tabindex="-1" so a section change can put focus at the top of the new page
+  // without adding it to the tab order.
+  const container = h('div', { class: 'topic-sections', tabindex: '-1' });
+  const navEl = h('div', { class: 'section-nav-slot' });
+  const footEl = h('div', { class: 'section-foot-slot' });
+  const host = createSectionHost(container);
+  const byId = new Map(sections.map(s => [s.slug, s.el]));
+  const source: SectionSource = {
+    sections: sections.map(({ slug, title }) => ({ slug, title })),
+    // Attached, not rebuilt: the blocks are built once by the module. The
+    // section that is not the current route is out of the document, which is
+    // what idles its animation loop (see folded() in framework.ts) — the loop
+    // itself belongs to the tab and is cancelled by the tab's handle.
+    mount: (slug, root) => { root.append(byId.get(slug)!); },
+  };
+
+  let first = true;
+  function go(section: string | null): void {
+    const at = host.current();
+    if (at && at.topicId === id && at.slug === section) return;
+    const pos = host.show(id, section, source);
+    if (!pos) return;
+    navEl.replaceChildren(stepper(id, pos));
+    // On a phone the strip scrolls instead of wrapping, so the current pill has
+    // to be brought to where the reader is looking.
+    //
+    // scrollLeft on the strip itself, NOT scrollIntoView: scrollIntoView also
+    // adjusts every scrollable ancestor, and on a deep-linked cold load it
+    // scrolled the tab body down far enough to hide the stepper it had just
+    // centred. This can only ever move the strip.
+    //
+    // In a microtask, not a frame callback: on the first call this function
+    // runs while the fragment is still detached (the module appends it only
+    // once topicPage returns) and an unlaid-out element has no offsetLeft. A
+    // microtask lands after that append and still before paint, where rAF
+    // would never arrive at all in a background tab.
+    queueMicrotask(() => {
+      const strip = navEl.firstElementChild as HTMLElement | null;
+      const cur = navEl.querySelector<HTMLElement>('[aria-current]');
+      if (strip && cur) strip.scrollLeft = cur.offsetLeft - (strip.clientWidth - cur.clientWidth) / 2;
+    });
+    footEl.replaceChildren(sectionFooter(pos));
+    // The module-level footer in main.ts is the NEXT LESSON recommendation
+    // (F.3) — a whole card with a reason, which is the right thing to offer at
+    // the end of a topic and noise in the middle of one. So it shows on the
+    // last section, where the spine is crossing into another topic anyway, and
+    // is out of the way everywhere else. Reached by id because it belongs to
+    // the app shell, not to this page; missing on the sandbox, hence `?.`.
+    const lessonFoot = document.getElementById('topic-footer');
+    if (lessonFoot) lessonFoot.hidden = pos.indexInTopic < pos.topicLength - 1;
+    // Canonicalise a bare or stale URL to the section actually on screen, so a
+    // reload and the Resume link agree with what the student is looking at.
+    if (pos.current.slug !== section) navigate({ kind: 'topic', id, section: pos.current.slug }, true);
+    // A section IS a page: name it in the title so history and bookmarks are
+    // legible. main.ts has already set the topic title by the time this runs.
+    document.title = `${pos.current.title} — ${pos.topic.title} — ChemPrep`;
+    // A new page starts at the top, with focus at the top of it — otherwise a
+    // keyboard user's next Tab continues from wherever the old page's focus
+    // was, and a screen reader is told nothing happened. Not on the first
+    // mount: arriving at the topic, main.ts has already moved focus into
+    // <main>, and stealing it from there would announce the section twice.
+    if (!first) {
+      scrollToTop(container);
+      container.focus({ preventScroll: true });
+    }
+    first = false;
+  }
+
+  // No unsubscribe: a tab module mounts once and lives for the session, so this
+  // is one listener per visited topic, each returning immediately for routes
+  // that are not its own.
+  onRouteChange(r => { if (r.kind === 'topic' && r.id === id) go(r.section ?? null); });
+  const here = parseRoute(location.pathname);
+  go(here.kind === 'topic' ? here.section ?? null : null);
+
   if (import.meta.env.DEV) {
-    if (!sims.querySelector('.mission-ladder')) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);
+    const simCards = simSections.filter(s => s.el.matches('section.card')).map(s => s.el);
+    if (!simCards.some(c => c.querySelector('.mission-ladder'))) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);
     // Every simulation card states its job in one imperative sentence. Checked
     // here rather than in the type because a card is assembled from a plain
     // children list — the type cannot see whether one of them is a task().
-    for (const c of sims.querySelectorAll<HTMLElement>('section.card')) {
+    for (const c of simCards) {
       if (!c.querySelector('.card-task')) {
         console.error(`[page contract] ${id}: sim card "${c.querySelector('h2')?.textContent?.trim()}" has no task() line`);
       }
     }
-    if (!frag.querySelector('.theory')) console.error(`[page contract] ${id}: no theory block`);
-    // ONE hero, everything else folded, and every folded animation actually
-    // idle. The last clause is the one worth checking by machine: a sim that
-    // keeps its rAF loop running behind a closed <details> looks completely
-    // correct on screen and only shows up as a warm laptop.
-    // A hidden tabpanel is not on screen, so its hero does not count against
-    // the one-open rule — the reader sees one panel at a time.
-    const open = Array.from(frag.querySelectorAll<HTMLElement>('section.card'))
-      .filter(c => !folded(c) && !c.closest('[role="tabpanel"][hidden]') && !c.parentElement?.closest('section.card'));
-    if (open.length > 1) {
-      console.error(`[page contract] ${id}: ${open.length} blocks open at once — the page must open on ONE hero`);
+    if (!sections.some(s => s.el.matches('.theory') || s.el.querySelector('.theory'))) console.error(`[page contract] ${id}: no theory block`);
+    // What the ONE-HERO rule used to say, now that it is structural: one
+    // section on screen. The other half — nothing animating outside it — is
+    // the rAF guard in sectionHost.ts.
+    if (container.children.length !== 1) {
+      console.error(`[page contract] ${id}: ${container.children.length} sections mounted at once — exactly one may be`);
     }
-    for (const b of frag.querySelectorAll<HTMLElement>('.play-pause')) {
-      if (b.closest('.fold') && !folded(b)) {
-        console.error(`[page contract] ${id}: "${b.closest('.card')?.querySelector('h2')?.textContent?.trim()}" animates inside a fold that reports itself open`);
-      }
+    if (sections.some(s => s.el.isConnected && s.slug !== host.current()?.slug)) {
+      console.error(`[page contract] ${id}: a section that is not the current route is still in the document`);
     }
   }
+
+  const frag = document.createDocumentFragment();
+  frag.append(navEl, container, footEl);
   return frag;
 }
