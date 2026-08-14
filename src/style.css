@@ -1458,15 +1458,29 @@ body { overflow: hidden; }
   .ctl-val { min-width: 0; }
 }
 
+/* The DRAG TARGET is the input's own box, not the painted track — a 4px-tall
+   element is a 4px-tall thing to hit, which on a phone is nearly impossible and
+   is under the 24px WCAG 2.5.8 minimum. So the box is 24px and transparent, and
+   the 4px bar people actually see is the runnable-track below, centred in it.
+   Nothing changes visually. */
 .ctl input[type='range'] {
   flex: 1;
   min-width: 80px;
   -webkit-appearance: none;
   appearance: none;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+.ctl input[type='range']::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: var(--r-sm);
   background: var(--rule-2);
-  cursor: pointer;
+}
+.ctl input[type='range']::-moz-range-track {
+  height: 4px;
+  border-radius: var(--r-sm);
+  background: var(--rule-2);
 }
 .ctl input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -1477,6 +1491,7 @@ body { overflow: hidden; }
   border: 2px solid var(--paper-2);
   box-shadow: 0 1px 4px rgba(28, 30, 33, 0.3);
   transition: transform var(--t);
+  margin-top: -6px;   /* centre the 16px thumb on the 4px track */
 }
 .ctl input[type='range']::-webkit-slider-thumb:hover { transform: scale(1.18); }
 .ctl input[type='range']::-moz-range-thumb {
@@ -1713,6 +1728,9 @@ a.pill { text-decoration: none; display: inline-block; }
   font-size: var(--f-4);
   line-height: var(--lh-tight);
   min-width: 28px;
+  /* 23px tall before this — the only control on the site under the 24px
+     minimum target size, and it is a bare chevron with no other hit area. */
+  min-height: 24px;
 }
 .mission-page-btn:disabled { opacity: 0.3; cursor: default; }
 /* Drawn once the mission on screen is solved and another one follows. */

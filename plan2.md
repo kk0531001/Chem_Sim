@@ -90,26 +90,26 @@ Instead:
 - [x] Test browser zoom / large text
 - [x] Check for horizontal overflow
 - [x] Check every dialog/modal
-- [ ] Check every dropdown
-- [ ] Check every simulation control
-- [ ] Check equations and chemical notation at narrow widths
-- [ ] Check charts/canvases on mobile
+- [x] Check every dropdown
+- [x] Check every simulation control
+- [x] Check equations and chemical notation at narrow widths
+- [x] Check charts/canvases on mobile
 - [ ] Check loading states
 - [ ] Check error states
-- [ ] Check empty states
+- [x] Check empty states
 - [ ] Check authenticated vs anonymous states
 
 Especially test:
 
-- [ ] Question Bank
-- [ ] Progress
-- [ ] Topic pages
-- [ ] Organic modules
-- [ ] Equilibrium
-- [ ] Electrochemistry
-- [ ] Quantum
-- [ ] Spectroscopy
-- [ ] Particle Sandbox
+- [x] Question Bank
+- [x] Progress
+- [x] Topic pages
+- [x] Organic modules
+- [x] Equilibrium
+- [x] Electrochemistry
+- [x] Quantum
+- [x] Spectroscopy
+- [x] Particle Sandbox
 
 **Goal**
 
