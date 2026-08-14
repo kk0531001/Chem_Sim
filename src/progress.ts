@@ -569,6 +569,67 @@ export function lastSection(id: string): string | null {
 }
 
 // ---- auth ----
+/**
+ * Erase EVERYTHING the student has done: solved questions, simulation
+ * missions, the attempt log and its aggregates, bookmarks, and the
+ * resume-where-you-left-off markers. Irreversible.
+ *
+ * Missions need no special handling — `missionLadder` records them through
+ * `markSolved` with `msn-…` ids, so they live in the solved set and go with it.
+ *
+ * ORDER MATTERS, and getting it backwards is the bug this function exists to
+ * avoid. Clearing locally first and deleting in the cloud second means that a
+ * sync firing in between — or a reload before the delete lands — repopulates
+ * everything from the server, and the reset silently does nothing. So the
+ * cloud rows go FIRST and are awaited; local state is only cleared once the
+ * server has actually forgotten.
+ *
+ * If the cloud delete fails, local data is deliberately left ALONE and the
+ * failure is returned. A half-reset that wipes this device while the server
+ * still holds everything is worse than no reset: the next sign-in restores it
+ * and the student cannot tell what happened.
+ *
+ * Deliberately NOT cleared, because none of it is progress: the competition
+ * mode (`chemprep_mode_v1`, a preference), the open sidebar groups
+ * (`chemprep.nav.open`, UI state), and the id-migration marker
+ * (`chemprep_idmigration_v1`, a one-time schema flag).
+ */
+export interface ResetResult { cloud: 'skipped' | 'cleared' | 'failed'; error?: string }
+
+export async function resetAllProgress(): Promise<ResetResult> {
+  let cloudState: ResetResult['cloud'] = 'skipped';
+
+  if (user) {
+    const sb = await cloud();
+    if (sb) {
+      const uid = user.id;
+      const results = await Promise.all([
+        sb.from('solved').delete().eq('user_id', uid),
+        sb.from('attempts').delete().eq('user_id', uid),
+        sb.from('bookmarks').delete().eq('user_id', uid),
+      ]);
+      const failed = results.find(r => r.error);
+      if (failed?.error) return { cloud: 'failed', error: failed.error.message };
+      cloudState = 'cleared';
+    }
+  }
+
+  solved = new Set();
+  bookmarks = new Set();
+  attempts = [];
+  totalAttempts = 0;
+  topicStats = new Map();
+  activeDays = new Set();
+  outstandingWrong = new Set();
+
+  for (const k of [LS_KEY, LS_ATTEMPTS, LS_BOOKMARKS, LS_LAST]) {
+    try { localStorage.removeItem(k); } catch { /* private mode — in-memory reset still stands */ }
+  }
+
+  fire();
+  return { cloud: cloudState };
+}
+
 export function isCloudConfigured(): boolean { return cloudConfigured; }
 export function currentEmail(): string | null { return user?.email ?? null; }
 

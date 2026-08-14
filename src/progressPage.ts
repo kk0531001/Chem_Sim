@@ -17,6 +17,7 @@ import {
   dailyCounts, recentAttempts, wrongQuestionIds, bookmarkIds, toggleBookmark,
   onProgressChange, currentEmail, isCloudConfigured,
   accuracyBySkill,
+  resetAllProgress,
 } from './progress';
 import { ALL_MC, ALL_FRQ, byTopic, byComp, questionById, QUIZ_BANKS } from './content/registry';
 import { DOMAINS, EXAM_TOPIC_LABEL, type ExamTopicId } from './content/topicIds';
@@ -117,6 +118,11 @@ export function buildProgressPage(): HTMLElement {
   const openReview = (): void =>
     navigate({ kind: 'topic', id: 'qbank' }, false, '?part=review');
 
+  /** Outcome of the last reset. Lives OUTSIDE render() because a successful
+   *  reset calls render(), which rebuilds the danger zone from scratch and
+   *  would otherwise throw away the very message confirming it worked. */
+  let resetNotice: { text: string; ok: boolean } | null = null;
+
   function render(): void {
     const acc = accuracyByTopic();
     const seen = Object.values(acc).reduce((n, t) => n + t.seen, 0);
@@ -183,6 +189,7 @@ export function buildProgressPage(): HTMLElement {
       ...skillSection(),
       historySection(),
       ...bookmarkSection(marks),
+      dangerZone(),
     );
 
     /**
@@ -379,6 +386,75 @@ export function buildProgressPage(): HTMLElement {
     }
 
     // ---- bookmarks ----
+    /**
+     * Erase everything. Two-step, because it cannot be undone and it reaches
+     * the account as well as this browser.
+     *
+     * The confirm step names REAL COUNTS rather than saying "are you sure":
+     * "412 solved, 1,203 answers, 18 bookmarks" is a sentence someone can
+     * actually check against what they expected to lose, and it is the
+     * difference between a confirmation and a speed bump.
+     */
+    function dangerZone(): HTMLElement {
+      const signedIn = !!currentEmail();
+      const counts = `${solvedTotal} solved · ${attemptCount()} answer${attemptCount() === 1 ? '' : 's'} · ${marks.length} bookmark${marks.length === 1 ? '' : 's'}`;
+      const status = h('p', {
+        class: `danger-status${resetNotice ? (resetNotice.ok ? ' good' : ' bad') : ''}`,
+      }, resetNotice?.text ?? '');
+      const row = h('div', { class: 'danger-row' });
+
+      const armed = (): void => {
+        row.replaceChildren(
+          h('p', { class: 'danger-confirm' },
+            `Delete ${counts}${signedIn ? ', on this device and in your account' : ''}? This cannot be undone.`),
+          h('div', { class: 'danger-actions' },
+            h('button', { type: 'button', class: 'btn danger', onclick: run }, 'Yes, erase it all'),
+            h('button', { type: 'button', class: 'btn', onclick: idle }, 'Cancel')),
+        );
+        (row.querySelector('button') as HTMLButtonElement | null)?.focus();
+      };
+      const idle = (): void => {
+        // Nothing to erase: offering "Delete 0 solved, 0 answers, 0 bookmarks"
+        // is a button that cannot do anything.
+        const empty = solvedTotal === 0 && attemptCount() === 0 && marks.length === 0;
+        row.replaceChildren(empty
+          ? h('button', { type: 'button', class: 'btn', disabled: 'true' }, 'Nothing to reset')
+          : h('button', { type: 'button', class: 'btn', onclick: armed }, 'Reset all progress'));
+      };
+      async function run(): Promise<void> {
+        row.replaceChildren(h('p', { class: 'danger-confirm' }, 'Erasing…'));
+        const res = await resetAllProgress();
+        if (res.cloud === 'failed') {
+          // Nothing was deleted anywhere — resetAllProgress leaves local data
+          // alone when the server refuses, so saying "nothing was deleted" is
+          // the truth and not a hedge.
+          // No render() here: nothing changed, so repainting would only
+          // discard the explanation the student needs to read.
+          resetNotice = null;
+          status.textContent = `Could not reach your account, so nothing was deleted: ${res.error ?? 'unknown error'}. Try again, or sign out to clear this device only.`;
+          status.className = 'danger-status bad';
+          idle();
+          return;
+        }
+        resetNotice = {
+          ok: true,
+          text: res.cloud === 'cleared'
+            ? 'Everything erased, here and in your account.'
+            : 'Everything on this device erased.',
+        };
+        render();   // repaint against the now-empty state; dangerZone re-reads the notice
+      }
+      idle();
+
+      return section('Reset', 'Permanent — there is no undo',
+        h('p', { class: 'danger-lede' },
+          'Clears every solved question and simulation mission, the whole answer history behind your accuracy and streaks, your bookmarks, and where you left off in each module. ',
+          signedIn
+            ? h('b', {}, 'You are signed in, so this also deletes them from your account and from every other device.')
+            : h('span', {}, 'This browser only — you are not signed in.')),
+        row, status);
+    }
+
     function bookmarkSection(ids: string[]): HTMLElement[] {
       if (!ids.length) return [];
       const list = h('div', { class: 'history' },
