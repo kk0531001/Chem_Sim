@@ -61,3 +61,37 @@ p2-descriptive-003(c) quote different AgCl lattice-energy figures (−770/−905
 vs Born–Landé −833 / Born–Haber −915). Both pairs are in the literature and
 each argument is internally sound; reconciling them is a content decision, not
 a correction.
+
+## Difficulty tiers (plan2 §1)
+
+`tierOf()` derives tiers structurally, and every non-warm-up MC landed on
+Silver — so the Question Bank's difficulty filter read "Silver (110), Gold (0)"
+on Part I and the tier told a student nothing. The whole corpus was re-read
+against one bar: **a Gold MC must need chained reasoning, not one recalled fact
+or one plug-in-the-formula step.**
+
+| Tier | Count | How |
+|---|---|---|
+| Bronze | the 5 warm-ups of each quiz bank | derived |
+| Silver | the remaining MC | derived |
+| Gold | 129 MC (15%) + 95 written | explicit `tier: 3` override on MC; derived for written |
+| Platinum | 24 CCO and Integrated problem sets | derived |
+
+The overrides are per-question and explicit because the derivation cannot see
+difficulty: nothing structural separates "compute ΔE from the 1/n² levels, then
+convert to a wavelength" (qua-010) from "which orbital is spherical" (qua-002).
+
+### Trivia: nothing removed, deliberately
+
+All 853 MC were also read for questions testing arbitrary recall rather than
+chemistry. Seven were nominated; none survived review. The nominations were
+E/Z nomenclature (core stereochemistry, and the `why` is about CIP priority
+beating "bigger group"), the FGI definition (a retrosynthesis concept, not
+jargon), electronegativity scales (the question asks which is defined from
+IE and EA — that is the definition, not the surname), the 5% approximation
+rule, ΔEN bond-type cut-points, copolymer architecture names, and GHS
+pictograms.
+
+The bar is high on purpose. Question ids are permanent and progress is keyed on
+them, so deleting a question orphans real history — a marginal trivia charge is
+not worth that, and a fact a working chemist needs at hand is not trivia.

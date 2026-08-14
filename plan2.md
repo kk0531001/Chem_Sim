@@ -12,11 +12,11 @@ Highest priority
 - [x] Check distractors are chemically plausible and not accidentally correct
 - [x] Check numerical questions independently
 - [x] Check units, sig figs, constants, and signs
-- [ ] Remove questions that test trivia rather than chemistry
-- [ ] Standardize question difficulty tiers
-- [ ] Tag questions consistently by CCC / CCO / USNCO / IChO relevance
-- [ ] Build a strong Gold question pool
-- [ ] Build a smaller Platinum question pool
+- [x] Remove questions that test trivia rather than chemistry
+- [x] Standardize question difficulty tiers
+- [x] Tag questions consistently by CCC / CCO / USNCO / IChO relevance
+- [x] Build a strong Gold question pool
+- [x] Build a smaller Platinum question pool
 - [ ] Upgrade weak explanations
 - [ ] Add misconception explanations to high-value questions
 - [ ] Add `why2` explanations where a second explanation would genuinely help
