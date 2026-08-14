@@ -1,0 +1,23 @@
+# Questions whose rewritten distractors have been read by a human and confirmed
+# WRONG (no second defensible answer). One id per line; review-q4.mjs drops
+# them from the worklist. Re-editing a question's options does NOT re-flag it —
+# delete the id here if you change its options again.
+
+# 2026-08-14 — risk >= 4 band, all 24 flagged distractors checked
+ain-015
+ana-017
+bio-023
+coo-003
+coo-011
+coo-023
+lbt-025
+lbt-028
+nuc-016
+og1-008
+og3-016
+og3-025
+per-017
+per-022
+spe-003
+str-026
+str-027
