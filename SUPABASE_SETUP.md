@@ -102,6 +102,53 @@ select created_at, ref as page, note from public.signals
 where kind = 'feedback' order by created_at desc;
 ```
 
+### The queries `attempts` exists to answer
+
+Per-question difficulty is the one measurement the app itself cannot make. A
+single student answers a question once or twice, so their own log says nothing
+about whether the question is hard — only the pooled table does. These are the
+plan2 §6 "suspiciously easy / suspiciously hard" checks; run them when you have
+enough rows for the `having` thresholds to mean something.
+
+```sql
+-- Questions almost nobody gets right. Either genuinely hard, or broken —
+-- check the ones near 0% against their answer key before assuming difficulty.
+select question_id, count(*) as answers,
+       round(100.0 * count(*) filter (where correct) / count(*)) as pct_correct
+from public.attempts
+group by question_id having count(*) >= 20
+order by pct_correct asc limit 30;
+
+-- Questions almost everybody gets right: the distractors are not working, so
+-- the question is costing a student time without testing anything.
+select question_id, count(*) as answers,
+       round(100.0 * count(*) filter (where correct) / count(*)) as pct_correct
+from public.attempts
+group by question_id having count(*) >= 20
+order by pct_correct desc limit 30;
+
+-- Questions students come back to and STILL miss — the ones worth rewriting
+-- rather than re-tiering.
+select question_id, count(*) as attempts_total,
+       count(distinct user_id) as students,
+       count(*) filter (where not correct) as wrong
+from public.attempts
+group by question_id
+having count(*) filter (where not correct) >= 3
+order by wrong desc limit 30;
+
+-- Accuracy by topic across everyone, to sanity-check the per-student view.
+select topic, count(*) as answers,
+       round(100.0 * count(*) filter (where correct) / count(*)) as pct_correct
+from public.attempts where topic is not null
+group by topic order by pct_correct asc;
+```
+
+Two caveats before acting on any of it. `attempts` rows arrive only from
+SIGNED-IN students, so the sample is whoever made an account. And a question
+that is skipped rather than answered leaves no row at all — abandonment is the
+`quiz` signal above, not an absence here.
+
 ## 3. Get your two keys
 
 **Settings → API** (or **Project Settings → API**):

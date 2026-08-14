@@ -15,6 +15,7 @@ import { h } from './tabs/framework';
 import {
   solvedOf, attemptCount, accuracyByTopic, weakTopics, streakDays, bestStreak,
   dailyCounts, recentAttempts, wrongQuestionIds, bookmarkIds, toggleBookmark,
+  repeatedlyMissed,
   onProgressChange, currentEmail, isCloudConfigured,
   accuracyBySkill,
   resetAllProgress,
@@ -188,6 +189,7 @@ export function buildProgressPage(): HTMLElement {
       ...weakSection(acc),
       masterySection(),
       ...skillSection(),
+      ...stickySection(),
       historySection(),
       ...bookmarkSection(marks),
       dangerZone(),
@@ -327,6 +329,36 @@ export function buildProgressPage(): HTMLElement {
     }
 
     // ---- recent answers ----
+    /**
+     * Questions missed REPEATEDLY and still outstanding (plan2 §6).
+     *
+     * Deliberately separate from "Review your mistakes". One wrong answer is a
+     * slip and belongs in the general queue; the same question wrong twice is a
+     * gap in what the student believes, and the fix is to read that specific
+     * explanation again rather than to grind the whole queue.
+     *
+     * Hides itself when empty — a nagging "0 questions you keep missing" panel
+     * is noise on the page of a student who is doing fine.
+     */
+    function stickySection(): HTMLElement[] {
+      const rows = repeatedlyMissed().slice(0, 8);
+      if (!rows.length) return [];
+      return [section('You keep missing these', 'Wrong at least twice and still outstanding',
+        h('div', { class: 'history' }, ...rows.map(r => {
+          const text = label(r.id);
+          return h('div', { class: 'history-row' },
+            text
+              ? h('button', {
+                  type: 'button', class: 'history-q link-btn',
+                  onclick: () => openBank({ q: r.id }),
+                }, text)
+              : h('span', { class: 'history-q' }, r.id),
+            h('span', { class: 'history-topic' }, `${r.wrong} wrong of ${r.seen}`),
+          );
+        })),
+      )];
+    }
+
     function historySection(): HTMLElement {
       let onlyWrong = false;
       const list = h('div', { class: 'history' });

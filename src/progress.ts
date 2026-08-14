@@ -386,6 +386,82 @@ export function dailyCounts(n = 30): { day: string; n: number }[] {
 }
 
 /** Questions whose most recent answer was wrong — the personalised review set. */
+/**
+ * Per-QUESTION accuracy over the attempt window (plan2 §6).
+ *
+ * `seen` here is answers, not questions: a question answered three times
+ * contributes three. That is the point — the interesting signal is a question
+ * a student keeps coming back to and keeps getting wrong.
+ *
+ * Read the window, not a lifetime record. Unlike `topicStats`, this is NOT
+ * kept as a bounded aggregate: a per-question counter over 972 questions is
+ * exactly the unbounded growth MAX_ATTEMPTS exists to prevent, and "which
+ * questions am I currently missing" is a question about recent work anyway.
+ */
+export function accuracyByQuestion(): Map<string, { seen: number; correct: number }> {
+  const out = new Map<string, { seen: number; correct: number }>();
+  for (const a of attempts) {
+    const e = out.get(a.questionId) ?? { seen: 0, correct: 0 };
+    e.seen++;
+    if (a.correct) e.correct++;
+    out.set(a.questionId, e);
+  }
+  return out;
+}
+
+/**
+ * Questions missed REPEATEDLY and still outstanding, worst first.
+ *
+ * One wrong answer is a slip; the same question wrong twice is a gap in what
+ * the student believes, and it is a different thing to show them than the
+ * general review queue. Ordering is by wrong count, then by how recently it
+ * last bit them.
+ */
+export function repeatedlyMissed(minWrong = 2): { id: string; wrong: number; seen: number; lastAt: number }[] {
+  const agg = new Map<string, { wrong: number; seen: number; lastAt: number }>();
+  for (const a of attempts) {
+    const e = agg.get(a.questionId) ?? { wrong: 0, seen: 0, lastAt: 0 };
+    e.seen++;
+    if (!a.correct) { e.wrong++; e.lastAt = Math.max(e.lastAt, a.at); }
+    agg.set(a.questionId, e);
+  }
+  return [...agg]
+    .filter(([id, e]) => e.wrong >= minWrong && outstandingWrong.has(id))
+    .map(([id, e]) => ({ id, ...e }))
+    .sort((x, y) => y.wrong - x.wrong || y.lastAt - x.lastAt);
+}
+
+/**
+ * Weakest SKILLS, worst first — the sub-topic sibling of `weakTopics`.
+ *
+ * `minSeen` matters more here than at topic level, because a skill bucket is
+ * smaller: one unlucky answer out of one is 0% accuracy and says nothing at
+ * all. Untagged questions are absent rather than pooled (see accuracyBySkill),
+ * so a half-tagged corpus reports less, never wrong.
+ */
+export function weakSkills(
+  skillOf: (questionId: string) => string | undefined,
+  n = 3,
+  minSeen = 4,
+): { skill: string; accuracy: number; seen: number }[] {
+  return accuracyBySkill(skillOf)
+    .filter(r => r.seen >= minSeen)
+    .sort((a, b) => a.accuracy - b.accuracy)
+    .slice(0, n)
+    .map(({ skill, accuracy, seen }) => ({ skill, accuracy, seen }));
+}
+
+/**
+ * The review queue narrowed to one skill — "practise the thing you are
+ * actually weak at" rather than "practise everything you got wrong".
+ */
+export function reviewQueueForSkill(
+  skillOf: (questionId: string) => string | undefined,
+  skill: string,
+): string[] {
+  return reviewQueue().filter(id => skillOf(id) === skill);
+}
+
 export function wrongQuestionIds(): string[] { return [...outstandingWrong]; }
 
 /**

@@ -141,18 +141,18 @@ Start making the data actually improve ChemSim.
 - [x] Measure question accuracy by question ID
 - [x] Measure accuracy by topic
 - [x] Measure accuracy by skill/subtopic
-- [ ] Track questions students repeatedly miss
+- [x] Track questions students repeatedly miss
 - [ ] Track questions students repeatedly abandon
-- [ ] Track explanations marked unhelpful
-- [ ] Track where students stop in quizzes
-- [ ] Track section abandonment
-- [ ] Identify suspiciously easy questions
-- [ ] Identify suspiciously hard questions
+- [x] Track explanations marked unhelpful
+- [x] Track where students stop in quizzes
+- [x] Track section abandonment
+- [x] Identify suspiciously easy questions
+- [x] Identify suspiciously hard questions
 - [ ] Build a better "weak topic" model
 - [ ] Build a better "next question" recommendation
-- [ ] Create targeted review sets
+- [x] Create targeted review sets
 - [ ] Create spaced-review logic later
-- [ ] Consider skill-level mastery rather than only topic-level mastery
+- [x] Consider skill-level mastery rather than only topic-level mastery
 
 **Goal**
 
