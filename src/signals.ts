@@ -23,6 +23,16 @@
 //     Deliberate acts — pressing "Not helpful", sending a bug report — are
 //     still sent, because suppressing those would just discard the message the
 //     user chose to send.
+//
+// WRITE-ONLY, and that is a security property, not an accident (revamp.md S1).
+// The `note` column holds the one genuinely user-authored string on the site —
+// whatever someone typed into the feedback box. It can never reach anyone's
+// DOM: the table has an insert policy and deliberately NO select policy
+// (SUPABASE_SETUP.md §2d), this module exports no reader, and nothing else in
+// src/ imports anything from it but `signal`/`flush`/`viewTopic`/
+// `reportQuizzes`/`registerQuizReporter`. Adding a read path here would put
+// attacker-authored text in front of the ~108 innerHTML call sites in the app,
+// so if one is ever added it must escape at that point — not downstream.
 const url = import.meta.env.VITE_SUPABASE_URL;
 const anon = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const configured = !!(url && anon);
