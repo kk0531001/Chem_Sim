@@ -7,11 +7,11 @@ Yep. Based on ChemSim-main-11 + the current repo/site, this is the list I'd actu
 Highest priority
 
 - [x] Finish resolving every remaining flagged question
-- [ ] Verify every answer key + explanation pair
-- [ ] Check every MC question has exactly one defensible answer
-- [ ] Check distractors are chemically plausible and not accidentally correct
-- [ ] Check numerical questions independently
-- [ ] Check units, sig figs, constants, and signs
+- [x] Verify every answer key + explanation pair
+- [x] Check every MC question has exactly one defensible answer
+- [x] Check distractors are chemically plausible and not accidentally correct
+- [x] Check numerical questions independently
+- [x] Check units, sig figs, constants, and signs
 - [ ] Remove questions that test trivia rather than chemistry
 - [ ] Standardize question difficulty tiers
 - [ ] Tag questions consistently by CCC / CCO / USNCO / IChO relevance
@@ -39,14 +39,14 @@ Now:
 - [x] Identify which ones are truly trusted HTML
 - [ ] Separate plain text rendering from trusted HTML rendering
 - [ ] Make the dangerous API explicit, e.g. `trustedHtml(...)`
-- [ ] Audit question-bank content for HTML/script injection
+- [x] Audit question-bank content for HTML/script injection
 - [x] Confirm no user-controlled content reaches HTML sinks
-- [ ] Audit all URL construction
-- [ ] Audit external links
-- [ ] Review authentication/session handling
-- [ ] Confirm service-role/secret keys never enter the client bundle
+- [x] Audit all URL construction
+- [x] Audit external links
+- [x] Review authentication/session handling
+- [x] Confirm service-role/secret keys never enter the client bundle
 - [ ] Run dependency vulnerability checks regularly
-- [ ] Keep the security headers under version control
+- [x] Keep the security headers under version control
 
 **Goal**
 
@@ -57,14 +57,14 @@ Make "one bad content entry" incapable of becoming an XSS bug.
 You've already moved to migrations. Good.
 Next:
 
-- [ ] Review every RLS policy again
-- [ ] Verify `SELECT`, `INSERT`, `UPDATE`, `DELETE` independently
-- [ ] Test cross-user access attempts
-- [ ] Test signed-out behavior
-- [ ] Test fresh-browser + signed-in-cloud-data behavior
+- [x] Review every RLS policy again
+- [x] Verify `SELECT`, `INSERT`, `UPDATE`, `DELETE` independently
+- [x] Test cross-user access attempts
+- [x] Test signed-out behavior
+- [x] Test fresh-browser + signed-in-cloud-data behavior
 - [ ] Verify progress sync in both directions
 - [ ] Add generated TypeScript database types
-- [ ] Review indexes against actual queries
+- [x] Review indexes against actual queries
 - [ ] Verify reset-progress behavior against cloud state
 - [ ] Test partial network failure during sync
 - [ ] Test duplicate sync / retry behaviour
