@@ -15,6 +15,10 @@ const LS_KEY = 'chemprep_solved_v1';
 const LS_ATTEMPTS = 'chemprep_attempts_v1';
 const LS_MIGRATED = 'chemprep_idmigration_v1';
 const LS_BOOKMARKS = 'chemprep_bookmarks_v1';
+// When this device last completed a sync. Compared against the account's reset
+// marker to tell "I have offline progress worth uploading" from "I am holding
+// data the user already deleted from another device". See honourRemoteReset().
+const LS_SYNCED = 'chemprep_synced_at_v1';
 
 // The one-time text-hash -> explicit-id rename (registry.ts's
 // migrateLegacyProgress) needs the WHOLE question corpus in memory to build its
@@ -64,7 +68,7 @@ function cloud(): Promise<SupabaseClient> | null {
     sb.auth.onAuthStateChange((_event, session) => {
       const wasSignedIn = !!user;
       user = session?.user ?? null;
-      if (user && !wasSignedIn) { void syncWithRemote(); void syncAttempts(); void syncBookmarks(); }
+      if (user && !wasSignedIn) void syncAll();
       fire();
     });
     return sb;
@@ -618,11 +622,23 @@ export async function resetAllProgress(): Promise<ResetResult> {
       ]);
       const failed = results.find(r => r.error);
       if (failed?.error) return { cloud: 'failed', error: failed.error.message };
+
+      // Record the deletion itself, so the user's OTHER devices drop their
+      // copies instead of pushing them back up. Written after the deletes
+      // succeed: a marker without the deletes would clear other devices while
+      // this account still held the rows.
+      const { error: markErr } = await sb.from('progress_reset')
+        .upsert({ user_id: uid, reset_at: new Date().toISOString() });
+      if (markErr) console.warn('reset marker write failed:', markErr.message);
+
       cloudState = 'cleared';
     }
   }
 
   clearLocal();
+  // This device is now in step with the account, so its next load must not
+  // treat the marker it just wrote as somebody else's reset.
+  markSynced();
   fire();
   return { cloud: cloudState };
 }
@@ -686,6 +702,48 @@ export async function signOut(): Promise<void> {
   user = null;
   clearLocal();
   fire();
+}
+
+/**
+ * Did the account get reset from another device since this one last synced?
+ *
+ * This has to run BEFORE any of the three syncs, because each of them merges by
+ * union and then uploads whatever the account is missing — which, after a
+ * reset, is everything this device still holds. Without the marker the reset
+ * undoes itself on the next page load of any other signed-in device, while the
+ * UI claims it deleted from all of them (progressPage.ts).
+ *
+ * Fails OPEN: a missing table, an offline fetch or an unreadable timestamp
+ * leaves local data alone. Wrongly keeping progress is recoverable; wrongly
+ * deleting it is not.
+ */
+async function honourRemoteReset(): Promise<void> {
+  const sb = user ? await cloud() : null;
+  if (!sb || !user) return;
+  const { data, error } = await sb.from('progress_reset').select('reset_at').eq('user_id', user.id).maybeSingle();
+  if (error) { console.warn('reset marker check failed:', error.message); return; }
+  const resetAt = data?.reset_at ? Date.parse(data.reset_at as string) : NaN;
+  if (!Number.isFinite(resetAt)) { markSynced(); return; }
+
+  let lastSync = 0;
+  try { lastSync = Number(localStorage.getItem(LS_SYNCED)) || 0; } catch { /* private mode */ }
+  // No recorded sync means a fresh browser, which has nothing of its own to
+  // protect — treat the reset as authoritative.
+  if (resetAt > lastSync) clearLocal();
+  markSynced();
+}
+
+function markSynced(): void {
+  try { localStorage.setItem(LS_SYNCED, String(Date.now())); } catch { /* private mode */ }
+}
+
+/**
+ * The one sync entry point. The reset check must complete first — see
+ * honourRemoteReset — and the three merges are independent after that.
+ */
+async function syncAll(): Promise<void> {
+  await honourRemoteReset();
+  await Promise.all([syncWithRemote(), syncAttempts(), syncBookmarks()]);
 }
 
 // Merge remote rows with the local set, and push any local-only ids up so
@@ -800,5 +858,5 @@ export async function initProgress(): Promise<void> {
   if (!sb) return;
   const { data } = await sb.auth.getSession();
   user = data.session?.user ?? null;
-  if (user) { await syncWithRemote(); await syncAttempts(); await syncBookmarks(); }
+  if (user) await syncAll();
 }

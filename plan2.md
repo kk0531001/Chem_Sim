@@ -62,12 +62,12 @@ Next:
 - [x] Test cross-user access attempts
 - [x] Test signed-out behavior
 - [x] Test fresh-browser + signed-in-cloud-data behavior
-- [ ] Verify progress sync in both directions
+- [x] Verify progress sync in both directions
 - [ ] Add generated TypeScript database types
 - [x] Review indexes against actual queries
-- [ ] Verify reset-progress behavior against cloud state
+- [x] Verify reset-progress behavior against cloud state
 - [ ] Test partial network failure during sync
-- [ ] Test duplicate sync / retry behaviour
+- [x] Test duplicate sync / retry behaviour
 - [ ] Decide what analytics data should be retained
 - [ ] Document the production database setup cleanly
 
