@@ -27,6 +27,18 @@ decide:
 | nuclear | 25 | 2026-08-14 | none |
 | organic1 | 25 | 2026-08-14 | none |
 | organic2 | 25 | 2026-08-14 | og2-017 typo "tribromimates" |
+| labdata | 25 | 2026-08-14 | lbd-008 `why` illustrated "nearest 0.01 mL" with a 0.05 reading |
+| analytical | 25 | 2026-08-14 | ana-019 stem ungrammatical |
+| spectroscopy | 25 | 2026-08-14 | spe-024 stem said "two compounds" with three nominal-60 options |
+| advinorganic | 25 | 2026-08-14 | none |
+| biophys | 25 | 2026-08-14 | none |
+| periodicity | 25 | 2026-08-14 | none |
+| polymers | 25 | 2026-08-14 | none |
+| physchem | 27 | 2026-08-14 | none |
+| organic3 | 26 | 2026-08-14 | og3-012 stem asked for a "site", keyed option is a method |
+| coordchem | 26 | 2026-08-14 | none |
+| labtech | 29 | 2026-08-14 | none |
+| structure | 29 | 2026-08-14 | str-018 trap sentence described a different molecule (seven carbons) |
 
 Every numeric `why` above was recomputed, not skimmed: th1-011 (−890.3 kJ),
 th1-014 (0.557 J/g·K), th1-025 (−110.5 kJ), th2-011 (109 J/mol·K), th2-012
@@ -35,7 +47,5 @@ equ-016 (1.8×10⁻⁹ M).
 
 ## Remaining
 
-labdata, analytical, spectroscopy,
-advinorganic, biophys, periodicity, polymers, physchem, organic3, coordchem,
-labtech, structure — plus the exam banks (bankPart1/2/3, bankCCO,
+The exam banks (bankPart1/2/3, bankCCO,
 bankIntegrated, bankOlympiad, olympiadPaper1–5).
