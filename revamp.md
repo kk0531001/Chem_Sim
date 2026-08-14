@@ -85,7 +85,7 @@ violations).
   unchanged.
   *ponytail: this buys a place to add sanitisation later, not sanitisation.*
 
-- [ ] **S3 — Dependency audit in the loop.**
+- [x] **S3 — Dependency audit in the loop.**
   `npm audit --omit=dev` → fix what is fixable without a major bump. Add
   `"audit:deps": "npm audit --omit=dev --audit-level=high"` to package.json
   scripts so it is one command, not a thing you remember.
@@ -295,3 +295,8 @@ Append one line per iteration: `<date> <item> — <what changed / what was found
   localStorage, a URL parameter or a typed query, and search.ts / feedback.ts
   contain no innerHTML at all. Invariant + the rule for future strings written
   at the `html:` branch, where a contributor will meet it.
+- 2026-08-13 S3 — Production bundle was already clean (0 vulnerabilities with
+  `--omit=dev`). Two high advisories existed in the build toolchain only
+  (nanoid, postcss, both via Vite); `npm audit fix` cleared both with no major
+  bump, and the rebuilt site renders unchanged. `npm run audit:deps` added as
+  the standing one-command check. No accepted residuals.
