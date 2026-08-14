@@ -167,15 +167,15 @@ That would be a major ChemSim differentiator.
 
 Do this gradually.
 
-- [ ] Identify oversized files
-- [ ] Extract UI helpers from `framework.ts`
-- [ ] Separate quiz logic from generic UI logic
+- [x] Identify oversized files
+- [x] Extract UI helpers from `framework.ts`
+- [x] Separate quiz logic from generic UI logic
 - [ ] Separate animation helpers
-- [ ] Separate accessibility helpers
-- [ ] Keep routing logic isolated
-- [ ] Keep progress state isolated
-- [ ] Keep question-bank logic isolated
-- [ ] Reduce duplicated DOM patterns
+- [x] Separate accessibility helpers
+- [x] Keep routing logic isolated
+- [x] Keep progress state isolated
+- [x] Keep question-bank logic isolated
+- [x] Reduce duplicated DOM patterns
 - [ ] Add tests when extracting things
 - [ ] Remove dead code after refactors
 

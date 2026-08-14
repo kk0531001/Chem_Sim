@@ -1,7 +1,7 @@
 // Spectroscopy — structure determination: degrees of unsaturation, mass-spec
 // interpretation (isotopes, nitrogen rule, fragment losses), an IR functional-
 // group checklist, combined IR+NMR+MS unknowns, and reference tables.
-import { h, card, cardWithMissions, missionLadder, theory, slider, quiz, type TabDef, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, quiz, solutionToggle, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { STRUCTURE_QUIZ } from './questions7';
 
@@ -161,17 +161,7 @@ function makeIRChecklist(): HTMLElement {
 
 // ---- combined unknowns ----
 function unknown(title: string, data: string, answer: string): HTMLElement {
-  const ans = h('div', { class: 'result', html: answer });
-  ans.style.display = 'none';
-  // Relabel rather than say 'Show / hide': a static label leaves the control's
-  // state invisible. Matches challenge.ts and qbank.ts.
-  const btn = h('button', { class: 'btn btn-quiet', 'aria-expanded': 'false' }, 'Show solution');
-  btn.addEventListener('click', () => {
-    const open = ans.style.display === 'none';
-    ans.style.display = open ? '' : 'none';
-    btn.textContent = open ? 'Hide solution' : 'Show solution';
-    btn.setAttribute('aria-expanded', String(open));
-  });
+  const { btn, panel: ans } = solutionToggle(answer);
   return h('div', { class: 'card', style: 'background:transparent;box-shadow:none;padding:0' },
     h('h3', {}, title), h('div', { html: data }), btn, ans);
 }

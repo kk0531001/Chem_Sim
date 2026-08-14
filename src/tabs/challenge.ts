@@ -3,7 +3,7 @@
 // so it needs no new content and can never drift from tierOf()/compsOf().
 // A tier unlocks once every item in the tier below it is solved; the
 // Platinum tier is framed as the payoff, per the roadmap's own wording.
-import { h, card, quiz, button, typesetMath, type QuizQ } from './framework';
+import { h, card, quiz, button, typesetMath, solutionToggle, type QuizQ } from './framework';
 import type { FRQ } from './bankPart2';
 import { ladderFor, type Indexable } from '../content/registry';
 import { activeComp, activeMode, onModeChange, MODE_SHORT } from '../mode';
@@ -37,14 +37,8 @@ function frqItem(f: FRQ): HTMLElement {
     h('h4', {}, f.title),
     h('div', { class: 'result', html: f.prompt }),
     ...f.parts.map(p => {
-      const sol = h('div', { class: 'result', html: p.a });
-      sol.style.display = 'none';
-      const btn = button('Show solution', () => {
-        const hidden = sol.style.display === 'none';
-        sol.style.display = hidden ? '' : 'none';
-        btn.textContent = hidden ? 'Hide solution' : 'Show solution';
-      }, 'btn-quiet');
-      return h('div', { style: 'margin-top:12px' }, h('p', { html: `<b>${p.q}</b>` }), btn, sol);
+      const { btn, panel } = solutionToggle(p.a);
+      return h('div', { style: 'margin-top:12px' }, h('p', { html: `<b>${p.q}</b>` }), btn, panel);
     }),
     h('div', { style: 'margin-top:12px' }, solveBtn),
   );

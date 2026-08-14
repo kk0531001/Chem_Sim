@@ -3,7 +3,7 @@
 // Part II = multi-part free response with worked solutions
 // Part III = laboratory practical scenarios
 // CCO     = advanced CCO problem sets PS1–PS4 (multi-part, worked)
-import { h, card, quiz, button, select, typesetMath, type TabDef, type QuizQ } from './framework';
+import { h, card, quiz, button, select, typesetMath, solutionToggle, type TabDef, type QuizQ } from './framework';
 // The Question Bank is NOT a topic page — it is one tool with ten views behind
 // a filter bar, not a sequence of lessons — so it keeps the fold that topic
 // pages retired when they became routed sections. This is the only caller left,
@@ -128,14 +128,8 @@ function frqBrowser(items: FRQ[], heading: string): HTMLElement {
       h('h3', {}, f.title),
       h('div', { class: 'result', html: f.prompt }),
       ...f.parts.map(p => {
-        const sol = h('div', { class: 'result', html: p.a });
-        sol.style.display = 'none';
-        const btn = button('Show solution', () => {
-          const hidden = sol.style.display === 'none';
-          sol.style.display = hidden ? '' : 'none';
-          btn.textContent = hidden ? 'Hide solution' : 'Show solution';
-        }, 'btn-quiet');
-        return h('div', { style: 'margin-top:14px' }, h('p', { html: `<b>${p.q}</b>` }), btn, sol);
+        const { btn, panel } = solutionToggle(p.a);
+        return h('div', { style: 'margin-top:14px' }, h('p', { html: `<b>${p.q}</b>` }), btn, panel);
       }),
       h('div', { style: 'display:flex;gap:10px;flex-wrap:wrap;margin-top:16px' }, solveBtn, bmBtn),
     );
