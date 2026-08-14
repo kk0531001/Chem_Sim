@@ -95,3 +95,22 @@ pictograms.
 The bar is high on purpose. Question ids are permanent and progress is keyed on
 them, so deleting a question orphans real history — a marginal trivia charge is
 not worth that, and a fact a working chemist needs at hand is not trivia.
+
+## Measurements that found nothing (plan2 §8)
+
+Recorded because "we checked and it was fine" is a result, and re-checking
+costs more than reading it:
+
+- **progressPage rebuild.** `render()` replaces the whole page on every
+  progress or mode change. That is 163 nodes, sub-millisecond, and it is gated
+  on `!page.hidden` — a quiz elsewhere does not repaint it. Splitting render
+  into per-section updates would add state for no measurable gain. The real
+  defect in that file was a leaked resize listener, fixed separately.
+- **Question-bank search.** 0.1–2.8 ms across 972 questions, with capped result
+  lists. An earlier ~1000 ms reading was a measurement artifact: `setTimeout`
+  is clamped to 1 s in a backgrounded page, so timing across one measures the
+  clamp.
+- **Animation loops.** All four `requestAnimationFrame` loops gate on
+  visibility, folded state, or the play control.
+- **Images.** The only raster assets are the two favicons and an 87 kB
+  og-image, which no visitor's browser requests.

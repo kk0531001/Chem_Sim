@@ -84,7 +84,7 @@ Instead:
 - [x] Test at 430 px
 - [x] Test desktop widths
 - [x] Test landscape phone
-- [ ] Test keyboard-only navigation
+- [x] Test keyboard-only navigation
 - [x] Test visible focus states
 - [x] Test reduced-motion mode
 - [x] Test browser zoom / large text
@@ -124,7 +124,7 @@ No "looks fine on my MacBook" bugs surviving.
 - [x] Verify buttons/links have meaningful names
 - [x] Verify form controls have labels
 - [x] Verify error messages are announced
-- [ ] Verify progress updates are understandable
+- [x] Verify progress updates are understandable
 - [x] Check contrast on all surfaces
 - [ ] Test with a screen reader
 - [x] Check reduced motion
@@ -195,7 +195,7 @@ Not urgent, but worth doing after QA.
 - [x] Check animation frame usage
 - [x] Check detached-section cleanup
 - [x] Check image/font loading
-- [ ] Check unnecessary rerenders/repaints
+- [x] Check unnecessary rerenders/repaints
 - [x] Check long question-bank searches
 - [ ] Check startup time on slower hardware
 
