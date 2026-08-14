@@ -22,8 +22,6 @@
 -- minute, and rows older than an hour are swept on write. It is a counter, not
 -- a log — you cannot ask it what any address did.
 
-create extension if not exists pgcrypto;
-
 create table if not exists public.signal_budget (
   -- sha256(ip || salt), never the address itself
   ip_hash text not null,
@@ -71,7 +69,15 @@ begin
   addr := coalesce(
     nullif(split_part(current_setting('request.headers', true)::json ->> 'x-forwarded-for', ',', 1), ''),
     'unknown');
-  hashed := encode(digest(addr || 'chemprep-signal-budget-v1', 'sha256'), 'hex');
+  -- md5, not pgcrypto's digest(). Supabase installs pgcrypto into the
+  -- `extensions` schema, so `digest()` does not resolve under this function's
+  -- pinned search_path and the trigger would throw on EVERY insert — silently,
+  -- because signals.ts swallows failures. md5 is core Postgres with no
+  -- extension and no search_path footgun. It buys nothing less here either:
+  -- whoever can read signal_budget can read this salt too, and IPv4 is
+  -- enumerable against any hash. The hash exists so the table is not a log of
+  -- addresses, not to withstand an attacker who already has the database.
+  hashed := md5(addr || 'chemprep-signal-budget-v1');
 
   insert into public.signal_budget (ip_hash, minute, n)
        values (hashed, bucket, 1)
@@ -104,3 +110,6 @@ create trigger signals_rate_limit_trg
 
 -- Manual sweep, if the opportunistic one ever falls behind:
 --   delete from public.signal_budget where minute < now() - interval '1 hour';
+--
+-- The only DROP here is `drop trigger if exists` on the line above, which
+-- exists so this file can be re-run. It removes nothing but its own trigger.
