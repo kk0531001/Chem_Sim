@@ -116,7 +116,7 @@ violations).
   *Done when:* the database could be rebuilt from git alone. No Supabase CLI
   dependency — these are plain SQL files, runnable by paste or by CLI.
 
-- [ ] **D2 — Index review, evidence-first.**
+- [x] **D2 — Index review, evidence-first.** — *nothing to add, see Log.*
   Read the actual query shapes in `src/progress.ts` (the solved lookup, the
   attempts pull, the bookmarks sync). Add an index only where a query filters
   or orders on something unindexed. `attempts(user_id, answered_at desc)`
@@ -309,3 +309,12 @@ Append one line per iteration: `<date> <item> — <what changed / what was found
   the files are structurally checked (balanced, terminated, every policy
   guarded) and byte-faithful to SQL that was already running, but the first
   `supabase db push` is still the real test.
+- 2026-08-13 D2 — No index added; every query shape in progress.ts is already
+  served. `solved` and `bookmarks` are only ever hit by upsert, delete-match,
+  and `select … where user_id = ?` — all on the leading column of their
+  composite primary key, so the PK index covers them. `attempts` is upserted by
+  its `id` (PK) and read exactly once as `where user_id = ? order by
+  answered_at desc limit MAX_ATTEMPTS`, which is precisely
+  `attempts_user_time_idx`. `signals` has no client read path at all; its
+  `(kind, created_at desc)` index exists for the SQL-editor analytics queries.
+  Adding anything here would be indexing a query nobody makes.
