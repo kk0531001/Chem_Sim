@@ -51,7 +51,7 @@ const ARCHIVES: readonly Ref[] = [
 /** One shared renderer for a module's reading list (D.5). */
 export function references(refs: readonly Ref[]): HTMLElement {
   const item = (r: Ref) => h('li', {},
-    r.href ? h('a', { href: r.href, target: '_blank', rel: 'noopener' }, r.text) : h('span', {}, r.text),
+    r.href ? h('a', { href: r.href, target: '_blank', rel: 'noopener noreferrer' }, r.text) : h('span', {}, r.text),
     r.chapter ? h('span', { class: 'ref-chapter' }, ` — ${r.chapter}`) : null,
   );
   return card('References',

@@ -428,13 +428,16 @@ export function buildProgressPage(): HTMLElement {
         row.replaceChildren(h('p', { class: 'danger-confirm' }, 'Erasing…'));
         const res = await resetAllProgress();
         if (res.cloud === 'failed') {
-          // Nothing was deleted anywhere — resetAllProgress leaves local data
-          // alone when the server refuses, so saying "nothing was deleted" is
-          // the truth and not a hedge.
+          // Local data is untouched — resetAllProgress leaves it alone when the
+          // server refuses. The CLOUD side is not all-or-nothing though: the
+          // three deletes are separate PostgREST requests, so solved rows can
+          // be gone while attempts failed. Hence "may already have been
+          // removed" rather than the flat "nothing was deleted" this used to
+          // claim.
           // No render() here: nothing changed, so repainting would only
           // discard the explanation the student needs to read.
           resetNotice = null;
-          status.textContent = `Could not reach your account, so nothing was deleted: ${res.error ?? 'unknown error'}. Try again, or sign out to clear this device only.`;
+          status.textContent = `The reset did not complete: ${res.error ?? 'unknown error'}. Some of your account data may already have been removed — try again, or sign out to clear this device only.`;
           status.className = 'danger-status bad';
           idle();
           return;

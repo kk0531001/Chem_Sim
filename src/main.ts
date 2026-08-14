@@ -618,7 +618,10 @@ mountFeedback(homeLinkEl);
 void initProgress().then(() => {
   if (!needsIdMigration()) return;
   return import('./content/registry').then(m => m.migrateLegacyProgress());
-});
+  // Offline with a stored session, the lazy supabase import rejects. Local
+  // state was already loaded before the first await, so there is nothing to
+  // recover — swallow it rather than logging an unhandled rejection.
+}).catch(() => {});
 
 // Content sanity checks — a duplicated question id silently makes two questions
 // share one progress record, and an out-of-range answer index makes a question

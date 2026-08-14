@@ -237,7 +237,15 @@ function newId(): string {
   try {
     if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   } catch { /* fall through */ }
-  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  // The fallback must still be a SYNTACTICALLY VALID uuid: attempts.id is a
+  // `uuid` column, so anything else is rejected with 22P02 — and pushAttempts
+  // sends the whole unsynced array in one call, so a single bad id would block
+  // every other attempt in that batch from ever syncing, permanently.
+  const b = new Array(16).fill(0).map(() => Math.floor(Math.random() * 256));
+  b[6] = (b[6] & 0x0f) | 0x40;          // version 4
+  b[8] = (b[8] & 0x3f) | 0x80;          // variant 1
+  const hex = b.map(x => x.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
 // ---- attempts: derived views (all pure reads over the state above) ----
@@ -614,6 +622,22 @@ export async function resetAllProgress(): Promise<ResetResult> {
     }
   }
 
+  clearLocal();
+  fire();
+  return { cloud: cloudState };
+}
+
+/**
+ * Drop every local trace of one person's progress. Used by resetAllProgress
+ * (after it has cleared the cloud side) and by signOut (which must NOT touch
+ * the cloud — the account keeps its rows).
+ *
+ * signOut needs it because syncWithRemote() pushes `localOnly` — the ids in
+ * the local set that the account does not have — up under the CURRENT user's
+ * id. Leave A's progress in memory across a sign-out and B's sign-in writes
+ * A's solved questions into B's account. Same for the unsynced attempt queue.
+ */
+function clearLocal(): void {
   solved = new Set();
   bookmarks = new Set();
   attempts = [];
@@ -625,9 +649,6 @@ export async function resetAllProgress(): Promise<ResetResult> {
   for (const k of [LS_KEY, LS_ATTEMPTS, LS_BOOKMARKS, LS_LAST]) {
     try { localStorage.removeItem(k); } catch { /* private mode — in-memory reset still stands */ }
   }
-
-  fire();
-  return { cloud: cloudState };
 }
 
 export function isCloudConfigured(): boolean { return cloudConfigured; }
@@ -663,6 +684,7 @@ export async function signOut(): Promise<void> {
   if (!sb) return;
   await sb.auth.signOut();
   user = null;
+  clearLocal();
   fire();
 }
 

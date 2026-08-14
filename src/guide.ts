@@ -63,7 +63,7 @@ export function buildGuidePage(
         h('p', {},
           // The one outward link per page, and it is the authority — this site
           // deliberately states no dates, scoring or eligibility rules of its own.
-          h('a', { href: guide.official.href, class: 'guide-link', target: '_blank', rel: 'noopener' },
+          h('a', { href: guide.official.href, class: 'guide-link', target: '_blank', rel: 'noopener noreferrer' },
             guide.official.label, ' ↗'),
         ),
         h('p', { class: 'guide-caveat' },
