@@ -21,6 +21,7 @@ import {
 } from './progress';
 import { ALL_MC, ALL_FRQ, byTopic, byComp, questionById, QUIZ_BANKS } from './content/registry';
 import { DOMAINS, EXAM_TOPIC_LABEL, type ExamTopicId } from './content/topicIds';
+import { skillLabel } from './content/skills';
 import { TOPICS, topicById } from './topics';
 import { TILE_HTML } from './home';
 import { navigate } from './router';
@@ -290,23 +291,7 @@ export function buildProgressPage(): HTMLElement {
       };
       const rows = accuracyBySkill(skillOf).filter(r => r.seen >= 2);
       if (!rows.length) return [];
-      // A map, not a de-hyphenating regex. These are terms of art and the
-      // regex got three of eight wrong — "Le chatelier", "Q vs k", "Ice setup".
-      // Chemistry names are not a string-formatting problem.
-      const SKILL_LABEL: Record<string, string> = {
-        'ice-setup': 'ICE setup',
-        'q-vs-k': 'Q vs K',
-        'le-chatelier': 'Le Châtelier',
-        'ksp': 'Ksp and solubility',
-        'k-meaning': 'What K means',
-        'k-expression': 'Writing K',
-        'k-manipulation': 'Manipulating K',
-        'approximations': 'Approximations',
-      };
-      const pretty = (s: string): string => {
-        const leaf = s.split('/')[1] ?? s;
-        return SKILL_LABEL[leaf] ?? leaf.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
-      };
+      const pretty = skillLabel;
       return [section('Where inside a topic', 'Recent answers only — sub-skills, worst first',
         h('div', { class: 'skill-list' }, ...rows.map(r => h('div', { class: 'skill-row' },
           h('span', { class: 'skill-name' }, pretty(r.skill)),

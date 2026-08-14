@@ -341,6 +341,33 @@ for (const q of ALL_MC) {
 console.log(`Bare keys: ${bareKeys.length} question(s) where the answer is the only unelaborated option` +
   (bareKeys.length ? ` — ${bareKeys.slice(0, 6).join(', ')}${bareKeys.length > 6 ? ' …' : ''}` : ''));
 
+// ---- 8b. skill tags that are not in the taxonomy ----
+//
+// A skill tag is a free string on the question, and a typo does not throw — it
+// silently creates a one-question "skill" that shows up in a student's
+// breakdown as its own row. Tagging is deliberately partial (an untagged
+// question is absent, never bucketed as "other"), so the only thing to enforce
+// is that a tag that IS present names a real skill.
+const skillSrc = readFileSync(join(ROOT, 'src/content/skills.ts'), 'utf8');
+const validSkills = new Set();
+{
+  let topic = null;
+  for (const line of skillSrc.split('\n')) {
+    const t = line.match(/^  ([a-z]+): \{/);
+    if (t) { topic = t[1]; continue; }
+    const k = line.match(/^    '?([a-z0-9-]+)'?:/);
+    if (k && topic) validSkills.add(`${topic}/${k[1]}`);
+  }
+}
+for (const q of [...ALL_MC, ...ALL_FRQ]) {
+  const skill = q.skill;
+  if (skill && !validSkills.has(skill)) {
+    problems.push(`${q.id}: skill "${skill}" is not in src/content/skills.ts`);
+  }
+}
+console.log(`Skill tags: ${[...ALL_MC, ...ALL_FRQ].filter(q => q.skill).length} question(s) tagged, `
+  + `${validSkills.size} skills in the taxonomy`);
+
 // ---- 9. untrusted strings reaching an innerHTML sink ----
 //
 // The app has ~109 innerHTML assignments and they are safe only because of an
