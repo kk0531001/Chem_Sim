@@ -147,8 +147,20 @@ export function focusQuestion(id: string): boolean {
  * topic page must not pay for that (D.10). qbank.ts already has the registry
  * loaded, so it supplies the string.
  */
+/** Option text for the contrast line: options carry inline markup (sub/sup,
+ *  <b>), which belongs in the sentence, but a stray block tag would break the
+ *  flex row it sits in. */
+function plainOpt(html: string): string {
+  return String(html).replace(/<\/?(?:div|p|ul|li|table)[^>]*>/gi, ' ').trim();
+}
+
 export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => string): HTMLElement {
   let i = 0, score = 0, answered = false;
+  // What the student picked, per index. Going BACK restores the answered state
+  // from this rather than re-grading: a second recordAttempt for a question
+  // they are only re-reading would count as a fresh answer and skew every
+  // statistic derived from the log.
+  const chosen: (number | null)[] = qs.map(() => null);
   // Explicit ids, not qid(q.q). Keying progress on a hash of the prompt meant
   // that fixing a typo silently orphaned every user's record for the question.
   const ids = qs.map(q => q.id);
@@ -175,7 +187,11 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
   const optsEl = h('div', { class: 'quiz-opts' });
   const whyEl = h('div', { class: 'quiz-why', 'aria-live': 'polite', 'aria-atomic': 'true' });
   const nextBtn = button('Next question', () => { i++; render(true); }, 'primary');
-  const wrap = h('div', { class: 'quiz' }, head, optsEl, whyEl, nextBtn);
+  // Backwards was not possible at all before: a student who wanted to re-read
+  // the explanation they had just clicked past had to restart the set.
+  const prevBtn = button('← Previous', () => { if (i > 0) { i--; render(true); } }, 'btn-quiet');
+  const nav = h('div', { class: 'quiz-nav' }, prevBtn, nextBtn);
+  const wrap = h('div', { class: 'quiz' }, head, optsEl, whyEl, nav);
   onProgressChange(() => { if (i < qs.length) updateProgressLine(); });
 
   /**
@@ -258,6 +274,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
     whyEl.innerHTML = '';
     whyEl.className = 'quiz-why';
     nextBtn.style.display = 'none';
+    prevBtn.style.display = i > 0 && i <= qs.length ? '' : 'none';
     syncBookmark();
     // Nothing to bookmark on the "Done" screen — it is not a question.
     bmBtn.hidden = i >= qs.length;
@@ -278,10 +295,27 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
       const b = h('button', { type: 'button', class: 'quiz-opt' }, o);
       b.addEventListener('click', () => {
         if (answered) return;
+        grade(j, true);
+      });
+      return b;
+    }));
+    // Replay a question the student has already answered — they navigated
+    // BACK to re-read it. `record: false` is the whole point: a second
+    // recordAttempt here would log a fresh answer for a question they only
+    // looked at, and every statistic derived from the log would drift.
+    if (chosen[i] !== null) grade(chosen[i]!, false);
+
+    function grade(j: number, record: boolean): void {
         answered = true;
-        answeredCount++;
+        if (record) { answeredCount++; chosen[i] = j; }
+        const b = optsEl.children[j] as HTMLElement;
         const right = j === q.a;
-        if (right) { score++; b.classList.add('correct'); markSolved(ids[i]); }
+        if (right) {
+          b.classList.add('correct');
+          // Score and solved-state are also once-only: a replay is a re-read,
+          // not a second correct answer.
+          if (record) { score++; markSolved(ids[i]); }
+        }
         else {
           b.classList.add('wrong');
           (optsEl.children[q.a] as HTMLElement).classList.add('correct');
@@ -291,7 +325,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
         // normalised to the coarse exam vocabulary so that a module-tagged
         // quiz and an exam-bank question about the same chemistry land in the
         // same bucket instead of two half-populated ones.
-        recordAttempt(ids[i], right, { topic: toExamTopic(q.topic), chosen: j });
+        if (record) recordAttempt(ids[i], right, { topic: toExamTopic(q.topic), chosen: j });
         // The grading is over: keep the buttons focusable (so they can still be
         // read) but tell AT they no longer do anything, and spell out in text
         // what the red/green only shows visually.
@@ -300,7 +334,14 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
         if (!right) srSuffix(b, 'your answer, incorrect');
         // aria-live on whyEl announces this; leading with the verdict means the
         // outcome is heard first and does not depend on the colour change.
-        let whyHtml = `<span class="sr-only">${right ? 'Correct. ' : 'Incorrect. '}</span>${q.why}`;
+        // Lead a WRONG answer with the contrast in words. The option colours
+        // already say it, but only to someone who can see them and who then
+        // scans back up to work out which one they pressed — and the `why`
+        // itself explains the right answer without ever naming the wrong one.
+        const contrast = right ? '' :
+          `<div class="quiz-contrast"><span>You chose <b>${plainOpt(q.opts[j])}</b></span>`
+          + `<span>Answer: <b>${plainOpt(q.opts[q.a])}</b></span></div>`;
+        let whyHtml = `<span class="sr-only">${right ? 'Correct. ' : 'Incorrect. '}</span>${contrast}${q.why}`;
         if (!right && q.misconception) {
           // The text goes in ONE span: .misconception is a flex row, so any
           // bare text nodes and inline tags in the copy would each become a
@@ -327,9 +368,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
         typesetMath(whyEl);
         updateProgressLine();
         nextBtn.style.display = '';
-      });
-      return b;
-    }));
+    }
     // Typeset any LaTeX/mhchem in the question and options now, rather than
     // depending on the rAF-based observer (which can flash raw \( … \)).
     typesetMath(qEl);

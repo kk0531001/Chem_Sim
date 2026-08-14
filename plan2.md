@@ -211,14 +211,14 @@ This deserves its own pass.
 - [x] Make tier visible
 - [x] Make competition relevance visible
 - [x] Make answered/unanswered state obvious
-- [ ] Improve next/previous flow
-- [ ] Improve review mode
+- [x] Improve next/previous flow
+- [x] Improve review mode
 - [x] Make weak-question practice easy to start
 - [x] Make bookmarked questions easy to revisit
 - [ ] Make search results useful
 - [ ] Add better sorting where appropriate
-- [ ] Make explanations easy to scan
-- [ ] Make "why was I wrong?" clearer
+- [x] Make explanations easy to scan
+- [x] Make "why was I wrong?" clearer
 - [x] Make progress within a practice set obvious
 
 **Goal**

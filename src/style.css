@@ -3297,3 +3297,24 @@ a.pill { text-decoration: none; display: inline-block; }
 .guide-more { margin-top: var(--s-5); font-size: var(--f-3); }
 /* The guide's own section spacing already separates the grid from the CTA. */
 .guide-sect .topic-grid + .guide-more { color: var(--ink-faint); }
+
+/* The chose-vs-answer contrast on a wrong answer (plan2 §9). Two short lines,
+   not a table: it is read once, at a glance, before the explanation. */
+.quiz-contrast {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1) var(--s-4);
+  margin-bottom: var(--s-2);
+  padding-bottom: var(--s-2);
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--f-2);
+}
+.quiz-contrast b { font-weight: 600; }
+
+/* Previous sits left of Next and is quieter: going back is the rarer move. */
+.quiz-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-wrap: wrap;
+}
