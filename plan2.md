@@ -279,9 +279,9 @@ Let the students bully the roadmap into shape. 🧪
 Only after the above is solid:
 
 - [ ] Improve landing-page messaging
-- [ ] Improve topic SEO
+- [x] Improve topic SEO
 - [ ] Create useful chemistry guide pages
-- [ ] Add better metadata where needed
+- [x] Add better metadata where needed
 - [x] Make sharing individual questions easy
 - [x] Make sharing topic sections easy
 - [ ] Add analytics for acquisition

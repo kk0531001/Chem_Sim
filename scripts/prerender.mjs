@@ -54,6 +54,24 @@ function head(html, { title, description, url }) {
  */
 const noMathFonts = html => html.replace(/^.*rel="preload".*as="font".*\n/gm, '');
 
+/**
+ * JSON-LD for one page (plan2 §12).
+ *
+ * Only claims the page can back up: what the thing is, what it is called, what
+ * it is about, and that it is free. No ratings, no author credentials, no
+ * course duration — structured data that overstates gets the whole block
+ * ignored, and there is nothing here worth risking that for.
+ *
+ * `esc` is not enough inside a <script> block: a literal "</script>" in any
+ * field would close it early. JSON.stringify handles quoting, and the one
+ * remaining escape is the closing tag itself.
+ */
+const jsonLd = obj => `    <script type="application/ld+json">${
+  JSON.stringify({ '@context': 'https://schema.org', ...obj }).replace(/<\//g, '<\\/')
+}</script>\n`;
+
+const withLd = (html, obj) => html.replace('</head>', jsonLd(obj) + '</head>');
+
 /** The topic list every prerendered page carries, so no page is a dead end. */
 function topicLinks() {
   return [...new Set(TOPICS.map(t => t.group))].map(g =>
@@ -83,21 +101,39 @@ async function page(dir, html) {
   written++;
 }
 
-await writeFile(join(DIST, 'index.html'), noMathFonts(body(shell,
+await writeFile(join(DIST, 'index.html'), noMathFonts(withLd(body(shell,
   `<h1>ChemPrep — Chemistry Olympiad Trainer</h1>
 <p>Interactive training for the CCC, USNCO, CCO and IChO: ${TOPICS.length} modules, worked exam
 questions and full mock papers. The simulations need JavaScript; the topic list does not.</p>
-${links}`)));
+${links}`), {
+  '@type': 'WebSite',
+  name: 'ChemPrep',
+  url: `${SITE_URL}/`,
+  description: 'Interactive chemistry olympiad training for the CCC, USNCO, CCO and IChO.',
+  inLanguage: 'en-CA',
+  isAccessibleForFree: true,
+})));
 
 for (const t of TOPICS) {
   const url = `${SITE_URL}/topic/${t.slug}`;
-  await page(join('topic', t.slug), body(
+  await page(join('topic', t.slug), withLd(body(
     head(shell, { title: `${t.title} — ChemPrep`, description: plain(t.blurb), url }),
     `<h1>${esc(t.title)}</h1>
 <p><b>${esc(t.group)}</b> · ${esc(t.difficulty.join(', '))} · about ${t.estMinutes} minutes</p>
 <p>${t.intro}</p>
 <p><a href="/menu">All topics</a></p>
-${links}`));
+${links}`), {
+    '@type': 'LearningResource',
+    name: t.title,
+    url,
+    description: plain(t.blurb),
+    learningResourceType: 'Interactive lesson',
+    educationalLevel: t.difficulty.join(', '),
+    timeRequired: `PT${t.estMinutes}M`,
+    inLanguage: 'en-CA',
+    isAccessibleForFree: true,
+    isPartOf: { '@type': 'WebSite', name: 'ChemPrep', url: `${SITE_URL}/` },
+  }));
 }
 
 // I.3 competition landing pages. These are the pages people arrive on FROM
