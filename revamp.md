@@ -138,7 +138,7 @@ violations).
   *Done when:* the retention decision is written down somewhere other than
   someone's head. No cron, no pg_cron extension — YAGNI until there are rows.
 
-- [ ] **D4 — Generated DB types.** — **deliberately skipped.**
+- [x] **D4 — Generated DB types.** — **decided against, see below.**
   Four tables, one developer, hand-written columns. A codegen step to catch
   typos in four table names is not worth the loop it adds. Revisit if the
   schema passes ~8 tables.
@@ -263,7 +263,7 @@ Opportunistic only. Do not schedule a refactor sprint.
   *Done when:* framework.ts is under ~1200 lines and no import elsewhere
   changed.
 
-- [ ] **E2 — `main.ts` (618 lines)** — leave it. 618 lines of bootstrap that
+- [x] **E2 — `main.ts` (618 lines)** — decided: leave it. 618 lines of bootstrap that
   works is not debt, it is a file. Revisit if it passes 900.
 
 ## Track A — Learning engine
