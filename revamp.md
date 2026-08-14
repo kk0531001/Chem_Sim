@@ -21,7 +21,9 @@ Every item below earns its place by moving that. Anything that doesn't is in
 
 One iteration = one item = one commit. Do not batch items.
 
-1. **Pick** the topmost item that is `[ ]` and not marked `HUMAN` or `BLOCKED`.
+1. **Pick** the topmost item that is `[ ]` and not marked `HUMAN`, `BLOCKED`
+   or `DEFERRED`. (`DEFERRED` = real work, deliberately ranked below something
+   later in the file; the item says where it belongs and why.)
 2. **Read** the files it names before editing. The ladder shortens the
    solution, never the reading.
 3. **Do** the laziest thing that satisfies the item's *Done when*. If the item
@@ -38,7 +40,7 @@ One iteration = one item = one commit. Do not batch items.
    [Log](#log). Then stop the iteration.
 
 **Stop the loop entirely** when every item is `[x]`, or when the next three
-items are all `HUMAN`/`BLOCKED`.
+items are all `HUMAN`/`BLOCKED`/`DEFERRED`.
 
 **Rules that override "just get it done":**
 
@@ -266,7 +268,7 @@ Opportunistic only. Do not schedule a refactor sprint.
 
 ## Track A — Learning engine
 
-- [ ] **Q8 — Rebalance the length metric back toward chance.**
+- [ ] **Q8 — Rebalance the length metric back toward chance.** `DEFERRED`
   Q6 overshot. Driving "correct option is longest" from 59% to **11%** replaced
   a strong tell with a weaker opposite one: on the modules now at 0%, "never
   pick the longest" eliminates an option for free. Chance on four options is
