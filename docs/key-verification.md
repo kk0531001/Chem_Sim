@@ -48,9 +48,16 @@ th1-014 (0.557 J/g·K), th1-025 (−110.5 kJ), th2-011 (109 J/mol·K), th2-012
 (1113 K), th2-016 (−11.4 kJ/mol), th2-023 (5.76 J/K), equ-008 (4×10⁻⁹),
 equ-016 (1.8×10⁻⁹ M).
 
-All 853 MC are verified. bankCCO and bankIntegrated contribute no MC.
+| bankPart2 (written) | 75 | 2026-08-14 | 7 defects, all fixed |
+| bankCCO (written) | 12 | 2026-08-14 | none |
+| bankIntegrated (written) | 12 | 2026-08-14 | 2 defects, both fixed |
+| olympiadPaper1–5 (Part B) | 20 | 2026-08-14 | none |
 
-## Remaining
+All 853 MC and all 119 written problems are verified. bankCCO and
+bankIntegrated contribute no MC.
 
-The 119 written free-response problems (bankPart2, bankCCO, bankIntegrated,
-and the Part B of olympiadPaper1-5).
+One cross-file inconsistency left deliberately: p2-bonding-003(c) and
+p2-descriptive-003(c) quote different AgCl lattice-energy figures (−770/−905
+vs Born–Landé −833 / Born–Haber −915). Both pairs are in the literature and
+each argument is internally sound; reconciling them is a content decision, not
+a correction.
