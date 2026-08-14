@@ -45,7 +45,7 @@ Now:
 - [x] Audit external links
 - [x] Review authentication/session handling
 - [x] Confirm service-role/secret keys never enter the client bundle
-- [ ] Run dependency vulnerability checks regularly
+- [x] Run dependency vulnerability checks regularly
 - [x] Keep the security headers under version control
 
 **Goal**
@@ -176,7 +176,7 @@ Do this gradually.
 - [x] Keep progress state isolated
 - [x] Keep question-bank logic isolated
 - [x] Reduce duplicated DOM patterns
-- [ ] Add tests when extracting things
+- [x] Add tests when extracting things
 - [ ] Remove dead code after refactors
 
 **Goal**
