@@ -414,12 +414,15 @@ export function buildProgressPage(): HTMLElement {
         (row.querySelector('button') as HTMLButtonElement | null)?.focus();
       };
       const idle = (): void => {
-        // Nothing to erase: offering "Delete 0 solved, 0 answers, 0 bookmarks"
-        // is a button that cannot do anything.
-        const empty = solvedTotal === 0 && attemptCount() === 0 && marks.length === 0;
-        row.replaceChildren(empty
-          ? h('button', { type: 'button', class: 'btn', disabled: 'true' }, 'Nothing to reset')
-          : h('button', { type: 'button', class: 'btn', onclick: armed }, 'Reset all progress'));
+        // ALWAYS offered, and never relabelled. An earlier version disabled
+        // this and showed "Nothing to reset" when the local counts were zero,
+        // which was wrong twice over. It hid the control from anyone who came
+        // looking for it — a disabled button with a different name is not
+        // findable — and the emptiness test only saw LOCAL state, so a signed-in
+        // student on a fresh browser was refused the one button that clears
+        // their account. Pressing it with nothing to erase costs nothing.
+        row.replaceChildren(
+          h('button', { type: 'button', class: 'btn', onclick: armed }, 'Reset all progress'));
       };
       async function run(): Promise<void> {
         row.replaceChildren(h('p', { class: 'danger-confirm' }, 'Erasing…'));
