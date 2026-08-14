@@ -10,6 +10,7 @@
 // *attempts* (including the wrong ones), and the solved set throws away
 // everything except the final success. See ROADMAP.md Phase A.3.
 import type { SupabaseClient, User } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
 const LS_KEY = 'chemprep_solved_v1';
 const LS_ATTEMPTS = 'chemprep_attempts_v1';
@@ -58,11 +59,11 @@ const cloudConfigured = !!(url && anon);
  * `isCloudConfigured()` stays synchronous — the sign-in UI has to know whether
  * to render at all, and that is answerable from the env vars alone.
  */
-let clientPromise: Promise<SupabaseClient> | null = null;
-function cloud(): Promise<SupabaseClient> | null {
+let clientPromise: Promise<SupabaseClient<Database>> | null = null;
+function cloud(): Promise<SupabaseClient<Database>> | null {
   if (!cloudConfigured) return null;
   clientPromise ??= import('@supabase/supabase-js').then(m => {
-    const sb = m.createClient(url!, anon!);
+    const sb = m.createClient<Database>(url!, anon!);
     // One listener per client, attached where the client is created so both
     // entry points (restore-on-load and sign-in) get it exactly once.
     sb.auth.onAuthStateChange((_event, session) => {
@@ -508,7 +509,7 @@ async function syncBookmarks(): Promise<void> {
   if (!sb || !user) return;
   const { data, error } = await sb.from('bookmarks').select('question_id').eq('user_id', user.id);
   if (error) { console.warn('bookmark fetch failed:', error.message); return; }
-  const remote = new Set((data ?? []).map(r => r.question_id as string));
+  const remote = new Set((data ?? []).map(r => r.question_id));
   const localOnly = [...bookmarks].filter(id => !remote.has(id));
   for (const id of remote) bookmarks.add(id);
   saveBookmarks();
@@ -722,7 +723,7 @@ async function honourRemoteReset(): Promise<void> {
   if (!sb || !user) return;
   const { data, error } = await sb.from('progress_reset').select('reset_at').eq('user_id', user.id).maybeSingle();
   if (error) { console.warn('reset marker check failed:', error.message); return; }
-  const resetAt = data?.reset_at ? Date.parse(data.reset_at as string) : NaN;
+  const resetAt = data?.reset_at ? Date.parse(data.reset_at) : NaN;
   if (!Number.isFinite(resetAt)) { markSynced(); return; }
 
   let lastSync = 0;
@@ -753,7 +754,7 @@ async function syncWithRemote(): Promise<void> {
   if (!sb || !user) return;
   const { data, error } = await sb.from('solved').select('question_id').eq('user_id', user.id);
   if (error) { console.warn('sync (fetch) failed:', error.message); return; }
-  const remote = new Set((data ?? []).map(r => r.question_id as string));
+  const remote = new Set((data ?? []).map(r => r.question_id));
   const localOnly = [...solved].filter(id => !remote.has(id));
   for (const id of remote) solved.add(id);
   saveLocal();

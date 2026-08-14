@@ -63,7 +63,7 @@ Next:
 - [x] Test signed-out behavior
 - [x] Test fresh-browser + signed-in-cloud-data behavior
 - [x] Verify progress sync in both directions
-- [ ] Add generated TypeScript database types
+- [x] Add generated TypeScript database types
 - [x] Review indexes against actual queries
 - [x] Verify reset-progress behavior against cloud state
 - [x] Test partial network failure during sync
