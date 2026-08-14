@@ -359,13 +359,24 @@ const validSkills = new Set();
     if (k && topic) validSkills.add(`${topic}/${k[1]}`);
   }
 }
+const skillsOf = q => q.skill === undefined ? [] : typeof q.skill === 'string' ? [q.skill] : q.skill;
+let taggedCount = 0, multiCount = 0;
 for (const q of [...ALL_MC, ...ALL_FRQ]) {
-  const skill = q.skill;
-  if (skill && !validSkills.has(skill)) {
-    problems.push(`${q.id}: skill "${skill}" is not in src/content/skills.ts`);
+  const skills = skillsOf(q);
+  if (skills.length) taggedCount++;
+  if (skills.length > 1) multiCount++;
+  for (const skill of skills) {
+    if (!validSkills.has(skill)) {
+      problems.push(`${q.id}: skill "${skill}" is not in src/content/skills.ts`);
+    }
+  }
+  // A duplicate inside one question's array would double-count that question
+  // in its own skill bucket.
+  if (new Set(skills).size !== skills.length) {
+    problems.push(`${q.id}: repeats a skill in its own tag list`);
   }
 }
-console.log(`Skill tags: ${[...ALL_MC, ...ALL_FRQ].filter(q => q.skill).length} question(s) tagged, `
+console.log(`Skill tags: ${taggedCount} question(s) tagged (${multiCount} with more than one), `
   + `${validSkills.size} skills in the taxonomy`);
 
 // ---- 9. untrusted strings reaching an innerHTML sink ----

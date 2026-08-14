@@ -5,7 +5,7 @@
 export interface BankMC {
   id: string;        // explicit and permanent — see QuizQ in framework.ts
   topic: string;     // an ExamTopicId (the coarse 12), not a ModuleId
-  skill?: string;    // `<examTopic>/<skill>` from content/skills.ts; see QuizQ.skill
+  skill?: string | readonly string[];   // `<examTopic>/<skill>` from content/skills.ts; see QuizQ.skill
   tier?: 1 | 2 | 3 | 4;   // optional override; see tierOf() in content/registry.ts
   comps?: readonly ('ccc' | 'usnco' | 'cco' | 'icho')[];   // optional override
   q: string;
@@ -81,7 +81,7 @@ export const PART1: BankMC[] = [
   { id: 'p1-acids-003', topic: 'acids', skill: 'acids/strong-weak', q: 'Ka(HCN) = 6.2×10⁻¹⁰. Kb of CN⁻ = ?', opts: ['6.2×10⁻¹⁰', '1.6×10⁻⁵', '6.2×10⁻²⁴', '1.6×10⁻⁹'], a: 1, why: 'Kb = Kw/Ka = 10⁻¹⁴ / 6.2×10⁻¹⁰ = 1.6×10⁻⁵ — a fairly strong weak base (weak acid ⇒ stronger conjugate).' },
   { id: 'p1-acids-004', topic: 'acids', skill: 'acids/buffers', q: 'A buffer is 0.20 M in HA (pKa 4.00) and 0.10 M in A⁻. Its pH is…', opts: ['3.70', '4.00', '4.30', '3.00'], a: 0, why: 'pH = 4.00 + log(0.10/0.20) = 4.00 − 0.30 = 3.70. More acid than base → below pKa.' },
   { id: 'p1-acids-005', topic: 'acids', q: 'Which is best described as a Lewis acid?', opts: ['NH₃', 'Cl⁻', 'H₂O', 'BF₃'], a: 3, why: 'Boron\'s empty p orbital accepts an electron pair — the definition of a Lewis acid. NH₃/H₂O/Cl⁻ are donors (bases).' },
-  { id: 'p1-acids-006', tier: 3, topic: 'acids', skill: 'acids/strong-weak', q: 'When a weak acid solution is diluted 10×, its percent ionization…', opts: ['decreases 10×', 'is unchanged', 'increases', 'becomes zero'], a: 2, why: 'Dilution drops Q below Ka → equilibrium shifts toward more dissociation (even though pH rises toward 7).' },
+  { id: 'p1-acids-006', tier: 3, topic: 'acids', skill: ['acids/strong-weak', 'acids/ph-calc'], q: 'When a weak acid solution is diluted 10×, its percent ionization…', opts: ['decreases 10×', 'is unchanged', 'increases', 'becomes zero'], a: 2, why: 'Dilution drops Q below Ka → equilibrium shifts toward more dissociation (even though pH rises toward 7).' },
   { id: 'p1-acids-007', topic: 'acids', skill: 'acids/polyprotic', q: 'pKa1 = 6.35 and pKa2 = 10.33 for carbonic acid. The pH of a NaHCO₃ solution ≈ ?', opts: ['6.35', '8.34', '10.33', '7.00'], a: 1, why: 'Amphoteric species: pH ≈ (pKa1 + pKa2)/2 = 8.34, nearly independent of concentration.' },
   { id: 'p1-acids-008', topic: 'acids', skill: 'acids/strong-weak', q: 'The strongest acid among these oxyacids is…', opts: ['HClO₄', 'HClO₂', 'HClO₃', 'HClO'], a: 0, why: 'Each extra O withdraws density and delocalizes the conjugate base\'s charge: HClO₄ is one of the strongest acids known.' },
   { id: 'p1-acids-009', topic: 'acids', skill: 'acids/titration-curves', q: 'At the equivalence point of a weak BASE titrated with strong ACID, the pH is…', opts: ['7', 'above 7', 'equal to pKb', 'below 7'], a: 3, why: 'Only the conjugate ACID remains (e.g., NH₄⁺) — a weakly acidic solution. Mirror image of the weak-acid case.' },

@@ -231,11 +231,11 @@ Once the question quality pass is further along:
 
 - [x] Define a formal skill taxonomy
 - [x] Tag questions by specific skills
-- [ ] Allow a question to test multiple skills
-- [ ] Map modules → topics → skills → questions
-- [ ] Map competition → topic → difficulty
+- [x] Allow a question to test multiple skills
+- [x] Map modules → topics → skills → questions
+- [x] Map competition → topic → difficulty
 - [x] Make these relationships machine-readable
-- [ ] Use them later for recommendations
+- [x] Use them later for recommendations
 
 Something roughly like:
 

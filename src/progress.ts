@@ -291,16 +291,21 @@ export function accuracyByTopic(): Record<string, { seen: number; correct: numbe
  * last N answers. Do not present it as "all time".
  */
 export function accuracyBySkill(
-  skillOf: (questionId: string) => string | undefined,
+  skillOf: (questionId: string) => string | readonly string[] | undefined,
 ): { skill: string; seen: number; correct: number; accuracy: number }[] {
   const acc = new Map<string, { seen: number; correct: number }>();
   for (const a of attempts) {
-    const skill = skillOf(a.questionId);
-    if (!skill) continue;                 // untagged: absent, never bucketed as "other"
-    const e = acc.get(skill) ?? { seen: 0, correct: 0 };
-    e.seen++;
-    if (a.correct) e.correct++;
-    acc.set(skill, e);
+    const tagged = skillOf(a.questionId);
+    if (!tagged) continue;                // untagged: absent, never bucketed as "other"
+    // A question tagged with two skills counts toward BOTH. That is the point
+    // of allowing an array: getting it wrong is evidence about each of them,
+    // and splitting the answer in half would understate every bucket.
+    for (const skill of typeof tagged === 'string' ? [tagged] : tagged) {
+      const e = acc.get(skill) ?? { seen: 0, correct: 0 };
+      e.seen++;
+      if (a.correct) e.correct++;
+      acc.set(skill, e);
+    }
   }
   return [...acc]
     .map(([skill, e]) => ({ skill, ...e, accuracy: e.seen === 0 ? 0 : e.correct / e.seen }))
@@ -472,7 +477,7 @@ export function repeatedlyMissed(minWrong = 2): { id: string; wrong: number; see
  * so a half-tagged corpus reports less, never wrong.
  */
 export function weakSkills(
-  skillOf: (questionId: string) => string | undefined,
+  skillOf: (questionId: string) => string | readonly string[] | undefined,
   n = 3,
   minSeen = 4,
 ): { skill: string; accuracy: number; seen: number }[] {
@@ -488,10 +493,13 @@ export function weakSkills(
  * actually weak at" rather than "practise everything you got wrong".
  */
 export function reviewQueueForSkill(
-  skillOf: (questionId: string) => string | undefined,
+  skillOf: (questionId: string) => string | readonly string[] | undefined,
   skill: string,
 ): string[] {
-  return reviewQueue().filter(id => skillOf(id) === skill);
+  return reviewQueue().filter(id => {
+    const tagged = skillOf(id);
+    return typeof tagged === 'string' ? tagged === skill : !!tagged?.includes(skill);
+  });
 }
 
 export function wrongQuestionIds(): string[] { return [...outstandingWrong]; }

@@ -172,12 +172,17 @@ const BY_TOPIC = group<ExamTopicId>(q => {
 const BY_MODULE = group<string>(q => (q.topic && isModuleId(q.topic) ? [q.topic] : []));
 const BY_TIER = group<Tier>(q => [tierOf(q)]);
 const BY_COMP = group<Comp>(q => [...compsOf(q)]);
+// Sparse by design: only tagged questions appear, and a question tagged with
+// two skills appears under both.
+const BY_SKILL = group<string>(q => skillsOf(q));
 
 /** By coarse exam topic (12 buckets) — what filtering and review want. */
 export const byTopic = (t: ExamTopicId): Indexable[] => BY_TOPIC.get(t) ?? [];
 /** By the finer module id, for "everything from this lesson". */
 export const byModule = (m: string): Indexable[] => BY_MODULE.get(m) ?? [];
 export const byTier = (t: Tier): Indexable[] => BY_TIER.get(t) ?? [];
+/** By sub-skill (`equilibrium/q-vs-k`). Empty for an untagged skill, never null. */
+export const bySkill = (s: string): Indexable[] => BY_SKILL.get(s) ?? [];
 export const byComp = (c: Comp): Indexable[] => BY_COMP.get(c) ?? [];
 
 // One id -> question lookup for the whole corpus. Progress stores ids and
@@ -396,6 +401,57 @@ export function migrateLegacyProgress(): void {
   if (moved > 0) console.info(`[progress] migrated ${moved} record(s) to explicit question ids`);
 }
 
+/** A question's skills, always as an array — `skill` may be one or several. */
+export function skillsOf(q: Indexable | { skill?: string | readonly string[] }): string[] {
+  // FRQs carry no `skill` at all, so this reads it off defensively rather than
+  // narrowing the union at every call site.
+  const sk = (q as { skill?: string | readonly string[] }).skill;
+  return sk === undefined ? [] : typeof sk === 'string' ? [sk] : [...sk];
+}
+
+/**
+ * The corpus as a machine-readable graph (plan2 §10): module → exam topic →
+ * skill → question ids, plus competition → topic → tier counts.
+ *
+ * Everything in it is DERIVED at call time from the same indexes the app
+ * queries, so it cannot drift from what a student actually sees — which is the
+ * whole reason it is a function and not a checked-in JSON file. It exists so
+ * the relationships can be inspected, diffed between releases, and fed to
+ * whatever chooses questions next, without any of those things re-deriving
+ * `tierOf`/`compsOf`/`toExamTopic` for themselves and getting them subtly
+ * different.
+ */
+export function contentGraph(): {
+  modules: Record<string, { topic: ExamTopicId | null; skills: Record<string, string[]>; untagged: string[] }>;
+  byCompTopicTier: Record<Comp, Partial<Record<ExamTopicId, Record<Tier, number>>>>;
+  skillCoverage: { skill: string; questions: number }[];
+} {
+  const modules: Record<string, { topic: ExamTopicId | null; skills: Record<string, string[]>; untagged: string[] }> = {};
+  for (const q of ALL_MC) {
+    const mod = q.topic && isModuleId(q.topic) ? q.topic : '(exam banks)';
+    const entry = modules[mod] ??= { topic: toExamTopic(q.topic) ?? null, skills: {}, untagged: [] };
+    const skills = skillsOf(q);
+    if (!skills.length) entry.untagged.push(q.id);
+    for (const sk of skills) (entry.skills[sk] ??= []).push(q.id);
+  }
+
+  const byCompTopicTier = {} as Record<Comp, Partial<Record<ExamTopicId, Record<Tier, number>>>>;
+  for (const c of COMPS) {
+    byCompTopicTier[c] = {};
+    for (const q of byComp(c)) {
+      const t = toExamTopic(q.topic);
+      if (!t) continue;
+      const row = byCompTopicTier[c][t] ??= { 1: 0, 2: 0, 3: 0, 4: 0 };
+      row[tierOf(q)]++;
+    }
+  }
+
+  const skillCoverage = [...BY_SKILL].map(([skill, qs]) => ({ skill, questions: qs.length }))
+    .sort((a, b) => b.questions - a.questions);
+
+  return { modules, byCompTopicTier, skillCoverage };
+}
+
 /**
  * The single next question worth answering, with the reason why (plan2 §6).
  *
@@ -418,9 +474,9 @@ export function migrateLegacyProgress(): void {
  * advice you can disagree with beats a card that silently reorders itself.
  */
 export function nextQuestion(): { id: string; reason: string } | null {
-  const skillOf = (id: string): string | undefined => {
+  const skillOf = (id: string): readonly string[] | undefined => {
     const q = BY_ID.get(id);
-    return q && 'skill' in q ? (q as { skill?: string }).skill : undefined;
+    return q ? skillsOf(q) : undefined;
   };
 
   const due = dueForReview();
@@ -435,7 +491,7 @@ export function nextQuestion(): { id: string; reason: string } | null {
 
   const [weakSkill] = weakSkills(skillOf, 1);
   if (weakSkill) {
-    const pick = ALL_MC.find(q => skillOf(q.id) === weakSkill.skill && unattempted(q));
+    const pick = bySkill(weakSkill.skill).find(unattempted);
     if (pick) {
       return {
         id: pick.id,

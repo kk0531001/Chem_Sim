@@ -59,8 +59,13 @@ export interface QuizQ {
    * Untagged questions are simply absent from the per-skill report rather than
    * bucketed as "other": a made-up bucket that grows to 800 questions would
    * dominate the very view it is meant to sharpen.
+   *
+   * An ARRAY when a question genuinely tests two things — `equ-012` needs the
+   * ICE change row and the exponent, and calling it one or the other loses the
+   * half a student actually got wrong. One field rather than `skill` plus
+   * `skills`, because two fields would immediately disagree about which wins.
    */
-  skill?: string;
+  skill?: string | readonly string[];
   q: string;
   opts: string[];
   a: number;
