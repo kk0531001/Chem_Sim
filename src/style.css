@@ -1865,6 +1865,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .sandbox-root .mission-strip.mission-solved { background: var(--panel-ok-wash); border-left-color: var(--panel-ok); }
 .sandbox-root .mission-badge { background: var(--panel-3); border-color: var(--panel-border-2); color: var(--accent-on-panel); }
 .sandbox-root .mission-meter-track { background: var(--panel-border-2); }
+/* #a6b2c3: secondary text on the sandbox ground — defined and explained at #census above. */
 .sandbox-root .mission-meter-label, .sandbox-root .mission-hint { color: #a6b2c3; }
 .sandbox-root .mission-hint { background: var(--panel-3); }
 /* #2f5d3f / #9fdcb4: the border and text weights of --panel-ok-wash. */
@@ -2950,6 +2951,29 @@ a.pill { text-decoration: none; display: inline-block; }
   flex: none;
 }
 .search-close { min-height: 24px; }
+
+/* Comfortable tap targets for the three controls a student uses MID-QUESTION
+   on a phone: bookmark, the helpful/not-helpful pair, and the search dismiss.
+   All measured 24-27px tall (F1) — clear of the WCAG 2.5.8 AA floor of 24px,
+   short of the 44px that is actually comfortable with a thumb.
+   `.crumb-link` solved this with padding out / margin back in, and that is
+   still the better fix where it works. It does not work here: these three
+   carry a visible border or background, so growing the padding grows the pill
+   itself. This grows only the hit area, with a transparent overlay centred on
+   the control — nothing is painted and nothing moves.
+   Width is `max(100%, 44px)`, so wide controls keep their own width and only
+   the icon-sized bookmark button widens; that keeps two adjacent pills from
+   overlapping and stealing each other's clicks. */
+.bookmark-btn, .helpful-btn, .search-close { position: relative; }
+.bookmark-btn::after, .helpful-btn::after, .search-close::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, 44px);
+  height: 44px;
+}
 .search-close:hover { border-color: var(--accent); color: var(--accent-dark); }
 
 .search-results { overflow-y: auto; flex: 1; }

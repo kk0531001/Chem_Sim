@@ -221,7 +221,7 @@ only ever touches the subset where being wrong actually costs something.
 `plan.md` passes 1, 3 and most of 4 have shipped (type scale, line-height
 roles, merged topic chrome). Do not start a new visual redesign.
 
-- [ ] **F1 — Finish plan.md's open passes.** Read `plan.md`, run its console
+- [x] **F1 — Finish plan.md's open passes.** Read `plan.md`, run its console
   probe, and close out whatever passes 2 and 5 still have open (hex literals →
   tokens; `.mode-btn`/`.crumb-link`/`.nav-item` tap targets; `.section-step`
   equal flex basis; `transition: all` → named properties).
