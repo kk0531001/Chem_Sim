@@ -168,7 +168,7 @@ only ever touches the subset where being wrong actually costs something.
   *Done when:* the file exists and `src/content/README.md` links to it. One
   page. If it runs past two, it will not be used.
 
-- [ ] **Q3 — Fix what Q1 found.** Mechanical defects only: duplicate options,
+- [x] **Q3 — Fix what Q1 found.** — *nothing to fix.* Mechanical defects only: duplicate options,
   empty `why`, out-of-range indexes. **Not** rewording (see the protocol
   rule). If a fix requires changing question text, list it under Q6 instead.
   *Done when:* Q1's worklist is empty or every remainder is deferred to Q6.
@@ -179,7 +179,7 @@ only ever touches the subset where being wrong actually costs something.
   wrong-rate data — the same argument the roadmap already makes for `why2`,
   applied one level up.
 
-- [ ] **Q5 — Misconception coverage floor.** `auditTopicPages()` already
+- [x] **Q5 — Misconception coverage floor.** — *hypothesis was wrong.* `auditTopicPages()` already
   requires ≥4 per module. Report the actual distribution and name the modules
   sitting exactly at 4 — those are the ones where the fourth was written to
   satisfy the audit rather than because a student makes that mistake.
