@@ -2932,7 +2932,14 @@ a.pill { text-decoration: none; display: inline-block; }
   color: var(--ink);
   padding: var(--s-2) 0;
 }
-.search-input:focus { outline: none; }
+/* Suppress the ring for POINTER focus only. The two rules above are
+   programmatic focus targets nobody tabbed to; this one is a real control a
+   keyboard user tabs between (input <-> close button), and a bare
+   `:focus { outline: none }` outranks the global `:focus-visible` rule on
+   specificity, so it was silently removing the indicator for them too.
+   `:not(:focus-visible)` keeps the clean look on click and gives the ring
+   back on Tab. */
+.search-input:focus:not(:focus-visible) { outline: none; }
 /* The UA's search-clear affordance is a blue system glyph that belongs to no
    part of this design; Esc and the close button already cover it. */
 .search-input::-webkit-search-cancel-button,

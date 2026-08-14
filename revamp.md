@@ -228,7 +228,7 @@ roles, merged topic chrome). Do not start a new visual redesign.
   *Done when:* plan.md's own verification table passes, and plan.md is marked
   complete at its top or deleted.
 
-- [ ] **F2 — Responsive sweep, the parts a browser can prove.**
+- [x] **F2 — Responsive sweep, the parts a browser can prove.**
   For every route at 375px and 1280px: no horizontal overflow on `<body>`,
   no element wider than the viewport, focus ring visible on every control,
   no equation clipped. Drive it with the browser tools; script the overflow
