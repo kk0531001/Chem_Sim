@@ -14,6 +14,14 @@
 //   3. The newId() fallback for non-secure contexts is a VALID uuid. attempts.id
 //      is a uuid column, and pushAttempts sends the batch in one call, so one
 //      bad id blocks every unsynced attempt for that user forever.
+//   4. A push that fails mid-sync leaves the row queued (`synced` is flipped
+//      only after a successful response) and the next sync retries it.
+//   5. A failed FETCH is not read as "the account is empty" — inferring that
+//      would let one dropped request look exactly like a reset.
+//
+// The console warnings this prints are the code under test reporting the
+// failures it is being fed; a silent run would mean the failure never reached
+// the handler.
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -46,7 +54,7 @@ Object.defineProperty(globalThis, 'crypto', { value: {}, configurable: true });
 
 // A Supabase stand-in. `rows` is the account's server state; `resetAt` is the
 // marker row. Records what was written so the test can assert on pushes.
-const server = { solved: new Set(), resetAt: null, pushed: [], deleted: [] };
+const server = { solved: new Set(), resetAt: null, pushed: [], deleted: [], failUpsert: false, failFetch: false };
 let sessionUser = { id: 'user-a', email: 'a@example.test' };
 
 writeFileSync(join(scratch, 'supabase.mjs'), `
@@ -63,10 +71,12 @@ const table = name => ({
     return Promise.resolve({ data: null, error: null });
   },
   then(res) {
+    if (server.failFetch) return Promise.resolve({ data: null, error: { message: 'network down' } }).then(res);
     const data = name === 'solved' ? [...server.solved].map(question_id => ({ question_id })) : [];
     return Promise.resolve({ data, error: null }).then(res);
   },
   upsert(rows) {
+    if (server.failUpsert) return Promise.resolve({ error: { message: 'network down' } });
     server.pushed.push({ table: name, rows });
     if (name === 'solved') for (const r of [].concat(rows)) server.solved.add(r.question_id);
     if (name === 'progress_reset') server.resetAt = [].concat(rows)[0].reset_at;
@@ -137,6 +147,46 @@ server.pushed.length = 0;
 await P.initProgress();
 check('progress made after the reset survives', P.isSolved('equ-001'));
 
+// ---- 4. a push that fails mid-sync loses nothing and retries ----
+// The rule that matters: `synced` is only flipped after a successful response,
+// so a failed push leaves the attempt queued rather than silently dropped.
+store.clear();
+store.set('sb-x-auth-token', '{}');
+server.solved.clear();
+server.resetAt = null;
+localStorage.setItem('chemprep_synced_at_v1', String(Date.now()));
+P.recordAttempt('bon-001', false, { topic: 'bonding', chosen: 1 });
+server.failUpsert = true;
+await P.initProgress();
+check('a failed push leaves the attempt unsynced', P.recentAttempts(5).some(a => !a.synced));
+check('a failed push does not drop the attempt', P.attemptCount() >= 1);
+
+server.failUpsert = false;
+server.pushed.length = 0;
+await P.initProgress();
+check('the next sync retries the queued attempt',
+  server.pushed.some(p => p.table === 'attempts'));
+check('the retry marks it synced', P.recentAttempts(5).every(a => a.synced));
+
+// ---- 5. a failed FETCH must not be read as "the account is empty" ----
+// If it were, syncWithRemote would treat every local id as local-only and the
+// reset/merge logic downstream would be working from a phantom empty account.
+store.clear();
+store.set('sb-x-auth-token', '{}');
+server.solved.clear();
+server.solved.add('per-001');
+localStorage.setItem('chemprep_synced_at_v1', String(Date.now()));
+P.markSolved('per-002');
+server.failFetch = true;
+await P.initProgress();
+check('a failed fetch keeps local progress', P.isSolved('per-002'));
+// The account's own row must not be dropped either: syncWithRemote returns on
+// the error rather than merging an empty result, so nothing is inferred from a
+// fetch that never arrived.
+check('a failed fetch does not clobber the account', server.solved.has('per-001'));
+check('a failed fetch does not fabricate an empty account', !P.isSolved('per-001'));
+server.failFetch = false;
+
 // ---- 3. the newId fallback is a real uuid ----
 P.recordAttempt('qua-001', true, { topic: 'quantum', chosen: 0 });
 const id = P.recentAttempts(1)[0]?.id ?? '';
@@ -148,4 +198,4 @@ if (fails.length) {
   for (const f of fails) console.error('  ✗ ' + f);
   process.exit(1);
 }
-console.log('sync gate clean: sign-out isolation, remote-reset precedence, uuid fallback.');
+console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry, uuid fallback.');

@@ -66,7 +66,7 @@ Next:
 - [ ] Add generated TypeScript database types
 - [x] Review indexes against actual queries
 - [x] Verify reset-progress behavior against cloud state
-- [ ] Test partial network failure during sync
+- [x] Test partial network failure during sync
 - [x] Test duplicate sync / retry behaviour
 - [ ] Decide what analytics data should be retained
 - [ ] Document the production database setup cleanly
