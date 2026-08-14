@@ -210,6 +210,12 @@ only ever touches the subset where being wrong actually costs something.
   *Done when:* no module with n ≥ 20 is above 40%, or the remainder is listed
   here with why those questions genuinely need an uneven-length option set.
 
+  **Progress** (corpus 59% → 51%): organic3 95→0, coordchem 91→0,
+  labtech 85→40. Remaining above 40%, worst first: structure 85, advinorganic
+  84, periodicity 83, polymers 83, analytical 81, nuclear 71, organic1 70,
+  organic2 65, biophys 65, spectroscopy 63, gases 59, physchem 57,
+  equilibrium 55, thermo2 45. One module per commit.
+
 ## Track F — Frontend
 
 `plan.md` passes 1, 3 and most of 4 have shipped (type scale, line-height
