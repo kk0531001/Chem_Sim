@@ -24,6 +24,13 @@ no `create policy if not exists`). So when in doubt, re-run them all.
 | `0001_solved_attempts.sql` | `solved`, `attempts` | the owning user only (RLS) |
 | `0002_bookmarks.sql` | `bookmarks` | the owning user only (RLS) |
 | `0003_signals.sql` | `signals` | anyone, insert-only, **no select policy** |
+| `0004_signals_rate_limit.sql` | `signal_budget` | nobody — trigger-only |
+
+**Rate limiting.** `0004` caps `signals` inserts at 240 rows per minute per
+client address, enforced by a `BEFORE INSERT` trigger. The address is never
+stored: the budget table holds a salted hash bucketed by minute, swept hourly.
+See the header of that migration for why this is here rather than in a Netlify
+Function.
 
 **Retention.** `solved`, `attempts` and `bookmarks` are the student's own
 record and are kept indefinitely. `signals` is analytics containing free text

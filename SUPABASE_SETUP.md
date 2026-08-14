@@ -36,6 +36,7 @@ or by pasting each one into **SQL Editor → New query → Run**, oldest first:
 | `0001_solved_attempts.sql` | `solved` (one row per question answered correctly) and `attempts` (the append-only log of every answer, right or wrong — what weak-topic tracking, streaks and review are computed from) |
 | `0002_bookmarks.sql` | `bookmarks` — questions *and* modules the student flagged |
 | `0003_signals.sql` | `signals` — the four feedback loops in one append-only table |
+| `0004_signals_rate_limit.sql` | a per-address insert budget for `signals` (see below) |
 
 Every file is idempotent, so re-running them is safe.
 
@@ -45,6 +46,18 @@ from signed-out visitors (most readers never make an account, and their
 experience is the thing worth measuring) and has **no select policy at all**,
 so nothing can read it back through the API — read it in the SQL editor. That
 absence is load-bearing; see the comment at the top of the migration.
+
+Open insert with a publishable key means anyone who reads the bundle can post
+rows. `0004` caps that at **240 rows per minute per client address** with a
+`BEFORE INSERT` trigger — enough for any reader, far below a useful flood. The
+address itself is never stored: the budget table keeps a salted hash bucketed
+by the minute and sweeps itself hourly, so the no-identifiers rule still holds.
+
+A Netlify Function in front of the endpoint is the heavier upgrade if real
+abuse ever appears. On its own it would not help — the publishable key has to
+stay in the bundle for auth and progress sync, so an attacker would simply keep
+posting directly to PostgREST. Doing it properly means revoking anon insert
+here as well and giving the function a `service_role` key.
 
 `signals` rows are kept for **12 months** — it is analytics with free text in
 it, not a student's record. The `delete` statement is at the bottom of its

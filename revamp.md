@@ -99,12 +99,22 @@ violations).
   *Done when:* the script exists and exits 0, or the residual advisories are
   listed in the Log with why they are accepted.
 
-- [ ] **S4 — Rate-limit the signals endpoint.** `HUMAN` (needs a Netlify
-  Functions decision and a deploy).
-  Today: browser → Supabase PostgREST with the publishable key. Anyone can
-  spam rows. The target is browser → Netlify Function → validate + rate-limit
-  → Supabase. Not urgent at zero traffic; **required before any public push**
-  (see D1). Leave this unchecked as a standing gate.
+- [ ] **S4 — Rate-limit the signals endpoint.** *SQL written; needs the
+  migration run against the live project.*
+  `supabase/migrations/0004_signals_rate_limit.sql` caps inserts at 240/minute
+  per client address with a `BEFORE INSERT` trigger. No new infrastructure, no
+  new secret, no client change.
+  **The Netlify Function plan was wrong on its own terms.** The publishable key
+  has to stay in the bundle for auth and progress sync, so a function in front
+  of the endpoint does not stop anyone — they post straight to PostgREST and
+  ignore it. Making it work needs anon insert revoked here AND a `service_role`
+  key in the function, which is a new secret and a new runtime for a site with
+  no abuse yet. That is the documented upgrade, not the first move.
+  Privacy held: the address is never stored. The budget table keeps a salted
+  hash bucketed by minute and sweeps hourly, so the no-identifiers rule in
+  signals.ts still holds.
+  *Blocked on:* running the migration against the live project — I have no
+  access to it. Nothing else.
 
 ## Track D — Database reproducibility
 
