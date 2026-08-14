@@ -74,7 +74,7 @@ violations).
   so, and close the whole innerHTML track as a non-issue; or (b) a read path
   exists, in which case escape at that one point.
 
-- [ ] **S2 — One escape hatch, not 108.**
+- [x] **S2 — One escape hatch, not 108.** — *wrapper skipped, see Log.*
   `src/tabs/framework.ts` — the `h()` helper's `html:` key. 108 `innerHTML`
   uses across `src/`. Do **not** rename all of them. Add a single
   `setTrustedHtml(el, s)` in framework.ts whose body is `el.innerHTML = s`
@@ -288,3 +288,10 @@ Append one line per iteration: `<date> <item> — <what changed / what was found
   `note` column cannot reach any DOM. Finding written into signals.ts as the
   standing constraint. The innerHTML question is therefore not a live
   vulnerability — S2 is now optional hygiene, judge it on its own merits.
+- 2026-08-13 S2 — `setTrustedHtml` **not** added: `h()`'s `html:` branch is
+  already the single site, so a one-line function called from one place is
+  indirection, not a choke point. Did the part that could actually fail —
+  audited all 108 innerHTML uses for an untrusted source: none is fed by
+  localStorage, a URL parameter or a typed query, and search.ts / feedback.ts
+  contain no innerHTML at all. Invariant + the rule for future strings written
+  at the `html:` branch, where a contributor will meet it.

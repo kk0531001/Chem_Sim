@@ -1035,6 +1035,20 @@ export function h<K extends keyof HTMLElementTagNameMap>(
     } else if (k === 'class') {
       el.className = String(v);
     } else if (k === 'html') {
+      // The app's one HTML escape hatch, and it is safe only because of an
+      // invariant that is not visible from here (revamp.md S2): every string
+      // that reaches it is a build-time TypeScript literal — question prose,
+      // computed SVG, numbers. Audited: no innerHTML site in src/ is fed by
+      // localStorage, a URL parameter, or a typed query (search.ts and
+      // feedback.ts contain no innerHTML at all), and the sole user-authored
+      // string on the site — the feedback `note` — is write-only by database
+      // policy (see the header comment in signals.ts).
+      //
+      // So the rule for anything added later: a string that a user or a server
+      // could author does NOT come through `html:`. Pass it as a text child,
+      // which is escaped, or escape it at its source. Sanitising here instead
+      // would be the wrong place — it would silently mangle the chemistry
+      // markup this key exists to render.
       el.innerHTML = String(v);
     } else {
       el.setAttribute(k, String(v));
