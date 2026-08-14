@@ -239,7 +239,7 @@ roles, merged topic chrome). Do not start a new visual redesign.
   keyboard-only, screen reader, 200% zoom. A headless viewport resize is not
   this, and pretending otherwise is how the phone bugs survive.
 
-- [ ] **F4 — Question Bank UX.** The second-most-used surface after a topic
+- [x] **F4 — Question Bank UX.** The second-most-used surface after a topic
   page. One question only: can a student get from "I want 10 hard equilibrium
   questions" to answering one in under three interactions? Fix the shortest
   path, not the filter panel's appearance.

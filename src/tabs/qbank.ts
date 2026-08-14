@@ -264,7 +264,45 @@ export const qbankTab: TabDef = {
       if (status === 'saved' && !isBookmarked(q.id)) return false;
       return true;
     }
+    /**
+     * Show what each difficulty would actually give you, and grey out the ones
+     * that would give nothing.
+     *
+     * The bug this fixes: `tierOf()` derives a tier from the question's MODULE,
+     * and exam-bank questions have no module, so it falls back to Silver
+     * (registry.ts). Every Part I and Part III question is therefore Silver by
+     * construction — but the filter still offered Bronze, Gold and Platinum,
+     * and choosing any of them emptied the bank with no hint as to why. Three
+     * of four options were dead on the two most-used views.
+     *
+     * Counting the pool the student is actually looking at, rather than the
+     * corpus, is the point: "Gold (0)" on Part I is the honest answer, and the
+     * same control on Part II or a CCO set fills back in.
+     */
+    const tierSel = tierCtl.querySelector('select') as HTMLSelectElement;
+    function syncTierOptions(pool: Indexable[]): void {
+      const wrong = new Set(wrongQuestionIds());
+      // Everything except the tier filter itself — otherwise picking Gold
+      // would report "Gold (0), Silver (0)" and the control could never be
+      // escaped except through Clear filters.
+      const savedTier = tier;
+      tier = 'any';
+      const visible = pool.filter(q => passes(q, wrong));
+      tier = savedTier;
+      const n: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 };
+      for (const q of visible) n[tierOf(q)]++;
+      for (const opt of Array.from(tierSel.options)) {
+        if (opt.value === 'any') { opt.textContent = `Any difficulty (${visible.length})`; continue; }
+        const count = n[Number(opt.value)] ?? 0;
+        opt.textContent = `${TIER_LABEL[Number(opt.value) as Tier]} (${count})`;
+        // Never disable the option currently selected: it would drop the
+        // select back to its first entry and silently change the filter.
+        opt.disabled = count === 0 && opt.value !== String(tier);
+      }
+    }
+
     const applyFilters = <T extends Indexable>(items: T[]): T[] => {
+      syncTierOptions(items);
       if (comp === 'any' && tier === 'any' && status === 'any') return items;
       const wrong = new Set(wrongQuestionIds());
       return items.filter(q => passes(q, wrong));
