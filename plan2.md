@@ -1,0 +1,339 @@
+Yep. Based on ChemSim-main-11 + the current repo/site, this is the list I'd actually use going forward. Not a giant wishlist, but the work that matters.
+
+# ChemSim next-work list
+
+## 🧪 1. Question bank excellence
+
+Highest priority
+
+- [ ] Finish resolving every remaining flagged question
+- [ ] Verify every answer key + explanation pair
+- [ ] Check every MC question has exactly one defensible answer
+- [ ] Check distractors are chemically plausible and not accidentally correct
+- [ ] Check numerical questions independently
+- [ ] Check units, sig figs, constants, and signs
+- [ ] Remove questions that test trivia rather than chemistry
+- [ ] Standardize question difficulty tiers
+- [ ] Tag questions consistently by CCC / CCO / USNCO / IChO relevance
+- [ ] Build a strong Gold question pool
+- [ ] Build a smaller Platinum question pool
+- [ ] Upgrade weak explanations
+- [ ] Add misconception explanations to high-value questions
+- [ ] Add `why2` explanations where a second explanation would genuinely help
+- [ ] Create more difficult multi-step / multi-concept problems
+- [ ] Create more experimental-data interpretation problems
+- [ ] Create more mechanism/reasoning-heavy organic problems
+- [ ] Create more CCO/IChO-style quantitative problems
+
+**Goal**
+
+Don't chase 1,000+ questions.
+Build a corpus where the best 200–300 questions are genuinely excellent.
+
+## 🛡️ 2. Security hardening
+
+You've already done the major CSP/header/rate-limit work.
+Now:
+
+- [ ] Audit every `innerHTML` usage
+- [ ] Identify which ones are truly trusted HTML
+- [ ] Separate plain text rendering from trusted HTML rendering
+- [ ] Make the dangerous API explicit, e.g. `trustedHtml(...)`
+- [ ] Audit question-bank content for HTML/script injection
+- [ ] Confirm no user-controlled content reaches HTML sinks
+- [ ] Audit all URL construction
+- [ ] Audit external links
+- [ ] Review authentication/session handling
+- [ ] Confirm service-role/secret keys never enter the client bundle
+- [ ] Run dependency vulnerability checks regularly
+- [ ] Keep the security headers under version control
+
+**Goal**
+
+Make "one bad content entry" incapable of becoming an XSS bug.
+
+## 🗄️ 3. Supabase / database
+
+You've already moved to migrations. Good.
+Next:
+
+- [ ] Review every RLS policy again
+- [ ] Verify `SELECT`, `INSERT`, `UPDATE`, `DELETE` independently
+- [ ] Test cross-user access attempts
+- [ ] Test signed-out behavior
+- [ ] Test fresh-browser + signed-in-cloud-data behavior
+- [ ] Verify progress sync in both directions
+- [ ] Add generated TypeScript database types
+- [ ] Review indexes against actual queries
+- [ ] Verify reset-progress behavior against cloud state
+- [ ] Test partial network failure during sync
+- [ ] Test duplicate sync / retry behaviour
+- [ ] Decide what analytics data should be retained
+- [ ] Document the production database setup cleanly
+
+**Goal**
+
+A user's progress should be extremely hard to lose, duplicate, corrupt, or accidentally expose.
+
+## 🎨 4. Frontend QA
+
+Don't redesign the frontend again yet.
+Instead:
+
+- [ ] Test every major page at 375 px
+- [ ] Test at 430 px
+- [ ] Test desktop widths
+- [ ] Test landscape phone
+- [ ] Test keyboard-only navigation
+- [ ] Test visible focus states
+- [ ] Test reduced-motion mode
+- [ ] Test browser zoom / large text
+- [ ] Check for horizontal overflow
+- [ ] Check every dialog/modal
+- [ ] Check every dropdown
+- [ ] Check every simulation control
+- [ ] Check equations and chemical notation at narrow widths
+- [ ] Check charts/canvases on mobile
+- [ ] Check loading states
+- [ ] Check error states
+- [ ] Check empty states
+- [ ] Check authenticated vs anonymous states
+
+Especially test:
+
+- [ ] Question Bank
+- [ ] Progress
+- [ ] Topic pages
+- [ ] Organic modules
+- [ ] Equilibrium
+- [ ] Electrochemistry
+- [ ] Quantum
+- [ ] Spectroscopy
+- [ ] Particle Sandbox
+
+**Goal**
+
+No "looks fine on my MacBook" bugs surviving.
+
+## ♿ 5. Accessibility
+
+- [ ] Keyboard-test every interactive component
+- [ ] Verify focus order
+- [ ] Verify focus isn't trapped incorrectly
+- [ ] Verify dialogs announce correctly
+- [ ] Verify buttons/links have meaningful names
+- [ ] Verify form controls have labels
+- [ ] Verify error messages are announced
+- [ ] Verify progress updates are understandable
+- [ ] Check contrast on all surfaces
+- [ ] Test with a screen reader
+- [ ] Check reduced motion
+- [ ] Check zoomed layouts
+
+**Goal**
+
+A student should not need a mouse, perfect eyesight, or a wide monitor to use the platform.
+
+## 📊 6. Learning engine
+
+Start making the data actually improve ChemSim.
+
+- [ ] Measure question accuracy by question ID
+- [ ] Measure accuracy by topic
+- [ ] Measure accuracy by skill/subtopic
+- [ ] Track questions students repeatedly miss
+- [ ] Track questions students repeatedly abandon
+- [ ] Track explanations marked unhelpful
+- [ ] Track where students stop in quizzes
+- [ ] Track section abandonment
+- [ ] Identify suspiciously easy questions
+- [ ] Identify suspiciously hard questions
+- [ ] Build a better "weak topic" model
+- [ ] Build a better "next question" recommendation
+- [ ] Create targeted review sets
+- [ ] Create spaced-review logic later
+- [ ] Consider skill-level mastery rather than only topic-level mastery
+
+**Goal**
+
+Instead of:
+"You are weak in equilibrium."
+eventually get to:
+"You're good at ICE setup but consistently struggle with Q vs K and approximation assumptions."
+
+That would be a major ChemSim differentiator.
+
+## 🧱 7. Architecture / code quality
+
+Do this gradually.
+
+- [ ] Identify oversized files
+- [ ] Extract UI helpers from `framework.ts`
+- [ ] Separate quiz logic from generic UI logic
+- [ ] Separate animation helpers
+- [ ] Separate accessibility helpers
+- [ ] Keep routing logic isolated
+- [ ] Keep progress state isolated
+- [ ] Keep question-bank logic isolated
+- [ ] Reduce duplicated DOM patterns
+- [ ] Add tests when extracting things
+- [ ] Remove dead code after refactors
+
+**Goal**
+
+Make the project easier to change without accidentally breaking 12 unrelated modules.
+
+## ⚡ 8. Performance
+
+Not urgent, but worth doing after QA.
+
+- [ ] Measure initial JS bundle
+- [ ] Measure largest route/module loads
+- [ ] Check lazy-loaded modules
+- [ ] Check Pixi/simulation loading
+- [ ] Check mobile performance
+- [ ] Check animation frame usage
+- [ ] Check detached-section cleanup
+- [ ] Check image/font loading
+- [ ] Check unnecessary rerenders/repaints
+- [ ] Check long question-bank searches
+- [ ] Check startup time on slower hardware
+
+**Goal**
+
+Fast enough that students forget there's a framework underneath it.
+
+## 🧭 9. Question Bank UX
+
+This deserves its own pass.
+
+- [ ] Make filters easy to understand
+- [ ] Make tier visible
+- [ ] Make competition relevance visible
+- [ ] Make answered/unanswered state obvious
+- [ ] Improve next/previous flow
+- [ ] Improve review mode
+- [ ] Make weak-question practice easy to start
+- [ ] Make bookmarked questions easy to revisit
+- [ ] Make search results useful
+- [ ] Add better sorting where appropriate
+- [ ] Make explanations easy to scan
+- [ ] Make "why was I wrong?" clearer
+- [ ] Make progress within a practice set obvious
+
+**Goal**
+
+The Question Bank should feel like the core training engine, not a database of questions.
+
+## 🧠 10. Content structure
+
+Once the question quality pass is further along:
+
+- [ ] Define a formal skill taxonomy
+- [ ] Tag questions by specific skills
+- [ ] Allow a question to test multiple skills
+- [ ] Map modules → topics → skills → questions
+- [ ] Map competition → topic → difficulty
+- [ ] Make these relationships machine-readable
+- [ ] Use them later for recommendations
+
+Something roughly like:
+
+```text
+Equilibrium
+├── Q vs K
+├── ICE tables
+├── Le Châtelier
+├── Ksp
+├── approximations
+└── coupled equilibria
+```
+
+That becomes the foundation of your learning engine.
+
+## 👨‍🎓 11. Real student validation
+
+This is the big one.
+Once the security/content baseline is solid:
+
+- [ ] Give ChemSim to actual chemistry students
+- [ ] Watch them use it without explaining everything
+- [ ] Record where they hesitate
+- [ ] Record where they get confused
+- [ ] Record what they skip
+- [ ] Record what they return to
+- [ ] Ask which features they actually use
+- [ ] Ask what they expected to happen
+- [ ] Ask which questions feel unfair
+- [ ] Ask which questions feel too easy
+- [ ] Compare their experience across desktop/mobile
+- [ ] Turn findings into actual issues
+
+**Goal**
+
+Stop guessing what students want.
+Let the students bully the roadmap into shape. 🧪
+
+## 📈 12. Distribution
+
+Only after the above is solid:
+
+- [ ] Improve landing-page messaging
+- [ ] Improve topic SEO
+- [ ] Create useful chemistry guide pages
+- [ ] Add better metadata where needed
+- [ ] Make sharing individual questions easy
+- [ ] Make sharing topic sections easy
+- [ ] Add analytics for acquisition
+- [ ] Get ChemSim in front of CCC/CCO students
+- [ ] Collect feedback
+
+## 🚫 Things I would NOT work on yet
+
+- [ ] Don't add another 10 modules just to make the number bigger
+- [ ] Don't redesign the whole visual system again
+- [ ] Don't build a giant gamification system
+- [ ] Don't build AI explanations yet
+- [ ] Don't build a leaderboard yet
+- [ ] Don't build a huge analytics dashboard
+- [ ] Don't rewrite everything into a new framework
+- [ ] Don't optimize Postgres for imaginary millions of users
+
+## Your actual working order
+
+Since you only work on ChemSim 2 days/week, I'd literally follow this order:
+
+**Phase 1**
+
+1. Question quality
+2. Security `innerHTML` audit
+3. Database testing
+
+**Phase 2**
+
+4. Mobile QA
+5. Accessibility QA
+6. Question Bank UX
+
+**Phase 3**
+
+7. Learning/skill model
+8. Recommendation engine
+9. Architecture cleanup
+
+**Phase 4**
+
+10. Real student testing
+11. Distribution
+12. Only then decide what major feature comes next
+
+## And your weekly rhythm
+
+Day 1: chemistry/content/product
+Day 2: engineering/testing/security
+
+That gives you a very clean development loop:
+
+better chemistry → better software → real users → evidence → better chemistry.
+
+That's the loop I'd build ChemSim around now.
