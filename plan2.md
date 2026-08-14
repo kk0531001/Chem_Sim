@@ -69,7 +69,7 @@ Next:
 - [x] Test partial network failure during sync
 - [x] Test duplicate sync / retry behaviour
 - [ ] Decide what analytics data should be retained
-- [ ] Document the production database setup cleanly
+- [x] Document the production database setup cleanly
 
 **Goal**
 

@@ -37,10 +37,19 @@ or by pasting each one into **SQL Editor → New query → Run**, oldest first:
 | `0002_bookmarks.sql` | `bookmarks` — questions *and* modules the student flagged |
 | `0003_signals.sql` | `signals` — the four feedback loops in one append-only table |
 | `0004_signals_rate_limit.sql` | a per-address insert budget for `signals` (see below) |
+| `0005_progress_reset.sql` | `progress_reset` — one timestamp per user, recording that they erased their progress |
 
 Every file is idempotent, so re-running them is safe.
 
-Row-level security is enabled on all four. The first three are private to the
+`progress_reset` exists because a deletion cannot be represented in a
+merge-by-union sync: an absent row and a row that was never uploaded look
+identical, so a second signed-in device used to push a just-erased set straight
+back up. The marker is what tells those two cases apart — a device whose last
+sync predates the marker drops its local copy instead of uploading it. See
+`honourRemoteReset()` in `src/progress.ts`, and `scripts/test-sync.mjs`, which
+gates the behaviour.
+
+Row-level security is enabled on all five. The first three are private to the
 owning user. `signals` is the exception and deliberately so: it accepts inserts
 from signed-out visitors (most readers never make an account, and their
 experience is the thing worth measuring) and has **no select policy at all**,
@@ -170,6 +179,19 @@ to toggle.
   emailed link on any device to sign in. Your solved set then merges with the
   cloud and stays in sync everywhere — including questions you solved while
   signed out (they get pushed up on first sign-in).
+- **Signing out** clears this browser's local copy. It has to: the sync pushes
+  "ids this account does not have" under the *current* user, so leaving one
+  person's set in the browser would write it into the next person's account on
+  a shared machine. Cloud rows are untouched — signing back in restores them.
+- **Reset all progress** deletes the account's rows, clears this device, and
+  records the reset. Other signed-in devices drop their copies on their next
+  load rather than re-uploading them.
+- **Offline and partial failures:** a push that fails leaves the row queued and
+  retried on the next sync; a fetch that fails leaves local data alone rather
+  than being read as "the account is empty".
+- One thing that does *not* propagate: un-solving a question, or removing a
+  bookmark, on one device. The merge is a union with no per-row tombstones, so
+  another device holding the old row will restore it.
 - The anon key being public is by design; RLS is what protects your data.
 
 > Supabase's free tier includes a built-in email sender with modest rate limits
