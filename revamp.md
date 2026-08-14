@@ -175,11 +175,22 @@ only ever touches the subset where being wrong actually costs something.
   rule). If a fix requires changing question text, list it under Q6 instead.
   *Done when:* Q1's worklist is empty or every remainder is deferred to Q6.
 
-- [ ] **Q4 — Gold/Platinum depth pass.** `HUMAN` (chemistry judgement).
-  Take ~40 questions at the top two tiers and check keyed answer, units, sig
-  figs and the explanation against a textbook. Not 853. The rest waits for
-  wrong-rate data — the same argument the roadmap already makes for `why2`,
-  applied one level up.
+- [ ] **Q4 — Chemistry verification.** *In progress — 41 of 272 reviewed, 6 defects fixed.*
+  Originally scoped as "~40 top-tier questions, by a human". Both halves of
+  that turned out wrong: the Q6 rewrites made the real surface 935 distractors,
+  and the repo owner does not read chemistry at this level, so a human gate
+  here is not a gate at all.
+  Now: `scripts/review-q4.mjs` ranks the edits by risk and
+  `scripts/q4-dossier.mjs` emits self-contained context, then independent
+  reviewers work the dossier. Three passes have run over 41 questions — a
+  systematic check, an ADVERSARIAL pass that argues *for* each wrong answer,
+  and an integrity pass over the most aggressively trimmed keys.
+  **6 defects found and fixed** (see the Log). The adversarial framing found
+  three the systematic pass cleared, and on tie-break the systematic reviewer
+  reversed itself on all three — so run both framings, not one.
+  *Remaining:* 231 of the 272 flagged, at roughly the same risk profile.
+  *Standing caveat:* this is LLM review of LLM edits. It demonstrably catches
+  real errors, and it is not a chemist.
 
 - [x] **Q5 — Misconception coverage floor.** — *hypothesis was wrong.* `auditTopicPages()` already
   requires ≥4 per module. Report the actual distribution and name the modules
