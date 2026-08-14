@@ -51,12 +51,32 @@ import { INTEGRATED_SETS } from './bankIntegrated';
 import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
 import { examRun, planFor } from './examRun';
 import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, reviewQueue, isBookmarked, toggleBookmark } from '../progress';
-import { activeComp } from '../mode';
+import { activeComp, MODE_SHORT } from '../mode';
 import { tierOf, compsOf, query, questionsByIds, type Indexable } from '../content/registry';
 import {
   COMPS, COMP_LABEL, DOMAINS, EXAM_TOPIC_IDS, EXAM_TOPIC_LABEL, TIER_LABEL,
   type Comp, type ExamTopicId, type Tier,
 } from '../content/topicIds';
+
+/**
+ * The per-question line under the counter: which tier this question is, and
+ * which competitions it is in scope for.
+ *
+ * The bank could already FILTER by both, but a student looking at a question
+ * had no way to see what they were looking at — "Silver" and "in scope for
+ * CCC" were properties of the filter, not of the thing on screen.
+ *
+ * Both are derived (tierOf/compsOf), never stored, so this cannot drift from
+ * what the filters select. All four comps means "everyone", which is worth no
+ * ink, so it is omitted.
+ */
+function questionNote(q: { id: string; tier?: Tier; comps?: readonly Comp[] }): string {
+  const tier = TIER_LABEL[tierOf(q)];
+  const comps = compsOf(q);
+  return comps.length === COMPS.length
+    ? tier
+    : `${tier} · ${comps.map(c => MODE_SHORT[c]).join('/')}`;
+}
 
 // The topic list is EXAM_TOPIC_LABEL, not a copy of it. This file used to carry
 // its own hard-coded array of the same twelve topics with three of the labels
@@ -430,7 +450,7 @@ export const qbankTab: TabDef = {
       countNote.textContent = ` ${items.length} question${items.length === 1 ? '' : 's'} across every bank`;
       if (items.length === 0) return [emptyNote('questions')];
       const out: HTMLElement[] = [];
-      if (mcs.length) out.push(card(`Multiple choice (${mcs.length})`, quiz(maybeShuffle(mcs))));
+      if (mcs.length) out.push(card(`Multiple choice (${mcs.length})`, quiz(maybeShuffle(mcs), 0, questionNote)));
       if (frqs.length) out.push(frqBrowser(maybeShuffle(frqs), `Written problems (${frqs.length})`));
       return out;
     }
@@ -504,7 +524,7 @@ export const qbankTab: TabDef = {
           'Ordering is best-effort: the attempt log is capped, so anything older than the last ' +
           'thousand answers is simply treated as oldest.'),
       ];
-      if (mcs.length) out.push(card(`Multiple choice (${mcs.length})`, quiz(mcs)));
+      if (mcs.length) out.push(card(`Multiple choice (${mcs.length})`, quiz(mcs, 0, questionNote)));
       if (frqs.length) out.push(frqBrowser(frqs, `Written problems (${frqs.length})`));
       return out;
     }
@@ -579,7 +599,7 @@ export const qbankTab: TabDef = {
         // fold pass promote the shelf and bury Part A.
         content.append(
           h('p', { class: 'section-lede', style: 'margin-bottom:12px' }, `${paper.label} — ${paper.blurb} All original, written to match the real contest format.`),
-          card(`Part A — multiple choice (${paper.partA.length} questions)`, quiz(paper.partA)),
+          card(`Part A — multiple choice (${paper.partA.length} questions)`, quiz(paper.partA, 0, questionNote)),
           frqBrowser(paper.partB, 'Part B — written problems (work each part before revealing)'),
           officialPapersPanel(),
         );
@@ -601,7 +621,7 @@ export const qbankTab: TabDef = {
       // old field-by-field re-map silently dropped `id` (and would drop any
       // field added later), which is exactly what the explicit ids exist to
       // prevent.
-      content.append(card(title, quiz(items)));
+      content.append(card(title, quiz(items, 0, questionNote)));
     }
 
     root.append(

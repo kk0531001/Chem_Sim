@@ -207,19 +207,19 @@ Fast enough that students forget there's a framework underneath it.
 
 This deserves its own pass.
 
-- [ ] Make filters easy to understand
-- [ ] Make tier visible
-- [ ] Make competition relevance visible
-- [ ] Make answered/unanswered state obvious
+- [x] Make filters easy to understand
+- [x] Make tier visible
+- [x] Make competition relevance visible
+- [x] Make answered/unanswered state obvious
 - [ ] Improve next/previous flow
 - [ ] Improve review mode
-- [ ] Make weak-question practice easy to start
-- [ ] Make bookmarked questions easy to revisit
+- [x] Make weak-question practice easy to start
+- [x] Make bookmarked questions easy to revisit
 - [ ] Make search results useful
 - [ ] Add better sorting where appropriate
 - [ ] Make explanations easy to scan
 - [ ] Make "why was I wrong?" clearer
-- [ ] Make progress within a practice set obvious
+- [x] Make progress within a practice set obvious
 
 **Goal**
 

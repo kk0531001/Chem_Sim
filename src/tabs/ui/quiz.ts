@@ -139,7 +139,15 @@ export function focusQuestion(id: string): boolean {
   return false;
 }
 
-export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
+/**
+ * `noteFor` appends a per-question note to the progress line — the Question
+ * Bank uses it to show the tier and competition scope of the question on
+ * screen. It is a CALLBACK rather than a lookup here on purpose: tierOf and
+ * compsOf live in content/registry.ts, which pulls the whole corpus, and a
+ * topic page must not pay for that (D.10). qbank.ts already has the registry
+ * loaded, so it supplies the string.
+ */
+export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => string): HTMLElement {
   let i = 0, score = 0, answered = false;
   // Explicit ids, not qid(q.q). Keying progress on a hash of the prompt meant
   // that fixing a typo silently orphaned every user's record for the question.
@@ -339,8 +347,10 @@ export function quiz(qs: QuizQ[], warmupCount = 0): HTMLElement {
   function updateProgressLine(): void {
     if (i >= qs.length) return;
     const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · warm-up' : ' · olympiad';
+    const note = noteFor?.(qs[i]);
     const done = solvedOf(ids);
-    setProgress(`Question ${i + 1} of ${qs.length}${tier} · score ${score} · ${done}/${qs.length} solved`);
+    setProgress(`Question ${i + 1} of ${qs.length}${tier}${note ? ' · ' + note : ''}`
+      + ` · score ${score} · ${done}/${qs.length} solved`);
   }
 
   jump(new URLSearchParams(location.search).get('q') ?? '', false);
