@@ -39,13 +39,18 @@ decide:
 | coordchem | 26 | 2026-08-14 | none |
 | labtech | 29 | 2026-08-14 | none |
 | structure | 29 | 2026-08-14 | str-018 trap sentence described a different molecule (seven carbons) |
+| bankPart1 | 110 | 2026-08-14 | p1-atomic-010 `why` quoted 0.35 shielding while its option claimed +1/step; p1-thermo-010 `why` assumed a doubling the stem never states |
+| bankPart3 | 31 | 2026-08-14 | none |
+| olympiadPaper1–5 (Part A) | 125 | 2026-08-14 | mock1-a-006 `why` called buffer capacity a number of moles; dilution changes concentration, not moles |
 
 Every numeric `why` above was recomputed, not skimmed: th1-011 (−890.3 kJ),
 th1-014 (0.557 J/g·K), th1-025 (−110.5 kJ), th2-011 (109 J/mol·K), th2-012
 (1113 K), th2-016 (−11.4 kJ/mol), th2-023 (5.76 J/K), equ-008 (4×10⁻⁹),
 equ-016 (1.8×10⁻⁹ M).
 
+All 853 MC are verified. bankCCO and bankIntegrated contribute no MC.
+
 ## Remaining
 
-The exam banks (bankPart1/2/3, bankCCO,
-bankIntegrated, bankOlympiad, olympiadPaper1–5).
+The 119 written free-response problems (bankPart2, bankCCO, bankIntegrated,
+and the Part B of olympiadPaper1-5).
