@@ -7,6 +7,10 @@ Roadmap **Phase A** scaffolding. Two files matter:
 | [`topicIds.ts`](topicIds.ts) | The canonical vocabulary. Module ids, exam-topic ids, how they relate, the bank registry, the id prefixes. No imports — it compiles standalone. |
 | [`../../scripts/backfill-ids.mjs`](../../scripts/backfill-ids.mjs) | The one-time codemod that writes `id:` (and `topic:`) into the question source files. |
 
+Writing the questions themselves: [`AUTHORING.md`](AUTHORING.md) — the field
+spec, the ship checklist, and why the distractors are the part to spend the
+time on.
+
 ---
 
 ## The rule that outranks everything else

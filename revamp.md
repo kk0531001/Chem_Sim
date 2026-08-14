@@ -159,7 +159,7 @@ only ever touches the subset where being wrong actually costs something.
   *Done when:* the new checks run in `npm run audit` and the findings are in
   the Log as a worklist. Fixing them is Q3.
 
-- [ ] **Q2 — The authoring standard, as a file not a habit.**
+- [x] **Q2 — The authoring standard, as a file not a habit.**
   `src/content/AUTHORING.md`: the field spec (id, topic, comp scope, tier,
   prompt, options, answer, why, misconception, why2, refs) and the ship
   checklist (chemically correct / numerically verified / uniquely determined /
