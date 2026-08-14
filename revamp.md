@@ -99,8 +99,7 @@ violations).
   *Done when:* the script exists and exits 0, or the residual advisories are
   listed in the Log with why they are accepted.
 
-- [ ] **S4 — Rate-limit the signals endpoint.** *SQL written; needs the
-  migration run against the live project.*
+- [x] **S4 — Rate-limit the signals endpoint.** *Live and verified.*
   `supabase/migrations/0004_signals_rate_limit.sql` caps inserts at 240/minute
   per client address with a `BEFORE INSERT` trigger. No new infrastructure, no
   new secret, no client change.
@@ -113,8 +112,18 @@ violations).
   Privacy held: the address is never stored. The budget table keeps a salted
   hash bucketed by minute and sweeps hourly, so the no-identifiers rule in
   signals.ts still holds.
-  *Blocked on:* running the migration against the live project — I have no
-  access to it. Nothing else.
+  **Verified against the live project**, not just written: a normal 3-row
+  insert returns 201, a single request carrying 250 rows is rejected and rolls
+  back entirely, and an insert straight afterwards succeeds — so floods are
+  stopped without wedging real readers.
+  Two bugs caught before/at deploy, both invisible if shipped: (1) the first
+  draft used pgcrypto's `digest()`, but Supabase installs pgcrypto into the
+  `extensions` schema and the function pins `search_path` to `public`, so the
+  trigger would have thrown on EVERY insert — silently, because signals.ts
+  swallows failures, so analytics would just have stopped. Now `md5()`, which
+  is core Postgres and buys nothing less here. (2) errcode `53400` surfaced as
+  HTTP 500; `PT429` makes it a real 429, so a working limit does not read as
+  breakage in the logs.
 
 ## Track D — Database reproducibility
 

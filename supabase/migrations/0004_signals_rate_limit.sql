@@ -86,10 +86,13 @@ begin
     returning n into used;
 
   if used > limit_n then
-    -- 53400 = configuration_limit_exceeded; PostgREST maps it to a 4xx, and
-    -- signals.ts already swallows every failure, so a throttled reader sees
-    -- nothing. Instrumentation must never surface an error mid-question.
-    raise exception 'signal rate limit exceeded' using errcode = '53400';
+    -- 'PT429' is PostgREST's escape hatch: SQLSTATE PTxyz sets the HTTP status
+    -- to xyz, so this surfaces as a real 429 rather than a 500. Verified: with
+    -- 53400 the live endpoint returned 500, which would read as breakage in
+    -- the Supabase logs rather than as a limit doing its job.
+    -- signals.ts swallows every failure regardless, so a throttled reader sees
+    -- nothing — instrumentation must never surface an error mid-question.
+    raise exception 'signal rate limit exceeded' using errcode = 'PT429';
   end if;
 
   -- Opportunistic sweep, ~1 insert in 500. The budget table is a counter with
