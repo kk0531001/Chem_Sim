@@ -101,7 +101,7 @@ violations).
 
 ## Track D — Database reproducibility
 
-- [ ] **D1 — Schema into migrations.**
+- [x] **D1 — Schema into migrations.**
   `SUPABASE_SETUP.md` currently says "paste this SQL into the SQL Editor".
   Move the four tables (`solved`, `attempts`, `bookmarks`, `signals`) and
   their RLS policies verbatim into:
@@ -300,3 +300,12 @@ Append one line per iteration: `<date> <item> — <what changed / what was found
   (nanoid, postcss, both via Vite); `npm audit fix` cleared both with no major
   bump, and the rebuilt site renders unchanged. `npm run audit:deps` added as
   the standing one-command check. No accepted residuals.
+- 2026-08-13 D1 — Schema moved to `supabase/migrations/` (0001 solved+attempts,
+  0002 bookmarks, 0003 signals) + `supabase/README.md`; SUPABASE_SETUP.md now
+  points at the directory instead of inlining four SQL blocks. Verified by
+  diffing every normalised statement against the SQL at HEAD: nothing dropped,
+  the only additions are the four `drop policy if exists` idempotency guards.
+  NOT verified against a real Postgres — none available in this environment, so
+  the files are structurally checked (balanced, terminated, every policy
+  guarded) and byte-faithful to SQL that was already running, but the first
+  `supabase db push` is still the real test.

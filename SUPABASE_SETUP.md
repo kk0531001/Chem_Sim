@@ -5,7 +5,8 @@ local storage — no setup needed. To sync solved questions **across devices**,
 connect a free Supabase project by following these one-time steps.
 
 The app already contains all the code; you only need to (1) create the project,
-(2) run one SQL snippet, and (3) paste two keys into your `.env` and Netlify.
+(2) run the migrations in `supabase/migrations/`, and (3) paste two keys into
+your `.env` and Netlify.
 
 ---
 
@@ -16,147 +17,40 @@ The app already contains all the code; you only need to (1) create the project,
    (you won't need it again for this), pick a region near you, **Create**.
 3. Wait ~1 minute for it to provision.
 
-## 2. Create the `solved` table (run the SQL)
+## 2. Create the tables (run the migrations)
 
-In the project, open **SQL Editor → New query**, paste this, and click **Run**:
+The schema lives in [`supabase/migrations/`](supabase/migrations/), not in this
+document — so the database can be rebuilt from git rather than from a page
+someone has to keep in sync by hand. See [`supabase/README.md`](supabase/README.md).
 
-```sql
-create table if not exists public.solved (
-  user_id uuid not null references auth.users (id) on delete cascade,
-  question_id text not null,
-  solved_at timestamptz not null default now(),
-  primary key (user_id, question_id)
-);
+Run the files **in filename order**, either with the Supabase CLI:
 
-alter table public.solved enable row level security;
-
-create policy "users manage their own rows"
-  on public.solved for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+```bash
+supabase db push
 ```
 
-This gives every signed-in user a private set of solved questions;
-row-level security means no one can read anyone else's rows.
+or by pasting each one into **SQL Editor → New query → Run**, oldest first:
 
-## 2b. Create the `attempts` table (run the SQL)
+| File | What it creates |
+| --- | --- |
+| `0001_solved_attempts.sql` | `solved` (one row per question answered correctly) and `attempts` (the append-only log of every answer, right or wrong — what weak-topic tracking, streaks and review are computed from) |
+| `0002_bookmarks.sql` | `bookmarks` — questions *and* modules the student flagged |
+| `0003_signals.sql` | `signals` — the four feedback loops in one append-only table |
 
-`solved` records only successes. `attempts` records every answer, right or
-wrong — it's what quiz history, weak-topic tracking, streaks and personalised
-review are computed from. Same SQL Editor, same procedure:
+Every file is idempotent, so re-running them is safe.
 
-```sql
-create table if not exists public.attempts (
-  -- Client-generated uuid, NOT a serial: the app upserts on this key so a
-  -- retried or re-synced push can never duplicate an attempt.
-  id uuid primary key,
-  user_id uuid not null references auth.users (id) on delete cascade,
-  question_id text not null,
-  topic text,
-  correct boolean not null,
-  chosen smallint,
-  answered_at timestamptz not null default now()
-);
+Row-level security is enabled on all four. The first three are private to the
+owning user. `signals` is the exception and deliberately so: it accepts inserts
+from signed-out visitors (most readers never make an account, and their
+experience is the thing worth measuring) and has **no select policy at all**,
+so nothing can read it back through the API — read it in the SQL editor. That
+absence is load-bearing; see the comment at the top of the migration.
 
--- The app always reads "this user's most recent attempts", so index for it.
-create index if not exists attempts_user_time_idx
-  on public.attempts (user_id, answered_at desc);
+Each table is optional in the same way the rest of cloud sync is. Without them
+— or without the keys below — the app keeps everything in localStorage and
+nothing breaks.
 
-alter table public.attempts enable row level security;
-
-create policy "users manage their own attempts"
-  on public.attempts for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-```
-
-Unlike `solved` (one row per question), this table is append-only and grows
-with use, so expect many rows per question. That's intentional: an attempt log
-is the only thing that can answer "which topics am I weak at", because the
-wrong answers are the signal.
-
-This table is optional in the same way the rest of cloud sync is — without it
-(or without the env vars) the app still tracks attempts in localStorage and
-just doesn't sync them.
-
-## 2c. Create the `bookmarks` table (run the SQL)
-
-What the student has flagged to come back to — questions *and* whole modules.
-One store for both: a module id (`coordchem`) can never collide with a question
-id (`coo-014`), and a second table would mean a second sync path for a set of
-strings.
-
-```sql
-create table if not exists public.bookmarks (
-  user_id uuid not null references auth.users (id) on delete cascade,
-  question_id text not null,
-  created_at timestamptz not null default now(),
-  -- One row per user per item, so the app can upsert without checking first.
-  primary key (user_id, question_id)
-);
-
-alter table public.bookmarks enable row level security;
-
-create policy "users manage their own bookmarks"
-  on public.bookmarks for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-```
-
-Optional like the rest: without it, bookmarks live in localStorage and simply
-don't follow the user to another device.
-
-## 2d. Create the `signals` table (run the SQL)
-
-The feedback loops (ROADMAP I.2): which explanations readers flag as unhelpful,
-which topics get opened and abandoned, where in a quiz people stop, and the
-free-text bug reports. One table for all four, because it is one append-only
-stream that the app only ever writes.
-
-Unlike the three tables above, **this one accepts rows from signed-out
-visitors** — most readers never make an account, and their experience is
-exactly the thing worth measuring. So the policy is insert-only for `anon`, and
-there is deliberately **no select policy at all**: nothing can read this table
-through the API, including the person who submitted the row. Read it in the SQL
-editor.
-
-```sql
-create table if not exists public.signals (
-  id uuid primary key default gen_random_uuid(),
-  -- view: ref = topic id, n = seconds spent on it
-  -- quiz: ref = question id stopped on, n = questions answered
-  -- explain: ref = question id, note = 'yes' | 'no'
-  -- feedback: ref = page path, note = what the reader typed
-  kind text not null check (kind in ('view', 'quiz', 'explain', 'feedback')),
-  ref text not null check (length(ref) <= 200),
-  n integer,
-  -- Bounded in the database as well as in the client: the client-side limit is
-  -- a courtesy, and this column is reachable by anyone with the anon key.
-  note text check (note is null or length(note) <= 2000),
-  -- A random per-TAB id from sessionStorage, so one visit's rows can be read
-  -- as one visit. Not a user id, not a cookie, and gone when the tab closes.
-  session text not null check (length(session) <= 64),
-  created_at timestamptz not null default now()
-);
-
-create index if not exists signals_kind_time_idx
-  on public.signals (kind, created_at desc);
-
-alter table public.signals enable row level security;
-
-create policy "anyone may add a signal"
-  on public.signals for insert
-  to anon, authenticated
-  with check (true);
-```
-
-Open insert with the publishable key means anyone who reads the bundle can post
-rows to it. That is the price of measuring signed-out readers, and the exposure
-is bounded by the length checks above — but if it is ever abused, the fix is a
-Netlify Function in front of it, not a stricter policy here (a policy that can
-tell a student from a script would need an account, which defeats the purpose).
-
-The queries this exists to answer:
+### The queries `signals` exists to answer
 
 ```sql
 -- Explanations readers are telling you are bad. Start rewriting at the top.
@@ -181,9 +75,6 @@ group by ref order by times desc limit 20;
 select created_at, ref as page, note from public.signals
 where kind = 'feedback' order by created_at desc;
 ```
-
-Optional like the rest: without the table (or without the keys) the app posts
-nothing, the buttons still acknowledge, and nothing breaks.
 
 ## 3. Get your two keys
 
