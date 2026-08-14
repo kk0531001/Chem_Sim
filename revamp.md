@@ -256,7 +256,7 @@ roles, merged topic chrome). Do not start a new visual redesign.
 
 Opportunistic only. Do not schedule a refactor sprint.
 
-- [ ] **E1 — Split `framework.ts` (1651 lines) along one seam.** Not eight
+- [x] **E1 — Split `framework.ts` (1651 lines) along one seam.** Not eight
   files. Move the quiz + missions renderer out to `src/tabs/ui/quiz.ts`,
   because that is the part that gets edited and currently drags the whole UI
   universe open with it. Re-export from framework.ts so no call site changes.
