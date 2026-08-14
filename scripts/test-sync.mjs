@@ -213,9 +213,22 @@ check('a strong topic is not called weak', !weak.slice(0, 2).includes('organic')
 answer('acids', 2, 0);       // 0% of 2
 check('a 2-answer topic is not ranked weak', !P.weakTopics(4).some(w => w.topic === 'acids'));
 
+// ---- 7. spaced review holds back fresh mistakes ----
+store.clear();
+globalThis.__session = null;
+const now = Date.now();
+P.recordAttempt('equ-013', false, { topic: 'equilibrium', chosen: 0 });   // wrong just now
+check('a fresh miss is in the full queue', P.reviewQueue().includes('equ-013'));
+check('a fresh miss is NOT due yet', !P.dueForReview().includes('equ-013'));
+check('it is due once the rest period is zero', P.dueForReview(0).includes('equ-013'));
+// A correct answer removes it from the queue entirely, due or not.
+P.recordAttempt('equ-013', true, { topic: 'equilibrium', chosen: 1 });
+check('answering right clears it from review', !P.reviewQueue().includes('equ-013'));
+void now;
+
 if (fails.length) {
   console.error(`sync gate: ${fails.length} failure(s):`);
   for (const f of fails) console.error('  ✗ ' + f);
   process.exit(1);
 }
-console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry,\n            uuid fallback, weak-topic ranking.');
+console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry,\n            uuid fallback, weak-topic ranking, spaced review.');

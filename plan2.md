@@ -149,9 +149,9 @@ Start making the data actually improve ChemSim.
 - [x] Identify suspiciously easy questions
 - [x] Identify suspiciously hard questions
 - [x] Build a better "weak topic" model
-- [ ] Build a better "next question" recommendation
+- [x] Build a better "next question" recommendation
 - [x] Create targeted review sets
-- [ ] Create spaced-review logic later
+- [x] Create spaced-review logic later
 - [x] Consider skill-level mastery rather than only topic-level mastery
 
 **Goal**

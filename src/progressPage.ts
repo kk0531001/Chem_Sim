@@ -20,7 +20,7 @@ import {
   accuracyBySkill,
   resetAllProgress,
 } from './progress';
-import { ALL_MC, ALL_FRQ, byTopic, byComp, questionById, QUIZ_BANKS } from './content/registry';
+import { ALL_MC, ALL_FRQ, byTopic, byComp, questionById, QUIZ_BANKS, nextQuestion } from './content/registry';
 import { DOMAINS, EXAM_TOPIC_LABEL, type ExamTopicId } from './content/topicIds';
 import { skillLabel } from './content/skills';
 import { TOPICS, topicById } from './topics';
@@ -188,6 +188,7 @@ export function buildProgressPage(): HTMLElement {
 
       ...weakSection(acc),
       masterySection(),
+      ...nextQuestionSection(),
       ...skillSection(),
       ...stickySection(),
       historySection(),
@@ -329,6 +330,26 @@ export function buildProgressPage(): HTMLElement {
     }
 
     // ---- recent answers ----
+    /**
+     * One question, chosen for this student, with the reason (plan2 §6).
+     *
+     * The page already shows weak topics, weak skills and a review queue — a
+     * student can work out what to do from them. This does it in one click.
+     * It renders nothing when there is no evidence to reason from: a card
+     * saying "start anywhere" is worse than the browse button already there.
+     */
+    function nextQuestionSection(): HTMLElement[] {
+      const next = nextQuestion();
+      if (!next) return [];
+      const text = label(next.id);
+      return [section('Answer this next', next.reason,
+        h('button', {
+          type: 'button', class: 'btn primary',
+          onclick: () => openBank({ q: next.id }),
+        }, text ? `Open: ${text.slice(0, 70)}${text.length > 70 ? '…' : ''}` : 'Open the question'),
+      )];
+    }
+
     /**
      * Questions missed REPEATEDLY and still outstanding (plan2 §6).
      *

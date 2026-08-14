@@ -50,7 +50,7 @@ import { CCO_SETS } from './bankCCO';
 import { INTEGRATED_SETS } from './bankIntegrated';
 import { OLYMPIAD_PAPERS, officialByYear } from './bankOlympiad';
 import { examRun, planFor } from './examRun';
-import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, reviewQueue, isBookmarked, toggleBookmark } from '../progress';
+import { isSolved, markSolved, unmarkSolved, wrongQuestionIds, reviewQueue, dueForReview, isBookmarked, toggleBookmark } from '../progress';
 import { activeComp, MODE_SHORT } from '../mode';
 import { tierOf, compsOf, query, questionsByIds, type Indexable } from '../content/registry';
 import {
@@ -508,7 +508,14 @@ export const qbankTab: TabDef = {
      * leaves it the moment the student moves on.
      */
     function reviewView(): HTMLElement[] {
-      const items = questionsByIds(reviewQueue());
+      // Spaced: mistakes that are still fresh are held back, because the doc
+      // comment above is the actual feature. When NOTHING is due the queue is
+      // shown anyway with a note — an empty review screen would read as "you
+      // have nothing to review", which is the opposite of true.
+      const due = dueForReview();
+      const all = reviewQueue();
+      const resting = all.length - due.length;
+      const items = questionsByIds(due.length ? due : all);
       countNote.textContent = ` ${items.length} to review`;
       if (items.length === 0) {
         return [h('p', { class: 'muted' },
@@ -517,6 +524,12 @@ export const qbankTab: TabDef = {
       }
       const frqs = items.filter((q): q is FRQ => 'parts' in q);
       const mcs = items.filter((q): q is QuizQ => !('parts' in q));
+      const restNote = due.length
+        ? (resting ? h('p', { class: 'muted' },
+            `${resting} more you missed recently are resting — they come back after a few hours, `
+            + 'when getting them right means you remember the chemistry rather than the page.') : null)
+        : h('p', { class: 'muted' },
+            'All of these are recent misses. Worth another look now, but they count for more tomorrow.');
       const out: HTMLElement[] = [
         h('p', { class: 'section-lede', style: 'margin-bottom:12px' },
           'Your outstanding mistakes, oldest first — the ones you have had longest to forget. ' +
@@ -524,6 +537,7 @@ export const qbankTab: TabDef = {
           'Ordering is best-effort: the attempt log is capped, so anything older than the last ' +
           'thousand answers is simply treated as oldest.'),
       ];
+      if (restNote) out.push(restNote);
       if (mcs.length) out.push(card(`Multiple choice (${mcs.length})`, quiz(mcs, 0, questionNote)));
       if (frqs.length) out.push(frqBrowser(frqs, `Written problems (${frqs.length})`));
       return out;

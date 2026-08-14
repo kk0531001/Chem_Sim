@@ -10,15 +10,18 @@
 // Importing every bank here pulls the whole corpus into whatever chunk reaches
 // this module, so nothing on the entry path may import it — the homepage gets
 // its three numbers from ./counts instead (ROADMAP D.10).
-import { qid, remapProgressIds, needsIdMigration, markIdMigrationDone } from '../progress';
+import { qid, remapProgressIds, needsIdMigration, markIdMigrationDone,
+  dueForReview, weakSkills, weakTopics, accuracyByQuestion } from '../progress';
 import type { QuizQ } from '../tabs/framework';
 import type { FRQ } from '../tabs/bankPart2';
 import {
-  BANKS, COMPS, ID_PREFIX, ceilingRank, compsForDifficulty, isModuleId, toExamTopic,
+  BANKS, COMPS, ID_PREFIX, EXAM_TOPIC_LABEL, ceilingRank, compsForDifficulty, isExamTopicId,
+  isModuleId, toExamTopic,
   type Comp, type ExamTopicId, type QuizModuleId, type Tier,
 } from './topicIds';
 import { TOPICS, topicById } from '../topics';
 import { CORPUS_COUNTS, MODULE_QUIZ_SIZE } from './counts';
+import { skillLabel } from './skills';
 
 // ---- quiz banks (one per topic module) ----
 import { QUANTUM_QUIZ, BONDING_QUIZ, STOICH_QUIZ, THERMO1_QUIZ, THERMO2_QUIZ, EQUILIBRIUM_QUIZ } from '../tabs/questions1';
@@ -391,4 +394,65 @@ export function migrateLegacyProgress(): void {
   const moved = remapProgressIds(map);
   markIdMigrationDone();
   if (moved > 0) console.info(`[progress] migrated ${moved} record(s) to explicit question ids`);
+}
+
+/**
+ * The single next question worth answering, with the reason why (plan2 §6).
+ *
+ * A student on the progress page can already see weak topics, weak skills and
+ * a review queue and work out what to do. This answers it for them, in one
+ * click, using exactly those three signals in the order that respects effort
+ * already spent:
+ *
+ *   1. a mistake that is DUE — spaced, so it is one they have had time to
+ *      forget rather than the page they just closed;
+ *   2. an untouched question in their weakest SKILL — the sharpest target the
+ *      corpus can express, and the reason the skill taxonomy exists;
+ *   3. an untouched question in their weakest TOPIC, for the (common) case
+ *      where nothing in that topic is skill-tagged yet;
+ *   4. nothing — which is a real answer, not a failure. A student with no
+ *      attempts logged has no evidence to reason from, and guessing would be
+ *      worse than the ordinary "browse by topic".
+ *
+ * Every branch carries its `reason` for the same purpose recommend.ts states:
+ * advice you can disagree with beats a card that silently reorders itself.
+ */
+export function nextQuestion(): { id: string; reason: string } | null {
+  const skillOf = (id: string): string | undefined => {
+    const q = BY_ID.get(id);
+    return q && 'skill' in q ? (q as { skill?: string }).skill : undefined;
+  };
+
+  const due = dueForReview();
+  if (due.length) {
+    return { id: due[0], reason: 'you got this wrong, and it has been long enough to be worth another go' };
+  }
+
+  // "Untouched" is about ATTEMPTS, not the solved set: a question answered
+  // wrong and never revisited is not new to the student.
+  const answeredIds = accuracyByQuestion();
+  const unattempted = (q: Indexable): boolean => !answeredIds.has(q.id);
+
+  const [weakSkill] = weakSkills(skillOf, 1);
+  if (weakSkill) {
+    const pick = ALL_MC.find(q => skillOf(q.id) === weakSkill.skill && unattempted(q));
+    if (pick) {
+      return {
+        id: pick.id,
+        reason: `${skillLabel(weakSkill.skill)} is your weakest skill (${Math.round(weakSkill.accuracy * 100)}% of ${weakSkill.seen})`,
+      };
+    }
+  }
+
+  const [weakTopic] = weakTopics(1);
+  if (weakTopic && isExamTopicId(weakTopic.topic)) {
+    const pick = byTopic(weakTopic.topic).find(unattempted);
+    if (pick) {
+      return {
+        id: pick.id,
+        reason: `${EXAM_TOPIC_LABEL[weakTopic.topic]} is your weakest topic (${Math.round(weakTopic.accuracy * 100)}% of ${weakTopic.seen})`,
+      };
+    }
+  }
+  return null;
 }

@@ -508,6 +508,34 @@ export function wrongQuestionIds(): string[] { return [...outstandingWrong]; }
  * those sort oldest, which is not a fallback but the correct answer: falling
  * out of a 1000-attempt window is itself evidence that the mistake is old.
  */
+/**
+ * Spaced review (plan2 §6): the queue, minus mistakes that are still fresh.
+ *
+ * `reviewQueue`'s own contract is "the ones worth returning to are the ones
+ * you got wrong long enough ago to have forgotten why" — but nothing enforced
+ * that, so a student who missed a question two minutes ago was handed it back
+ * immediately, which tests recall of the page they just closed rather than of
+ * the chemistry.
+ *
+ * One interval, not a scheduler. Real spaced repetition needs a record of each
+ * successful recall to grow the gap, and this app deletes that record: getting
+ * a question right removes it from `outstandingWrong` entirely. Inventing an
+ * SM-2 schedule on top of data that cannot support it would be a lie with
+ * arithmetic in it. A single rest period is what the stored state can honestly
+ * justify.
+ *
+ * Ids with no attempt left in the capped window count as due — falling out of
+ * a 1000-attempt window is itself evidence the mistake is old.
+ */
+export function dueForReview(minRestMs = 8 * 60 * 60 * 1000): string[] {
+  const lastWrong = new Map<string, number>();
+  for (const a of attempts) {
+    if (!a.correct && outstandingWrong.has(a.questionId)) lastWrong.set(a.questionId, a.at);
+  }
+  const cutoff = Date.now() - minRestMs;
+  return reviewQueue().filter(id => (lastWrong.get(id) ?? 0) <= cutoff);
+}
+
 export function reviewQueue(): string[] {
   const lastWrong = new Map<string, number>();
   // `attempts` is ascending by time, so the last write per id wins.
