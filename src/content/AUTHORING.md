@@ -44,6 +44,11 @@ So:
   to a 3-way one.
 - Do not fix clueing by shortening the correct answer if it needs its words.
   Bring the distractors up.
+- **Do not write the correct answer at index 1.** The corpus keyed 68% of its
+  questions there before `scripts/deskew-answers.mjs` flattened it to 25% per
+  position. It is the natural place to put the right answer — first draft, one
+  wrong option above it — and it is worth resisting. Run the script after
+  adding questions and it will place them for you.
 
 ## Before it ships
 

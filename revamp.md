@@ -185,6 +185,16 @@ only ever touches the subset where being wrong actually costs something.
   satisfy the audit rather than because a student makes that mistake.
   *Done when:* the distribution is in the Log. Writing new ones is `HUMAN`.
 
+- [x] **Q7 — Flatten the answer-position skew.** *(Found while starting Q6.)*
+  The key sat at index 1 in **68%** of the 853 MC questions — index 0: 9%,
+  index 2: 21%, index 3: 2% — and per module ran to **93%** (labtech), 89%
+  (physchem), 88% (organic3, organic2). Always answering B scored 68% on this
+  corpus without reading a word. Fixed mechanically by
+  `scripts/deskew-answers.mjs`: swap the key into a position chosen by hashing
+  the question's permanent id. Now 25/25/25/25 corpus-wide, no module above
+  28%. Deterministic, so re-running is a no-op and new questions land by the
+  same rule.
+
 - [ ] **Q6 — Cut the length clueing.** *(Was "blocked on an id migration" —
   that migration already shipped; see the corrected protocol rule above.)*
   Q1 measured it: the correct option is the longest one in **59%** of 616
