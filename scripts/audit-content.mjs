@@ -341,6 +341,40 @@ for (const q of ALL_MC) {
 console.log(`Bare keys: ${bareKeys.length} question(s) where the answer is the only unelaborated option` +
   (bareKeys.length ? ` — ${bareKeys.slice(0, 6).join(', ')}${bareKeys.length > 6 ? ' …' : ''}` : ''));
 
+// ---- 9. untrusted strings reaching an innerHTML sink ----
+//
+// The app has ~109 innerHTML assignments and they are safe only because of an
+// invariant stated in a comment (framework.ts, the `html:` key): every string
+// that reaches one is a build-time literal, a number, or computed SVG. Nothing
+// enforced it, and a comment does not survive the next contributor.
+//
+// Audited by hand alongside this check: the three free-text inputs on the site
+// (labdata's sig-fig box and Q-test list, spectroscopy's formula box) all parse
+// their input to numbers before printing — no raw typed string is echoed. The
+// feedback box is write-only by database policy (signals.ts).
+//
+// So the rule this enforces is exactly the invariant: an innerHTML assignment
+// may not interpolate a taint source. Deliberately syntactic — it reads the
+// statement, not the data flow — because the fix for a real hit is to escape at
+// the source anyway, and a dataflow analysis here would be a second compiler.
+const TAINT = /\.value\b|localStorage|sessionStorage|location\.(search|hash|href)|URLSearchParams|document\.cookie/;
+const SRC = join(ROOT, 'src');
+const walk = dir => readdirSync(dir, { withFileTypes: true }).flatMap(e =>
+  e.isDirectory() ? walk(join(dir, e.name)) : e.name.endsWith('.ts') ? [join(dir, e.name)] : []);
+for (const path of walk(SRC)) {
+  const src = readFileSync(path, 'utf8');
+  src.split('\n').forEach((line, i) => {
+    if (!/\binnerHTML\s*=/.test(line)) return;
+    // The assignment can run to the next `;` — join the continuation lines.
+    const rest = src.split('\n').slice(i, i + 12).join('\n');
+    const stmt = rest.slice(0, (rest.indexOf(';\n') + 1) || rest.length);
+    if (TAINT.test(stmt)) {
+      problems.push(`${path.slice(ROOT.length + 1)}:${i + 1} innerHTML fed by a taint source — `
+        + 'escape it at the source or pass it as a text child');
+    }
+  });
+}
+
 // ---- report ----
 console.log(`Checked ${ALL_MC.length} MC + ${ALL_FRQ.length} written problems.`);
 if (!problems.length) {

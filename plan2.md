@@ -35,12 +35,12 @@ Build a corpus where the best 200–300 questions are genuinely excellent.
 You've already done the major CSP/header/rate-limit work.
 Now:
 
-- [ ] Audit every `innerHTML` usage
-- [ ] Identify which ones are truly trusted HTML
+- [x] Audit every `innerHTML` usage
+- [x] Identify which ones are truly trusted HTML
 - [ ] Separate plain text rendering from trusted HTML rendering
 - [ ] Make the dangerous API explicit, e.g. `trustedHtml(...)`
 - [ ] Audit question-bank content for HTML/script injection
-- [ ] Confirm no user-controlled content reaches HTML sinks
+- [x] Confirm no user-controlled content reaches HTML sinks
 - [ ] Audit all URL construction
 - [ ] Audit external links
 - [ ] Review authentication/session handling
