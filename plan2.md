@@ -138,9 +138,9 @@ A student should not need a mouse, perfect eyesight, or a wide monitor to use th
 
 Start making the data actually improve ChemSim.
 
-- [ ] Measure question accuracy by question ID
-- [ ] Measure accuracy by topic
-- [ ] Measure accuracy by skill/subtopic
+- [x] Measure question accuracy by question ID
+- [x] Measure accuracy by topic
+- [x] Measure accuracy by skill/subtopic
 - [ ] Track questions students repeatedly miss
 - [ ] Track questions students repeatedly abandon
 - [ ] Track explanations marked unhelpful
@@ -187,9 +187,9 @@ Make the project easier to change without accidentally breaking 12 unrelated mod
 
 Not urgent, but worth doing after QA.
 
-- [ ] Measure initial JS bundle
-- [ ] Measure largest route/module loads
-- [ ] Check lazy-loaded modules
+- [x] Measure initial JS bundle
+- [x] Measure largest route/module loads
+- [x] Check lazy-loaded modules
 - [ ] Check Pixi/simulation loading
 - [ ] Check mobile performance
 - [ ] Check animation frame usage
@@ -229,12 +229,12 @@ The Question Bank should feel like the core training engine, not a database of q
 
 Once the question quality pass is further along:
 
-- [ ] Define a formal skill taxonomy
-- [ ] Tag questions by specific skills
+- [x] Define a formal skill taxonomy
+- [x] Tag questions by specific skills
 - [ ] Allow a question to test multiple skills
 - [ ] Map modules → topics → skills → questions
 - [ ] Map competition → topic → difficulty
-- [ ] Make these relationships machine-readable
+- [x] Make these relationships machine-readable
 - [ ] Use them later for recommendations
 
 Something roughly like:

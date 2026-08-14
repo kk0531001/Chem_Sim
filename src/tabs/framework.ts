@@ -6,8 +6,31 @@ import { CHEVRON_ICON } from '../icons';
 import { ID_PREFIX } from '../content/topicIds';
 import { MODULE_QUIZ_SIZE } from '../content/counts';
 import 'katex/dist/katex.min.css';
-import 'katex/contrib/mhchem';
-import renderMathInElement from 'katex/contrib/auto-render';
+
+/**
+ * KaTeX is LOADED ON DEMAND, not at startup — the same trade as the Supabase
+ * client (D.10), for the same reason.
+ *
+ * home.ts, menu.ts and guide.ts import `h` from this file, and a static
+ * `import renderMathInElement` put all of KaTeX plus mhchem into the ENTRY
+ * chunk. A first-time reader landing on a page with no equations on it was
+ * downloading the whole maths renderer to look at a grid of topic cards.
+ *
+ * The import starts on the first typeset request and is shared from then on.
+ * The CSS stays static: it is small, and loading it late makes formulas
+ * reflow after they have already painted.
+ */
+type Renderer = (el: HTMLElement, opts: Record<string, unknown>) => void;
+let katexPromise: Promise<Renderer> | null = null;
+function katex(): Promise<Renderer> {
+  katexPromise ??= Promise.all([
+    import('katex/contrib/auto-render'),
+    // @ts-expect-error mhchem ships no types; it is imported for its side
+    // effect (registering \ce) and nothing reads its exports.
+    import('katex/contrib/mhchem'),
+  ]).then(([m]) => m.default as Renderer);
+  return katexPromise;
+}
 
 // The quiz widget and the mission ladder live in ./ui/quiz. They are
 // re-exported here so every existing `from './framework'` import still works —
@@ -22,9 +45,13 @@ import { focusQuestion } from './ui/quiz';
 // Typeset LaTeX / mhchem (\ce{...}) inside an element. Delimiters: \( \) inline,
 // \[ \] and $$ $$ display. Safe on content with no math (no-op) and on detached
 // nodes. throwOnError keeps a malformed formula from blanking the whole page.
-export function typesetMath(el: HTMLElement): void {
-  try {
-    renderMathInElement(el, {
+export function typesetMath(el: HTMLElement): Promise<void> {
+  return katex().then(render => {
+    // The element can be torn down while the import is in flight (a tab
+    // switched away, a quiz advanced) — typesetting a detached node is wasted
+    // work, not an error.
+    if (!el.isConnected) return;
+    render(el, {
       delimiters: [
         { left: '\\[', right: '\\]', display: true },
         { left: '$$', right: '$$', display: true },
@@ -32,7 +59,7 @@ export function typesetMath(el: HTMLElement): void {
       ],
       throwOnError: false,
     });
-  } catch { /* ignore — never let math rendering break a tab */ }
+  }).catch(() => { /* never let math rendering break a tab */ });
 }
 
 // Auto-typeset a container and everything later inserted into it (reactive
@@ -41,21 +68,36 @@ export function typesetMath(el: HTMLElement): void {
 export function autoTypeset(...roots: HTMLElement[]): void {
   let scheduled = false;
   const pending = new Set<HTMLElement>();
-  const flush = () => {
+  // typesetMath is ASYNC now (KaTeX is imported on demand), so the observer has
+  // to stay disconnected until the render has actually written its DOM —
+  // reconnecting synchronously would let KaTeX's own writes re-fire the
+  // observer and typeset its output forever.
+  const flush = async () => {
     scheduled = false;
     obs.disconnect();
-    for (const el of pending) if (el.isConnected) typesetMath(el);
+    const els = [...pending];
     pending.clear();
-    for (const r of roots) obs.observe(r, { childList: true, subtree: true });
+    try {
+      await Promise.all(els.filter(el => el.isConnected).map(el => typesetMath(el)));
+    } finally {
+      // `finally`, not a plain tail call: an observer left disconnected stops
+      // typesetting EVERY later insertion on the page, so no failure path may
+      // skip the reconnect.
+      for (const r of roots) obs.observe(r, { childList: true, subtree: true });
+    }
   };
   const obs = new MutationObserver(muts => {
     for (const m of muts) {
       const t = (m.target.nodeType === 1 ? m.target : m.target.parentElement) as HTMLElement | null;
       if (t) pending.add(t);
     }
-    if (!scheduled) { scheduled = true; requestAnimationFrame(flush); }
+    if (!scheduled) { scheduled = true; requestAnimationFrame(() => void flush()); }
   });
-  for (const r of roots) { typesetMath(r); obs.observe(r, { childList: true, subtree: true }); }
+  // Same ordering on the first pass: typeset, then start watching.
+  const watch = (): void => {
+    for (const r of roots) obs.observe(r, { childList: true, subtree: true });
+  };
+  void Promise.all(roots.map(r => typesetMath(r))).then(watch, watch);
 }
 
 export interface TabHandle {
