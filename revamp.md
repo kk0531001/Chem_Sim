@@ -284,7 +284,7 @@ Opportunistic only. Do not schedule a refactor sprint.
   Lower priority than anything in Track F: an 11% reverse tell is worth far
   less to a student than a working page on their phone.
 
-- [ ] **A1 — Skills under topics, read-only first.** Before any mastery model:
+- [x] **A1 — Skills under topics, read-only first.** Before any mastery model:
   tag questions with a skill (`equilibrium/ice-setup`, `equilibrium/q-vs-k`,
   …) as an optional field, and report per-skill accuracy in the existing
   `accuracyByTopic` style — a pure function over the attempt log, per the

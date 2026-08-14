@@ -16,6 +16,7 @@ import {
   solvedOf, attemptCount, accuracyByTopic, weakTopics, streakDays, bestStreak,
   dailyCounts, recentAttempts, wrongQuestionIds, bookmarkIds, toggleBookmark,
   onProgressChange, currentEmail, isCloudConfigured,
+  accuracyBySkill,
 } from './progress';
 import { ALL_MC, ALL_FRQ, byTopic, byComp, questionById, QUIZ_BANKS } from './content/registry';
 import { DOMAINS, EXAM_TOPIC_LABEL, type ExamTopicId } from './content/topicIds';
@@ -179,6 +180,7 @@ export function buildProgressPage(): HTMLElement {
 
       ...weakSection(acc),
       masterySection(),
+      ...skillSection(),
       historySection(),
       ...bookmarkSection(marks),
     );
@@ -259,6 +261,53 @@ export function buildProgressPage(): HTMLElement {
               }, `Practice ${n} questions`)),
           );
         })))];
+    }
+
+    /**
+     * Per-SKILL accuracy — the sub-skill level under a topic (revamp.md A1).
+     *
+     * "You are weak at equilibrium" is a label; "you set up ICE tables fine but
+     * miss Q vs K" is something a student can act on this afternoon. That is
+     * the whole difference this section is here to prove out.
+     *
+     * Only equilibrium is tagged so far, so this section HIDES ITSELF when
+     * there is nothing to show rather than rendering an empty frame that
+     * implies the feature is broken. It also states the window it covers: the
+     * numbers come from the capped attempt log, so they are the last N answers
+     * and not a lifetime record (see accuracyBySkill).
+     */
+    function skillSection(): HTMLElement[] {
+      const skillOf = (id: string): string | undefined => {
+        const q = questionById(id);
+        return q && 'skill' in q ? (q as { skill?: string }).skill : undefined;
+      };
+      const rows = accuracyBySkill(skillOf).filter(r => r.seen >= 2);
+      if (!rows.length) return [];
+      // A map, not a de-hyphenating regex. These are terms of art and the
+      // regex got three of eight wrong — "Le chatelier", "Q vs k", "Ice setup".
+      // Chemistry names are not a string-formatting problem.
+      const SKILL_LABEL: Record<string, string> = {
+        'ice-setup': 'ICE setup',
+        'q-vs-k': 'Q vs K',
+        'le-chatelier': 'Le Châtelier',
+        'ksp': 'Ksp and solubility',
+        'k-meaning': 'What K means',
+        'k-expression': 'Writing K',
+        'k-manipulation': 'Manipulating K',
+        'approximations': 'Approximations',
+      };
+      const pretty = (s: string): string => {
+        const leaf = s.split('/')[1] ?? s;
+        return SKILL_LABEL[leaf] ?? leaf.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
+      };
+      return [section('Where inside a topic', 'Recent answers only — sub-skills, worst first',
+        h('div', { class: 'skill-list' }, ...rows.map(r => h('div', { class: 'skill-row' },
+          h('span', { class: 'skill-name' }, pretty(r.skill)),
+          h('span', { class: 'skill-bar' },
+            h('span', { class: 'skill-fill', style: `width:${Math.round(r.accuracy * 100)}%` })),
+          h('span', { class: 'skill-num' }, `${Math.round(r.accuracy * 100)}%`),
+          h('span', { class: 'skill-seen' }, `${r.correct}/${r.seen}`),
+        ))))];
     }
 
     // ---- mastery by exam topic ----

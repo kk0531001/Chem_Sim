@@ -44,6 +44,23 @@ export interface QuizQ {
    */
   tier?: 1 | 2 | 3 | 4;
   comps?: readonly ('ccc' | 'usnco' | 'cco' | 'icho')[];
+  /**
+   * The specific sub-skill this question tests, within its topic
+   * (`equilibrium/q-vs-k`, `equilibrium/ice-setup`). OPTIONAL and currently
+   * sparse — see revamp.md A1.
+   *
+   * Why this is not derived like `tier` and `comps`: those have a defensible
+   * default from where a question lives, and a skill does not. Two questions
+   * in the same bank, at the same tier, can test completely different things,
+   * which is the entire reason the field exists — "you are weak at
+   * equilibrium" is not useful advice, "you set up ICE tables correctly but
+   * miss Q vs K" is.
+   *
+   * Untagged questions are simply absent from the per-skill report rather than
+   * bucketed as "other": a made-up bucket that grows to 800 questions would
+   * dominate the very view it is meant to sharpen.
+   */
+  skill?: string;
   q: string;
   opts: string[];
   a: number;

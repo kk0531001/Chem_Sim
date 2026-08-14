@@ -259,6 +259,42 @@ export function accuracyByTopic(): Record<string, { seen: number; correct: numbe
 }
 
 /**
+ * Accuracy per SKILL — the sub-skill level under a topic.
+ *
+ * Two things make this different from `accuracyByTopic` and both are
+ * deliberate.
+ *
+ * (1) It takes a resolver rather than reading a skill off the attempt. An
+ * attempt stores a question id, not a skill, so nothing that has already been
+ * written goes stale when a question is re-tagged or the taxonomy is renamed —
+ * the join happens at read time, against the corpus as it is now. It also
+ * keeps this file free of any dependency on the content registry.
+ *
+ * (2) It is a RECENT-WINDOW statistic, not a lifetime one, and the return type
+ * says so. `topicStats` is a bounded aggregate that can back a lifetime figure;
+ * there is no such aggregate for skills and adding one would mean a stored
+ * counter per skill, which is exactly what this file's rules push back on. So
+ * this reads the capped attempt log (MAX_ATTEMPTS) and reports what it is: the
+ * last N answers. Do not present it as "all time".
+ */
+export function accuracyBySkill(
+  skillOf: (questionId: string) => string | undefined,
+): { skill: string; seen: number; correct: number; accuracy: number }[] {
+  const acc = new Map<string, { seen: number; correct: number }>();
+  for (const a of attempts) {
+    const skill = skillOf(a.questionId);
+    if (!skill) continue;                 // untagged: absent, never bucketed as "other"
+    const e = acc.get(skill) ?? { seen: 0, correct: 0 };
+    e.seen++;
+    if (a.correct) e.correct++;
+    acc.set(skill, e);
+  }
+  return [...acc]
+    .map(([skill, e]) => ({ skill, ...e, accuracy: e.seen === 0 ? 0 : e.correct / e.seen }))
+    .sort((x, y) => x.accuracy - y.accuracy);
+}
+
+/**
  * Weakest topics, worst first. `minSeen` guards against a single unlucky
  * answer branding a topic as weak — one wrong answer out of one is 0%
  * accuracy but says nothing.

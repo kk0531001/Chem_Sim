@@ -2569,6 +2569,33 @@ a.pill { text-decoration: none; display: inline-block; }
    raised on .btn globally: most buttons on the site sit in dense rows where
    44px would rewrite the layout. */
 .next-action .btn { flex: none; min-height: 44px; }
+
+/* Per-skill accuracy rows (A1). A bar per sub-skill, worst first — the point
+   is comparison down the column, so the bars share a track width and the
+   numbers sit in fixed columns beside them rather than after variable text. */
+.skill-list { display: flex; flex-direction: column; gap: var(--s-2); }
+.skill-row {
+  display: grid;
+  grid-template-columns: minmax(7rem, 12rem) 1fr auto auto;
+  align-items: center;
+  gap: var(--s-3);
+  font-size: var(--f-3);
+}
+.skill-name { color: var(--ink); }
+.skill-bar {
+  height: 8px;
+  background: var(--paper-3);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.skill-fill { display: block; height: 100%; background: var(--accent); }
+.skill-num { font-family: var(--mono); color: var(--ink); min-width: 3.5ch; text-align: right; }
+.skill-seen { font-family: var(--mono); color: var(--ink-faint); font-size: var(--f-2); min-width: 4ch; text-align: right; }
+@media (max-width: 520px) {
+  /* the bar is the first thing worth losing when the row cannot fit */
+  .skill-row { grid-template-columns: 1fr auto auto; }
+  .skill-bar { display: none; }
+}
 .weak-num small { font-size: 0.5em; color: var(--ink-faint); font-weight: 400; }
 .weak-sub { font-size: var(--f-2); color: var(--ink-faint); }
 /* keeps the buttons on one line across cards whose blurbs wrap differently */
