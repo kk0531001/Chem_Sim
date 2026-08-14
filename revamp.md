@@ -175,7 +175,7 @@ only ever touches the subset where being wrong actually costs something.
   rule). If a fix requires changing question text, list it under Q6 instead.
   *Done when:* Q1's worklist is empty or every remainder is deferred to Q6.
 
-- [ ] **Q4 — Chemistry verification.** *In progress — 41 of 272 reviewed, 6 defects fixed.*
+- [x] **Q4 — Chemistry verification.** *All 272 flagged reviewed; 35 defects fixed.*
   Originally scoped as "~40 top-tier questions, by a human". Both halves of
   that turned out wrong: the Q6 rewrites made the real surface 935 distractors,
   and the repo owner does not read chemistry at this level, so a human gate
@@ -188,7 +188,8 @@ only ever touches the subset where being wrong actually costs something.
   **6 defects found and fixed** (see the Log). The adversarial framing found
   three the systematic pass cleared, and on tie-break the systematic reviewer
   reversed itself on all three — so run both framings, not one.
-  *Remaining:* 231 of the 272 flagged, at roughly the same risk profile.
+  *Complete.* All 272 flagged distractors across 180 questions reviewed by
+  eight independent passes. **35 defects found and fixed.**
   *Standing caveat:* this is LLM review of LLM edits. It demonstrably catches
   real errors, and it is not a chemist.
 
