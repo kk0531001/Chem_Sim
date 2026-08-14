@@ -193,9 +193,29 @@ const id = P.recentAttempts(1)[0]?.id ?? '';
 check('newId fallback is a valid uuid v4',
   /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(id));
 
+// ---- 6. the weak-topic model prefers well-evidenced weakness ----
+// Raw accuracy ranked 1-of-4 (25%) above 12-of-40 (30%) and sent a student to
+// a topic they had barely touched. This is the regression that check exists
+// for: it is invisible in the UI, since both orderings look plausible.
+store.clear();
+globalThis.__session = null;
+const answer = (topic, n, correct) => {
+  for (let k = 0; k < n; k++) P.recordAttempt(`${topic}-q${k}`, k < correct, { topic, chosen: 0 });
+};
+answer('thermo', 4, 1);      // 25%, barely any evidence
+answer('kinetics', 40, 12);  // 30%, well evidenced
+answer('organic', 40, 36);   // 90%, clearly fine
+const weak = P.weakTopics(3).map(w => w.topic);
+check('well-evidenced weakness outranks a small unlucky sample', weak[0] === 'kinetics');
+check('a strong topic is not called weak', !weak.slice(0, 2).includes('organic'));
+
+// A topic under minSeen is not rankable at all, however bad it looks.
+answer('acids', 2, 0);       // 0% of 2
+check('a 2-answer topic is not ranked weak', !P.weakTopics(4).some(w => w.topic === 'acids'));
+
 if (fails.length) {
   console.error(`sync gate: ${fails.length} failure(s):`);
   for (const f of fails) console.error('  ✗ ' + f);
   process.exit(1);
 }
-console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry, uuid fallback.');
+console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry,\n            uuid fallback, weak-topic ranking.');

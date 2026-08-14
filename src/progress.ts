@@ -315,9 +315,41 @@ export function accuracyBySkill(
 export function weakTopics(n = 3, minSeen = 4): { topic: string; accuracy: number; seen: number }[] {
   return [...topicStats]
     .filter(([, t]) => t.seen >= minSeen)
-    .map(([topic, t]) => ({ topic, accuracy: t.correct / t.seen, seen: t.seen }))
-    .sort((a, b) => a.accuracy - b.accuracy)
-    .slice(0, n);
+    .map(([topic, t]) => ({ topic, accuracy: t.correct / t.seen, seen: t.seen, rank: weaknessRank(t.correct, t.seen) }))
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, n)
+    .map(({ topic, accuracy, seen }) => ({ topic, accuracy, seen }));
+}
+
+/**
+ * How confidently weak a score is — the UPPER bound of the Wilson score
+ * interval for `correct/seen`. Lower value = weaker with more evidence behind
+ * it, so sorting ascending puts the topic worth studying first.
+ *
+ * Raw accuracy was the wrong sort key: 1 correct of 4 (25%) outranked 12 of 40
+ * (30%) and sent a student to a topic they had barely touched, on the strength
+ * of three unlucky answers. `minSeen` alone cannot fix that — it only moves
+ * where the noise starts.
+ *
+ * UPPER bound, not lower, and the direction is the whole subtlety. The lower
+ * bound asks "how bad could this be", which small samples always answer
+ * "very", and would have made the noise problem worse. The upper bound asks
+ * "how good could this plausibly be" — a topic is confidently weak only when
+ * even its optimistic reading is poor. 12/40 gives ~0.45, 1/4 gives ~0.70, so
+ * the well-evidenced weakness now wins.
+ *
+ * z = 1.28 is the 80% one-sided level: this ranks a study list, it does not
+ * publish a finding, and a stricter z just makes small samples inert.
+ */
+function weaknessRank(correct: number, seen: number): number {
+  if (seen <= 0) return 1;
+  const z = 1.28;
+  const p = correct / seen;
+  const z2 = z * z;
+  const denom = 1 + z2 / seen;
+  const centre = p + z2 / (2 * seen);
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * seen)) / seen);
+  return (centre + margin) / denom;
 }
 
 /**
