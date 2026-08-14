@@ -22,6 +22,11 @@ decide:
 | thermo1 | 25 | 2026-08-14 | none |
 | thermo2 | 25 | 2026-08-14 | none |
 | equilibrium | 25 | 2026-08-14 | none |
+| gases | 25 | 2026-08-14 | gas-003 / gas-011 missing units; gas-011 stem said STP while gas-001 defines STP as 1 bar |
+| aek | 25 | 2026-08-14 | none |
+| nuclear | 25 | 2026-08-14 | none |
+| organic1 | 25 | 2026-08-14 | none |
+| organic2 | 25 | 2026-08-14 | og2-017 typo "tribromimates" |
 
 Every numeric `why` above was recomputed, not skimmed: th1-011 (−890.3 kJ),
 th1-014 (0.557 J/g·K), th1-025 (−110.5 kJ), th2-011 (109 J/mol·K), th2-012
@@ -30,7 +35,7 @@ equ-016 (1.8×10⁻⁹ M).
 
 ## Remaining
 
-gases, aek, nuclear, organic1, organic2, labdata, analytical, spectroscopy,
+labdata, analytical, spectroscopy,
 advinorganic, biophys, periodicity, polymers, physchem, organic3, coordchem,
 labtech, structure — plus the exam banks (bankPart1/2/3, bankCCO,
 bankIntegrated, bankOlympiad, olympiadPaper1–5).
