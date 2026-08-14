@@ -46,6 +46,10 @@ experience is the thing worth measuring) and has **no select policy at all**,
 so nothing can read it back through the API — read it in the SQL editor. That
 absence is load-bearing; see the comment at the top of the migration.
 
+`signals` rows are kept for **12 months** — it is analytics with free text in
+it, not a student's record. The `delete` statement is at the bottom of its
+migration; run it when you go through the feedback inbox.
+
 Each table is optional in the same way the rest of cloud sync is. Without them
 — or without the keys below — the app keeps everything in localStorage and
 nothing breaks.

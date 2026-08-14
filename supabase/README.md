@@ -25,6 +25,11 @@ no `create policy if not exists`). So when in doubt, re-run them all.
 | `0002_bookmarks.sql` | `bookmarks` | the owning user only (RLS) |
 | `0003_signals.sql` | `signals` | anyone, insert-only, **no select policy** |
 
+**Retention.** `solved`, `attempts` and `bookmarks` are the student's own
+record and are kept indefinitely. `signals` is analytics containing free text
+and is kept **12 months**; the `delete` to run is written at the bottom of
+`0003_signals.sql`. It is a manual step on purpose — see the comment there.
+
 Adding a migration: next number, never edit a file that has been run against a
 real database — write a new one that alters. The whole value here is that
 replaying the directory in order reproduces the schema.

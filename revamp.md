@@ -124,7 +124,7 @@ violations).
   *Done when:* `0004_indexes.sql` exists **or** this is ticked as "nothing to
   add, current indexes cover every query shape in progress.ts".
 
-- [ ] **D3 — Signals retention.**
+- [x] **D3 — Signals retention.**
   Progress data is long-term; analytics is not, and `signals` holds free-text
   feedback. Add to the migrations a comment documenting the intended window
   (12 months) and a one-line `delete` statement to run manually.
@@ -318,3 +318,9 @@ Append one line per iteration: `<date> <item> — <what changed / what was found
   `attempts_user_time_idx`. `signals` has no client read path at all; its
   `(kind, created_at desc)` index exists for the SQL-editor analytics queries.
   Adding anything here would be indexing a query nobody makes.
+- 2026-08-13 D3 — Retention set at 12 months for `signals` only; progress data
+  (solved/attempts/bookmarks) stays indefinitely because it is the student's
+  own record. The `delete` and the reasoning live at the bottom of
+  0003_signals.sql, restated in supabase/README.md and SUPABASE_SETUP.md.
+  Manual on purpose — pg_cron is an extension, a job to monitor and a scheduled
+  DELETE against a table with zero rows in it.

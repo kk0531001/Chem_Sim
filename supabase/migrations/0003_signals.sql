@@ -38,6 +38,22 @@ create table if not exists public.signals (
 create index if not exists signals_kind_time_idx
   on public.signals (kind, created_at desc);
 
+-- RETENTION: 12 months.
+--
+-- Progress data (solved, attempts, bookmarks) is a student's own record and is
+-- kept indefinitely. This table is not that — it is analytics, it is keyed to a
+-- throwaway per-tab id nobody can be identified from, and `note` holds free
+-- text a reader typed. Keeping that forever has no upside: a bug report from
+-- last year is either fixed or stale, and a dwell-time row from a version of
+-- the page that no longer exists cannot inform anything.
+--
+-- Deliberately NOT automated. pg_cron is an extension to enable, a job to
+-- monitor and a scheduled DELETE against a table that currently has no rows at
+-- all. Run this by hand when reviewing the feedback inbox; automate it if the
+-- table ever gets big enough that the manual step is the thing being skipped.
+--
+--   delete from public.signals where created_at < now() - interval '12 months';
+
 alter table public.signals enable row level security;
 
 drop policy if exists "anyone may add a signal" on public.signals;
