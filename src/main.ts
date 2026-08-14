@@ -479,6 +479,46 @@ homeLinkEl.addEventListener('click', () => navigate({ kind: 'home' }));
 menuLinkEl.addEventListener('click', () => navigate({ kind: 'menu' }));
 progressLinkEl.addEventListener('click', () => { closeDrawer(); navigate({ kind: 'progress' }); });
 
+// A second, explicit way into the reset — in the sidebar footer beside "Send
+// feedback" and "Back to homepage".
+//
+// Not redundancy for its own sake. /progress is a long page in its OWN scroll
+// container, sitting next to a sidebar that is a SEPARATE one, and the reset is
+// the last section on it. Someone hunting for "reset my progress" scrolls the
+// sidebar, reaches its bottom — Send feedback, Back to homepage — and concludes
+// the feature does not exist. That is not hypothetical; it is what happened the
+// first time anyone looked for it.
+//
+// Lives in the footer rather than #progress-panel because the account panel
+// calls replaceChildren() on every progress change and would wipe it, the same
+// reason the mastery strip above is parked outside it.
+{
+  const reset = h('button', { id: 'reset-link', type: 'button' }, 'Reset progress');
+  reset.addEventListener('click', () => {
+    closeDrawer();
+    navigate({ kind: 'progress' });
+    // progressPage is a LAZY chunk, so the target does not exist yet and a
+    // single requestAnimationFrame fires far too early — that was the first
+    // version of this, and it navigated correctly while scrolling nowhere.
+    // Poll a few frames instead, and give up quietly: landing at the top of
+    // /progress is a fine outcome, a thrown error is not.
+    let tries = 0;
+    const scrollToReset = (): void => {
+      const target = document.querySelector('.danger-lede')?.closest('section');
+      if (target) {
+        // Instant, not smooth. This is a navigation across ~2500px, and
+        // animating it means a second of scenery before the thing you asked
+        // for arrives — and it reads as broken while it is still moving.
+        target.scrollIntoView({ block: 'start', behavior: 'auto' });
+      } else if (++tries < 60) {
+        requestAnimationFrame(scrollToReset);
+      }
+    };
+    requestAnimationFrame(scrollToReset);
+  });
+  homeLinkEl.parentElement!.insertBefore(reset, homeLinkEl);
+}
+
 // Search is global: the overlay binds `/` and Cmd/Ctrl-K on the document, so it
 // works from the homepage and the menu too, not just inside the app shell.
 const search = initSearch();

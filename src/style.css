@@ -912,7 +912,8 @@ body { overflow: hidden; }
 
 /* Sidebar feedback trigger (I.2) — same weight as the home link above it: this
    is an escape hatch, not a call to action. */
-#feedback-link {
+#feedback-link,
+#reset-link {
   font: inherit;
   font-size: var(--f-2);
   color: var(--ink-faint);
@@ -923,7 +924,7 @@ body { overflow: hidden; }
   cursor: pointer;
   text-align: center;
 }
-#feedback-link:hover { color: var(--ink); }
+#feedback-link:hover, #reset-link:hover { color: var(--ink); }
 
 #feedback-dialog {
   /* The global reset zeroes margins, which also kills the UA's `margin: auto`
@@ -2993,6 +2994,16 @@ a.pill { text-decoration: none; display: inline-block; }
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-3);
   overflow: hidden;
+}
+/* `display` ONLY when open, and this is not a style preference.
+   The browser hides a closed dialog with `dialog:not([open]) { display: none }`
+   — but that is a USER-AGENT rule, and any author declaration beats the user
+   agent whatever the specificity. So a bare `display: flex` here overrode it
+   and painted the closed search box on the page: a search field that looks
+   like it opened by itself and cannot be dismissed, because there is nothing
+   open to dismiss and Escape has nothing to act on.
+   Scoping it to [open] hands the closed state back to the browser. */
+.search-dialog[open] {
   display: flex;
   flex-direction: column;
 }
