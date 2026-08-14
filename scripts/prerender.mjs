@@ -41,6 +41,19 @@ function head(html, { title, description, url }) {
   return meta(out, 'og:url', url);
 }
 
+/**
+ * Strip the KaTeX font preloads from a page that cannot show a formula.
+ *
+ * vite.config.ts preloads the two faces every formula uses, which was right
+ * when KaTeX was part of the entry bundle. It is now imported on demand, so on
+ * the homepage, the menu and the guides those two `as="font"` links fetch 43 kB
+ * at high priority, competing with the entry script, for a renderer that page
+ * will never load. Topic pages and the bank keep them: there the formula is the
+ * content, and `font-display: block` means the maths is invisible until the
+ * face arrives.
+ */
+const noMathFonts = html => html.replace(/^.*rel="preload".*as="font".*\n/gm, '');
+
 /** The topic list every prerendered page carries, so no page is a dead end. */
 function topicLinks() {
   return [...new Set(TOPICS.map(t => t.group))].map(g =>
@@ -70,11 +83,11 @@ async function page(dir, html) {
   written++;
 }
 
-await writeFile(join(DIST, 'index.html'), body(shell,
+await writeFile(join(DIST, 'index.html'), noMathFonts(body(shell,
   `<h1>ChemPrep — Chemistry Olympiad Trainer</h1>
 <p>Interactive training for the CCC, USNCO, CCO and IChO: ${TOPICS.length} modules, worked exam
 questions and full mock papers. The simulations need JavaScript; the topic list does not.</p>
-${links}`));
+${links}`)));
 
 for (const t of TOPICS) {
   const url = `${SITE_URL}/topic/${t.slug}`;
@@ -93,18 +106,18 @@ ${links}`));
 for (const g of GUIDES) {
   const modules = TOPICS.filter(t =>
     compsForDifficulty(t.difficulty).includes(g.comp) && t.id !== 'sandbox' && t.id !== 'qbank');
-  await page(join('guide', g.slug), body(
+  await page(join('guide', g.slug), noMathFonts(body(
     head(shell, { title: `${g.title} — ChemPrep`, description: plain(g.description), url: `${SITE_URL}/guide/${g.slug}` }),
-    guideNoscript(g, modules) + '\n' + links));
+    guideNoscript(g, modules) + '\n' + links)));
 }
 
-await page('menu', body(
+await page('menu', noMathFonts(body(
   head(shell, {
     title: 'All Topics — ChemPrep',
     description: `Every ChemPrep module: ${TOPICS.length} interactive chemistry olympiad topics, from quantum orbitals to enzyme kinetics.`,
     url: `${SITE_URL}/menu`,
   }),
-  `<h1>All Topics</h1>\n${links}`));
+  `<h1>All Topics</h1>\n${links}`)));
 
 // Point each prerendered URL at its own file EXPLICITLY, above the SPA
 // catch-all. Netlify would probably resolve /topic/x to /topic/x/index.html on

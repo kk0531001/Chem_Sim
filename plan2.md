@@ -190,13 +190,13 @@ Not urgent, but worth doing after QA.
 - [x] Measure initial JS bundle
 - [x] Measure largest route/module loads
 - [x] Check lazy-loaded modules
-- [ ] Check Pixi/simulation loading
+- [x] Check Pixi/simulation loading
 - [ ] Check mobile performance
-- [ ] Check animation frame usage
-- [ ] Check detached-section cleanup
-- [ ] Check image/font loading
+- [x] Check animation frame usage
+- [x] Check detached-section cleanup
+- [x] Check image/font loading
 - [ ] Check unnecessary rerenders/repaints
-- [ ] Check long question-bank searches
+- [x] Check long question-bank searches
 - [ ] Check startup time on slower hardware
 
 **Goal**

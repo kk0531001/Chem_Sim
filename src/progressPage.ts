@@ -54,6 +54,7 @@ function bar(done: number, total: number): HTMLElement {
  */
 function sparkline(days: { day: string; n: number }[]): HTMLElement {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  const wrap = h('div', { class: 'spark' }, svg);
   svg.setAttribute('aria-hidden', 'true');
   const draw = (): void => {
     const w = Math.max(240, Math.round(svg.getBoundingClientRect().width));
@@ -70,8 +71,15 @@ function sparkline(days: { day: string; n: number }[]): HTMLElement {
   // First paint happens before layout has run, so the width read would be 0;
   // rAF puts it after. Redrawn on resize because the geometry is in pixels.
   requestAnimationFrame(draw);
-  window.addEventListener('resize', draw);
-  return h('div', { class: 'spark' }, svg);
+  // ResizeObserver, not a window listener. sparkline() is called from render(),
+  // which re-runs on every progress and mode change — a window listener per
+  // render accumulated, each one holding a detached SVG alive, and answering
+  // questions with this page open leaked one per answer. An observer bound to
+  // the element goes away with the element, and it also catches the case a
+  // window listener never did: the sidebar collapsing changes this element's
+  // width without the window resizing at all.
+  new ResizeObserver(draw).observe(wrap);
+  return wrap;
 }
 
 // `lead` is the one oversized figure on the page. NOT called `hero` — that
