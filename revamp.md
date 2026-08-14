@@ -245,7 +245,7 @@ roles, merged topic chrome). Do not start a new visual redesign.
   path, not the filter panel's appearance.
   *Done when:* the path is ≤3 interactions, or the Log says why it can't be.
 
-- [ ] **F5 — Make the progress dashboard actionable.** It shows weak topics,
+- [x] **F5 — Make the progress dashboard actionable.** It shows weak topics,
   streaks, accuracy, history. Add one thing: the single next action, derived
   from the data already computed in `progress.ts` (`weakTopics()` →
   `ladderFor()`). One sentence and one button.

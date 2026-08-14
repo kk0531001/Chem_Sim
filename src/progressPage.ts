@@ -23,6 +23,7 @@ import { TOPICS, topicById } from './topics';
 import { TILE_HTML } from './home';
 import { navigate } from './router';
 import { activeMode, activeComp, onModeChange, MODE_SHORT } from './mode';
+import { recommendNext } from './recommend';
 
 // ---- shared marks ---------------------------------------------------------
 
@@ -148,6 +149,9 @@ export function buildProgressPage(): HTMLElement {
             'This is your progress on this device. Sign in from the sidebar to sync it across devices.')]
         : []),
 
+      // ---- the one thing to do next ----
+      nextAction(),
+
       // ---- instrument panel ----
       h('div', { class: 'readout-panel' },
         readout('Questions solved', String(solvedTotal), `/${allIds.length}`,
@@ -178,6 +182,56 @@ export function buildProgressPage(): HTMLElement {
       historySection(),
       ...bookmarkSection(marks),
     );
+
+    /**
+     * ONE sentence and ONE button, above the numbers.
+     *
+     * The rest of this page answers "how am I doing". A student arriving at it
+     * mid-revision is asking something narrower — what should I do right now —
+     * and four readouts, a sparkline, three weak-topic cards and a mastery
+     * grid make them infer the answer. This states it.
+     *
+     * Deliberately ONE action, not a ranked list: a list is the same
+     * interpretation problem in a smaller box. The order below is the tutor's
+     * order, not the data's:
+     *   1. questions you got wrong and have not retried — the highest-yield
+     *      study there is, and completely concrete
+     *   2. otherwise your weakest topic, which is a pattern rather than a
+     *      handful of slips
+     *   3. otherwise the next lesson, which is also what a brand-new student
+     *      with no history sees
+     *
+     * Everything here is already computed for the sections below; this adds no
+     * new state and no new derived statistic.
+     */
+    function nextAction(): HTMLElement {
+      const say = (sentence: string, label: string, go: () => void): HTMLElement =>
+        h('section', { class: 'next-action' },
+          h('p', { class: 'next-action-line' }, sentence),
+          h('button', { type: 'button', class: 'btn primary', onclick: go }, label));
+
+      if (wrong.length) {
+        const n = wrong.length;
+        return say(
+          `You have ${n} question${n === 1 ? '' : 's'} you answered wrong and haven't come back to. Start there.`,
+          'Review your mistakes', openReview);
+      }
+      const worst = weakTopics(1)[0];
+      if (worst) {
+        const t = worst.topic as ExamTopicId;
+        const label = EXAM_TOPIC_LABEL[t] ?? worst.topic;
+        return say(
+          `${label} is your weakest topic — ${Math.round(worst.accuracy * 100)}% across ${worst.seen} answers.`,
+          `Practise ${label}`, () => openBank({ topic: t }));
+      }
+      const rec = recommendNext('');
+      if (rec) {
+        return say(`Next lesson — ${rec.reason}.`, `Open ${rec.topic.title}`,
+          () => navigate({ kind: 'topic', id: rec.topic.id }));
+      }
+      return say('Nothing outstanding. Pick anything from the bank and keep the streak going.',
+        'Open the question bank', () => openBank({}));
+    }
 
     // ---- weak topics ----
     function weakSection(a: ReturnType<typeof accuracyByTopic>): HTMLElement[] {

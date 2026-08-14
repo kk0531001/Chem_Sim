@@ -26,6 +26,9 @@
   --accent-dark: #bb4508;
   --accent-darker: #9e3a06;
   --accent-wash: rgba(232, 89, 12, 0.07);
+  /* the wash's own edge — paired with --accent-wash wherever a tinted block
+     needs a boundary (CCO badge, gold challenge tier, the next-action card) */
+  --accent-edge: rgba(232, 89, 12, 0.25);
   /* the accent, re-mixed for the dark instrument panels: --accent-dark is only
      3.49:1 on --panel, this is 7.93:1 (already the .big / #concept colour) */
   --accent-on-panel: #ff8b3d;
@@ -658,7 +661,7 @@ body { overflow: hidden; }
 }
 .badge-ccc { background: rgba(47, 158, 68, 0.1); color: var(--green-ink); border-color: rgba(47, 158, 68, 0.25); }
 .badge-usnco { background: rgba(61, 111, 165, 0.1); color: var(--blue-ink); border-color: rgba(61, 111, 165, 0.25); }
-.badge-cco { background: var(--accent-wash); color: var(--accent-dark); border-color: rgba(232, 89, 12, 0.25); }
+.badge-cco { background: var(--accent-wash); color: var(--accent-dark); border-color: var(--accent-edge); }
 .badge-icho { background: rgba(122, 90, 168, 0.1); color: var(--purple-ink); border-color: rgba(122, 90, 168, 0.25); }
 
 /* ---- feature rows ---- */
@@ -1849,7 +1852,7 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .challenge-tier.tier-bronze .challenge-badge { background: rgba(47, 158, 68, 0.1); color: var(--green-ink); border-color: rgba(47, 158, 68, 0.25); }
 .challenge-tier.tier-silver .challenge-badge { background: rgba(61, 111, 165, 0.1); color: var(--blue-ink); border-color: rgba(61, 111, 165, 0.25); }
-.challenge-tier.tier-gold .challenge-badge { background: var(--accent-wash); color: var(--accent-dark); border-color: rgba(232, 89, 12, 0.25); }
+.challenge-tier.tier-gold .challenge-badge { background: var(--accent-wash); color: var(--accent-dark); border-color: var(--accent-edge); }
 .challenge-tier.tier-platinum .challenge-badge { background: rgba(122, 90, 168, 0.1); color: var(--purple-ink); border-color: rgba(122, 90, 168, 0.25); }
 .challenge-frq { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
 .challenge-frq:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
@@ -2538,6 +2541,34 @@ a.pill { text-decoration: none; display: inline-block; }
 .weak-flag-icon { display: flex; }
 .weak-flag-icon svg { width: 13px; height: 13px; }
 .weak-num { font-family: var(--mono); font-size: var(--f-6); font-weight: 500; line-height: 1; }
+
+/* The one-thing-to-do-next card (F5). Accent wash rather than a plain card,
+   because it has to win against four readouts and a sparkline directly below
+   it; it is the only element on the page that tells you what to DO. */
+.next-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  margin: var(--s-4) 0 var(--s-5);
+  padding: var(--s-4) var(--s-5);
+  background: var(--accent-wash);
+  border: 1px solid var(--accent-edge);
+  border-radius: var(--r-lg);
+}
+.next-action-line {
+  margin: 0;
+  font-size: var(--f-4);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  flex: 1 1 16rem;   /* wraps under the button before the text gets narrow */
+}
+/* The page's primary call to action, so it gets the comfortable 44px target
+   rather than the 34px the generic .btn carries. Scoped here rather than
+   raised on .btn globally: most buttons on the site sit in dense rows where
+   44px would rewrite the layout. */
+.next-action .btn { flex: none; min-height: 44px; }
 .weak-num small { font-size: 0.5em; color: var(--ink-faint); font-weight: 400; }
 .weak-sub { font-size: var(--f-2); color: var(--ink-faint); }
 /* keeps the buttons on one line across cards whose blurbs wrap differently */
