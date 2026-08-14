@@ -6,7 +6,7 @@ Yep. Based on ChemSim-main-11 + the current repo/site, this is the list I'd actu
 
 Highest priority
 
-- [ ] Finish resolving every remaining flagged question
+- [x] Finish resolving every remaining flagged question
 - [ ] Verify every answer key + explanation pair
 - [ ] Check every MC question has exactly one defensible answer
 - [ ] Check distractors are chemically plausible and not accidentally correct
