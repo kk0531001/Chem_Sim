@@ -149,7 +149,7 @@ desktopMQ.addEventListener('change', e => { if (e.matches) closeDrawer(); });
 
 let tabs: TabsAPI | null = null;
 
-const home = buildHome(id => navigate({ kind: 'topic', id }), () => navigate({ kind: 'menu' }));
+const home = buildHome((id, section) => navigate({ kind: 'topic', id, section }), () => navigate({ kind: 'menu' }));
 document.body.prepend(home);
 
 const menuPage = buildMenuPage(
@@ -167,7 +167,7 @@ document.body.appendChild(menuPage);
 //
 // Deliberately NOT a dashboard. Numbers belong on /progress; this route exists
 // to be opened and left within about five seconds.
-const todayCont = continueBlock(id => navigate({ kind: 'topic', id }));
+const todayCont = continueBlock((id, section) => navigate({ kind: 'topic', id, section }));
 const todayPage = h('div', { class: 'today-page', hidden: true },
   h('main', { class: 'today-col' },
     h('h1', {}, 'Today'),
@@ -454,7 +454,7 @@ function showRoute(route: Route): void {
   // homepage and /today can offer to continue after a reload. Writing it here
   // rather than on click covers every way into a module: the sidebar, search,
   // a deep link, the next-lesson footer.
-  setLastTopic(route.id);
+  setLastTopic(route.id, route.section);
 }
 
 onRouteChange(showRoute);

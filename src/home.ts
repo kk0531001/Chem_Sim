@@ -268,7 +268,7 @@ function competitionCard(name: string, badge: string, line: string): HTMLElement
  * module updates it without the homepage knowing anything about routing.
  * Exported because /today is this block and almost nothing else.
  */
-export function continueBlock(onEnter: (id: string) => void): { el: HTMLElement; refresh: () => void } {
+export function continueBlock(onEnter: (id: string, section?: string) => void): { el: HTMLElement; refresh: () => void } {
   const el = h('section', { class: 'continue', 'aria-label': 'Pick up where you left off' });
   function refresh(): void {
     const last = lastTopic();
@@ -300,7 +300,11 @@ export function continueBlock(onEnter: (id: string) => void): { el: HTMLElement;
       // THE one accent button on this card. "Recommended next" is a different
       // module, so it stays a quiet alternative — two filled buttons side by
       // side is two primary actions, which is none.
-      h('button', { class: 'btn-hero continue-cta', type: 'button', onclick: () => onEnter(topic.id) },
+      // The EXACT section they left open, not the module's first page — the
+      // section is passed through rather than left to the topic page's own
+      // fallback so the URL is right from the first navigation, with no bare
+      // /topic/<slug> entry rewritten a moment later.
+      h('button', { class: 'btn-hero continue-cta', type: 'button', onclick: () => onEnter(topic.id, last?.section) },
         `Resume ${topic.title}`),
       next ? h('button', {
         class: 'btn btn-quiet continue-next', type: 'button', onclick: () => onEnter(next.topic.id),
@@ -313,7 +317,7 @@ export function continueBlock(onEnter: (id: string) => void): { el: HTMLElement;
   return { el, refresh };
 }
 
-export function buildHome(onEnter: (tabId: string) => void, onMenu: () => void): HTMLElement {
+export function buildHome(onEnter: (tabId: string, section?: string) => void, onMenu: () => void): HTMLElement {
   const progress = h('div', { class: 'scroll-progress' });
 
   // ---- top bar ----

@@ -23,7 +23,7 @@
 import { h, card } from './framework';
 import { challengeLadder } from './challenge';
 import { topicById, type Ref } from '../topics';
-import { isBookmarked, toggleBookmark } from '../progress';
+import { isBookmarked, toggleBookmark, lastSection } from '../progress';
 import { createSectionHost, type SectionSource } from '../sectionHost';
 import type { SectionDef, Position } from '../spine';
 import { navigate, onRouteChange, parseRoute } from '../router';
@@ -391,7 +391,10 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   function go(section: string | null): void {
     const at = host.current();
     if (at && at.topicId === id && at.slug === section) return;
-    const pos = host.show(id, section, source);
+    // A bare /topic/<slug> — the sidebar, a shared link, the next-lesson card —
+    // reopens where this student left off rather than at the overview. Local
+    // and per topic; a stale slug still falls through to the first section.
+    const pos = host.show(id, section ?? lastSection(id), source);
     if (!pos) return;
     navEl.replaceChildren(stepper(id, pos));
     // On a phone the strip scrolls instead of wrapping, so the current pill has

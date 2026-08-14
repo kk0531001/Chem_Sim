@@ -480,27 +480,56 @@ async function syncBookmarks(): Promise<void> {
  * tab you left open, not of the account — pushing it to the cloud would mean a
  * phone opened at breakfast rewriting the laptop's Continue button.
  *
- * Only the id and a timestamp are stored. The POSITION inside the module is
- * already recorded, by the solved set: `moduleProgress(id)` in topics.ts turns
- * it into done/total. A second copy of that number here would be one more
- * thing to keep in sync, and it would go stale the moment a question is
- * answered from search or from the question bank.
+ * How far through the module the student is stays UNSTORED: it is already
+ * recorded by the solved set, and `moduleProgress(id)` in topics.ts turns that
+ * into done/total. A second copy of that number here would be one more thing
+ * to keep in sync, and it would go stale the moment a question is answered
+ * from search or from the question bank.
+ *
+ * What IS stored is which SECTION of each module was open, because nothing
+ * else records it — a topic is a sequence of routed pages now, and "continue"
+ * that dropped you back on the overview would be asking you to find your place
+ * again. Kept per topic, not just for the last one, so re-entering any module
+ * from the sidebar resumes it too. At most 25 short strings.
  */
 const LS_LAST = 'chemprep_lasttopic_v1';
-export interface LastTopic { id: string; at: number }
+export interface LastTopic { id: string; at: number; section?: string }
+interface LastStore { id: string; at: number; sections?: Record<string, string> }
 
-export function setLastTopic(id: string): void {
-  try { localStorage.setItem(LS_LAST, JSON.stringify({ id, at: Date.now() })); } catch { /* ignore */ }
+function readLast(): LastStore | null {
+  try {
+    const raw = localStorage.getItem(LS_LAST);
+    if (!raw) return null;
+    const v = JSON.parse(raw) as Partial<LastStore>;
+    // Anything unparseable is treated as absent rather than repaired: the cost
+    // is one forgotten place, and a corrupt value must never take the homepage
+    // down with it.
+    return typeof v?.id === 'string' && typeof v.at === 'number'
+      ? { id: v.id, at: v.at, sections: typeof v.sections === 'object' && v.sections ? v.sections : {} }
+      : null;
+  } catch { return null; }
+}
+
+export function setLastTopic(id: string, section?: string): void {
+  const prev = readLast();
+  const sections = { ...prev?.sections };
+  // A bare /topic/<slug> arrives here before the page canonicalises itself to
+  // a section, so `section` is undefined for one call. Don't let that erase
+  // the place we already know — the canonicalising navigation calls straight
+  // back with the real slug.
+  if (section) sections[id] = section;
+  try { localStorage.setItem(LS_LAST, JSON.stringify({ id, at: Date.now(), sections })); } catch { /* ignore */ }
   fire();
 }
 
 export function lastTopic(): LastTopic | null {
-  try {
-    const raw = localStorage.getItem(LS_LAST);
-    if (!raw) return null;
-    const v = JSON.parse(raw) as Partial<LastTopic>;
-    return typeof v?.id === 'string' && typeof v.at === 'number' ? { id: v.id, at: v.at } : null;
-  } catch { return null; }
+  const v = readLast();
+  return v ? { id: v.id, at: v.at, section: v.sections?.[v.id] } : null;
+}
+
+/** Which section of `id` the student had open, if they have opened it before. */
+export function lastSection(id: string): string | null {
+  return readLast()?.sections?.[id] ?? null;
 }
 
 // ---- auth ----
