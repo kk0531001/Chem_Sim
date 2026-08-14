@@ -245,6 +245,64 @@ for (const q of ALL_MC) {
     'value, add the id to KEY_CHECK_REVIEWED with a one-line reason.');
 }
 
+// ---- 8. two options that say the same thing ----
+// A repeated option makes a 4-way question a 3-way one, and if the duplicate
+// happens to be the keyed answer there are two defensible answers and no way
+// for the student to pick. Compared after stripping markup, case and trailing
+// punctuation, because "6.0 M" and "<b>6.0 M</b>." are the same option to a
+// reader and only differ to a byte comparison.
+//
+// NOT checked: whether one option is a substring of another. That was in the
+// plan and it is a false-positive machine — "H₂O"/"H₂O₂", "1"/"12", "sp"/"sp³"
+// are all legitimate distinct pairs, and a list that is mostly noise gets
+// ignored, which is worse than not having it.
+const plain = s => String(s)
+  .replace(/<[^>]+>/g, '')
+  .replace(/\s+/g, ' ')
+  .replace(/[.\s]+$/, '')
+  .trim()
+  .toLowerCase();
+for (const q of ALL_MC) {
+  if (!Array.isArray(q.opts)) continue;
+  const byText = new Map();
+  q.opts.forEach((o, i) => {
+    const k = plain(o);
+    if (!k) return;
+    if (byText.has(k)) {
+      fail(q.id, `options [${byText.get(k)}] and [${i}] are the same answer ("${k.slice(0, 40)}")` +
+        (q.a === byText.get(k) || q.a === i ? ' — and one of them is the key' : ''));
+    } else byText.set(k, i);
+  });
+}
+
+// ---- 9. length clueing (a report, not a gate) ----
+// The oldest tell in multiple choice: the correct option is the long, hedged,
+// carefully-qualified one because the author wrote it first and wrote the
+// distractors in a hurry. A student who has noticed can score above chance
+// without knowing any chemistry.
+//
+// Deliberately does NOT fail the build. On a 4-option question the correct
+// answer is the longest 25% of the time by luck alone, the honest signal is a
+// rate well above that, and a per-question rule would flag ~200 questions where
+// the real answer genuinely needs more words. This prints a number to watch.
+const clue = new Map();
+for (const q of ALL_MC) {
+  if (!Array.isArray(q.opts) || q.opts.length < 3) continue;
+  const lens = q.opts.map(o => plain(o).length);
+  const max = Math.max(...lens);
+  if (lens.filter(l => l === max).length !== 1) continue;   // tie: no tell
+  const m = clue.get(q.topic) ?? { n: 0, longest: 0 };
+  m.n++;
+  if (lens[q.a] === max) m.longest++;
+  clue.set(q.topic, m);
+}
+const clueTotal = [...clue.values()].reduce((a, m) => ({ n: a.n + m.n, longest: a.longest + m.longest }), { n: 0, longest: 0 });
+const rate = m => (100 * m.longest / m.n);
+const worst = [...clue.entries()].filter(([, m]) => m.n >= 20).sort((a, b) => rate(b[1]) - rate(a[1])).slice(0, 5);
+console.log(`Length clueing: correct option is the longest in ${rate(clueTotal).toFixed(0)}% ` +
+  `of ${clueTotal.n} questions (chance is ~25% at 4 options).`);
+console.log('  highest: ' + worst.map(([t, m]) => `${t} ${rate(m).toFixed(0)}% (n=${m.n})`).join(', '));
+
 // ---- report ----
 console.log(`Checked ${ALL_MC.length} MC + ${ALL_FRQ.length} written problems.`);
 if (!problems.length) {

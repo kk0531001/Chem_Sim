@@ -45,9 +45,14 @@ items are all `HUMAN`/`BLOCKED`.
 - An item that needs a real device, a real student, a Supabase dashboard, or a
   chemistry judgement call is marked `HUMAN`. Do not fake it, do not attempt a
   proxy for it. Skip to the next item and note it in the Log.
-- Never reword a shipped question. Editing text changes `qid()` and orphans a
-  student's progress (CLAUDE.md, progress.ts). Fixing a *wrong answer* is the
-  one exception and it goes in the Log explicitly.
+- Rewording a shipped question is **allowed** — this rule used to say the
+  opposite and was stale (corrected during Q1). Progress keys on the explicit
+  `q.id`, not `qid(q.q)` (framework.ts, `quiz()`), and
+  `migrateLegacyProgress()` in registry.ts already moved existing users off the
+  text hashes. The one residual: a user who has not loaded the site since that
+  migration shipped loses records for a question whose text changed before
+  their migration runs. At current traffic that is nobody; it stops being free
+  the moment P1 happens, so text edits are cheap **now** and expensive later.
 - Never renumber a question or mission id.
 - If an item's premise turns out to be false (the thing is already done, or
   the problem doesn't exist), say so and tick it. Do not invent work to fill
@@ -142,7 +147,7 @@ The count is fine (853 MC + 119 written + 5 mock papers). The *depth* is the
 open question, and a human cannot audit 853 items in a sprint — so this track
 only ever touches the subset where being wrong actually costs something.
 
-- [ ] **Q1 — A machine pass over what machines can check.**
+- [x] **Q1 — A machine pass over what machines can check.**
   Extend `scripts/audit-content.mjs` (do not write a new script) with checks
   that need no chemistry judgement:
   - every MC has exactly one answer index, in range (already covered — confirm)
@@ -180,9 +185,20 @@ only ever touches the subset where being wrong actually costs something.
   satisfy the audit rather than because a student makes that mistake.
   *Done when:* the distribution is in the Log. Writing new ones is `HUMAN`.
 
-- [ ] **Q6 — Text corrections requiring an id migration.** `BLOCKED` on the
-  `remapProgressIds()` path being exercised at least once. Collect items here;
-  do not edit shipped text until this is unblocked.
+- [ ] **Q6 — Cut the length clueing.** *(Was "blocked on an id migration" —
+  that migration already shipped; see the corrected protocol rule above.)*
+  Q1 measured it: the correct option is the longest one in **59%** of 616
+  questions, against ~25% by chance, and five modules are at 83–95%
+  (organic3 95, coordchem 91, labtech 85, structure 85, polymers 83). A student
+  who notices can beat those modules without knowing any chemistry — this is
+  the single largest measured defect in the corpus.
+  The fix is not to shorten the right answer, which usually needs its words.
+  It is to bring the distractors up: a plausible wrong answer states a specific
+  wrong idea, and stating one takes about as many words as stating the right
+  one. Work module by module, worst first, re-running the audit's clueing line
+  after each. Target ≤40% per module.
+  *Done when:* no module with n ≥ 20 is above 40%, or the remainder is listed
+  here with why those questions genuinely need an uneven-length option set.
 
 ## Track F — Frontend
 
@@ -324,3 +340,13 @@ Append one line per iteration: `<date> <item> — <what changed / what was found
   0003_signals.sql, restated in supabase/README.md and SUPABASE_SETUP.md.
   Manual on purpose — pg_cron is an extension, a job to monitor and a scheduled
   DELETE against a table with zero rows in it.
+- 2026-08-13 Q1 — Two checks added to audit-content.mjs (duplicate options,
+  which found **none**; and a length-clueing report, which is not a gate).
+  Answer-index range and empty-`why` were already covered. The substring-
+  duplicate check from the plan was **not** built — "H₂O"/"H₂O₂", "sp"/"sp³"
+  are legitimate distinct pairs, so it is a false-positive machine.
+  **The finding that matters:** the correct option is the longest in 59% of 616
+  questions (chance ~25%), and organic3/coordchem/labtech/structure/polymers
+  run 83–95%. Promoted to Q6. Also discovered while checking whether that is
+  even fixable: the never-reword rule in this file was stale — progress moved
+  to explicit ids and the legacy migration already ships.
