@@ -3318,3 +3318,25 @@ a.pill { text-decoration: none; display: inline-block; }
   gap: var(--s-2);
   flex-wrap: wrap;
 }
+
+/* Copy-link buttons (plan2 §12). Quiet by default — sharing is a deliberate
+   act, not the primary one on either surface. */
+.copy-link {
+  font-size: var(--f-1);
+  padding: 3px 8px;
+  min-height: 24px;
+}
+.copy-link-wrap { display: inline-flex; align-items: center; gap: var(--s-1); }
+.copy-link-fallback {
+  font-family: var(--mono);
+  font-size: var(--f-1);
+  padding: 2px 6px;
+  min-width: 14ch;
+  max-width: 26ch;
+  border: 1px solid var(--rule-2);
+  border-radius: var(--r-sm);
+  background: var(--paper-2);
+  color: var(--ink);
+}
+.quiz-head-row .copy-link-wrap { margin-left: auto; }
+.section-pos .copy-link-wrap { margin-left: var(--s-2); }

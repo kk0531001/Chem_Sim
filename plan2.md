@@ -282,8 +282,8 @@ Only after the above is solid:
 - [ ] Improve topic SEO
 - [ ] Create useful chemistry guide pages
 - [ ] Add better metadata where needed
-- [ ] Make sharing individual questions easy
-- [ ] Make sharing topic sections easy
+- [x] Make sharing individual questions easy
+- [x] Make sharing topic sections easy
 - [ ] Add analytics for acquisition
 - [ ] Get ChemSim in front of CCC/CCO students
 - [ ] Collect feedback

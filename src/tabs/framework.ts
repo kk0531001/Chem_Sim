@@ -522,6 +522,47 @@ const THEORY_AUTO_OPEN = 700;   // chars of markup, not of prose — close enoug
  * them out differently and a wrapper would have been the fourth thing to
  * diverge.
  */
+/**
+ * A copy-this-link button (plan2 §12).
+ *
+ * The URLs already existed — a question is `?q=<id>` on the bank and a section
+ * is its own path — so sharing was possible and invisible. This is only the
+ * affordance.
+ *
+ * Feedback goes in the button's own label rather than a toast: a copy that
+ * silently succeeds is indistinguishable from one that silently failed, and
+ * clipboard writes DO fail (insecure origin, denied permission, an older
+ * browser). On failure it says so instead of lying.
+ */
+export function copyLinkButton(url: () => string, what = 'link'): HTMLElement {
+  const label = `Copy ${what}`;
+  const btn = h('button', { type: 'button', class: 'btn btn-quiet copy-link' }, label);
+  // The manual fallback. Telling someone to press Ctrl-C with nothing selected
+  // is worse than saying nothing, so the failure path puts the real URL on
+  // screen and selects it — then the instruction is true.
+  const field = h('input', { class: 'copy-link-fallback', readonly: '', 'aria-label': what, hidden: '' }) as HTMLInputElement;
+  const wrap = h('span', { class: 'copy-link-wrap' }, btn, field);
+  let revert: ReturnType<typeof setTimeout> | undefined;
+  const reset = (): void => { btn.textContent = label; field.hidden = true; };
+  btn.addEventListener('click', () => {
+    clearTimeout(revert);
+    const href = url();
+    const manual = (): void => {
+      field.value = href;
+      field.hidden = false;
+      field.select();
+      btn.textContent = 'Copy this:';
+    };
+    // Clipboard writes fail on an insecure origin, with the permission denied,
+    // or in an older browser — all three land on the same honest fallback.
+    if (!navigator.clipboard) { manual(); return; }
+    void navigator.clipboard.writeText(href)
+      .then(() => { btn.textContent = 'Copied'; revert = setTimeout(reset, 2000); })
+      .catch(manual);
+  });
+  return wrap;
+}
+
 export function solutionToggle(html: string): { btn: HTMLButtonElement; panel: HTMLElement } {
   const panel = h('div', { class: 'result', html });
   panel.style.display = 'none';

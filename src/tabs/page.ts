@@ -20,7 +20,7 @@
 // challengeLadder() and TopicMeta: framework → challenge → registry → topics →
 // framework is a cycle, and a cycle whose modules build top-level constants is
 // an initialisation-order bug waiting for someone at 3am.
-import { h, card } from './framework';
+import { h, card, copyLinkButton } from './framework';
 import { challengeLadder } from './challenge';
 import { topicById, type Ref } from '../topics';
 import { isBookmarked, toggleBookmark, lastSection } from '../progress';
@@ -283,7 +283,11 @@ function sectionFooter(pos: Position): HTMLElement {
   };
   return h('nav', { class: 'section-foot', 'aria-label': 'Section navigation' },
     step(pos.prev, 'prev'),
-    h('span', { class: 'section-pos' }, `Section ${pos.indexInTopic + 1} of ${pos.topicLength}`),
+    h('span', { class: 'section-pos' },
+      `Section ${pos.indexInTopic + 1} of ${pos.topicLength}`,
+      // Every section already has its own URL — this is the affordance, not
+      // the feature. location.href is right because that IS the section link.
+      copyLinkButton(() => location.href, 'link to this section')),
     step(pos.next, 'next'),
   );
 }

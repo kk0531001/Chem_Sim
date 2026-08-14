@@ -18,7 +18,7 @@ import { toExamTopic, isExamTopicId, EXAM_TOPIC_LABEL } from '../../content/topi
 import { signal, registerQuizReporter } from '../../signals';
 import { recommendNext } from '../../recommend';
 import { navigate } from '../../router';
-import { h, button, typesetMath } from '../framework';
+import { h, button, typesetMath, copyLinkButton } from '../framework';
 
 // ---- quick-quiz widget: one question at a time, instant feedback ----
 /**
@@ -187,8 +187,15 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
     bmBtn.setAttribute('aria-pressed', String(on));
     bmBtn.innerHTML = BOOKMARK_ICON + `<span class="sr-only">${on ? 'Bookmarked, click to remove' : 'Bookmark this question'}</span>`;
   }
+  // The bank already restores ?q=<id>, so the shareable URL is just this
+  // question's id on the current page.
+  const shareBtn = copyLinkButton(() => {
+    const u = new URL(location.href);
+    u.searchParams.set('q', ids[Math.min(i, ids.length - 1)]);
+    return u.toString();
+  }, 'link to this question');
   const head = h('div', { class: 'quiz-head', tabindex: -1 },
-    h('div', { class: 'quiz-head-row' }, progress, bmBtn), qEl);
+    h('div', { class: 'quiz-head-row' }, progress, shareBtn, bmBtn), qEl);
   const optsEl = h('div', { class: 'quiz-opts' });
   const whyEl = h('div', { class: 'quiz-why', 'aria-live': 'polite', 'aria-atomic': 'true' });
   const nextBtn = button('Next question', () => { i++; render(true); }, 'primary');

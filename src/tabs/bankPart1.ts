@@ -12,6 +12,10 @@ export interface BankMC {
   opts: string[];
   a: number;
   why: string;
+  /** Wrong-answer mental-model correction — shown below `why` when the student misses. See QuizQ. */
+  misconception?: string;
+  /** Second, handwritten explanation from another angle — the "Explain it differently" button. See QuizQ. */
+  why2?: string;
 }
 
 export const PART1: BankMC[] = [
