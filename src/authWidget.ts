@@ -24,7 +24,10 @@ function buildSignInForm(): HTMLElement {
     type: 'email', placeholder: 'you@email.com', autocomplete: 'email',
     'aria-label': 'Email address for a sign-in link',
   });
-  const msg = h('div', { class: 'acc-msg' });
+  // role=status: every sign-in outcome — 'Sending…', an empty-field nudge, a
+  // magic-link error — lands here by textContent, which a screen reader would
+  // otherwise never hear. Same job as search.ts and feedback.ts.
+  const msg = h('div', { class: 'acc-msg', role: 'status' });
   const googleBtn = h('button', { class: 'acc-google-btn', html: `${GOOGLE_G}<span>Continue with Google</span>` });
   googleBtn.addEventListener('click', async () => {
     msg.textContent = '';
@@ -78,27 +81,47 @@ export function mountSidebarAccountPanel(container: HTMLElement): void {
 }
 
 // Compact "Sign in" trigger + popover for the homepage top bar.
+//
+// The trigger is built ONCE and lives outside render(). It used to be rebuilt
+// on every render, which meant opening the popover from the keyboard removed
+// the very button that had focus — focus fell to <body> and the reader had to
+// tab from the top of the document to reach the thing they had just opened.
 export function mountHomepageAccountWidget(container: HTMLElement): void {
   let open = false;
   const wrap = h('div', { class: 'account-widget' });
+  const trigger = h('button', { class: 'btn-ghost acc-trigger', 'aria-expanded': 'false', 'aria-haspopup': 'dialog' });
+  const pop = h('div', { class: 'acc-dropdown', role: 'dialog', 'aria-label': 'Account' });
+  pop.hidden = true;
+  wrap.append(trigger, pop);
   container.append(wrap);
+
+  const setOpen = (v: boolean, restoreFocus = false): void => {
+    open = v;
+    trigger.setAttribute('aria-expanded', String(v));
+    pop.hidden = !v;
+    if (v) render();
+    // Only on a deliberate close (Escape, or toggling the trigger) — not when
+    // an outside click already moved focus somewhere the user chose.
+    else if (restoreFocus) trigger.focus();
+  };
+
+  trigger.addEventListener('click', e => { e.stopPropagation(); setOpen(!open, true); });
   render();
   onProgressChange(render);
   document.addEventListener('click', e => {
-    if (open && !wrap.contains(e.target as Node)) { open = false; render(); }
+    if (open && !wrap.contains(e.target as Node)) setOpen(false);
+  });
+  wrap.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && open) { e.stopPropagation(); setOpen(false, true); }
   });
 
   function render(): void {
-    wrap.replaceChildren();
     const email = currentEmail();
-    const label = !isCloudConfigured() ? `${solvedCount()} solved`
+    trigger.textContent = !isCloudConfigured() ? `${solvedCount()} solved`
       : email ? email
         : 'Sign in';
-    const trigger = h('button', { class: 'btn-ghost acc-trigger' }, label);
-    trigger.addEventListener('click', e => { e.stopPropagation(); open = !open; render(); });
-    wrap.append(trigger);
     if (!open) return;
-    const pop = h('div', { class: 'acc-dropdown' });
+    pop.replaceChildren();
     if (!isCloudConfigured()) {
       pop.append(h('div', { class: 'pp-note' }, 'Progress is saved on this device only. Add Supabase keys to sync across devices.'));
     } else if (email) {
@@ -112,6 +135,8 @@ export function mountHomepageAccountWidget(container: HTMLElement): void {
         buildSignInForm(),
       );
     }
-    wrap.append(pop);
+    // Focus the first thing in the popover, so opening it with the keyboard
+    // lands where the user is going rather than leaving them at the trigger.
+    (pop.querySelector('input, button') as HTMLElement | null)?.focus();
   }
 }

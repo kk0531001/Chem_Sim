@@ -163,7 +163,15 @@ function makeIRChecklist(): HTMLElement {
 function unknown(title: string, data: string, answer: string): HTMLElement {
   const ans = h('div', { class: 'result', html: answer });
   ans.style.display = 'none';
-  const btn = h('button', { class: 'btn btn-quiet', onclick: () => { ans.style.display = ans.style.display === 'none' ? '' : 'none'; } }, 'Show / hide solution');
+  // Relabel rather than say 'Show / hide': a static label leaves the control's
+  // state invisible. Matches challenge.ts and qbank.ts.
+  const btn = h('button', { class: 'btn btn-quiet', 'aria-expanded': 'false' }, 'Show solution');
+  btn.addEventListener('click', () => {
+    const open = ans.style.display === 'none';
+    ans.style.display = open ? '' : 'none';
+    btn.textContent = open ? 'Hide solution' : 'Show solution';
+    btn.setAttribute('aria-expanded', String(open));
+  });
   return h('div', { class: 'card', style: 'background:transparent;box-shadow:none;padding:0' },
     h('h3', {}, title), h('div', { html: data }), btn, ans);
 }

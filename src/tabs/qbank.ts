@@ -360,7 +360,15 @@ export const qbankTab: TabDef = {
     olyCtl.style.display = 'none';
 
     function syncPills(): void {
-      partBtns.forEach((b, p) => b.classList.toggle('active', p === part));
+      // aria-current, not just the .active class: the selection was conveyed by
+      // colour alone, so a screen-reader user could not tell which of the seven
+      // parts was showing. This bar is hand-rolled rather than pills(), so it
+      // does not inherit the tablist semantics — aria-current is the honest
+      // minimum without the arrow-key handling a real tablist would need.
+      partBtns.forEach((b, p) => {
+        b.classList.toggle('active', p === part);
+        b.setAttribute('aria-current', String(p === part));
+      });
       // The fixed problem sets are a curated running order, so filtering them
       // by topic or difficulty would mean showing "problem 3 of 7" with four
       // missing. Browse is its own filter, so it hides the row too.

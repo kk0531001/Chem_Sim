@@ -91,7 +91,7 @@ export function buildProgressPage(): HTMLElement {
   // bolted onto it.
   const body = h('div', {});
   const page = h('div', { id: 'progress-page' },
-    h('div', { class: 'home-wrap' },
+    h('main', { class: 'home-wrap' },
       h('div', { class: 'home-top' },
         h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>CCC Trainer</small>` }),
         h('button', { class: 'btn-ghost', onclick: () => navigate({ kind: 'home' }) }, '← Home'),
@@ -398,8 +398,12 @@ export function buildProgressPage(): HTMLElement {
     function dangerZone(): HTMLElement {
       const signedIn = !!currentEmail();
       const counts = `${solvedTotal} solved · ${attemptCount()} answer${attemptCount() === 1 ? '' : 's'} · ${marks.length} bookmark${marks.length === 1 ? '' : 's'}`;
+      // role=status: this carries the result of the one irreversible action on
+      // the site, including the multi-sentence failure text below. Announcing it
+      // is not optional.
       const status = h('p', {
         class: `danger-status${resetNotice ? (resetNotice.ok ? ' good' : ' bad') : ''}`,
+        role: 'status',
       }, resetNotice?.text ?? '');
       const row = h('div', { class: 'danger-row' });
 
@@ -468,11 +472,20 @@ export function buildProgressPage(): HTMLElement {
           const topic = topicById(id);
           const name = topic ? topic.title : label(id);
           if (!name) return null;   // a bookmark whose question has since been removed
+          // The name is a BUTTON when it navigates: the row's own onclick below
+          // is a mouse convenience, and a div click has no keyboard path at all.
+          // Same split topics.ts uses for its cards.
+          const nameEl = topic
+            ? h('button', { type: 'button', class: 'history-q link-btn', onclick: () => navigate({ kind: 'topic', id }) }, name)
+            : h('span', { class: 'history-q' }, name);
           const row = h('div', { class: 'history-row bookmark-row' },
-            h('span', { class: 'history-q' }, name),
+            nameEl,
             h('span', { class: 'history-topic' }, topic ? 'Module' : 'Question'),
             h('button', {
-              type: 'button', class: 'btn', onclick: () => { toggleBookmark(id); row.remove(); },
+              // N identical "Remove" buttons are indistinguishable in a screen
+              // reader's button list without the item name.
+              type: 'button', class: 'btn', 'aria-label': `Remove bookmark: ${name}`,
+              onclick: () => { toggleBookmark(id); row.remove(); },
             }, 'Remove'),
           );
           if (topic) {

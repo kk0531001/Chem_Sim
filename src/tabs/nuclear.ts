@@ -1,5 +1,5 @@
 // Descriptive chemistry, nuclear chemistry, coordination chemistry.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, folded, type TabDef, type TabHandle, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, button, plot, linspace, pills, quiz, folded, type TabDef, type TabHandle, task, playPause } from './framework';
 import { topicPage } from './page';
 import { NUCLEAR_QUIZ } from './questions2';
 
@@ -15,9 +15,14 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
   const out = h('div', { class: 'result' });
   let frameId: number | null = null;
 
+  const play = playPause(() => draw());
+
   function reset(): void {
     alive = new Array(GRID * GRID).fill(true);
     tElapsed = 0; histT.length = 0; histN.length = 0;
+    // `running` tracks "there are still nuclei left to decay", not "the user
+    // wants motion" — that is play.playing(), which starts from the reduced-
+    // motion preference. A restart must not override the reader's choice.
     running = true;
     draw();
   }
@@ -49,7 +54,7 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
   }
   let acc = 0;
   function frame(): void {
-    if (visible && running && !folded(gridCanvas)) {
+    if (visible && running && play.playing() && !folded(gridCanvas)) {
       const dt = 1 / 60;
       tElapsed += dt;
       acc += dt;
@@ -82,7 +87,7 @@ function makeNuclear(): { el: HTMLElement; setVisible: (v: boolean) => void; des
     card('Radioactive decay — stochastic simulation',
       task('Watch a short half-life run and see the count fluctuate around the smooth curve — decay is statistical, not scheduled.'),
       slider({ label: 't½ (s)', min: 2, max: 30, step: 1, value: tHalf, onInput: v => { tHalf = v; } }),
-      button('restart', reset),
+      h('div', { style: 'display:flex;gap:8px;flex-wrap:wrap' }, play.el, button('restart', reset)),
       h('div', { style: 'display:flex;gap:12px;flex-wrap:wrap;margin-top:8px' }, gridCanvas, curveCanvas),
       out,
       h('h3', {}, 'Carbon-14 dating (t½ = 5730 y)'),

@@ -1763,7 +1763,7 @@ a.pill { text-decoration: none; display: inline-block; }
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--accent-dark);
+  color: var(--accent-darker);
   background: var(--paper-3);
   border: 1px solid var(--rule);
   border-radius: var(--r-sm);
@@ -2542,7 +2542,7 @@ a.pill { text-decoration: none; display: inline-block; }
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--red);
+  color: var(--red-ink);
 }
 .weak-flag-icon { display: flex; }
 .weak-flag-icon svg { width: 13px; height: 13px; }
@@ -2689,7 +2689,7 @@ a.pill { text-decoration: none; display: inline-block; }
   color: var(--ink-dim);
 }
 .mastery-acc.none { color: var(--ink-faint); }
-.mastery-acc.low { color: var(--red); }
+.mastery-acc.low { color: var(--red-ink); }
 
 /* ---- recent answers ---- */
 .progress-filters {
@@ -2774,7 +2774,7 @@ a.pill { text-decoration: none; display: inline-block; }
   flex: none;
 }
 .topic-progress-done {
-  color: var(--green);
+  color: var(--green-ink);
   font-family: var(--sans);
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -2913,7 +2913,7 @@ a.pill { text-decoration: none; display: inline-block; }
   flex: none;
 }
 .path-count.all-done {
-  color: var(--green);
+  color: var(--green-ink);
   font-family: var(--sans);
   font-weight: 600;
   font-size: var(--f-1);

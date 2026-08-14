@@ -80,16 +80,16 @@ A user's progress should be extremely hard to lose, duplicate, corrupt, or accid
 Don't redesign the frontend again yet.
 Instead:
 
-- [ ] Test every major page at 375 px
-- [ ] Test at 430 px
-- [ ] Test desktop widths
-- [ ] Test landscape phone
+- [x] Test every major page at 375 px
+- [x] Test at 430 px
+- [x] Test desktop widths
+- [x] Test landscape phone
 - [ ] Test keyboard-only navigation
-- [ ] Test visible focus states
-- [ ] Test reduced-motion mode
-- [ ] Test browser zoom / large text
-- [ ] Check for horizontal overflow
-- [ ] Check every dialog/modal
+- [x] Test visible focus states
+- [x] Test reduced-motion mode
+- [x] Test browser zoom / large text
+- [x] Check for horizontal overflow
+- [x] Check every dialog/modal
 - [ ] Check every dropdown
 - [ ] Check every simulation control
 - [ ] Check equations and chemical notation at narrow widths
@@ -117,18 +117,18 @@ No "looks fine on my MacBook" bugs surviving.
 
 ## ♿ 5. Accessibility
 
-- [ ] Keyboard-test every interactive component
-- [ ] Verify focus order
-- [ ] Verify focus isn't trapped incorrectly
-- [ ] Verify dialogs announce correctly
-- [ ] Verify buttons/links have meaningful names
-- [ ] Verify form controls have labels
-- [ ] Verify error messages are announced
+- [x] Keyboard-test every interactive component
+- [x] Verify focus order
+- [x] Verify focus isn't trapped incorrectly
+- [x] Verify dialogs announce correctly
+- [x] Verify buttons/links have meaningful names
+- [x] Verify form controls have labels
+- [x] Verify error messages are announced
 - [ ] Verify progress updates are understandable
-- [ ] Check contrast on all surfaces
+- [x] Check contrast on all surfaces
 - [ ] Test with a screen reader
-- [ ] Check reduced motion
-- [ ] Check zoomed layouts
+- [x] Check reduced motion
+- [x] Check zoomed layouts
 
 **Goal**
 

@@ -212,7 +212,7 @@ export function buildMenuPage(
   onModeChange(() => { syncChips(); render(); });
 
   return h('div', { id: 'menu-page' },
-    h('div', { class: 'home-wrap' },
+    h('main', { class: 'home-wrap' },
       h('div', { class: 'home-top' },
         h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>CCC Trainer</small>` }),
         h('button', { class: 'btn-ghost', onclick: onHome }, '← Home'),

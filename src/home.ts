@@ -1,7 +1,7 @@
 // Landing page — "Lab Journal" design: paper & ink, serif display type,
 // one flame accent, and the chemistry itself as the artwork (a live mini
 // simulation in the hero, figure panels with captions elsewhere).
-import { h } from './tabs/framework';
+import { h, prefersReducedMotion } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
 import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges, moduleCompletion, moduleProgress, topicById } from './topics';
 import { onProgressChange, lastTopic } from './progress';
@@ -25,8 +25,8 @@ const FIG_TITRATION = `
         fill="none" stroke="#e8590c" stroke-width="2.4" stroke-linecap="round"/>
   <circle cx="172" cy="96" r="4.5" fill="#f5f0e8"/>
   <text x="182" y="92" fill="#8a939e" font-size="10.5" font-family="Menlo, monospace">equivalence</text>
-  <text x="40" y="26" fill="#5c646e" font-size="10" font-family="Menlo, monospace">pH</text>
-  <text x="252" y="196" fill="#5c646e" font-size="10" font-family="Menlo, monospace">V added</text>
+  <text x="40" y="26" fill="#8a939e" font-size="10" font-family="Menlo, monospace">pH</text>
+  <text x="252" y="196" fill="#8a939e" font-size="10" font-family="Menlo, monospace">V added</text>
 </svg>`;
 
 const FIG_ENERGY = `
@@ -38,8 +38,8 @@ const FIG_ENERGY = `
         fill="none" stroke="#e8590c" stroke-width="2.4" stroke-linecap="round"/>
   <line x1="160" y1="44" x2="160" y2="120" stroke="#8a939e" stroke-width="1" stroke-dasharray="2 3"/>
   <text x="168" y="64" fill="#8a939e" font-size="10.5" font-family="Menlo, monospace">Ea, catalyzed ↓</text>
-  <text x="38" y="110" fill="#5c646e" font-size="10" font-family="Menlo, monospace">reactants</text>
-  <text x="252" y="132" fill="#5c646e" font-size="10" font-family="Menlo, monospace">products</text>
+  <text x="38" y="110" fill="#8a939e" font-size="10" font-family="Menlo, monospace">reactants</text>
+  <text x="252" y="132" fill="#8a939e" font-size="10" font-family="Menlo, monospace">products</text>
 </svg>`;
 
 const FIG_DECAY = `
@@ -357,7 +357,11 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
         startBtn,
         h('button', {
           class: 'btn-ghost',
-          onclick: () => document.querySelector('.topics')?.scrollIntoView({ behavior: 'smooth' }),
+          // The reduced-motion block in style.css sets scroll-behavior, which an
+          // explicit JS `behavior` option overrides — so gate it here too.
+          onclick: () => document.querySelector('.topics')?.scrollIntoView({
+            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          }),
         }, 'Browse the modules'),
       ),
       cont.el,
@@ -530,7 +534,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
 
   const root = h('div', { id: 'home' },
     progress,
-    h('div', { class: 'home-wrap' }, topBar, hero, features, demoSect, paths, comps, topics, stats, footer),
+    h('main', { class: 'home-wrap' }, topBar, hero, features, demoSect, paths, comps, topics, stats, footer),
   );
 
   // ---- scroll reveals + count-up ----

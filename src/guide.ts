@@ -39,7 +39,7 @@ export function buildGuidePage(
     h('div', { class: 'guide-stat' }, h('b', {}, n), h('span', {}, label));
 
   return h('div', { class: 'guide-page' },
-    h('div', { class: 'home-wrap' },
+    h('main', { class: 'home-wrap' },
       h('div', { class: 'home-top' },
         h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>${MODE_SHORT[guide.comp]} Trainer</small>` }),
         h('button', { class: 'btn-ghost', onclick: onHome }, '← Home'),
