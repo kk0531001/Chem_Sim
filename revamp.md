@@ -195,7 +195,7 @@ only ever touches the subset where being wrong actually costs something.
   28%. Deterministic, so re-running is a no-op and new questions land by the
   same rule.
 
-- [ ] **Q6 — Cut the length clueing.** *(Was "blocked on an id migration" —
+- [x] **Q6 — Cut the length clueing.** *(Was "blocked on an id migration" —
   that migration already shipped; see the corrected protocol rule above.)*
   Q1 measured it: the correct option is the longest one in **59%** of 616
   questions, against ~25% by chance, and five modules are at 83–95%
@@ -210,11 +210,9 @@ only ever touches the subset where being wrong actually costs something.
   *Done when:* no module with n ≥ 20 is above 40%, or the remainder is listed
   here with why those questions genuinely need an uneven-length option set.
 
-  **Progress** (corpus 59% → 51%): organic3 95→0, coordchem 91→0,
-  labtech 85→40. Remaining above 40%, worst first: structure 85, advinorganic
-  84, periodicity 83, polymers 83, analytical 81, nuclear 71, organic1 70,
-  organic2 65, biophys 65, spectroscopy 63, gases 59, physchem 57,
-  equilibrium 55, thermo2 45. One module per commit.
+  **Done — corpus 59% → 11%, no module above 26%.** All 23 quiz modules plus
+  the exam banks (bankPart1, bankPart3, the five mock papers). See Q8 for the
+  residual this created.
 
 ## Track F — Frontend
 
@@ -267,6 +265,22 @@ Opportunistic only. Do not schedule a refactor sprint.
   works is not debt, it is a file. Revisit if it passes 900.
 
 ## Track A — Learning engine
+
+- [ ] **Q8 — Rebalance the length metric back toward chance.**
+  Q6 overshot. Driving "correct option is longest" from 59% to **11%** replaced
+  a strong tell with a weaker opposite one: on the modules now at 0%, "never
+  pick the longest" eliminates an option for free. Chance on four options is
+  ~25% and that — not zero — is the target.
+  `audit-content.mjs` now scores **distance from chance in either direction**,
+  so this cannot drift unnoticed again, and it names the direction
+  (`long=answer` / `long=never`).
+  The fix is NOT to pad the keyed answers back out — they were trimmed from
+  explanations to claims and are better for it. It is to shorten a distractor
+  in roughly one question in four, so the key is legitimately longest that
+  often.
+  *Done when:* no module with n ≥ 20 sits more than 15 points from chance.
+  Lower priority than anything in Track F: an 11% reverse tell is worth far
+  less to a student than a working page on their phone.
 
 - [ ] **A1 — Skills under topics, read-only first.** Before any mastery model:
   tag questions with a skill (`equilibrium/ice-setup`, `equilibrium/q-vs-k`,

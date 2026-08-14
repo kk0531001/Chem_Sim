@@ -298,10 +298,18 @@ for (const q of ALL_MC) {
 }
 const clueTotal = [...clue.values()].reduce((a, m) => ({ n: a.n + m.n, longest: a.longest + m.longest }), { n: 0, longest: 0 });
 const rate = m => (100 * m.longest / m.n);
-const worst = [...clue.entries()].filter(([, m]) => m.n >= 20).sort((a, b) => rate(b[1]) - rate(a[1])).slice(0, 5);
+// Read BOTH WAYS. "Correct is longest" at 60% means the long option is the
+// answer; at 5% it means the long option is never the answer, which is the
+// same tell pointing the other way and just as learnable. The target is
+// chance (~25% on four options), not zero — an earlier pass drove the corpus
+// from 59% to 11% and turned one bias into a weaker opposite one.
+const CHANCE = 25;
+const skew = m => Math.abs(rate(m) - CHANCE);
+const worst = [...clue.entries()].filter(([, m]) => m.n >= 20).sort((a, b) => skew(b[1]) - skew(a[1])).slice(0, 5);
+const dir = m => (rate(m) > CHANCE ? 'long=answer' : 'long=never');
 console.log(`Length clueing: correct option is the longest in ${rate(clueTotal).toFixed(0)}% ` +
-  `of ${clueTotal.n} questions (chance is ~25% at 4 options).`);
-console.log('  highest: ' + worst.map(([t, m]) => `${t} ${rate(m).toFixed(0)}% (n=${m.n})`).join(', '));
+  `of ${clueTotal.n} questions (chance ~${CHANCE}%; distance from chance is what matters, either way).`);
+console.log('  furthest from chance: ' + worst.map(([t, m]) => `${t} ${rate(m).toFixed(0)}% ${dir(m)} (n=${m.n})`).join(', '));
 
 // ---- report ----
 console.log(`Checked ${ALL_MC.length} MC + ${ALL_FRQ.length} written problems.`);
