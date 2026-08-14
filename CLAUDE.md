@@ -98,7 +98,7 @@ with a reason stated in the commit/summary.
   **not already satisfied by the card's default state** — replay the sim's own
   maths offline rather than eyeballing it. Give every drive-the-sim mission a
   `meter()`, or a continuous slider turns the goal into a guessing game.
-- Every topic tab has a quiz of 25 QuizQ entries (5 warm-ups, then 20
+- Every topic tab has a quiz of at least 25 QuizQ entries (5 warm-ups, then 20+
   CCC/CCO/USNCO-style), stored in src/tabs/questions1.ts–questions7.ts
   (questions3/4 = Advanced-CCO banks; questions5 = periodicity + polymers;
   questions6 = physchem + organic3 + coordchem; questions7 = labtech +
