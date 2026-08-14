@@ -268,7 +268,7 @@ Opportunistic only. Do not schedule a refactor sprint.
 
 ## Track A — Learning engine
 
-- [ ] **Q8 — Rebalance the length metric back toward chance.** `DEFERRED`
+- [x] **Q8 — Rebalance the length metric back toward chance.**
   Q6 overshot. Driving "correct option is longest" from 59% to **11%** replaced
   a strong tell with a weaker opposite one: on the modules now at 0%, "never
   pick the longest" eliminates an option for free. Chance on four options is

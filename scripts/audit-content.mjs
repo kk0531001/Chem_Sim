@@ -256,8 +256,14 @@ for (const q of ALL_MC) {
 // plan and it is a false-positive machine — "H₂O"/"H₂O₂", "1"/"12", "sp"/"sp³"
 // are all legitimate distinct pairs, and a list that is mostly noise gets
 // ignored, which is worse than not having it.
+// Only REAL tags. A bare `/<[^>]+>/` also eats chemistry: the option
+// "ΔH < 0, ΔS > 0" has "< 0, ΔS >" removed and measures as "ΔH  0", which is
+// both the wrong length and, in the bare-key check below, a false positive.
+// One option in the corpus hits this today; inequalities are natural enough in
+// chemistry options that the next one is a matter of time.
+const TAG = /<\/?(?:b|i|em|strong|sub|sup|span|br|small|code|u)\b[^>]*>/gi;
 const plain = s => String(s)
-  .replace(/<[^>]+>/g, '')
+  .replace(TAG, '')
   .replace(/\s+/g, ' ')
   .replace(/[.\s]+$/, '')
   .trim()
@@ -310,6 +316,30 @@ const dir = m => (rate(m) > CHANCE ? 'long=answer' : 'long=never');
 console.log(`Length clueing: correct option is the longest in ${rate(clueTotal).toFixed(0)}% ` +
   `of ${clueTotal.n} questions (chance ~${CHANCE}%; distance from chance is what matters, either way).`);
 console.log('  furthest from chance: ' + worst.map(([t, m]) => `${t} ${rate(m).toFixed(0)}% ${dir(m)} (n=${m.n})`).join(', '));
+
+// ---- 10. the KEY left conspicuously bare ----
+//
+// A second, sneakier length tell, and one this audit's own advice created.
+// Fixing the "correct option is longest" bias by TRIMMING keys while leaving
+// annotated distractors produces the mirror image: three options that explain
+// themselves and one bare word, which is the answer. `nuc-020` read
+// "1, only one arrangement / 3, counting the mirror image / 2 / 4, one per Cl
+// position" — you do not need the chemistry.
+//
+// Reported, not failed: a short key is often right (a formula, a number), and
+// the signal is the CONTRAST with elaborated distractors, which is a judgement
+// call at the margin. 43 questions matched when this check was written; the
+// number to watch is whether it grows.
+const bareKeys = [];
+for (const q of ALL_MC) {
+  if (!Array.isArray(q.opts) || q.opts.length < 3) continue;
+  const len = q.opts.map(o => plain(o).length);
+  const others = len.filter((_, i) => i !== q.a);
+  const mean = others.reduce((a, b) => a + b, 0) / others.length;
+  if (len[q.a] === Math.min(...len) && len[q.a] < mean * 0.55 && mean >= 10) bareKeys.push(q.id);
+}
+console.log(`Bare keys: ${bareKeys.length} question(s) where the answer is the only unelaborated option` +
+  (bareKeys.length ? ` — ${bareKeys.slice(0, 6).join(', ')}${bareKeys.length > 6 ? ' …' : ''}` : ''));
 
 // ---- report ----
 console.log(`Checked ${ALL_MC.length} MC + ${ALL_FRQ.length} written problems.`);
