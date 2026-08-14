@@ -29,6 +29,12 @@
   /* the accent, re-mixed for the dark instrument panels: --accent-dark is only
      3.49:1 on --panel, this is 7.93:1 (already the .big / #concept colour) */
   --accent-on-panel: #ff8b3d;
+  /* text weight on white — white paper text needs 4.5:1, so the badge/verdict
+     inks are darker than the fill colours above they are paired with */
+  --on-accent: #fff;
+  --green-ink: #227031;
+  --blue-ink: #2c5480;
+  --purple-ink: #5c3f82;
   /* semantics */
   --green: #2f9e44;
   --red: #e03131;
@@ -37,8 +43,15 @@
   /* dark instrument panels (canvases, readouts) */
   --panel: #111417;
   --panel-2: #171b21;
+  /* the deepest panel: the sandbox ground, and insets ON a panel */
+  --panel-3: #0e1116;
   --panel-border: #2a3038;
+  --panel-border-2: #2a3546;  /* the cooler border used inside the sandbox */
   --panel-text: #d5dbe1;
+  --panel-dim: #7d8792;       /* muted text on a panel — 5.68:1 there, never on paper */
+  --panel-ok: #4caf6d;        /* solved / success rule on a panel */
+  --panel-ok-wash: #16241b;   /* its background */
+  --panel-info: #4a7ab0;      /* misconception & note rules */
   /* type */
   --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
   --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -83,16 +96,48 @@
      outright by the prefers-reduced-motion block below. */
   --t: 0.15s;
   --t-enter: 0.4s;
+
+  /* ---- type scale ----
+     Same argument as the radii/shadows/durations above, applied to the one
+     scale D.7 skipped: 28 distinct font sizes, ten of them half-pixel. The
+     values are visually interchangeable, so the inconsistency IS the defect.
+     Six steps because the pages already cluster into six roles.
+     Not in the scale, on purpose: the homepage hero's clamp() display type
+     (fluid, doing a job a fixed step cannot) and the big panel readouts
+     (30/34/52px numerals, one-per-view hero figures). */
+  --f-1: 11px;   /* eyebrow, meter caption, badge */
+  --f-2: 12px;   /* small label: breadcrumb, prereq, nav meter */
+  --f-3: 13px;   /* UI default: buttons, controls, table cells */
+  --f-4: 15px;   /* body copy */
+  --f-5: 19px;   /* card title (h2) */
+  --f-6: 26px;   /* page title (h1) */
+
+  /* Line-height by ROLE, set on a container, not per element. Collapsed from
+     14 values (1.3 … 1.8) where 1.65 and 1.68 sat next to each other. */
+  --lh-tight: 1.25;  /* display type, card titles */
+  --lh-ui:    1.4;   /* buttons, labels, table cells */
+  --lh-body:  1.6;   /* paragraphs, theory prose */
+  --lh-loose: 1.75;  /* the long-form intro and .section-lede only */
+
+  /* The homepage's reading column. Lesson pages deliberately do NOT use it:
+     a topic hosts one section at a time and is meant to fill the window. */
+  --col: 1120px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* Form controls do not inherit type from their parent — that is a UA default,
+   and every control that forgot its own `font: inherit` rendered in Arial
+   13.333px. One rule instead of auditing 40 selectors; a control that wants
+   the serif or the mono still sets font-family after this. */
+button, input, select, textarea { font: inherit; }
 
 html, body {
   height: 100%;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: var(--f-4);
 }
 
 body { overflow: hidden; }
@@ -134,7 +179,7 @@ body { overflow: hidden; }
   z-index: 100;
   padding: 10px 16px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
   font-weight: 600;
   color: var(--ink);
   background: var(--paper-2);
@@ -165,6 +210,7 @@ body { overflow: hidden; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--rule-2); border-radius: var(--r-sm); border: 2px solid var(--paper); }
+/* #b0a890: the scrollbar thumb's hover, one shade past --rule-2. */
 ::-webkit-scrollbar-thumb:hover { background: #b0a890; }
 
 /* shared wordmark tile */
@@ -178,7 +224,7 @@ body { overflow: hidden; }
   border-radius: var(--r-sm);
   font-family: var(--serif);
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--f-4);
   color: var(--ink);
   background: var(--paper-2);
   position: relative;
@@ -213,7 +259,7 @@ body { overflow: hidden; }
   z-index: 50;
 }
 
-.home-wrap { max-width: 1120px; margin: 0 auto; padding: 0 28px; }
+.home-wrap { max-width: var(--col); margin: 0 auto; padding: 0 28px; }
 
 /* ---- top bar ---- */
 /* Wraps rather than overflows: three buttons plus the wordmark do not fit on a
@@ -228,9 +274,9 @@ body { overflow: hidden; }
   border-bottom: 1px solid var(--rule);
 }
 .wordmark { display: flex; align-items: center; gap: 10px; }
-.wordmark b { font-family: var(--serif); font-size: 19px; letter-spacing: -0.01em; }
+.wordmark b { font-family: var(--serif); font-size: var(--f-5); letter-spacing: -0.01em; }
 .wordmark small {
-  font-size: 10px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1.6px;
   color: var(--ink-faint);
@@ -269,7 +315,7 @@ body { overflow: hidden; }
   background: var(--paper-2);
   color: var(--ink);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
   font-weight: 600;
   cursor: pointer;
   transition: border-color var(--t), background var(--t);
@@ -280,7 +326,7 @@ body { overflow: hidden; }
   align-items: center;
   gap: 8px;
   color: var(--ink-faint);
-  font-size: 10.5px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -292,10 +338,10 @@ body { overflow: hidden; }
   border-radius: var(--r-sm);
   padding: 8px 10px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
 }
 .acc-form input[type='email']:focus { border-color: var(--accent); }
-.acc-msg { font-size: 11px; color: var(--accent-dark); line-height: 1.4; }
+.acc-msg { font-size: var(--f-1); color: var(--accent-dark); line-height: var(--lh-ui); }
 
 /* ---- hero ---- */
 .hero {
@@ -306,7 +352,7 @@ body { overflow: hidden; }
   padding: clamp(56px, 10vh, 128px) 0 76px;
 }
 .eyebrow {
-  font-size: 11.5px;
+  font-size: var(--f-1);
   letter-spacing: 2.4px;
   text-transform: uppercase;
   color: var(--accent-dark); /* 11.5px is body text: needs 4.5:1, --accent is 3.26:1 */
@@ -323,8 +369,8 @@ body { overflow: hidden; }
 }
 .hero h1 em { font-style: italic; color: var(--accent); }
 .lede {
-  font-size: 17px;
-  line-height: 1.8;
+  font-size: var(--f-5);
+  line-height: var(--lh-loose);
   color: var(--ink-dim);
   max-width: 540px;
   margin-bottom: 36px;
@@ -336,20 +382,20 @@ body { overflow: hidden; }
    the palette, legible label. */
 .btn-hero {
   font: inherit;
-  font-size: 15px;
+  font-size: var(--f-4);
   font-weight: 600;
   padding: 12px 26px;
   border-radius: var(--r-md);
   border: 1px solid var(--accent-darker);
   cursor: pointer;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent-dark);
   transition: background var(--t);
 }
 .btn-hero:hover { background: var(--accent-darker); }
 .btn-ghost {
   font: inherit;
-  font-size: 14.5px;
+  font-size: var(--f-4);
   font-weight: 500;
   padding: 11px 20px;
   border-radius: var(--r-md);
@@ -370,12 +416,12 @@ body { overflow: hidden; }
 }
 .figure canvas, .figure svg { display: block; width: 100%; border-radius: var(--r-sm); }
 .fig-cap {
-  font-size: 12.5px;
+  font-size: var(--f-2);
   color: var(--ink-dim);
   margin-top: 10px;
-  line-height: 1.5;
+  line-height: var(--lh-body);
 }
-.fig-cap b { font-family: var(--mono); font-weight: 600; color: var(--accent-dark); font-size: 11.5px; }
+.fig-cap b { font-family: var(--mono); font-weight: 600; color: var(--accent-dark); font-size: var(--f-1); }
 
 /* scroll reveals — subtle and quick */
 .hero-in, .reveal {
@@ -403,13 +449,13 @@ body { overflow: hidden; }
   font-weight: 700;
   line-height: 1;
 }
-.stat-label { color: var(--ink-faint); font-size: 13px; }
+.stat-label { color: var(--ink-faint); font-size: var(--f-3); }
 
 /* ---- numbered sections ---- */
 .sect-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
 .sect-no {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--accent-dark); /* 12px body text: --accent is only 3.26:1 */
   letter-spacing: 1px;
 }
@@ -419,7 +465,7 @@ body { overflow: hidden; }
   font-weight: 700;
   letter-spacing: -0.01em;
 }
-.section-lede { color: var(--ink-dim); font-size: 15px; line-height: 1.7; max-width: 620px; margin-bottom: 36px; }
+.section-lede { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-loose); max-width: 620px; margin-bottom: 36px; }
 
 /* ---- 02 · interactive demo ---- */
 .demo-sect { padding-bottom: 96px; }
@@ -427,7 +473,7 @@ body { overflow: hidden; }
 .demo-card canvas { width: 100%; height: auto; display: block; }
 .demo-readout {
   font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: var(--f-2);
   color: var(--ink-dim);
   margin-top: 12px;
 }
@@ -447,13 +493,13 @@ body { overflow: hidden; }
   border-radius: var(--r-lg);
   padding: 24px;
 }
-.path-card h3 { font-family: var(--serif); font-size: 19px; margin-bottom: 10px; }
-.path-card > p { color: var(--ink-dim); font-size: 14px; line-height: 1.65; margin: 12px 0 4px; }
+.path-card h3 { font-family: var(--serif); font-size: var(--f-5); margin-bottom: 10px; }
+.path-card > p { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-body); margin: 12px 0 4px; }
 .path-steps { list-style: decimal; padding-left: 20px; margin-top: 10px; }
-.path-steps li { color: var(--ink-faint); font-size: 13px; margin: 5px 0; }
+.path-steps li { color: var(--ink-faint); font-size: var(--f-3); margin: 5px 0; }
 .path-step {
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--f-3);
   color: var(--ink-dim);
   background: none;
   border: none;
@@ -478,12 +524,12 @@ body { overflow: hidden; }
   padding: 20px;
 }
 .comp-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.comp-card-top h3 { font-family: var(--serif); font-size: 17px; }
-.comp-card p { color: var(--ink-dim); font-size: 13.5px; line-height: 1.6; }
+.comp-card-top h3 { font-family: var(--serif); font-size: var(--f-5); }
+.comp-card p { color: var(--ink-dim); font-size: var(--f-3); line-height: var(--lh-body); }
 .comp-count {
   margin-top: 10px;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
 }
 
@@ -491,7 +537,7 @@ body { overflow: hidden; }
 .topics { padding-bottom: 100px; }
 .topic-group-head {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1.6px;
   color: var(--ink-faint);
@@ -537,9 +583,9 @@ body { overflow: hidden; }
 }
 .topic-card.compact:hover,
 .topic-card.compact:focus-within { background: var(--paper-2); box-shadow: var(--shadow-1); }
-.topic-card.compact h3 { font-size: 15px; margin-bottom: var(--s-1); }
+.topic-card.compact h3 { font-size: var(--f-4); margin-bottom: var(--s-1); }
 .topic-card.compact p {
-  font-size: 12.5px;
+  font-size: var(--f-2);
   margin-bottom: var(--s-3);
   /* One line of blurb. The full text is still on the card in the Menu
      directory, which is where someone comparing modules actually goes. */
@@ -564,21 +610,21 @@ body { overflow: hidden; }
 .topic-tag {
   display: inline-block;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--f-1);
   letter-spacing: 1.2px;
   text-transform: uppercase;
   color: var(--ink-faint);
 }
-.topic-card h3 { font-family: var(--serif); font-size: 17.5px; line-height: 1.3; margin-bottom: 9px; font-weight: 700; letter-spacing: -0.01em; }
-.topic-card p { font-size: 13.5px; line-height: 1.68; color: var(--ink-dim); margin-bottom: 16px; }
+.topic-card h3 { font-family: var(--serif); font-size: var(--f-5); line-height: var(--lh-tight); margin-bottom: 9px; font-weight: 700; letter-spacing: -0.01em; }
+.topic-card p { font-size: var(--f-3); line-height: var(--lh-body); color: var(--ink-dim); margin-bottom: 16px; }
 .topic-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
-.topic-prereq-line { font-size: 12px; color: var(--ink-faint); margin: -6px 0 14px; }
+.topic-prereq-line { font-size: var(--f-2); color: var(--ink-faint); margin: -6px 0 14px; }
 /* This is a real <button> now (the card itself was a div with an onclick and no
    way to reach it from the keyboard). Reset the UA button styling so it renders
    exactly as the old <span> did. */
 .topic-open {
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
   font-weight: 600;
   color: var(--accent-dark);
   background: none;
@@ -596,24 +642,24 @@ body { overflow: hidden; }
   align-items: center;
   gap: 4px;
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
 }
 .meta-time svg { width: 12px; height: 12px; flex-shrink: 0; }
 .badge {
   display: inline-block;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.4px;
   padding: 2px 7px;
   border-radius: var(--r-lg);
   border: 1px solid transparent;
 }
-.badge-ccc { background: rgba(47, 158, 68, 0.1); color: #227031; border-color: rgba(47, 158, 68, 0.25); }
-.badge-usnco { background: rgba(61, 111, 165, 0.1); color: #2c5480; border-color: rgba(61, 111, 165, 0.25); }
+.badge-ccc { background: rgba(47, 158, 68, 0.1); color: var(--green-ink); border-color: rgba(47, 158, 68, 0.25); }
+.badge-usnco { background: rgba(61, 111, 165, 0.1); color: var(--blue-ink); border-color: rgba(61, 111, 165, 0.25); }
 .badge-cco { background: var(--accent-wash); color: var(--accent-dark); border-color: rgba(232, 89, 12, 0.25); }
-.badge-icho { background: rgba(122, 90, 168, 0.1); color: #5c3f82; border-color: rgba(122, 90, 168, 0.25); }
+.badge-icho { background: rgba(122, 90, 168, 0.1); color: var(--purple-ink); border-color: rgba(122, 90, 168, 0.25); }
 
 /* ---- feature rows ---- */
 .features { display: flex; flex-direction: column; gap: 88px; padding-bottom: 108px; }
@@ -630,7 +676,7 @@ body { overflow: hidden; }
 .feature.right .feature-text { order: 2; }
 .feature.right .feature-visual { order: 1; }
 .feature-text h3 { font-family: var(--serif); font-size: clamp(1.25rem, 2vw, 1.6rem); margin-bottom: 12px; font-weight: 700; }
-.feature-text p { color: var(--ink-dim); font-size: 14.5px; line-height: 1.75; margin-bottom: 18px; }
+.feature-text p { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-loose); margin-bottom: 18px; }
 
 /* ---- footer ---- */
 .home-end {
@@ -639,7 +685,7 @@ body { overflow: hidden; }
   border-top: 1px solid var(--rule);
 }
 .home-end h2 { font-family: var(--serif); font-size: clamp(1.6rem, 2.8vw, 2.2rem); margin-bottom: 10px; }
-.home-end p { color: var(--ink-faint); margin-bottom: 26px; font-size: 14px; }
+.home-end p { color: var(--ink-faint); margin-bottom: 26px; font-size: var(--f-4); }
 
 /* ============================================================
    MENU PAGE (full topic directory)
@@ -665,7 +711,7 @@ body { overflow: hidden; }
   background: var(--paper-2);
   color: var(--ink);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--f-4);
 }
 .menu-search:focus { border-color: var(--accent); }
 
@@ -697,8 +743,8 @@ body { overflow: hidden; }
   color: var(--ink);
 }
 #brand span:not(.tile) { display: flex; flex-direction: column; line-height: 1.2; }
-#brand b { font-family: var(--serif); font-size: 16.5px; }
-#brand small { color: var(--ink-faint); font-size: 9.5px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
+#brand b { font-family: var(--serif); font-size: var(--f-4); }
+#brand small { color: var(--ink-faint); font-size: var(--f-1); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 2px; }
 #brand:hover b { color: var(--accent-dark); }
 
 #nav-items { flex: 1; padding: 8px 10px 18px; display: flex; flex-direction: column; }
@@ -709,7 +755,7 @@ body { overflow: hidden; }
   align-items: center;
   gap: 6px;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1.6px;
   color: var(--ink-faint);
@@ -724,7 +770,7 @@ body { overflow: hidden; }
 .nav-group-head:hover { color: var(--ink-dim); }
 .nav-group-name { flex: 1; }
 .nav-group-n {
-  font-size: 9.5px;
+  font-size: var(--f-1);
   letter-spacing: 0.5px;
   color: var(--ink-faint);
   background: var(--paper-2);
@@ -746,7 +792,7 @@ body { overflow: hidden; }
 .nav-group-items { display: flex; flex-direction: column; }
 .nav-item {
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--f-3);
   font-weight: 500;
   text-align: left;
   color: var(--ink-dim);
@@ -762,7 +808,7 @@ body { overflow: hidden; }
 #menu-link {
   margin: 12px 14px 0;
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--f-2);
   font-weight: 600;
   text-align: left;
   color: var(--ink);
@@ -780,6 +826,23 @@ body { overflow: hidden; }
   border-left-color: var(--accent);
   font-weight: 600;
 }
+/* Had no rule at all, so it rendered in the UA's Arial 13.333px — the one
+   control on the site that never inherited the app's font. */
+#progress-link {
+  margin: 12px 14px 0;
+  font: inherit;
+  font-size: var(--f-2);
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink-dim);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: border-color var(--t), color var(--t);
+}
+#progress-link:hover { border-color: var(--accent); color: var(--ink); }
 #progress-panel {
   border-top: 1px solid var(--rule);
   padding: 12px 14px;
@@ -787,10 +850,10 @@ body { overflow: hidden; }
   flex-direction: column;
   gap: 7px;
 }
-#progress-panel .pp-count { font-size: 13px; color: var(--ink-dim); }
-#progress-panel .pp-count b { font-family: var(--mono); color: var(--accent-dark); font-size: 15px; }
-#progress-panel .pp-note { font-size: 11px; color: var(--ink-faint); line-height: 1.4; }
-#progress-panel .pp-msg { font-size: 11px; color: var(--accent-dark); line-height: 1.4; }
+#progress-panel .pp-count { font-size: var(--f-3); color: var(--ink-dim); }
+#progress-panel .pp-count b { font-family: var(--mono); color: var(--accent-dark); font-size: var(--f-4); }
+#progress-panel .pp-note { font-size: var(--f-1); color: var(--ink-faint); line-height: var(--lh-ui); }
+#progress-panel .pp-msg { font-size: var(--f-1); color: var(--accent-dark); line-height: var(--lh-ui); }
 #progress-panel input {
   background: var(--paper-2);
   color: var(--ink);
@@ -798,12 +861,12 @@ body { overflow: hidden; }
   border-radius: var(--r-sm);
   padding: 6px 8px;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--f-2);
 }
 #progress-panel input:focus { border-color: var(--accent); }
 #progress-panel .pp-btn {
   font: inherit;
-  font-size: 12px;
+  font-size: var(--f-2);
   font-weight: 500;
   padding: 6px 10px;
   border-radius: var(--r-sm);
@@ -815,11 +878,11 @@ body { overflow: hidden; }
 #progress-panel .pp-btn:hover { border-color: var(--accent); }
 
 .solved-tag {
-  font-size: 11px;
+  font-size: var(--f-1);
   font-weight: 600;
   /* --green on its own 10% wash is 2.82:1; this is the darker green already
      used by .quiz-opt.correct, at 5.01:1 */
-  color: #227031;
+  color: var(--green-ink);
   background: rgba(47, 158, 68, 0.1);
   border-radius: var(--r-md);
   padding: 1px 8px;
@@ -829,7 +892,7 @@ body { overflow: hidden; }
 
 #home-link {
   font: inherit;
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--ink-faint);
   background: none;
   border: none;
@@ -843,7 +906,7 @@ body { overflow: hidden; }
    is an escape hatch, not a call to action. */
 #feedback-link {
   font: inherit;
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--ink-faint);
   background: none;
   border: none;
@@ -870,19 +933,19 @@ body { overflow: hidden; }
 #feedback-dialog::backdrop { background: rgb(0 0 0 / 0.4); }
 .feedback-form { display: flex; flex-direction: column; gap: var(--s-3); padding: var(--s-5); }
 .feedback-form h2 { font-family: var(--serif); margin: 0; }
-.feedback-form label { font-size: 13px; font-weight: 600; }
+.feedback-form label { font-size: var(--f-3); font-weight: 600; }
 .feedback-form textarea {
   font: inherit;
-  font-size: 14px;
+  font-size: var(--f-4);
   padding: var(--s-3);
   border: 1px solid var(--rule);
   border-radius: var(--r-sm);
-  background: #fff;
+  background: var(--on-accent);
   color: var(--ink);
   resize: vertical;
 }
-.feedback-note { font-size: 12px; color: var(--ink-faint); margin: 0; line-height: 1.5; }
-.feedback-status { font-size: 13px; margin: 0; min-height: 1.2em; color: var(--accent-dark); }
+.feedback-note { font-size: var(--f-2); color: var(--ink-faint); margin: 0; line-height: var(--lh-body); }
+.feedback-status { font-size: var(--f-3); margin: 0; min-height: 1.2em; color: var(--accent-dark); }
 .feedback-actions { display: flex; gap: var(--s-2); justify-content: flex-end; }
 
 /* Helpful / not helpful, under every graded explanation (I.2). */
@@ -894,12 +957,12 @@ body { overflow: hidden; }
   margin-top: var(--s-4);
   padding-top: var(--s-3);
   border-top: 1px solid var(--rule);
-  font-size: 12px;
+  font-size: var(--f-2);
 }
 .helpful-q { color: var(--ink-faint); }
 .helpful-btn {
   font: inherit;
-  font-size: 12px;
+  font-size: var(--f-2);
   padding: 3px 10px;
   border: 1px solid var(--rule);
   border-radius: var(--r-pill);
@@ -912,25 +975,41 @@ body { overflow: hidden; }
 
 #app-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--paper); }
 
-#topic-crumb {
+/* The two chrome bands are one row (see index.html): breadcrumb left, prereq
+   chips right, wrapping under each other only when there isn't room. Was 90px
+   of half-empty rule before the lesson started; now ~45. */
+#topic-chrome {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-5);
+  padding: var(--s-2) 32px;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--f-2);
+}
+/* the wrapper always has its two children, so :empty can't see it — the row
+   is gone whenever the breadcrumb is (menu, home, /today). */
+#topic-chrome:has(> #topic-crumb:empty) { display: none; }
+#topic-crumb {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 14px 32px;
-  border-bottom: 1px solid var(--rule);
-  font-size: 12.5px;
 }
 #topic-crumb:empty { display: none; }
 .crumb-link {
-  font: inherit;
-  font-size: 12.5px;
+  font-size: var(--f-2);
+  line-height: var(--lh-ui);
   color: var(--ink-faint);
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  /* the hit area is 33px, the row still measures what it did: padding out,
+     margin back in. The text box alone was 15px. */
+  padding: 8px 4px;
+  margin: -8px -4px;
 }
 .crumb-link:hover { color: var(--accent-dark); text-decoration: underline; }
 /* The trail is a real <nav aria-label="Breadcrumb"> > <ol>; the "/" separators
@@ -945,21 +1024,19 @@ body { overflow: hidden; }
 .crumb-meta { display: inline-flex; align-items: center; gap: 7px; margin-left: 12px; }
 
 #topic-prereq {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 10px 32px;
-  background: var(--paper-3);
-  border-bottom: 1px solid var(--rule);
-  font-size: 12.5px;
+  margin-left: auto;
 }
 #topic-prereq:empty { display: none; }
-.prereq-label { color: var(--ink-faint); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.6px; }
+.prereq-label { color: var(--ink-faint); font-size: var(--f-1); text-transform: uppercase; letter-spacing: 0.6px; }
 .prereq-chip {
-  font: inherit;
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;   /* was 22 — this is a link out of the lesson */
+  font-size: var(--f-2);
   font-weight: 500;
   color: var(--accent-dark);
   background: var(--paper-2);
@@ -987,13 +1064,13 @@ body { overflow: hidden; }
 }
 .notfound-kicker {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   font-weight: 700;
   letter-spacing: 0.12em;
   color: var(--accent-dark);
 }
 .notfound-view h1 { font-family: var(--serif); font-size: clamp(32px, 5vw, 50px); line-height: 1.05; }
-.notfound-copy { max-width: 620px; color: var(--ink-dim); font-size: 16px; line-height: 1.6; }
+.notfound-copy { max-width: 620px; color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-body); }
 .notfound-path {
   color: var(--ink);
   background: var(--paper-3);
@@ -1003,7 +1080,7 @@ body { overflow: hidden; }
   overflow-wrap: anywhere;
 }
 .notfound-suggestions { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-.notfound-suggestions h2 { font-family: var(--serif); font-size: 20px; }
+.notfound-suggestions h2 { font-family: var(--serif); font-size: var(--f-5); }
 .notfound-topic, .notfound-primary, .notfound-secondary {
   font: inherit;
   font-weight: 600;
@@ -1037,7 +1114,7 @@ body { overflow: hidden; }
 #topic-footer:empty { display: none; }
 .topic-prev-btn {
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
   font-weight: 500;
   color: var(--ink-dim);
   background: none;
@@ -1068,8 +1145,8 @@ body { overflow: hidden; }
 /* One wrapping ROW, not a four-row stack: this footer never scrolls away, so
    every pixel it takes is taken from the lesson for the whole session. */
 .next-lesson-body { display: flex; flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 2px 8px; }
-.next-lesson-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink-faint); }
-.next-lesson-title { font-family: var(--serif); font-size: 14.5px; font-weight: 700; color: var(--ink); }
+.next-lesson-label { font-size: var(--f-1); text-transform: uppercase; letter-spacing: 0.8px; color: var(--ink-faint); }
+.next-lesson-title { font-family: var(--serif); font-size: var(--f-4); font-weight: 700; color: var(--ink); }
 .next-lesson-meta { display: flex; align-items: center; gap: 6px; }
 .next-lesson-arrow { width: 16px; height: 16px; color: var(--ink-faint); flex-shrink: 0; }
 .next-lesson-arrow svg { width: 100%; height: 100%; }
@@ -1080,6 +1157,7 @@ body { overflow: hidden; }
   padding: 28px 32px 60px;
   animation: fadeUp 0.2s ease-out;
 }
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: none; }
@@ -1088,7 +1166,7 @@ body { overflow: hidden; }
 /* ============================================================
    SANDBOX — stays a dark instrument, scoped
    ============================================================ */
-.tab-root.sandbox-root { padding: 0; overflow: hidden; animation: none; background: #0e1116; color: #d7dee8; }
+.tab-root.sandbox-root { padding: 0; overflow: hidden; animation: none; background: var(--panel-3); color: var(--panel-text); }
 .sandbox-wrap { display: flex; height: 100%; }
 #stage { flex: 1; min-width: 0; }
 #sidebar {
@@ -1097,6 +1175,8 @@ body { overflow: hidden; }
   height: 100%;
   overflow-y: auto;
   padding: 10px;
+  /* #141922/#242e40: the sandbox's own side panel — one step off --panel-3,
+     so the census reads as a separate instrument from the canvas. */
   border-left: 1px solid #242e40;
   background: #141922;
   display: flex;
@@ -1104,22 +1184,26 @@ body { overflow: hidden; }
   gap: 12px;
 }
 /* #71809a was 4.41:1 on the sandbox sidebar — a shade lighter clears AA */
-#census h2 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; color: #7686a0; margin-bottom: 6px; }
-#census table { border-collapse: collapse; width: 100%; font-size: 13px; font-family: var(--mono); }
+#census h2 { font-size: var(--f-1); text-transform: uppercase; letter-spacing: 1.4px; color: #7686a0; margin-bottom: 6px; }
+#census table { border-collapse: collapse; width: 100%; font-size: var(--f-3); font-family: var(--mono); }
 #census td { padding: 2px 6px 2px 0; vertical-align: top; }
+/* #a6b2c3: one step lighter than --panel-dim, for secondary text on the
+   sandbox's own darker ground; #7686a0 is its heading weight. */
 #census td:last-child { color: #a6b2c3; font-family: var(--sans); }
 #census .muted { margin-top: 8px; color: #7686a0; }
 #concept {
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: var(--f-3);
+  line-height: var(--lh-body);
   padding: 12px;
+  /* #1c1712/#3d3324/#d8c8b2: the one WARM dark block on the site — the concept
+     readout, deliberately paper-tinted so it reads as annotation, not canvas. */
   border: 1px solid #3d3324;
   border-radius: var(--r-md);
   background: #1c1712;
   color: #d8c8b2;
 }
 #concept:empty { display: none; }
-#concept strong { color: #ff8b3d; }
+#concept strong { color: var(--accent-on-panel); }
 
 /* ============================================================
    TOPIC TAB COMPONENTS
@@ -1134,13 +1218,56 @@ body { overflow: hidden; }
 }
 .topic-intro p {
   max-width: 70ch;
-  font-size: 15.5px;
-  line-height: 1.75;
+  font-size: var(--f-4);
+  line-height: var(--lh-loose);
   color: var(--ink-dim);
   border-left: 2px solid var(--accent);
   padding-left: 16px;
 }
 .topic-intro b { color: var(--ink); font-weight: 650; }
+/* The overview's contents list. auto-fill, so it uses whatever width the window
+   gives it — one column on a phone, four on a full-screen desktop — which is
+   what stops a topic's first page from being one paragraph in an empty room. */
+.topic-intro h3 {
+  font-family: var(--serif);
+  font-size: var(--f-5);
+  margin: var(--s-6) 0 var(--s-3);
+}
+.toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--s-2);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--s-5);
+  /* starts at 2: the overview itself is section 1, and these numbers have to
+     agree with the "Section n of m" in the footer. */
+  counter-reset: toc 1;
+}
+.toc li { counter-increment: toc; display: flex; }
+.toc-link {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: 1;
+  min-height: 44px;
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--f-3);
+  color: var(--ink);
+  text-decoration: none;
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  transition: border-color var(--t), color var(--t);
+}
+.toc-link::before {
+  content: counter(toc);
+  font-family: var(--mono);
+  font-size: var(--f-1);
+  color: var(--ink-faint);
+  flex: none;
+}
+.toc-link:hover { border-color: var(--accent); color: var(--accent-dark); }
 
 /* A pill group is a full-width block inside the flex-wrap simulation row, not
    a card sitting beside another card. */
@@ -1148,7 +1275,7 @@ body { overflow: hidden; }
 
 /* Reset sits on the card's title rule, right-aligned against it. */
 .card.has-reset > h2 { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.card-reset { font-size: 11.5px; padding: 3px 11px; flex: none; }
+.card-reset { font-size: var(--f-1); padding: 3px 11px; flex: none; }
 
 /* Play/pause sits above the canvas it controls, not in the control stack —
    it governs the whole simulation rather than one parameter of it. */
@@ -1165,7 +1292,7 @@ body { overflow: hidden; }
   border-top: 1px solid var(--paper-3);
 }
 .qbank-filter-label {
-  font-size: 11px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1.3px;
   color: var(--ink-faint);
@@ -1184,7 +1311,7 @@ body { overflow: hidden; }
 .browse-row:last-child { border-bottom: none; }
 .browse-topic {
   font: inherit;
-  font-size: 14px;
+  font-size: var(--f-4);
   font-weight: 600;
   color: var(--ink);
   background: none;
@@ -1195,11 +1322,11 @@ body { overflow: hidden; }
   flex: 1 1 190px;
 }
 .browse-topic:hover { color: var(--accent-dark); }
-.browse-count { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+.browse-count { font-family: var(--mono); font-size: var(--f-1); color: var(--ink-faint); }
 .browse-tiers { display: flex; gap: var(--s-1); flex-wrap: wrap; }
 .browse-tier {
   font: inherit;
-  font-size: 11px;
+  font-size: var(--f-1);
   font-weight: 650;
   padding: 3px 9px;
   border-radius: var(--r-pill);
@@ -1246,7 +1373,7 @@ body { overflow: hidden; }
   /* D.7 asks for larger section titles: 17 -> 19px. The card title is the only
      thing naming what a simulation IS, and at 17px it sat below the body copy
      of the paragraph under it in visual weight. */
-  font-size: 19px;
+  font-size: var(--f-5);
   font-weight: 700;
   letter-spacing: -0.01em;
   margin-bottom: var(--s-4);
@@ -1255,8 +1382,8 @@ body { overflow: hidden; }
      title than the content below it deserved */
   border-bottom: 1px solid var(--paper-3);
 }
-.card h3 { font-size: 13px; font-weight: 650; color: var(--accent-dark); margin: 18px 0 7px; }
-.card p, .card li { font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
+.card h3 { font-size: var(--f-3); font-weight: 650; color: var(--accent-dark); margin: 18px 0 7px; }
+.card p, .card li { font-size: var(--f-4); line-height: var(--lh-body); color: var(--ink-dim); }
 .card ul, .card ol { padding-left: 20px; margin: 4px 0; }
 .card canvas, .card svg {
   background: var(--panel);
@@ -1292,21 +1419,21 @@ body { overflow: hidden; }
 .tab-loading-bar:nth-child(3) { width: 80%; }
 @keyframes tab-loading-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 
-.tab-error h2 { font-family: var(--serif); font-size: 24px; margin-bottom: 12px; }
-.tab-error-message { color: var(--ink-dim); font-family: var(--mono); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+.tab-error h2 { font-family: var(--serif); font-size: var(--f-6); margin-bottom: 12px; }
+.tab-error-message { color: var(--ink-dim); font-family: var(--mono); font-size: var(--f-3); line-height: var(--lh-body); overflow-wrap: anywhere; }
 .tab-error-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 22px; }
 .tab-error-menu-link { color: var(--accent-dark); font-weight: 600; }
 .tab-error-menu-link:hover { color: var(--accent-darker); }
 
 /* ---- controls ---- */
-.ctl { display: flex; align-items: center; gap: 10px; margin: 9px 0; font-size: 13px; }
-.ctl-label { color: var(--ink-dim); min-width: 120px; font-size: 12.5px; }
+.ctl { display: flex; align-items: center; gap: 10px; margin: 9px 0; font-size: var(--f-3); }
+.ctl-label { color: var(--ink-dim); min-width: 120px; font-size: var(--f-2); }
 .ctl-val {
   color: var(--accent-dark);
   min-width: 72px;
   text-align: right;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1358,7 +1485,7 @@ body { overflow: hidden; }
   border-radius: var(--r-sm);
   padding: 7px 10px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
   flex: 1;
   transition: border-color var(--t);
 }
@@ -1372,7 +1499,11 @@ body { overflow: hidden; }
   border-radius: var(--r-sm);
   padding: 7px 14px;
   font: inherit;
-  font-size: 13px;
+  /* addReset() appends .card-reset inside the card's <h2>, so `font: inherit`
+     alone gave a UI control the heading's serif. A button is always sans. */
+  font-family: var(--sans);
+  font-size: var(--f-3);
+  line-height: var(--lh-ui);
   font-weight: 500;
   cursor: pointer;
   margin: 2px;
@@ -1382,7 +1513,7 @@ body { overflow: hidden; }
 .btn.primary {
   background: var(--accent-dark); /* white label needs 4.5:1 — see .btn-hero */
   border-color: var(--accent-darker);
-  color: #fff;
+  color: var(--on-accent);
 }
 .btn.primary:hover { background: var(--accent-darker); }
 /* The third weight, under .btn and .btn.primary.
@@ -1404,7 +1535,22 @@ body { overflow: hidden; }
   color: var(--accent-dark);
 }
 
-.pill-bar, .section-steps { display: flex; gap: 8px; margin: 0 auto 18px; flex-wrap: wrap; max-width: 1480px; }
+.pill-bar { display: flex; gap: 8px; margin: 0 auto 18px; flex-wrap: wrap; max-width: 1480px; }
+/* One row at EVERY width. A 13-section topic wrapped to two rows on desktop
+   (109px of stepper before the lesson); the scrolling row the mobile layout
+   already used behaves the same everywhere. The current pill scrolls itself
+   into view — that logic is width-agnostic. */
+.section-steps {
+  display: flex;
+  gap: 8px;
+  margin: 0 auto 18px;
+  max-width: 1480px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.section-steps::-webkit-scrollbar { display: none; }
+.section-steps .pill { white-space: nowrap; flex: 0 0 auto; }
 /* The stepper's pills are real links (crawlable, cmd-clickable), not buttons. */
 a.pill { text-decoration: none; display: inline-block; }
 
@@ -1428,13 +1574,18 @@ a.pill { text-decoration: none; display: inline-block; }
   border: 1px solid var(--rule-2);
   border-radius: var(--r-md);
   padding: var(--s-2) var(--s-4);
-  max-width: 42%;
+  /* Equal basis, so a one-word title ("Ksp") does not get a button a third the
+     width of its neighbour — but CAPPED, or on a full-width window the pair
+     stretches to 645px each and the footer becomes two mostly-empty slabs. */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 340px;
   transition: border-color var(--t), color var(--t);
 }
 .section-step.next { text-align: right; }
 .section-step:hover { border-color: var(--accent); color: var(--accent-dark); }
 .section-step-label {
-  font-size: 11px;
+  font-size: var(--f-1);
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--ink-dim);
@@ -1443,7 +1594,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .section-step-blank { flex: 0 1 auto; }
 .section-pos {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--ink-dim);
   white-space: nowrap;
 }
@@ -1454,10 +1605,10 @@ a.pill { text-decoration: none; display: inline-block; }
   border-radius: var(--r-lg);
   padding: 7px 17px;
   font: inherit;
-  font-size: 13px;
+  font-size: var(--f-3);
   font-weight: 500;
   cursor: pointer;
-  transition: all var(--t);
+  transition: color var(--t), background var(--t), border-color var(--t);
 }
 .pill:hover { color: var(--ink); border-color: var(--ink); }
 .pill.active {
@@ -1479,7 +1630,7 @@ a.pill { text-decoration: none; display: inline-block; }
   cursor: pointer;
   padding: 12px 16px;
   font-family: var(--serif);
-  font-size: 15px;
+  font-size: var(--f-4);
   font-weight: 700;
   color: var(--ink);
   user-select: none;
@@ -1488,18 +1639,18 @@ a.pill { text-decoration: none; display: inline-block; }
   align-items: center;
   gap: 9px;
 }
-.theory summary::before { content: '▸'; transition: transform var(--t); font-size: 11px; color: var(--accent); }
+.theory summary::before { content: '▸'; transition: transform var(--t); font-size: var(--f-1); color: var(--accent); }
 .theory[open] summary::before { transform: rotate(90deg); }
-.theory > div { padding: 2px 20px 18px; font-size: 14px; line-height: 1.7; color: var(--ink-dim); }
+.theory > div { padding: 2px 20px 18px; font-size: var(--f-4); line-height: var(--lh-body); color: var(--ink-dim); }
 .theory h4 {
   color: var(--ink);
-  font-size: 11.5px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1.3px;
   margin: 16px 0 6px;
   font-weight: 700;
 }
-.theory table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+.theory table { border-collapse: collapse; margin: 8px 0; font-size: var(--f-3); }
 .theory td, .theory th { border: 1px solid var(--rule); padding: 5px 11px; text-align: left; }
 .theory th { color: var(--ink-dim); background: var(--paper-3); }
 /* ONE equation block, defined once (D.7). It used to be written twice — in
@@ -1511,7 +1662,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .eq {
   display: block;
   font-family: var(--mono);
-  font-size: 13.5px;
+  font-size: var(--f-3);
   padding: var(--s-2) var(--s-3);
   margin: var(--s-2) 0;
   border-left: 3px solid var(--accent);
@@ -1541,7 +1692,7 @@ a.pill { text-decoration: none; display: inline-block; }
   flex-wrap: wrap;
 }
 .mission-page-label {
-  font-size: 10px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1550,8 +1701,8 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .mission-page-btn {
   padding: 1px 9px;
-  font-size: 15px;
-  line-height: 1.3;
+  font-size: var(--f-4);
+  line-height: var(--lh-tight);
   min-width: 28px;
 }
 .mission-page-btn:disabled { opacity: 0.3; cursor: default; }
@@ -1563,6 +1714,7 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .mission-dots { display: flex; gap: 5px; margin-left: auto; }
 .mission-dot {
+  font: inherit;
   width: 9px;
   height: 9px;
   padding: 0;
@@ -1595,10 +1747,10 @@ a.pill { text-decoration: none; display: inline-block; }
    .quiz-opt.correct rather than introducing a second green. */
 .mission-strip.mission-active { background: var(--accent-wash); }
 .mission-strip.mission-solved { border-left-color: var(--green); background: rgba(47, 158, 68, 0.06); }
-.mission-prompt { font-size: 13.5px; line-height: 1.55; margin-bottom: 8px; }
+.mission-prompt { font-size: var(--f-3); line-height: var(--lh-body); margin-bottom: 8px; }
 .mission-badge {
   display: inline-block;
-  font-size: 10px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1621,13 +1773,14 @@ a.pill { text-decoration: none; display: inline-block; }
 .mission-meter-fill {
   height: 100%;
   width: 0;
-  background: linear-gradient(90deg, var(--accent), #e8590c);
+  /* was a gradient from var(--accent) to #e8590c — the same colour twice */
+  background: var(--accent);
   border-radius: var(--r-sm);
   transition: width var(--t) ease-out;
 }
-.mission-meter-label { display: block; font-size: 11px; color: var(--ink-faint); margin-top: 4px; font-family: var(--mono); }
+.mission-meter-label { display: block; font-size: var(--f-1); color: var(--ink-faint); margin-top: 4px; font-family: var(--mono); }
 .mission-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.mission-actions .btn { font-size: 12px; padding: 5px 10px; }
+.mission-actions .btn { font-size: var(--f-2); padding: 5px 10px; }
 .mission-choices { display: flex; flex-wrap: wrap; gap: 6px; }
 .mission-num-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
 .mission-num {
@@ -1636,19 +1789,19 @@ a.pill { text-decoration: none; display: inline-block; }
   border: 1px solid var(--rule-2);
   border-radius: var(--r-sm);
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: var(--f-3);
 }
 .mission-hint {
   margin-top: 8px;
   padding: 8px 10px;
   background: var(--paper-3);
   border-radius: var(--r-sm);
-  font-size: 12.5px;
+  font-size: var(--f-2);
   color: var(--ink-dim);
 }
 .mission-hint[hidden], .mission-success[hidden] { display: none !important; }
 .mission-hint p { margin: 4px 0; }
-.mission-feedback { font-size: 12px; color: var(--accent-dark); margin-top: 6px; min-height: 0; }
+.mission-feedback { font-size: var(--f-2); color: var(--accent-dark); margin-top: 6px; min-height: 0; }
 .mission-success {
   display: flex;
   align-items: flex-start;
@@ -1658,9 +1811,9 @@ a.pill { text-decoration: none; display: inline-block; }
   background: rgba(47, 158, 68, 0.07);
   border: 1px solid rgba(47, 158, 68, 0.35);
   border-radius: var(--r-sm);
-  font-size: 13px;
-  line-height: 1.55;
-  color: #245c31;
+  font-size: var(--f-3);
+  line-height: var(--lh-body);
+  color: var(--green-ink);
 }
 .mission-icon { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
 @keyframes mission-shake {
@@ -1681,10 +1834,10 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .challenge-tier.challenge-locked { opacity: 0.5; }
 .challenge-tier.challenge-done { border-left-color: var(--green); background: rgba(47, 158, 68, 0.06); }
-.challenge-tier h4 { font-size: 13.5px; margin: 0 0 8px; }
+.challenge-tier h4 { font-size: var(--f-3); margin: 0 0 8px; }
 .challenge-badge {
   display: inline-block;
-  font-size: 10px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1694,30 +1847,33 @@ a.pill { text-decoration: none; display: inline-block; }
   vertical-align: middle;
   border: 1px solid var(--rule);
 }
-.challenge-tier.tier-bronze .challenge-badge { background: rgba(47, 158, 68, 0.1); color: #227031; border-color: rgba(47, 158, 68, 0.25); }
-.challenge-tier.tier-silver .challenge-badge { background: rgba(61, 111, 165, 0.1); color: #2c5480; border-color: rgba(61, 111, 165, 0.25); }
+.challenge-tier.tier-bronze .challenge-badge { background: rgba(47, 158, 68, 0.1); color: var(--green-ink); border-color: rgba(47, 158, 68, 0.25); }
+.challenge-tier.tier-silver .challenge-badge { background: rgba(61, 111, 165, 0.1); color: var(--blue-ink); border-color: rgba(61, 111, 165, 0.25); }
 .challenge-tier.tier-gold .challenge-badge { background: var(--accent-wash); color: var(--accent-dark); border-color: rgba(232, 89, 12, 0.25); }
-.challenge-tier.tier-platinum .challenge-badge { background: rgba(122, 90, 168, 0.1); color: #5c3f82; border-color: rgba(122, 90, 168, 0.25); }
+.challenge-tier.tier-platinum .challenge-badge { background: rgba(122, 90, 168, 0.1); color: var(--purple-ink); border-color: rgba(122, 90, 168, 0.25); }
 .challenge-frq { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
 .challenge-frq:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-.sandbox-root .challenge-tier { background: #1a2030; border-color: #2a3546; color: #d7dee8; }
-.sandbox-root .challenge-tier.challenge-done { background: #16241b; border-left-color: #4caf6d; }
+/* #1a2030: raised surface on the sandbox ground (--panel-3). */
+.sandbox-root .challenge-tier { background: #1a2030; border-color: var(--panel-border-2); color: var(--panel-text); }
+.sandbox-root .challenge-tier.challenge-done { background: var(--panel-ok-wash); border-left-color: var(--panel-ok); }
 
 /* The sandbox is scoped dark, so the paper-coloured strip is restyled for the
    instrument panel rather than punching a light card into it. */
-.sandbox-root .mission-strip { background: #1a2030; border-color: #2a3546; color: #d7dee8; }
+.sandbox-root .mission-strip { background: #1a2030; border-color: var(--panel-border-2); color: var(--panel-text); }
+/* #211d1c: the dark counterpart of --accent-wash. */
 .sandbox-root .mission-strip.mission-active { background: #211d1c; }
-.sandbox-root .mission-strip.mission-solved { background: #16241b; border-left-color: #4caf6d; }
-.sandbox-root .mission-badge { background: #0e1116; border-color: #2a3546; color: var(--accent-on-panel); }
-.sandbox-root .mission-meter-track { background: #2a3546; }
+.sandbox-root .mission-strip.mission-solved { background: var(--panel-ok-wash); border-left-color: var(--panel-ok); }
+.sandbox-root .mission-badge { background: var(--panel-3); border-color: var(--panel-border-2); color: var(--accent-on-panel); }
+.sandbox-root .mission-meter-track { background: var(--panel-border-2); }
 .sandbox-root .mission-meter-label, .sandbox-root .mission-hint { color: #a6b2c3; }
-.sandbox-root .mission-hint { background: #0e1116; }
-.sandbox-root .mission-success { background: #16241b; border-color: #2f5d3f; color: #9fdcb4; }
+.sandbox-root .mission-hint { background: var(--panel-3); }
+/* #2f5d3f / #9fdcb4: the border and text weights of --panel-ok-wash. */
+.sandbox-root .mission-success { background: var(--panel-ok-wash); border-color: #2f5d3f; color: #9fdcb4; }
 .sandbox-root .mission-feedback { color: var(--accent-on-panel); }
 .sandbox-root .mission-actions .btn {
-  background: #0e1116;
-  border-color: #2a3546;
-  color: #d7dee8;
+  background: var(--panel-3);
+  border-color: var(--panel-border-2);
+  color: var(--panel-text);
 }
 .sandbox-root .mission-actions .btn:hover:not(:disabled) { border-color: var(--accent-on-panel); }
 
@@ -1728,12 +1884,15 @@ a.pill { text-decoration: none; display: inline-block; }
   gap: 8px;
   margin-top: 10px;
   padding: 10px 12px;
+  /* #eef3f8/#c5d4e4: the misconception note's wash and border — the blue
+     equivalent of --accent-wash, which has no token because nothing else
+     uses it. */
   background: #eef3f8;
   border: 1px solid #c5d4e4;
-  border-left: 3px solid #4a7ab0;
+  border-left: 3px solid var(--panel-info);
   border-radius: 0 7px 7px 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--f-3);
+  line-height: var(--lh-body);
   color: var(--ink);
 }
 .quiz-why .misconception { margin-top: 12px; }
@@ -1742,21 +1901,23 @@ a.pill { text-decoration: none; display: inline-block; }
 .btn.why2-btn {
   display: block;
   margin-top: var(--s-3);
-  font-size: 12.5px;
+  font-size: var(--f-2);
   padding: 5px 11px;
 }
 .why2 {
   margin-top: var(--s-3);
   padding: var(--s-3) var(--s-4);
+  /* #f6f1e8: half a step below --paper, so the "why" block sits INTO the
+     page rather than on top of it like a --paper-2 card. */
   background: #f6f1e8;
   border: 1px solid var(--rule);
   border-left: 3px solid var(--accent);
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--f-3);
+  line-height: var(--lh-body);
   color: var(--ink);
 }
-.miscon-icon { width: 16px; height: 16px; flex-shrink: 0; color: #4a7ab0; margin-top: 2px; }
+.miscon-icon { width: 16px; height: 16px; flex-shrink: 0; color: var(--panel-info); margin-top: 2px; }
 
 /* ---- results: dark instrument readouts ---- */
 .result {
@@ -1765,8 +1926,8 @@ a.pill { text-decoration: none; display: inline-block; }
   border-radius: var(--r-md);
   padding: 13px 15px;
   margin-top: 10px;
-  font-size: 13.5px;
-  line-height: 1.7;
+  font-size: var(--f-3);
+  line-height: var(--lh-body);
   color: var(--panel-text);
   font-variant-numeric: tabular-nums;
 }
@@ -1788,10 +1949,10 @@ a.pill { text-decoration: none; display: inline-block; }
 .result:not(:has(.big)) > b:first-of-type {
   display: block;
   font-family: var(--mono);
-  font-size: 21px;
+  font-size: var(--f-5);
   font-weight: 500;
-  line-height: 1.35;
-  color: #ffffff;
+  line-height: var(--lh-tight);
+  color: var(--on-accent);
 }
 /* At most one semantic colour at a time. A readout that already has its
    headline number does not also get an accent trap line or a blue equation —
@@ -1799,27 +1960,28 @@ a.pill { text-decoration: none; display: inline-block; }
 .result:has(.big) .trap,
 .result:has(.big) .eq { color: var(--panel-text); }
 
-.big { font-size: 16.5px; color: var(--accent-on-panel); font-family: var(--mono); }
+.big { font-size: var(--f-4); color: var(--accent-on-panel); font-family: var(--mono); }
 
 /* .muted is used BOTH as body copy on a card (light) and inside a .result
    readout (dark). #869097 is 5.68:1 on --panel but only 2.97:1 on --paper, so
    the base value is the light-surface one and the dark panels override it. */
-.muted { color: var(--ink-faint); font-size: 12px; }
+.muted { color: var(--ink-faint); font-size: var(--f-2); }
 .result .muted, .figure .muted { color: #869097; }
 /* likewise .trap: --accent-dark is 4.82:1 on paper but 3.49:1 on a panel */
 .result .trap { color: var(--accent-on-panel); }
 .result .eq {
   background: var(--panel-2);
+  /* #9fc5e8: equations on a panel — --blue re-mixed for the dark ground. */
   border-left-color: var(--accent-on-panel);
   color: #9fc5e8;
 }
 
-.ref-table { border-collapse: collapse; font-size: 13px; width: 100%; margin-top: 6px; }
+.ref-table { border-collapse: collapse; font-size: var(--f-3); width: 100%; margin-top: 6px; }
 .ref-table td, .ref-table th { border: 1px solid var(--rule); padding: 5px 10px; }
 .ref-table th {
   color: var(--ink-dim);
   background: var(--paper-3);
-  font-size: 11px;
+  font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
@@ -1840,6 +2002,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .table-scroll > .ref-table { width: max-content; }
 /* tables that appear INSIDE dark readouts */
 .result .ref-table td, .result .ref-table th { border-color: var(--panel-border); }
+/* #9aa4b0: table-header grey on --panel-2, a touch brighter than --panel-dim. */
 .result .ref-table th { background: var(--panel-2); color: #9aa4b0; }
 .result .ref-table tr:hover td { background: var(--panel-2); }
 
@@ -1849,10 +2012,10 @@ a.pill { text-decoration: none; display: inline-block; }
 .oly-year-label { font-family: var(--mono, monospace); font-weight: 700; color: var(--ink); min-width: 3.2em; }
 .oly-links { display: flex; flex-wrap: wrap; gap: 8px; }
 .oly-link {
-  display: inline-block; font-size: 12.5px; padding: 3px 10px; border-radius: var(--r-pill);
+  display: inline-block; font-size: var(--f-2); padding: 3px 10px; border-radius: var(--r-pill);
   border: 1px solid var(--rule); color: var(--accent-dark); text-decoration: none; white-space: nowrap;
 }
-.oly-link:hover { background: var(--accent-dark); color: #fff; border-color: var(--accent-dark); }
+.oly-link:hover { background: var(--accent-dark); color: var(--on-accent); border-color: var(--accent-dark); }
 
 .swatch {
   display: inline-block;
@@ -1865,8 +2028,8 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 
 .bars { display: flex; flex-direction: column; gap: 7px; margin-top: 10px; }
-.bar-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.bar-label { min-width: 90px; color: var(--ink-dim); text-align: right; font-family: var(--mono); font-size: 12px; }
+.bar-row { display: flex; align-items: center; gap: 10px; font-size: var(--f-3); }
+.bar-label { min-width: 90px; color: var(--ink-dim); text-align: right; font-family: var(--mono); font-size: var(--f-2); }
 .bar-track {
   flex: 1;
   background: var(--paper-3);
@@ -1880,18 +2043,18 @@ a.pill { text-decoration: none; display: inline-block; }
    changing (a mission meter filling), not a hover state. At 150 ms the fill is
    a jump; the extra time is what makes the direction of change readable. */
 .bar-fill { height: 100%; border-radius: var(--r-sm); transition: width 0.3s ease; }
-.bar-val { min-width: 100px; font-family: var(--mono); font-size: 12px; color: var(--ink-dim); }
+.bar-val { min-width: 100px; font-family: var(--mono); font-size: var(--f-2); color: var(--ink-dim); }
 
 /* ---- quiz ---- */
 .quiz-progress {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 9px;
 }
-.quiz-q { font-size: 14.5px; font-weight: 600; line-height: 1.55; color: var(--ink); margin-bottom: 13px; }
+.quiz-q { font-size: var(--f-4); font-weight: 600; line-height: var(--lh-body); color: var(--ink); margin-bottom: 13px; }
 /* ============================================================
    Continue block (homepage hero + /today) and the sidebar
    mastery strip. Both are "where was I" surfaces. The Continue
@@ -1909,7 +2072,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .continue-eyebrow {
   margin: 0 0 var(--s-2);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -1919,7 +2082,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .continue-title {
   margin: 0 0 var(--s-1);
   font-family: var(--serif);
-  font-size: 25px;
+  font-size: var(--f-6);
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -1928,16 +2091,16 @@ a.pill { text-decoration: none; display: inline-block; }
    to press the button, so it reads as a sentence. */
 .continue-step {
   margin: 0 0 var(--s-3);
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: var(--f-4);
+  line-height: var(--lh-body);
   color: var(--ink-dim);
   max-width: 46ch;
 }
 .continue-cta { margin-top: var(--s-3); margin-bottom: var(--s-3); }
 .continue-meter { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-2); }
 .continue-meter .pbar { flex: 1; }
-.continue-count { font-family: var(--mono); font-size: 12px; color: var(--ink-dim); }
-.continue-next { margin-left: -14px; font-size: 13px; }
+.continue-count { font-family: var(--mono); font-size: var(--f-2); color: var(--ink-dim); }
+.continue-next { margin-left: -14px; font-size: var(--f-3); }
 
 .today-page { min-height: 100vh; background: var(--paper); }
 /* Centred column, and only a column: /today is one decision wide. */
@@ -1948,7 +2111,7 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .today-col h1 { font-family: var(--serif); font-size: 34px; margin: 0 0 var(--s-5); }
 .today-col .continue { border-top: none; margin-top: 0; padding-top: 0; }
-.today-empty { color: var(--ink-dim); font-size: 14.5px; line-height: 1.6; }
+.today-empty { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-body); }
 .today-empty[hidden] { display: none; }
 .today-links {
   display: flex;
@@ -1963,8 +2126,8 @@ a.pill { text-decoration: none; display: inline-block; }
   margin-top: auto;   /* pinned to the foot of the sidebar column */
   border-top: 1px solid var(--rule);
   padding: 10px 14px 0;
-  font-size: 11.5px;
-  line-height: 1.6;
+  font-size: var(--f-1);
+  line-height: var(--lh-body);
   color: var(--ink-faint);
   font-family: var(--mono);
 }
@@ -1988,8 +2151,8 @@ a.pill { text-decoration: none; display: inline-block; }
    full contrast. */
 .card-task {
   margin: -2px 0 14px;
-  font-size: 13.5px;
-  line-height: 1.5;
+  font-size: var(--f-3);
+  line-height: var(--lh-body);
   color: var(--ink-dim);
   max-width: 62ch;
 }
@@ -2000,7 +2163,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .section-head {
   margin: var(--s-6) 0 var(--s-3);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   font-weight: 600;
   letter-spacing: .1em;
   text-transform: uppercase;
@@ -2043,14 +2206,14 @@ a.pill { text-decoration: none; display: inline-block; }
 .fold-head:hover { background: var(--paper-3); }
 .fold-head::before {
   content: '▸';
-  font-size: 11px;
+  font-size: var(--f-1);
   color: var(--accent);
   transition: transform var(--t) ease;
 }
 .fold[open] > .fold-head::before { transform: rotate(90deg); }
 .fold-title {
   font-family: var(--serif);
-  font-size: 15px;
+  font-size: var(--f-4);
   font-weight: 700;
   color: var(--ink);
   /* Shrinkable, so a long title wraps inside the summary instead of widening
@@ -2067,7 +2230,7 @@ a.pill { text-decoration: none; display: inline-block; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12.5px;
+  font-size: var(--f-2);
   color: var(--ink-faint);
 }
 /* The hint is a preview, so it goes away once the block is open: for a sim it
@@ -2089,7 +2252,9 @@ a.pill { text-decoration: none; display: inline-block; }
 .fold > .card > h2 { display: none; }
 
 /* The one-hero rule is gone: a topic page shows exactly one section, so every
-   block is the hero of its own route. Sections run full width. */
+   block is the hero of its own route. Sections run the full width OF THE
+   COLUMN — see .tab-root > * below, which is what stops "full width" from
+   meaning "as wide as the monitor". */
 .topic-sections > * { flex: 1 1 100%; max-width: none; }
 
 /* On a phone there is no room for a title AND a preview of the block on one
@@ -2104,7 +2269,7 @@ a.pill { text-decoration: none; display: inline-block; }
 /* End-of-quiz: the buttons sit in .quiz-opts, so they inherit the column —
    align them left and let the sentence above them read as prose. */
 .quiz-opts .btn { align-self: flex-start; }
-.quiz-next-line { margin: 0 0 4px; font-size: 13.5px; color: var(--ink-dim); }
+.quiz-next-line { margin: 0 0 4px; font-size: var(--f-3); color: var(--ink-dim); }
 .quiz-opt {
   text-align: left;
   background: var(--paper-2);
@@ -2113,7 +2278,7 @@ a.pill { text-decoration: none; display: inline-block; }
   border-radius: var(--r-md);
   padding: 10px 14px;
   font: inherit;
-  font-size: 13.5px;
+  font-size: var(--f-3);
   cursor: pointer;
   transition: border-color var(--t), background var(--t);
 }
@@ -2121,7 +2286,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .quiz-opt.correct {
   border-color: var(--green);
   background: rgba(47, 158, 68, 0.08);
-  color: #227031;
+  color: var(--green-ink);
   font-weight: 550;
 }
 .quiz-opt.wrong {
@@ -2129,9 +2294,10 @@ a.pill { text-decoration: none; display: inline-block; }
   background: rgba(224, 49, 49, 0.07);
   color: #a32626;
 }
-.quiz-why { margin-top: 10px; font-size: 13.5px; line-height: 1.6; border-radius: var(--r-md); }
+.quiz-why { margin-top: 10px; font-size: var(--f-3); line-height: var(--lh-body); border-radius: var(--r-md); }
 .quiz-why.good, .quiz-why.bad { padding: 11px 14px; margin-bottom: 8px; }
-.quiz-why.good { background: rgba(47, 158, 68, 0.07); border: 1px solid rgba(47, 158, 68, 0.35); color: #245c31; }
+.quiz-why.good { background: rgba(47, 158, 68, 0.07); border: 1px solid rgba(47, 158, 68, 0.35); color: var(--green-ink); }
+/* #86322c / #a32626: the AA-safe text weights of --red on paper. */
 .quiz-why.bad { background: rgba(224, 49, 49, 0.06); border: 1px solid rgba(224, 49, 49, 0.3); color: #86322c; }
 .quiz-why b { color: var(--ink); }
 
@@ -2147,17 +2313,18 @@ a.pill { text-decoration: none; display: inline-block; }
      is the only overview of it there is), but costs one line. The current pill
      is scrolled into view by the stepper itself. */
   .section-steps {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
     margin-bottom: var(--s-4);
     /* Full-bleed so the row scrolls edge to edge rather than in a slot with
        cropped pills at both ends. */
     padding-inline: var(--s-4);
     margin-inline: calc(-1 * var(--s-4));
   }
-  .section-steps::-webkit-scrollbar { display: none; }
-  .section-steps .pill { white-space: nowrap; flex: 0 0 auto; max-width: 62vw; overflow: hidden; text-overflow: ellipsis; }
+  .section-steps .pill { max-width: 62vw; overflow: hidden; text-overflow: ellipsis; }
+  /* 30px is fine with a mouse; this list is a thumb-tapped drawer here. */
+  .nav-item { min-height: 44px; }
+  /* the two bands stack again below the drawer breakpoint — the push-right
+     that separates them on one row just indents them here */
+  #topic-prereq { margin-left: 0; }
   /* The position indicator is the first thing to go when the two step buttons
      need the width; the footer still says where you are going. */
   .section-pos { display: none; }
@@ -2170,7 +2337,7 @@ a.pill { text-decoration: none; display: inline-block; }
     left: 10px;
     z-index: 42;
     font: inherit;
-    font-size: 12.5px;
+    font-size: var(--f-2);
     font-weight: 600;
     color: var(--ink);
     background: var(--paper);
@@ -2227,8 +2394,8 @@ a.pill { text-decoration: none; display: inline-block; }
     width: 100%;
     min-height: 48px;
     padding: 12px 14px;
-    font-size: 15px;   /* 16px-ish: also stops iOS zooming the page on tap */
-    line-height: 1.45;
+    font-size: var(--f-4);   /* 16px-ish: also stops iOS zooming the page on tap */
+    line-height: var(--lh-ui);
   }
   .quiz-opts { gap: 10px; }
   .quiz-opts .btn { align-self: stretch; min-height: 48px; }
@@ -2243,7 +2410,7 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 
 .mission-replay {
-  font-size: 11px;
+  font-size: var(--f-1);
   padding: 2px 10px;
   margin-left: var(--s-2);
   flex: none;
@@ -2272,12 +2439,12 @@ a.pill { text-decoration: none; display: inline-block; }
   background: var(--accent-wash);
   border-left: 2px solid var(--accent);
   border-radius: 0 var(--r-sm) var(--r-sm) 0;
-  font-size: 13.5px;
+  font-size: var(--f-3);
   color: var(--ink-dim);
   max-width: 72ch;
 }
 .progress-note b { color: var(--ink); }
-.progress-signedout { margin-top: var(--s-3); font-size: 13px; color: var(--ink-faint); }
+.progress-signedout { margin-top: var(--s-3); font-size: var(--f-3); color: var(--ink-faint); }
 
 /* ---- instrument panel ---- */
 .readout-panel {
@@ -2292,10 +2459,10 @@ a.pill { text-decoration: none; display: inline-block; }
   align-items: end;
 }
 .readout-label {
-  font-size: 11px;
+  font-size: var(--f-1);
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #7d8792;
+  color: var(--panel-dim);
   font-weight: 600;
 }
 .readout-value {
@@ -2308,8 +2475,8 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 /* one hero figure per view */
 .readout-lead .readout-value { font-size: 52px; color: var(--accent-on-panel); }
-.readout-value small { font-size: 0.5em; color: #7d8792; margin-left: 2px; font-weight: 400; }
-.readout-sub { font-size: 12px; color: #7d8792; margin-top: var(--s-2); }
+.readout-value small { font-size: 0.5em; color: var(--panel-dim); margin-left: 2px; font-weight: 400; }
+.readout-sub { font-size: var(--f-2); color: var(--panel-dim); margin-top: var(--s-2); }
 
 .spark-wrap {
   grid-column: 1 / -1;
@@ -2321,10 +2488,10 @@ a.pill { text-decoration: none; display: inline-block; }
   display: flex;
   justify-content: space-between;
   gap: var(--s-3);
-  font-size: 11px;
+  font-size: var(--f-1);
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: #7d8792;
+  color: var(--panel-dim);
   font-weight: 600;
   margin-bottom: var(--s-2);
 }
@@ -2341,8 +2508,8 @@ a.pill { text-decoration: none; display: inline-block; }
   border-bottom: 1px solid var(--rule);
   margin-bottom: var(--s-5);
 }
-.progress-section-head h2 { font-family: var(--serif); font-size: 22px; font-weight: 600; }
-.progress-section-head p { font-size: 13px; color: var(--ink-faint); }
+.progress-section-head h2 { font-family: var(--serif); font-size: var(--f-6); font-weight: 600; }
+.progress-section-head p { font-size: var(--f-3); color: var(--ink-faint); }
 
 /* ---- weak topics ---- */
 .weak-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); }
@@ -2356,12 +2523,12 @@ a.pill { text-decoration: none; display: inline-block; }
   flex-direction: column;
   gap: var(--s-3);
 }
-.weak-card h3 { font-family: var(--serif); font-size: 17px; font-weight: 600; }
+.weak-card h3 { font-family: var(--serif); font-size: var(--f-5); font-weight: 600; }
 .weak-flag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2369,9 +2536,9 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .weak-flag-icon { display: flex; }
 .weak-flag-icon svg { width: 13px; height: 13px; }
-.weak-num { font-family: var(--mono); font-size: 26px; font-weight: 500; line-height: 1; }
+.weak-num { font-family: var(--mono); font-size: var(--f-6); font-weight: 500; line-height: 1; }
 .weak-num small { font-size: 0.5em; color: var(--ink-faint); font-weight: 400; }
-.weak-sub { font-size: 12.5px; color: var(--ink-faint); }
+.weak-sub { font-size: var(--f-2); color: var(--ink-faint); }
 /* keeps the buttons on one line across cards whose blurbs wrap differently */
 .weak-cta { margin-top: auto; }
 
@@ -2394,7 +2561,7 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .mastery-group {
   font-family: var(--serif);
-  font-size: 13px;
+  font-size: var(--f-3);
   font-weight: 600;
   color: var(--ink-dim);
   padding: var(--s-3) var(--s-4) var(--s-2);
@@ -2408,7 +2575,7 @@ a.pill { text-decoration: none; display: inline-block; }
   align-items: center;
   padding: 11px var(--s-4);
   border-bottom: 1px solid var(--rule);
-  font-size: 14px;
+  font-size: var(--f-4);
 }
 .mastery-row:last-child { border-bottom: 0; }
 .mastery-row:hover { background: var(--accent-wash); }
@@ -2431,7 +2598,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .mastery-frac,
 .mastery-acc {
   font-family: var(--mono);
-  font-size: 12.5px;
+  font-size: var(--f-2);
   font-variant-numeric: tabular-nums;   /* a column of numbers, so aligned */
   text-align: right;
   color: var(--ink-dim);
@@ -2462,16 +2629,16 @@ a.pill { text-decoration: none; display: inline-block; }
   align-items: center;
   padding: 10px var(--s-4);
   border-bottom: 1px solid var(--rule);
-  font-size: 13.5px;
+  font-size: var(--f-3);
 }
 .history-row:last-child { border-bottom: 0; }
 .history-row:hover { background: var(--accent-wash); }
 .history-row.clickable { cursor: pointer; }
 .history-q { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-dim); }
-.history-topic { font-size: 12px; color: var(--ink-faint); }
+.history-topic { font-size: var(--f-2); color: var(--ink-faint); }
 .history-when {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--ink-faint);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -2485,7 +2652,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .history-mark.no { color: var(--red); }
 /* No status glyph on a bookmark — there is no right/wrong to report. */
 .bookmark-row { grid-template-columns: 1fr 150px 92px; }
-.bookmark-row .btn { font-size: 12px; padding: 3px 10px; justify-self: end; }
+.bookmark-row .btn { font-size: var(--f-2); padding: 3px 10px; justify-self: end; }
 
 @media (max-width: 860px) {
   .readout-panel { grid-template-columns: 1fr 1fr; gap: var(--s-4); }
@@ -2517,7 +2684,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .topic-progress-count,
 .topic-progress-done {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
   flex: none;
 }
@@ -2527,7 +2694,7 @@ a.pill { text-decoration: none; display: inline-block; }
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  font-size: 10.5px;
+  font-size: var(--f-1);
 }
 
 /* ---- bookmarks (E.5) ---- */
@@ -2560,14 +2727,14 @@ a.pill { text-decoration: none; display: inline-block; }
   margin-top: var(--s-3);
   padding: 5px 12px;
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--f-2);
   font-weight: 600;
   color: var(--ink-dim);
   background: transparent;
   border: 1px solid var(--rule-2);
   border-radius: var(--r-pill);
   cursor: pointer;
-  transition: all var(--t);
+  transition: color var(--t), background var(--t), border-color var(--t);
 }
 .topic-bookmark:hover { border-color: var(--accent); color: var(--accent-dark); }
 .topic-bookmark.on { background: var(--accent-wash); border-color: var(--accent); color: var(--accent-dark); }
@@ -2597,8 +2764,8 @@ a.pill { text-decoration: none; display: inline-block; }
 /* The reason a lesson was recommended (F.3). Quiet — it explains the title
    above it, and must never compete with it for attention. */
 .next-lesson-why {
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-size: var(--f-1);
+  line-height: var(--lh-ui);
   color: var(--ink-faint);
   max-width: 34ch;
 }
@@ -2617,7 +2784,7 @@ a.pill { text-decoration: none; display: inline-block; }
   flex-wrap: wrap;
 }
 .menu-filter-label {
-  font-size: 11px;
+  font-size: var(--f-1);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -2635,11 +2802,11 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .menu-count {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--ink-faint);
   flex: 1;
 }
-.menu-clear { font-size: 12.5px; padding: 4px 11px; }
+.menu-clear { font-size: var(--f-2); padding: 4px 11px; }
 
 @media (max-width: 640px) {
   .menu-filter-label { min-width: 0; width: 100%; }
@@ -2656,7 +2823,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .path-progress .pbar { flex: 1; }
 .path-count {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
   flex: none;
 }
@@ -2664,7 +2831,7 @@ a.pill { text-decoration: none; display: inline-block; }
   color: var(--green);
   font-family: var(--sans);
   font-weight: 600;
-  font-size: 10.5px;
+  font-size: var(--f-1);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -2680,7 +2847,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .path-continue {
   margin-top: auto;
   align-self: flex-start;
-  font-size: 13px;
+  font-size: var(--f-3);
 }
 .path-steps { margin-bottom: var(--s-4); }
 
@@ -2694,7 +2861,7 @@ a.pill { text-decoration: none; display: inline-block; }
 #search-link {
   margin: 12px 14px 0;
   font: inherit;
-  font-size: 12.5px;
+  font-size: var(--f-2);
   font-weight: 600;
   text-align: left;
   color: var(--ink-dim);
@@ -2724,7 +2891,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .search-link-text { flex: 1; font-weight: 500; }
 #search-link kbd {
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
   background: var(--paper-3);
   border: 1px solid var(--rule);
@@ -2758,7 +2925,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .search-input {
   flex: 1;
   font: inherit;
-  font-size: 16px;   /* 16px stops iOS Safari zooming the page on focus */
+  font-size: var(--f-4);   /* 16px stops iOS Safari zooming the page on focus */
   background: none;
   border: none;
   color: var(--ink);
@@ -2773,7 +2940,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .search-close {
   font: inherit;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
   background: var(--paper-3);
   border: 1px solid var(--rule);
@@ -2800,7 +2967,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .search-hit.active,
 .search-hit:hover { background: var(--accent-wash); }
 .search-kind {
-  font-size: 9.5px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2813,20 +2980,20 @@ a.pill { text-decoration: none; display: inline-block; }
 .search-kind.kind-module { color: var(--accent-dark); border-color: var(--accent); }
 .search-hit-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .search-hit-title {
-  font-size: 13.5px;
+  font-size: var(--f-3);
   color: var(--ink);
-  line-height: 1.4;
+  line-height: var(--lh-ui);
   /* Two lines, then ellipsis: a 60-word olympiad prompt must not own the list. */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.search-hit-context { font-size: 11.5px; color: var(--ink-faint); }
+.search-hit-context { font-size: var(--f-1); color: var(--ink-faint); }
 .search-status {
   padding: var(--s-2) var(--s-4);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--f-1);
   color: var(--ink-faint);
   border-top: 1px solid var(--rule);
   flex: none;
@@ -2846,7 +3013,7 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .mode-label {
   display: block;
-  font-size: 10px;
+  font-size: var(--f-1);
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--ink-faint);
@@ -2854,17 +3021,25 @@ a.pill { text-decoration: none; display: inline-block; }
   margin-bottom: 6px;
 }
 .mode-btns { display: flex; flex-wrap: wrap; gap: 4px; }
+/* Same treatment as the difficulty badges it names (.badge above) rather than a
+   third style for the same four words, and enough vertical padding to be a
+   36px tap target — it was 20px. */
 .mode-btn {
-  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
   font-family: var(--mono);
-  font-size: 10.5px;
+  font-size: var(--f-1);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  line-height: var(--lh-ui);
   color: var(--ink-dim);
   background: var(--paper);
   border: 1px solid var(--rule-2);
-  border-radius: var(--r-sm);
-  padding: 3px 7px;
+  border-radius: var(--r-lg);
+  padding: 3px 10px;
   cursor: pointer;
-  transition: all var(--t);
+  transition: color var(--t), background var(--t), border-color var(--t);
 }
 .mode-btn:hover { border-color: var(--accent); color: var(--ink); }
 .mode-btn.active {
@@ -2875,7 +3050,7 @@ a.pill { text-decoration: none; display: inline-block; }
 
 /* "Beyond CCC" — a mark on the card, never a reason to hide it. */
 .topic-scope {
-  font-size: 9.5px;
+  font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2887,8 +3062,8 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 
 /* ---- timed exam run (G.4) ---- */
-.exam-mode-note { margin-bottom: var(--s-3); font-size: 12px; }
-.exam-disclaimer { margin-top: var(--s-2); line-height: 1.5; }
+.exam-mode-note { margin-bottom: var(--s-3); font-size: var(--f-2); }
+.exam-disclaimer { margin-top: var(--s-2); line-height: var(--lh-body); }
 .exam-clock-row {
   display: flex;
   align-items: center;
@@ -2901,7 +3076,7 @@ a.pill { text-decoration: none; display: inline-block; }
 .exam-clock-spacer { flex: 1; }
 .exam-clock {
   font-family: var(--mono);
-  font-size: 26px;
+  font-size: var(--f-6);
   font-weight: 500;
   font-variant-numeric: tabular-nums;   /* digits must not shuffle each second */
   color: var(--ink);
@@ -2909,13 +3084,13 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 /* Over the pace is stated in words too ("over by 3:20") — never colour alone. */
 .exam-clock.over { color: var(--red); }
-.exam-clock-note { font-size: 12px; color: var(--ink-faint); }
+.exam-clock-note { font-size: var(--f-2); color: var(--ink-faint); }
 .exam-frq { margin-top: var(--s-5); }
-.exam-frq h3 { font-family: var(--serif); font-size: 16px; margin-bottom: var(--s-2); }
-.exam-frq-part { margin-top: var(--s-3); font-size: 14px; }
+.exam-frq h3 { font-family: var(--serif); font-size: var(--f-4); margin-bottom: var(--s-2); }
+.exam-frq-part { margin-top: var(--s-3); font-size: var(--f-4); }
 
 /* ---- competition study guides (I.3) ---- */
-.menu-guides { font-size: 13.5px; color: var(--ink-dim); margin: -22px 0 26px; }
+.menu-guides { font-size: var(--f-3); color: var(--ink-dim); margin: -22px 0 26px; }
 /* --accent-dark (4.82:1 on paper), not --accent (3.26:1): this is body-size
    text, so it needs 4.5:1. --accent stays for borders, marks and display type,
    which are judged at 3:1. */
@@ -2943,9 +3118,9 @@ a.pill { text-decoration: none; display: inline-block; }
 .guide-stats { display: flex; flex-wrap: wrap; gap: var(--s-6); margin-bottom: var(--s-5); }
 .guide-stat { display: flex; flex-direction: column; }
 .guide-stat b { font-family: var(--serif); font-size: 1.9rem; line-height: 1.1; color: var(--accent); }
-.guide-stat span { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.02em; }
-.guide-cta { font-size: 15px; padding: 11px 20px; }
-.guide-free { font-size: 12.5px; color: var(--ink-faint); margin-top: var(--s-3); }
+.guide-stat span { font-size: var(--f-2); color: var(--ink-faint); letter-spacing: 0.02em; }
+.guide-cta { font-size: var(--f-4); padding: 11px 20px; }
+.guide-free { font-size: var(--f-2); color: var(--ink-faint); margin-top: var(--s-3); }
 
 /* The measure belongs to the PROSE, not the section: with max-width on
    .guide-sect the module grid was squeezed into a 700px column and dropped to
@@ -2954,9 +3129,9 @@ a.pill { text-decoration: none; display: inline-block; }
 .guide-sect { padding-top: 40px; }
 .guide-sect > p, .guide-sect > .guide-plan { max-width: 700px; }
 .guide-sect h2 { font-family: var(--serif); font-size: 1.35rem; margin-bottom: var(--s-3); }
-.guide-sect p { color: var(--ink-dim); font-size: 15px; line-height: 1.7; margin-bottom: var(--s-3); }
+.guide-sect p { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-body); margin-bottom: var(--s-3); }
 .guide-link { color: var(--accent-dark); }
-.guide-caveat { font-size: 12.5px; color: var(--ink-faint); border-left: 2px solid var(--rule); padding-left: var(--s-3); }
+.guide-caveat { font-size: var(--f-2); color: var(--ink-faint); border-left: 2px solid var(--rule); padding-left: var(--s-3); }
 .guide-plan { list-style: none; counter-reset: step; padding: 0; }
 .guide-plan li { counter-increment: step; position: relative; padding-left: 38px; margin-bottom: var(--s-5); }
 .guide-plan li::before {
@@ -2971,11 +3146,11 @@ a.pill { text-decoration: none; display: inline-block; }
   display: grid;
   place-items: center;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: var(--f-2);
   color: var(--accent-dark);
 }
 .guide-plan li b { display: block; margin-bottom: 4px; color: var(--ink); }
 .guide-plan li p { margin: 0; }
-.guide-more { margin-top: var(--s-5); font-size: 13.5px; }
+.guide-more { margin-top: var(--s-5); font-size: var(--f-3); }
 /* The guide's own section spacing already separates the grid from the CTA. */
 .guide-sect .topic-grid + .guide-more { color: var(--ink-faint); }

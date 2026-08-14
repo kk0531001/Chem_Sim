@@ -61,8 +61,13 @@
       <!-- tabindex=-1 makes <main> the skip-link target and the focus landing
            point after a topic navigation (see updateTopicChrome in main.ts) -->
       <main id="app-main" tabindex="-1">
-        <div id="topic-crumb"></div>
-        <div id="topic-prereq"></div>
+        <!-- One row, not two: the breadcrumb and the prereq band both answer
+             "where am I / what should I have read", and each was a half-empty
+             45px line above the lesson. CSS puts prereqs on the right. -->
+        <div id="topic-chrome">
+          <div id="topic-crumb"></div>
+          <div id="topic-prereq"></div>
+        </div>
         <div id="view"></div>
         <nav id="topic-footer" aria-label="Lesson navigation"></nav>
       </main>

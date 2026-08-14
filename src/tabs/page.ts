@@ -327,24 +327,31 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   const taken = new Set<string>();
   const sections: Block[] = [];
 
+  // Held so the contents list can be appended once every section exists — the
+  // overview has to be pushed FIRST (it is section 1) but cannot know what it
+  // is a table of until last.
+  let introEl: HTMLElement | null = null;
+  let bmBtn: HTMLElement | null = null;
+
   if (meta) {
     // Module-level bookmark (E.5). It shares the question bookmark store —
     // module ids and question ids can't collide — so "saved" means one thing
     // across the site and the dashboard lists both from one read.
-    const bmBtn = h('button', { type: 'button', class: 'topic-bookmark', 'aria-pressed': 'false' });
+    const btn = h('button', { type: 'button', class: 'topic-bookmark', 'aria-pressed': 'false' });
     const syncBm = (): void => {
       const on = isBookmarked(id);
-      bmBtn.classList.toggle('on', on);
-      bmBtn.setAttribute('aria-pressed', String(on));
-      bmBtn.textContent = on ? 'Saved' : 'Save for later';
+      btn.classList.toggle('on', on);
+      btn.setAttribute('aria-pressed', String(on));
+      btn.textContent = on ? 'Saved' : 'Save for later';
     };
-    bmBtn.addEventListener('click', () => { toggleBookmark(id); syncBm(); });
+    btn.addEventListener('click', () => { toggleBookmark(id); syncBm(); });
     syncBm();
-    sections.push(block(h('section', { class: 'topic-intro' },
+    bmBtn = btn;
+    introEl = h('section', { class: 'topic-intro' },
       h('h2', {}, `About ${meta.title}`),
       h('p', { html: meta.intro }),
-      bmBtn,
-    ), 'Overview', taken, 'overview'));
+    );
+    sections.push(block(introEl, 'Overview', taken, 'overview'));
   }
 
   const theoryBlocks = Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory];
@@ -369,6 +376,22 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   const ladder = challengeLadder(id);
   if (ladder) sections.push(block(ladder, 'Challenge ladder', taken, 'challenge'));
   if (meta && meta.refs.length) sections.push(block(references(meta.refs), 'References', taken, 'references'));
+
+  // The overview is the topic's contents page. Without this it is one paragraph
+  // on a route of its own — the stepper above it is the only thing saying what
+  // the module contains, and it is a scrolling strip of pills, not a list you
+  // can read. Same links, laid out to be read.
+  if (introEl) {
+    const rest = sections.filter(s => s.el !== introEl);
+    if (rest.length) {
+      introEl.append(
+        h('h3', {}, 'In this topic'),
+        h('ol', { class: 'toc' }, ...rest.map(s =>
+          h('li', {}, sectionLink(id, s.slug, s.title, 'toc-link')))),
+      );
+    }
+    if (bmBtn) introEl.append(bmBtn);
+  }
 
   // ---- host + routing ------------------------------------------------------
   // tabindex="-1" so a section change can put focus at the top of the new page
