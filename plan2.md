@@ -18,8 +18,8 @@ Highest priority
 - [x] Build a strong Gold question pool
 - [x] Build a smaller Platinum question pool
 - [ ] Upgrade weak explanations
-- [ ] Add misconception explanations to high-value questions
-- [ ] Add `why2` explanations where a second explanation would genuinely help
+- [x] Add misconception explanations to high-value questions
+- [x] Add `why2` explanations where a second explanation would genuinely help
 - [ ] Create more difficult multi-step / multi-concept problems
 - [ ] Create more experimental-data interpretation problems
 - [ ] Create more mechanism/reasoning-heavy organic problems
@@ -280,7 +280,7 @@ Only after the above is solid:
 
 - [ ] Improve landing-page messaging
 - [x] Improve topic SEO
-- [ ] Create useful chemistry guide pages
+- [x] Create useful chemistry guide pages
 - [x] Add better metadata where needed
 - [x] Make sharing individual questions easy
 - [x] Make sharing topic sections easy

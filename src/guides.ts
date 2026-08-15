@@ -86,6 +86,60 @@ export const GUIDES: Guide[] = [
       },
     ],
   },
+  {
+    comp: 'cco',
+    slug: 'cco-study-guide',
+    title: 'CCO Study Guide — Canadian Chemistry Olympiad',
+    description: 'A free, interactive study guide for the Canadian Chemistry Olympiad: the advanced modules, multi-step problem sets with full worked solutions, and integrated challenges that mix two areas at once.',
+    lede: 'Everything on this site that is in scope for the <b>Canadian Chemistry Olympiad</b>, in the order worth working through it — the advanced modules, the problem sets, and the challenges that deliberately cross topic boundaries.',
+    about: 'The CCO is the selection round beyond the Canadian Chemistry Contest, and the step up is not simply more questions. Where the CCC asks whether you know a thing, the CCO asks you to carry a result through several stages — a formation constant into a solubility, a rate law into a mechanism, a lattice energy into a Born–Haber cycle — and to write the reasoning down. Recall gets you into the room; chaining gets you a mark.',
+    official: { label: 'Canadian Chemistry Olympiad — official page (CIC)', href: 'https://www.cheminst.ca/programs/national-chemistry-olympiad/' },
+    plan: [
+      {
+        heading: 'Switch the site into CCO mode first',
+        body: 'The button below sets the competition mode, which widens the practice to the CCO-level material and keeps the ladders pitched there. Everything in scope for the CCC is in scope for the CCO too — the mode adds, it does not swap — so the foundations stay available when a gap shows up.',
+      },
+      {
+        heading: 'Work the advanced modules, not just the core ones',
+        body: 'Advanced Physical Chemistry, Coordination &amp; Organometallic, Advanced Inorganic, Organic III and Structure Determination exist for this level. They are where the CCO actually lives: term symbols, the trans effect, Woodward–Hoffmann, retrosynthesis, and reading a structure out of combined spectra rather than being handed it.',
+      },
+      {
+        heading: 'Then the problem sets, with the solutions covered',
+        body: 'The Question Bank has CCO Problem Sets — multi-part written problems with a worked solution for every part. Cover the solution and write yours out in full first. The marks at this level are in the working, and a part you can follow when you read it is not the same as one you can produce.',
+      },
+      {
+        heading: 'Finish with the Integrated Challenges',
+        body: 'These deliberately mix two areas in one problem — thermodynamics with equilibrium, electrochemistry with solubility, crystal field with magnetism. They are the closest thing here to how an olympiad problem is actually built, and they are the fastest way to find out that two topics you know separately do not yet connect.',
+      },
+    ],
+  },
+  {
+    comp: 'icho',
+    slug: 'icho-study-guide',
+    title: 'IChO Study Guide — International Chemistry Olympiad',
+    description: 'A free, interactive study guide for the International Chemistry Olympiad: the advanced physical, inorganic and organic modules, quantitative problem sets, and the laboratory technique the practical exam assumes.',
+    lede: 'Everything on this site pitched at <b>International Chemistry Olympiad</b> level — the advanced modules, the hardest problem sets, and the technique the practical assumes you already have.',
+    about: 'The IChO is the international final, reached through a national programme, and its published preparatory problems are the honest measure of the level. Two things separate it from national rounds: the theoretical paper expects you to work inside an unfamiliar system that the problem itself defines, and there is a full laboratory examination. Neither rewards recall on its own.',
+    official: { label: 'International Chemistry Olympiad — official site', href: 'https://www.ichosc.org/' },
+    plan: [
+      {
+        heading: 'Be honest about the prerequisite',
+        body: 'This site is built for the CCC, USNCO and CCO, and its IChO-level material is the top of that range rather than a complete preparation. It is a good place to make the advanced foundations solid and a poor substitute for the official preparatory problems, which are the only thing pitched exactly at the exam. Use both, in that order.',
+      },
+      {
+        heading: 'Make the physical chemistry properly quantitative',
+        body: 'Advanced Physical Chemistry and Physical &amp; Biochemistry carry the material an IChO problem assumes without stating: activity against concentration, van \'t Hoff and Kirchhoff, Eyring, enzyme and multi-step kinetics. Work them until the algebra is something you can rearrange under pressure rather than recognise.',
+      },
+      {
+        heading: 'Structure determination, from data alone',
+        body: 'The Structure Determination and Spectroscopy modules build the one skill the written papers use most: taking a molecular formula, an IR band, a coupling pattern and a fragment mass, and arriving at a structure nobody has named for you. The Integrated Challenges pair it with synthesis.',
+      },
+      {
+        heading: 'Do not treat the practical as an afterthought',
+        body: 'A full laboratory exam is half of what the IChO measures and cannot be learned from a screen. Laboratory Techniques and Analytical &amp; Quantitative cover the reasoning behind the technique — why a burette is rinsed with titrant, where a gravimetric result drifts, how uncertainties combine — so that time at a real bench is spent on the hands rather than on the theory.',
+      },
+    ],
+  },
 ];
 
 export const guideBySlug = (slug: string): Guide | undefined => GUIDES.find(g => g.slug === slug);
