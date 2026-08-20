@@ -347,14 +347,23 @@ decision that is yours. Nothing here is waiting on more engineering.
 
 ### Needs your environment
 
-- **Authenticated + cloud error states (§4).** This checkout has no
-  `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, so the app only ever ran
-  local-only. Everything signed-in — sync, the account panel, the reset path
-  against real rows — is untested against a live project.
-- **`0005_progress_reset.sql` has not been run.** The reset-tombstone table is
-  committed but your database does not have it yet. Until it does,
+- **`0005_progress_reset.sql` has not been run — confirmed against your live
+  project.** Asking PostgREST for the table returns `404 PGRST205, Could not
+  find the table 'public.progress_reset'`, while `solved`, `attempts`,
+  `bookmarks` and `signals` all answer `200`. Until the migration runs,
   `honourRemoteReset()` logs a warning and fails open (local data is kept),
-  which is safe but means reset still does not propagate between devices.
+  which is safe but means a reset still does not propagate between devices.
+  Applying it needs `supabase login` plus a linked project, or the SQL editor —
+  neither of which a publishable anon key can do, by design.
+- **Signed-IN behaviour (§4).** The keys ARE present in `.env`, so everything
+  signed-OUT has been exercised against the real project: cloud is configured,
+  the sign-in UI renders, and anonymous reads of all four tables return `200 []`
+  rather than anyone else's rows. What remains untested is the authenticated
+  half — sync, the account panel, reset against real rows — because signing in
+  needs a magic link sent to your inbox or Google OAuth.
+  (Caveat on the `200 []` above: an empty result is consistent with RLS
+  filtering AND with the tables simply being empty. It proves nothing leaks to
+  an anonymous caller; it does not by itself prove rows exist to be filtered.)
 - **Screen-reader pass (§5).** Semantics are verified — roles, names, live
   regions, focus order. What VoiceOver or NVDA actually announces is not.
 - **Mobile FPS and slow-hardware startup (§8).** Layout is verified at 375,
