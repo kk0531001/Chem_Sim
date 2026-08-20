@@ -19,6 +19,29 @@
  * at two zoom levels. They can disagree about which bucket a question sits in.
  * That is correct, not a bug to reconcile later.
  *
+ * FROZEN at 81 skills. The list was designed, then corrected against what
+ * tagging 853 questions actually needed: four skills added because they covered
+ * seventeen questions, four rejected because they covered one or two. That is
+ * the bar for any future addition, and the reason there is a bar at all is that
+ * a category is cheap to add and quietly makes the weakness map less legible —
+ * a student reads this list as a description of themselves. Treat it as
+ * infrastructure, not as a thing to keep redesigning.
+ *
+ * BIOPHYS SITS OUTSIDE THIS TAXONOMY, and that is a product-model boundary
+ * rather than a gap to close. The twelve ExamTopicIds are the CCC/CCO reporting
+ * areas and none of them is biochemistry, so the six untagged `bio-*` questions
+ * are enrichment content: they do not contribute to exam-topic or skill
+ * weakness calculations, and they should not. Filing them under `organic` or
+ * `states` to make the coverage number tidy would tell a student they are weak
+ * at something the question never asked. Do not add a thirteenth exam topic to
+ * absorb them either — if real usage ever justifies classifying this content,
+ * the shape is a THIRD independent axis, not a wider second one:
+ *
+ *     Question
+ *     ├── exam topic   → CCC/CCO reporting
+ *     ├── skills       → mastery and recommendations
+ *     └── domain       → broader ChemSim content classification
+ *
  * Tagging is DELIBERATELY PARTIAL. An untagged question is absent from the
  * skill breakdown rather than bucketed as "other" (see accuracyBySkill), so a
  * half-tagged corpus reports less, never wrong. Tag a bank when you can name

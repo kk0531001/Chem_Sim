@@ -150,11 +150,13 @@ grams to moles".
 
 - **Biochemistry (6)** — `bio-001` amino acids, `bio-004` ATP, `bio-005` base
   pairing, `bio-013` Boltzmann populations, `bio-016` secondary structure,
-  `bio-023` allosteric feedback. **This is the taxonomy's one real gap.** The
-  exam-topic vocabulary is the twelve CCC/CCO areas and none of them is
-  biochemistry, so the site has a biophys module the vocabulary does not cover.
-  Tagging these `organic/polymers` or `states/imf` would tell a student they
-  are weak at something the question never asked.
+  `bio-023` allosteric feedback. **Decided: this is a product-model boundary,
+  not a gap.** Biophys is enrichment content outside the CCC/CCO exam-topic
+  taxonomy, so its questions do not contribute to exam-topic or skill weakness
+  calculations — which is the honest behaviour, not a shortfall. No thirteenth
+  exam topic; if real usage later justifies classifying this content it gets a
+  third independent axis (exam topic → reporting, skills → mastery, domain →
+  content), not a wider second one.
 - **Isomerism as a definition (2)** — `og1-004`, `mock1-a-017`. The only
   isomerism skill is `organic/stereochemistry`, which is the one thing these
   two deliberately are not.
@@ -166,3 +168,8 @@ Skills considered and rejected: activity/ionic strength, isomerism, term
 symbols, bonding-type identification. One or two questions do not justify a
 bucket in a list a student reads as a map of their own weaknesses — which is
 also the test the four added skills passed and these four failed.
+
+**The taxonomy is now frozen at 81 skills** (see CLAUDE.md). It stops being a
+design question here and starts being infrastructure; the next thing that
+should change it is evidence from real students, not another pass of
+classification.

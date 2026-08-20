@@ -165,6 +165,24 @@ with a reason stated in the commit/summary.
   both the attempt log and the registry's topic index use it, so statistics and
   search can't disagree about what a topic is. Never key an index on the raw
   `topic` string: that splits `thermo1`/`thermo2` away from `thermo`.
+- **The skill taxonomy is FROZEN at 81 skills** (src/content/skills.ts). It was
+  designed, then corrected against what tagging 853 questions actually needed —
+  four skills added because they covered seventeen questions, four rejected
+  because they covered one or two. That is the bar. Treat it as infrastructure
+  now, not as something to keep redesigning: adding a category is cheap and
+  quietly makes the weakness map a student reads less legible. If a question has
+  no honest home, LEAVE IT UNTAGGED — absent is not wrong, and 11 of 853 are.
+- **Biophys sits OUTSIDE the exam-topic taxonomy, deliberately.** The twelve
+  `ExamTopicId`s are the CCC/CCO reporting areas and none of them is
+  biochemistry, so the six untagged `bio-*` questions are a product-model
+  boundary rather than a tagging gap: biophys is enrichment content, and its
+  questions do not contribute to exam-topic or skill weakness calculations.
+  Do NOT add a thirteenth exam topic to close it, and do not file biophys under
+  `organic`/`states` to make the numbers tidy — that would tell a student they
+  are weak at something the question never asked. The eventual shape, if real
+  usage justifies it, is a THIRD independent axis rather than a wider second
+  one: exam topic for CCC/CCO reporting, skills for mastery and
+  recommendations, and a broader ChemSim `domain` for content classification.
 - **`tier` and `comps` are DERIVED** (`tierOf()`, `compsOf()` in
   content/registry.ts) with optional per-question overrides. Don't bulk-store
   them: a stored copy of the default goes stale when a module's `difficulty`
