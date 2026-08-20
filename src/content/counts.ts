@@ -12,7 +12,7 @@
  * shipping. Update these when a bank grows; the audit will tell you if you
  * forget.
  */
-export const CORPUS_COUNTS = { mc: 853, frq: 119, papers: 5 };
+export const CORPUS_COUNTS = { mc: 853, frq: 128, papers: 5 };
 
 /**
  * How many questions each module's quiz bank holds — the denominator of the

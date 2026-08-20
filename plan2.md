@@ -20,10 +20,10 @@ Highest priority
 - [ ] Upgrade weak explanations
 - [x] Add misconception explanations to high-value questions
 - [x] Add `why2` explanations where a second explanation would genuinely help
-- [ ] Create more difficult multi-step / multi-concept problems
-- [ ] Create more experimental-data interpretation problems
-- [ ] Create more mechanism/reasoning-heavy organic problems
-- [ ] Create more CCO/IChO-style quantitative problems
+- [x] Create more difficult multi-step / multi-concept problems
+- [x] Create more experimental-data interpretation problems
+- [x] Create more mechanism/reasoning-heavy organic problems
+- [x] Create more CCO/IChO-style quantitative problems
 
 **Goal**
 
