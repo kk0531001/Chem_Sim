@@ -132,3 +132,33 @@ was the misconception layer: 167 → 264 notes, including one on every Gold
 question, each naming the wrong mental model behind a specific distractor
 rather than restating the answer. That is the thing a student who got it wrong
 did not already have.
+
+## Skill tagging: what is left untagged, and why (plan2 §10)
+
+825 of 853 MC carry a skill (97%), and all 77 taxonomy skills have at least one
+question. The 28 that do not are not an oversight — an untagged question is
+absent from a student's breakdown, which is the honest outcome when no skill
+describes it. They fall into four groups:
+
+- **Biochemistry (6).** `bio-001` amino acids, `bio-004` ATP as energy
+  currency, `bio-005` base pairing, `bio-013` Boltzmann populations, `bio-016`
+  secondary structure, `bio-023` allosteric feedback. The exam-topic vocabulary
+  is the twelve CCC/CCO areas and none of them is biochemistry. Tagging these
+  `organic/polymers` or `states/imf` would tell a student they are weak at
+  something the question never asked. **This is the one real gap the taxonomy
+  has** — the site has a biophys module the exam vocabulary does not cover.
+- **Bare arithmetic (12, mostly `sto-*`).** Molar mass, mole conversions,
+  Avogadro, equation balancing. Real skills, but none of the five stoich
+  skills is "convert grams to moles", and inventing one for warm-ups would put
+  a bucket at the top of every beginner's weak list.
+- **Definitions with no reasoning step (5).** Isomerism as a definition
+  (`og1-004`, `mock1-a-017`), Brønsted conjugate pairs and Lewis acids
+  (`p1-acids-001/005`), de Broglie and Heisenberg (`qua-015/025`).
+- **One-offs with no home (5).** `ana-008` Debye–Hückel and ionic strength,
+  `ain-009` free-ion term symbols, `qua-016` the photoelectric effect,
+  `mock2-a-015` and one other.
+
+Two skills were considered and NOT added: an activity/ionic-strength skill for
+`ana-008`, and an isomerism skill for the two isomer-counting questions. One or
+two questions do not justify a bucket in a taxonomy a student reads as a map of
+their own weaknesses.
