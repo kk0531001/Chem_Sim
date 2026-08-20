@@ -54,7 +54,7 @@ Object.defineProperty(globalThis, 'crypto', { value: {}, configurable: true });
 
 // A Supabase stand-in. `rows` is the account's server state; `resetAt` is the
 // marker row. Records what was written so the test can assert on pushes.
-const server = { solved: new Set(), resetAt: null, pushed: [], deleted: [], failUpsert: false, failFetch: false };
+const server = { solved: new Set(), resetAt: null, pushed: [], deleted: [], failUpsert: false, failFetch: false, failDelete: false };
 let sessionUser = { id: 'user-a', email: 'a@example.test' };
 
 writeFileSync(join(scratch, 'supabase.mjs'), `
@@ -82,9 +82,33 @@ const table = name => ({
     if (name === 'progress_reset') server.resetAt = [].concat(rows)[0].reset_at;
     return Promise.resolve({ error: null });
   },
-  delete() { return { eq: () => { server.deleted.push(name); if (name === 'solved') server.solved.clear();
-                                  return Promise.resolve({ error: null }); },
-                     match: () => Promise.resolve({ error: null }) }; },
+  delete() {
+    return {
+      eq: (col, val) => {
+        const step = { error: null };
+        // .eq(...).in(...) is the pending-tombstone flush; .eq(user_id) alone is
+        // the full reset.
+        const chain = {
+          in: (c2, ids) => {
+            if (server.failDelete) return Promise.resolve({ error: { message: 'network down' } });
+            for (const id of ids) { if (name === 'solved') server.solved.delete(id); server.deleted.push(name + ':' + id); }
+            return Promise.resolve(step);
+          },
+          then: res => { server.deleted.push(name); if (name === 'solved') server.solved.clear();
+                         return Promise.resolve(step).then(res); },
+        };
+        return chain;
+      },
+      // A faithful match-delete: the earlier stub reported success without
+      // removing anything, which made a passing delete look like a failing one.
+      match: sel => {
+        if (server.failDelete) return Promise.resolve({ error: { message: 'network down' } });
+        if (name === 'solved') server.solved.delete(sel.question_id);
+        server.deleted.push(name + ':' + sel.question_id);
+        return Promise.resolve({ error: null });
+      },
+    };
+  },
 });
 export function createClient() {
   return {
@@ -226,9 +250,37 @@ P.recordAttempt('equ-013', true, { topic: 'equilibrium', chosen: 1 });
 check('answering right clears it from review', !P.reviewQueue().includes('equ-013'));
 void now;
 
+// ---- 8. un-solving survives the next sync ----
+// The merge is a union, so an id merely absent locally is indistinguishable
+// from one never uploaded: without a tombstone the server hands it straight
+// back and the un-solve silently undoes itself.
+store.clear();
+globalThis.__session = sessionUser;
+store.set('sb-x-auth-token', '{}');
+server.solved.clear();
+server.solved.add('equ-013');            // the account still has it
+server.resetAt = null;
+localStorage.setItem('chemprep_synced_at_v1', String(Date.now()));
+await P.initProgress();
+check('setup: the remote id is merged in', P.isSolved('equ-013'));
+// The delete FAILS — offline, or the request is dropped. This is the only case
+// the tombstone exists for: when the immediate delete succeeds there is nothing
+// left on the server for the union merge to hand back.
+server.failDelete = true;
+P.unmarkSolved('equ-013');
+check('un-solve is immediate locally', !P.isSolved('equ-013'));
+check('the row is still on the account after a failed delete', server.solved.has('equ-013'));
+await P.initProgress();                   // sync while still offline for deletes
+check('a failed delete does not resurrect it locally', !P.isSolved('equ-013'));
+
+server.failDelete = false;
+await P.initProgress();                   // the network is back
+check('the queued deletion is replayed', !server.solved.has('equ-013'));
+check('and it stays un-solved', !P.isSolved('equ-013'));
+
 if (fails.length) {
   console.error(`sync gate: ${fails.length} failure(s):`);
   for (const f of fails) console.error('  ✗ ' + f);
   process.exit(1);
 }
-console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry,\n            uuid fallback, weak-topic ranking, spaced review.');
+console.log('sync gate clean: sign-out isolation, remote-reset precedence, partial-failure retry,\n            uuid fallback, weak-topic ranking, spaced review, deletion tombstones.');

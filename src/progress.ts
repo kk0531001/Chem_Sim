@@ -20,6 +20,13 @@ const LS_BOOKMARKS = 'chemprep_bookmarks_v1';
 // marker to tell "I have offline progress worth uploading" from "I am holding
 // data the user already deleted from another device". See honourRemoteReset().
 const LS_SYNCED = 'chemprep_synced_at_v1';
+// Deletions waiting to reach the server. The sync merge is a UNION, so an id
+// that is simply absent locally is indistinguishable from one that was never
+// uploaded — without a tombstone, un-solving a question is undone by the next
+// sync from any device that still has it. These are the tombstones, and they
+// are persisted because the delete may have failed precisely because the
+// network was gone.
+const LS_PENDING_DEL = 'chemprep_pending_deletes_v1';
 
 // The one-time text-hash -> explicit-id rename (registry.ts's
 // migrateLegacyProgress) needs the WHOLE question corpus in memory to build its
@@ -91,6 +98,9 @@ function hasSessionToRestore(): boolean {
 }
 
 let solved = new Set<string>();
+// question ids un-solved / un-bookmarked locally and not yet confirmed deleted
+// server-side. Kept per store because they are replayed against different tables.
+let pendingDel = { solved: new Set<string>(), bookmarks: new Set<string>() };
 // Bookmarks hold BOTH question ids and module ids in one set. They never
 // collide (question ids are `<prefix>-<nnn>`, module ids are bare words) and a
 // bookmark means the same thing either way: "come back to this". A second
@@ -132,6 +142,22 @@ function loadLocal(): void {
 }
 function saveLocal(): void {
   try { localStorage.setItem(LS_KEY, JSON.stringify([...solved])); } catch { /* ignore */ }
+}
+
+function loadPendingDeletes(): void {
+  try {
+    const raw = localStorage.getItem(LS_PENDING_DEL);
+    if (!raw) return;
+    const p = JSON.parse(raw) as { solved?: string[]; bookmarks?: string[] };
+    pendingDel = { solved: new Set(p.solved ?? []), bookmarks: new Set(p.bookmarks ?? []) };
+  } catch { /* corrupt — start clean rather than crash */ }
+}
+function savePendingDeletes(): void {
+  try {
+    localStorage.setItem(LS_PENDING_DEL, JSON.stringify({
+      solved: [...pendingDel.solved], bookmarks: [...pendingDel.bookmarks],
+    }));
+  } catch { /* private mode */ }
 }
 
 function loadBookmarks(): void {
@@ -621,9 +647,18 @@ export function unmarkSolved(id: string): void {
   if (!solved.has(id)) return;
   solved.delete(id);
   saveLocal();
+  // Tombstone FIRST, cleared only when the server confirms. Recorded even when
+  // signed out: the un-solve still has to survive a later sign-in, or the next
+  // merge hands the id straight back.
+  pendingDel.solved.add(id);
+  savePendingDeletes();
   fire();
   if (user) void cloud()?.then(sb => sb.from('solved').delete().match({ user_id: user!.id, question_id: id }))
-    .then(res => { if (res?.error) console.warn('sync (delete) failed:', res.error.message); });
+    .then(res => {
+      if (res?.error) { console.warn('sync (delete) failed:', res.error.message); return; }
+      pendingDel.solved.delete(id);
+      savePendingDeletes();
+    });
 }
 
 // ---- bookmarks ----
@@ -638,12 +673,19 @@ export function toggleBookmark(id: string): boolean {
   const on = !bookmarks.has(id);
   if (on) bookmarks.add(id); else bookmarks.delete(id);
   saveBookmarks();
+  // Re-bookmarking clears any tombstone: the last local action wins, and
+  // leaving it would delete the row the upsert just wrote.
+  if (on) pendingDel.bookmarks.delete(id); else pendingDel.bookmarks.add(id);
+  savePendingDeletes();
   fire();
   if (user) {
     void cloud()?.then(sb => on
       ? sb.from('bookmarks').upsert({ user_id: user!.id, question_id: id })
       : sb.from('bookmarks').delete().match({ user_id: user!.id, question_id: id }))
-      .then(res => { if (res?.error) console.warn('bookmark sync failed:', res.error.message); });
+      .then(res => {
+        if (res?.error) { console.warn('bookmark sync failed:', res.error.message); return; }
+        if (!on) { pendingDel.bookmarks.delete(id); savePendingDeletes(); }
+      });
   }
   return on;
 }
@@ -655,7 +697,8 @@ async function syncBookmarks(): Promise<void> {
   if (error) { console.warn('bookmark fetch failed:', error.message); return; }
   const remote = new Set((data ?? []).map(r => r.question_id));
   const localOnly = [...bookmarks].filter(id => !remote.has(id));
-  for (const id of remote) bookmarks.add(id);
+  // Same tombstone rule as the solved merge — see syncWithRemote.
+  for (const id of remote) if (!pendingDel.bookmarks.has(id)) bookmarks.add(id);
   saveBookmarks();
   fire();
   if (localOnly.length) {
@@ -801,13 +844,14 @@ export async function resetAllProgress(): Promise<ResetResult> {
 function clearLocal(): void {
   solved = new Set();
   bookmarks = new Set();
+  pendingDel = { solved: new Set(), bookmarks: new Set() };
   attempts = [];
   totalAttempts = 0;
   topicStats = new Map();
   activeDays = new Set();
   outstandingWrong = new Set();
 
-  for (const k of [LS_KEY, LS_ATTEMPTS, LS_BOOKMARKS, LS_LAST]) {
+  for (const k of [LS_KEY, LS_ATTEMPTS, LS_BOOKMARKS, LS_LAST, LS_PENDING_DEL]) {
     try { localStorage.removeItem(k); } catch { /* private mode — in-memory reset still stands */ }
   }
 }
@@ -888,7 +932,33 @@ function markSynced(): void {
  */
 async function syncAll(): Promise<void> {
   await honourRemoteReset();
+  // Tombstones are replayed BEFORE the merges. The merges are unions, so a row
+  // still on the server would be pulled straight back into the local set and
+  // the deletion would look like it never happened.
+  await flushPendingDeletes();
   await Promise.all([syncWithRemote(), syncAttempts(), syncBookmarks()]);
+}
+
+/**
+ * Push the deletions that have not reached the server yet.
+ *
+ * `.in()` rather than a row at a time: one request per store, and a partial
+ * failure leaves the whole set queued for the next sync rather than a
+ * half-applied deletion nobody can see.
+ */
+async function flushPendingDeletes(): Promise<void> {
+  const sb = user ? await cloud() : null;
+  if (!sb || !user) return;
+  for (const [table, ids] of [
+    ['solved', pendingDel.solved] as const,
+    ['bookmarks', pendingDel.bookmarks] as const,
+  ]) {
+    if (!ids.size) continue;
+    const { error } = await sb.from(table).delete().eq('user_id', user.id).in('question_id', [...ids]);
+    if (error) { console.warn(`pending ${table} deletes failed:`, error.message); continue; }
+    ids.clear();
+  }
+  savePendingDeletes();
 }
 
 // Merge remote rows with the local set, and push any local-only ids up so
@@ -900,7 +970,11 @@ async function syncWithRemote(): Promise<void> {
   if (error) { console.warn('sync (fetch) failed:', error.message); return; }
   const remote = new Set((data ?? []).map(r => r.question_id));
   const localOnly = [...solved].filter(id => !remote.has(id));
-  for (const id of remote) solved.add(id);
+  // A tombstoned id must not be merged back in. Deleting it server-side is not
+  // enough on its own: if that delete failed (offline) the row is still there,
+  // and a plain union would undo the student's un-solve every sync until the
+  // network returns.
+  for (const id of remote) if (!pendingDel.solved.has(id)) solved.add(id);
   saveLocal();
   fire();
   if (localOnly.length) {
@@ -997,6 +1071,7 @@ export async function initProgress(): Promise<void> {
   loadLocal();
   loadAttempts();
   loadBookmarks();
+  loadPendingDeletes();
   fire();
   if (!cloudConfigured || !hasSessionToRestore()) return;
   const sb = await cloud();

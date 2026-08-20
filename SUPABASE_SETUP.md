@@ -236,9 +236,12 @@ to toggle.
 - **Offline and partial failures:** a push that fails leaves the row queued and
   retried on the next sync; a fetch that fails leaves local data alone rather
   than being read as "the account is empty".
-- One thing that does *not* propagate: un-solving a question, or removing a
-  bookmark, on one device. The merge is a union with no per-row tombstones, so
-  another device holding the old row will restore it.
+- **Un-solving and un-bookmarking now propagate.** The merge is a union, so an
+  id merely absent locally is indistinguishable from one never uploaded — the
+  fix is a per-row tombstone, kept in localStorage until the server confirms
+  the delete. Tombstoned ids are also excluded from the merge, which is the
+  half that matters when the delete itself failed: without it an offline
+  un-solve is undone on every sync until the network returns.
 - The anon key being public is by design; RLS is what protects your data.
 
 > Supabase's free tier includes a built-in email sender with modest rate limits

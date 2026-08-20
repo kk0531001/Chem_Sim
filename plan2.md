@@ -367,10 +367,6 @@ decision that is yours. Nothing here is waiting on more engineering.
 - **`trustedHtml()` (§2).** My view: it is ceremony now that the audit fails
   the build on any tainted `innerHTML` sink. Yours may differ — it is 109 call
   sites of pure renaming if you want the explicit API.
-- **Un-solve / un-bookmark across devices (§3).** The sync merge is a union
-  with no deletion tombstones, so un-solving on one device is undone by
-  another. Either a `pendingDeletes` replay, or write down that it is not
-  supported.
 - **Landing-page messaging (§12).** The figures are derived and correct. Any
   change is a voice decision, and rewriting working copy on a guess is how
   landing pages get worse.
@@ -380,11 +376,11 @@ decision that is yours. Nothing here is waiting on more engineering.
 The largest single gap. Everything above this line is polish; §11 is what
 tells you which polish mattered.
 
-### One thing to check by hand
+### Checked since, no longer outstanding
 
-KaTeX is now imported on demand, which cut the entry bundle from 133 kB to
-47 kB gzipped. Cold-load rendering is verified. What could not be tested here
-is re-typesetting of content inserted AFTER load, because `requestAnimationFrame`
-is suspended in a headless browser pane. Open a quiz, answer a question whose
-explanation contains `\ce{}` (`mock1-a-009` is one), and confirm the formula
-renders rather than showing raw `\ce{...}`.
+- **KaTeX post-load typesetting.** Verified: forcing a frame in the headless
+  pane (a screenshot) lets `requestAnimationFrame` run, and math inserted after
+  load renders, mhchem included, with no `katex-error` and a node count stable
+  across further frames — so KaTeX's own DOM writes do not re-trigger the
+  observer.
+- **Un-solve / un-bookmark across devices.** Fixed with per-row tombstones.
