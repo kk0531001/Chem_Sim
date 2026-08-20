@@ -35,6 +35,8 @@ export type SkillId = string;
 
 export const SKILLS: Record<ExamTopicId, Record<string, string>> = {
   stoich: {
+    'mole-concept': 'The mole, molar mass and Avogadro',
+    'yield': 'Percent yield',
     'limiting-reagent': 'Limiting reagent',
     'empirical-formula': 'Empirical and molecular formulae',
     'solution-conc': 'Concentration and dilution',
@@ -75,6 +77,7 @@ export const SKILLS: Record<ExamTopicId, Record<string, string>> = {
     'approximations': 'Approximations',
   },
   acids: {
+    'definitions': 'Brønsted and Lewis definitions',
     'strong-weak': 'Strong vs weak',
     'ph-calc': 'pH calculations',
     'buffers': 'Buffers',
@@ -90,6 +93,7 @@ export const SKILLS: Record<ExamTopicId, Record<string, string>> = {
     'electrolysis': 'Electrolysis and Faraday',
   },
   atomic: {
+    'quantum-foundations': 'Wave–particle duality and uncertainty',
     'quantum-numbers': 'Quantum numbers and orbitals',
     'configuration': 'Electron configuration',
     'periodic-trends': 'Periodic trends',
