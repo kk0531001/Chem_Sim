@@ -8,6 +8,17 @@
  * never drift away from the twelve-topic vocabulary the attempt log and the
  * registry already agree on (CLAUDE.md, "Two topic vocabularies").
  *
+ * THE TOPIC HALF MAY DIFFER FROM `toExamTopic(q.topic)`, deliberately. The
+ * `aek` module is "Acids, Redox & Kinetics" but collapses to the `acids` exam
+ * topic, so its genuinely-redox questions take `redox/*` skills while their
+ * exam topic stays `acids`. Forcing the two to agree would leave those
+ * questions untagged to protect a rule that exists only for tidiness — the
+ * skill is the finer truth and the coarse topic is what it is.
+ *
+ * So the skill breakdown and the topic breakdown are two VIEWS, not one view
+ * at two zoom levels. They can disagree about which bucket a question sits in.
+ * That is correct, not a bug to reconcile later.
+ *
  * Tagging is DELIBERATELY PARTIAL. An untagged question is absent from the
  * skill breakdown rather than bucketed as "other" (see accuracyBySkill), so a
  * half-tagged corpus reports less, never wrong. Tag a bank when you can name
@@ -118,8 +129,11 @@ export const SKILLS: Record<ExamTopicId, Record<string, string>> = {
     'spectroscopy-ir': 'IR spectroscopy',
     'spectroscopy-nmr': 'NMR spectroscopy',
     'spectroscopy-ms': 'Mass spectrometry',
+    'spectroscopy-uvvis': 'UV–Vis and Beer’s law',
     'structure-elucidation': 'Structure elucidation',
+    'gravimetry': 'Gravimetric analysis',
     'error-analysis': 'Error analysis',
+    'safety': 'Laboratory safety',
   },
 };
 

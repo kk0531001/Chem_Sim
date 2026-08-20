@@ -373,12 +373,18 @@ decision that is yours. Nothing here is waiting on more engineering.
 
 - **Analytics retention (§3).** `signals` rows are kept 12 months; `attempts`
   has no policy at all. What should be kept, and for how long?
-- **`trustedHtml()` (§2).** My view: it is ceremony now that the audit fails
-  the build on any tainted `innerHTML` sink. Yours may differ — it is 109 call
-  sites of pure renaming if you want the explicit API.
-- **Landing-page messaging (§12).** The figures are derived and correct. Any
-  change is a voice decision, and rewriting working copy on a guess is how
-  landing pages get worse.
+- ~~**`trustedHtml()` (§2).**~~ DECIDED: skipped. The audit gate already fails
+  the build on any tainted `innerHTML` sink, so the explicit API would be
+  renaming without a behaviour change. The two §2 items stay unticked to record
+  that they were declined rather than missed.
+- ~~**Landing-page messaging (§12).**~~ DECIDED: leave it. Figures are derived
+  and correct; the copy stays as written.
+- ~~**Analytics for acquisition (§12).**~~ DECIDED: none. `signals` is
+  first-party and already there; a third-party script would mean widening a CSP
+  that currently has no `unsafe-inline` and no `unsafe-eval`, which is not a
+  trade worth making before anyone is arriving.
+- ~~**Search results and sorting (§9).**~~ DECIDED: leave. Search is 0.1-2.8 ms
+  and returns modules and questions; no concrete deficiency to fix.
 
 ### Needs students (§11, all of it)
 
