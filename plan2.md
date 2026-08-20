@@ -337,3 +337,54 @@ That gives you a very clean development loop:
 better chemistry → better software → real users → evidence → better chemistry.
 
 That's the loop I'd build ChemSim around now.
+
+---
+
+## What is blocked on the owner
+
+Everything below is unticked because it needs something I do not have, or a
+decision that is yours. Nothing here is waiting on more engineering.
+
+### Needs your environment
+
+- **Authenticated + cloud error states (§4).** This checkout has no
+  `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, so the app only ever ran
+  local-only. Everything signed-in — sync, the account panel, the reset path
+  against real rows — is untested against a live project.
+- **`0005_progress_reset.sql` has not been run.** The reset-tombstone table is
+  committed but your database does not have it yet. Until it does,
+  `honourRemoteReset()` logs a warning and fails open (local data is kept),
+  which is safe but means reset still does not propagate between devices.
+- **Screen-reader pass (§5).** Semantics are verified — roles, names, live
+  regions, focus order. What VoiceOver or NVDA actually announces is not.
+- **Mobile FPS and slow-hardware startup (§8).** Layout is verified at 375,
+  430, landscape and 200% text. Frame rate on a real phone is not.
+
+### Needs a decision
+
+- **Analytics retention (§3).** `signals` rows are kept 12 months; `attempts`
+  has no policy at all. What should be kept, and for how long?
+- **`trustedHtml()` (§2).** My view: it is ceremony now that the audit fails
+  the build on any tainted `innerHTML` sink. Yours may differ — it is 109 call
+  sites of pure renaming if you want the explicit API.
+- **Un-solve / un-bookmark across devices (§3).** The sync merge is a union
+  with no deletion tombstones, so un-solving on one device is undone by
+  another. Either a `pendingDeletes` replay, or write down that it is not
+  supported.
+- **Landing-page messaging (§12).** The figures are derived and correct. Any
+  change is a voice decision, and rewriting working copy on a guess is how
+  landing pages get worse.
+
+### Needs students (§11, all of it)
+
+The largest single gap. Everything above this line is polish; §11 is what
+tells you which polish mattered.
+
+### One thing to check by hand
+
+KaTeX is now imported on demand, which cut the entry bundle from 133 kB to
+47 kB gzipped. Cold-load rendering is verified. What could not be tested here
+is re-typesetting of content inserted AFTER load, because `requestAnimationFrame`
+is suspended in a headless browser pane. Open a quiz, answer a question whose
+explanation contains `\ce{}` (`mock1-a-009` is one), and confirm the formula
+renders rather than showing raw `\ce{...}`.
