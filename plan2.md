@@ -68,7 +68,7 @@ Next:
 - [x] Verify reset-progress behavior against cloud state
 - [x] Test partial network failure during sync
 - [x] Test duplicate sync / retry behaviour
-- [ ] Decide what analytics data should be retained
+- [x] Decide what analytics data should be retained
 - [x] Document the production database setup cleanly
 
 **Goal**

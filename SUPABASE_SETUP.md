@@ -38,6 +38,7 @@ or by pasting each one into **SQL Editor → New query → Run**, oldest first:
 | `0003_signals.sql` | `signals` — the four feedback loops in one append-only table |
 | `0004_signals_rate_limit.sql` | a per-address insert budget for `signals` (see below) |
 | `0005_progress_reset.sql` | `progress_reset` — one timestamp per user, recording that they erased their progress |
+| `0006_retention.sql` | `apply_retention()` — the data-retention policy, written down and runnable |
 
 Every file is idempotent, so re-running them is safe.
 
@@ -67,6 +68,14 @@ abuse ever appears. On its own it would not help — the publishable key has to
 stay in the bundle for auth and progress sync, so an attacker would simply keep
 posting directly to PostgREST. Doing it properly means revoking anon insert
 here as well and giving the function a `service_role` key.
+
+Retention is decided in `0006_retention.sql`: `attempts` is kept indefinitely
+(it is the student's own record, it is what every statistic derives from, and
+the cascade from `auth.users` removes it with the account), `signals` for 12
+months, `signal_budget` for an hour. Run `select * from public.apply_retention();`
+in the SQL editor when you go through the feedback inbox — it is deliberately
+not a scheduled trigger, because a migration that quietly installs a job
+deleting rows is not something to discover later.
 
 `signals` rows are kept for **12 months** — it is analytics with free text in
 it, not a student's record. The `delete` statement is at the bottom of its
