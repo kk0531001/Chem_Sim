@@ -114,3 +114,21 @@ costs more than reading it:
   visibility, folded state, or the play control.
 - **Images.** The only raster assets are the two favicons and an 87 kB
   og-image, which no visitor's browser requests.
+
+## "Upgrade weak explanations" — what the search actually found (plan2 §1)
+
+Short is not the same as weak. 143 of 853 `why` fields are under 70 characters,
+and reading them shows almost all are terse because the question is: "n = m/M =
+44/44 = 1 mol" is a complete explanation of a one-step conversion, and padding
+it would make the page longer without making it clearer.
+
+Even among the Gold questions — where a thin explanation would be a real
+defect, because the whole point of the tier is chained reasoning — the short
+ones turn out to show their full working: `p1-thermo-004` fits the entire Hess
+sum in 51 characters, `equ-013` both K transformations in 62.
+
+So no bulk rewrite was done. The real upgrade to explanation quality this pass
+was the misconception layer: 167 → 264 notes, including one on every Gold
+question, each naming the wrong mental model behind a specific distractor
+rather than restating the answer. That is the thing a student who got it wrong
+did not already have.
