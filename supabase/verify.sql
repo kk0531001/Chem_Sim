@@ -95,6 +95,16 @@ where routine_schema = 'public' and routine_name = 'apply_retention'
   and grantee in ('anon','authenticated','PUBLIC')
 
 union all
+-- 9b. same for the trigger function: nothing should ever call it directly, and
+--     it is SECURITY DEFINER, so it runs as the owner if anything does.
+select 9, 'trigger fn locked down', 'execute on signals_rate_limit',
+       case when count(*) = 0 then 'PASS — anon/authenticated cannot call it'
+            else 'FAIL — granted to ' || string_agg(grantee, ', ') end
+from information_schema.routine_privileges
+where routine_schema = 'public' and routine_name = 'signals_rate_limit'
+  and grantee in ('anon','authenticated','PUBLIC')
+
+union all
 -- 10. deleting an account removes the student's data. This is also what makes
 --     "attempts kept indefinitely" an acceptable retention policy.
 select 10, 'cascade to auth.users', conrelid::regclass::text,
