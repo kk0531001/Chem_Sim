@@ -39,6 +39,7 @@ or by pasting each one into **SQL Editor → New query → Run**, oldest first:
 | `0004_signals_rate_limit.sql` | a per-address insert budget for `signals` (see below) |
 | `0005_progress_reset.sql` | `progress_reset` — one timestamp per user, recording that they erased their progress |
 | `0006_retention.sql` | `apply_retention()` — the data-retention policy, written down and runnable |
+| `0007_lock_trigger_function.sql` | revokes EXECUTE on the rate-limit trigger function from `anon`/`authenticated` |
 
 Every file is idempotent — `create table if not exists`, `drop policy if
 exists` before each `create policy`, `drop trigger if exists` before the
