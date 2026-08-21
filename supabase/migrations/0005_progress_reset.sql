@@ -22,6 +22,10 @@ alter table public.progress_reset enable row level security;
 
 -- Same shape as solved/attempts/bookmarks: your own row, all four verbs, with
 -- the write predicate as well as the read one so a forged user_id is rejected.
+-- drop-then-create, like every other policy here: Postgres has no
+-- `create policy if not exists`, and this file has to be replayable against a
+-- database that already has it.
+drop policy if exists "progress_reset is per-user" on public.progress_reset;
 create policy "progress_reset is per-user"
   on public.progress_reset for all
   using (auth.uid() = user_id)

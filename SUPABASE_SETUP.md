@@ -40,7 +40,24 @@ or by pasting each one into **SQL Editor → New query → Run**, oldest first:
 | `0005_progress_reset.sql` | `progress_reset` — one timestamp per user, recording that they erased their progress |
 | `0006_retention.sql` | `apply_retention()` — the data-retention policy, written down and runnable |
 
-Every file is idempotent, so re-running them is safe.
+Every file is idempotent — `create table if not exists`, `drop policy if
+exists` before each `create policy`, `drop trigger if exists` before the
+trigger, `create or replace` for functions — so re-running the chain against a
+database that already has some of it is safe. That property is what makes
+`db push` usable on a project whose schema was applied by hand.
+
+**After pushing, run [`supabase/verify.sql`](supabase/verify.sql) in the SQL
+editor.** It checks tables, RLS actually being enabled (a policy on a table
+without RLS is decoration), every policy and its predicates, the two named
+indexes, the primary keys, the rate-limit trigger, both functions, that
+`apply_retention` is NOT executable by `anon`/`authenticated`, the
+`on delete cascade` to `auth.users`, and the migration history itself. Every
+row should read PASS.
+
+The last check is the one that matters most for reproducibility: **objects
+existing is not the same as the chain being recorded.** An empty
+`supabase_migrations.schema_migrations` means the schema was applied by hand
+and cannot be rebuilt from git, even though the app works.
 
 `progress_reset` exists because a deletion cannot be represented in a
 merge-by-union sync: an absent row and a row that was never uploaded look
