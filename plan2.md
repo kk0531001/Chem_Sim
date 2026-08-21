@@ -97,7 +97,7 @@ Instead:
 - [ ] Check loading states
 - [ ] Check error states
 - [x] Check empty states
-- [ ] Check authenticated vs anonymous states
+- [x] Check authenticated vs anonymous states
 
 Especially test:
 
@@ -347,23 +347,11 @@ decision that is yours. Nothing here is waiting on more engineering.
 
 ### Needs your environment
 
-- **`0005_progress_reset.sql` has not been run — confirmed against your live
-  project.** Asking PostgREST for the table returns `404 PGRST205, Could not
-  find the table 'public.progress_reset'`, while `solved`, `attempts`,
-  `bookmarks` and `signals` all answer `200`. Until the migration runs,
-  `honourRemoteReset()` logs a warning and fails open (local data is kept),
-  which is safe but means a reset still does not propagate between devices.
-  Applying it needs `supabase login` plus a linked project, or the SQL editor —
-  neither of which a publishable anon key can do, by design.
-- **Signed-IN behaviour (§4).** The keys ARE present in `.env`, so everything
-  signed-OUT has been exercised against the real project: cloud is configured,
-  the sign-in UI renders, and anonymous reads of all four tables return `200 []`
-  rather than anyone else's rows. What remains untested is the authenticated
-  half — sync, the account panel, reset against real rows — because signing in
-  needs a magic link sent to your inbox or Google OAuth.
-  (Caveat on the `200 []` above: an empty result is consistent with RLS
-  filtering AND with the tables simply being empty. It proves nothing leaks to
-  an anonymous caller; it does not by itself prove rows exist to be filtered.)
+- ~~Database deployment.~~ DONE. Migrations 0001–0007 applied and recorded,
+  verify.sql all PASS, security advisors reviewed (three accepted, one fixed as
+  0007), and the signed-in path smoke-tested end to end: attempts write, a
+  second device pulls, reset clears both, un-solve survives a reload, sign-out
+  does not leak into the next account.
 - **Screen-reader pass (§5).** Semantics are verified — roles, names, live
   regions, focus order. What VoiceOver or NVDA actually announces is not.
 - **Mobile FPS and slow-hardware startup (§8).** Layout is verified at 375,
