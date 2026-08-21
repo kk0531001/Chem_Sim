@@ -12,7 +12,7 @@
  * shipping. Update these when a bank grows; the audit will tell you if you
  * forget.
  */
-export const CORPUS_COUNTS = { mc: 853, frq: 128, papers: 5 };
+export const CORPUS_COUNTS = { mc: 873, frq: 128, papers: 5 };
 
 /**
  * How many questions each module's quiz bank holds — the denominator of the
@@ -29,9 +29,9 @@ export const CORPUS_COUNTS = { mc: 853, frq: 128, papers: 5 };
  */
 export const MODULE_QUIZ_SIZE: Record<string, number> = {
   quantum: 25, periodicity: 25, bonding: 25, stoich: 25,
-  thermo1: 25, thermo2: 25, gases: 25, equilibrium: 25, aek: 25,
+  thermo1: 25, thermo2: 25, gases: 35, equilibrium: 25, aek: 25,
   physchem: 27, biophys: 25,
-  organic1: 25, organic2: 25, organic3: 26, polymers: 25,
+  organic1: 30, organic2: 30, organic3: 26, polymers: 25,
   nuclear: 25, coordchem: 26, advinorganic: 25,
   labdata: 25, labtech: 29, analytical: 25,
   spectroscopy: 25, structure: 29,

@@ -81,7 +81,24 @@ const frq = ALL_FRQ.map(f => ({ f, parts: f.parts?.length ?? 0 }));
 const CUT = 8;
 const shortlist = scored.filter(x => x.s >= CUT);
 
-const examTopicOf = q => q.topic ?? '?';
+// Group by the COARSE exam topic, not the raw `topic` string. Raw mixes two
+// vocabularies — `organic1` is a module id, `organic` is an ExamTopicId — and
+// reading the two in one column invents gaps that are not there: `organic 1/25`
+// looked like "organic chemistry is unrepresented" when it meant "bankPart1's
+// ten organic questions are mostly not flagship-grade", which is expected of
+// exam-paced Part I MC. Organic is in fact 39/190 across the whole corpus.
+//
+// The collapse is the same one the attempt log and the registry already use, so
+// this cannot disagree with the rest of the app about what a topic is.
+const EXAM_OF = {
+  quantum: 'atomic', periodicity: 'atomic', bonding: 'bonding',
+  stoich: 'stoich', thermo1: 'thermo', thermo2: 'thermo', physchem: 'thermo',
+  gases: 'states', equilibrium: 'equilibrium', aek: 'acids', biophys: 'kinetics',
+  nuclear: 'descriptive', coordchem: 'descriptive', advinorganic: 'descriptive',
+  organic1: 'organic', organic2: 'organic', organic3: 'organic', polymers: 'organic',
+  labdata: 'lab', labtech: 'lab', analytical: 'lab', spectroscopy: 'lab', structure: 'lab',
+};
+const examTopicOf = q => EXAM_OF[q.topic] ?? q.topic ?? '?';
 const bucket = (arr, key) => arr.reduce((m, x) => (m[key(x)] = (m[key(x)] ?? 0) + 1, m), {});
 
 if (process.argv.includes('--ids')) {
