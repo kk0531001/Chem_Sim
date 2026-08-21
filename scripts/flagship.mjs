@@ -99,6 +99,19 @@ const EXAM_OF = {
   labdata: 'lab', labtech: 'lab', analytical: 'lab', spectroscopy: 'lab', structure: 'lab',
 };
 const examTopicOf = q => EXAM_OF[q.topic] ?? q.topic ?? '?';
+
+// AND MEASURE BY SKILL TOO. The exam-topic view has a blind spot it cannot fix:
+// `aek` is "Acids, Redox & Kinetics" and collapses to `acids`, so ten new redox
+// and kinetics questions land in the acids row and the redox and kinetics rows
+// do not move at all. That is the documented exam-topic-vs-skill split working
+// as intended (see src/content/skills.ts), not a bug — but it makes the exam
+// topic the wrong lens for asking "is this area of CHEMISTRY well covered".
+// Skill area answers that question; exam topic answers "is this CCC/CCO
+// reporting area well covered". Read both.
+const skillAreasOf = q => {
+  const sk = q.skill ? (typeof q.skill === 'string' ? [q.skill] : q.skill) : [];
+  return [...new Set(sk.map(s => s.split('/')[0]))];
+};
 const bucket = (arr, key) => arr.reduce((m, x) => (m[key(x)] = (m[key(x)] ?? 0) + 1, m), {});
 
 if (process.argv.includes('--ids')) {
@@ -113,6 +126,16 @@ if (process.argv.includes('--ids')) {
   }
   const skills = new Set(shortlist.flatMap(x => typeof x.q.skill === 'string' ? [x.q.skill] : (x.q.skill ?? [])));
   console.log(`\nskills represented: ${skills.size} of 81`);
+
+  const area = {};
+  for (const q of ALL_MC) for (const a of skillAreasOf(q)) {
+    (area[a] ??= { n: 0, c: 0 }).n++;
+    if (shortlist.some(x => x.q.id === q.id)) area[a].c++;
+  }
+  console.log('\nby SKILL AREA (what the chemistry coverage actually is):');
+  for (const [a, v] of Object.entries(area).sort((x, y) => x[1].c - y[1].c)) {
+    console.log(`  ${a.padEnd(14)} ${String(v.c).padStart(3)} / ${String(v.n).padStart(3)}`);
+  }
 } else {
   console.log(`${shortlist.length} MC candidates at score >= ${CUT}, from ${ALL_MC.length}`);
   console.log(`plus ${frq.length} written problems (every one is multi-part by construction)\n`);
