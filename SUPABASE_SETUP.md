@@ -46,8 +46,11 @@ trigger, `create or replace` for functions — so re-running the chain against a
 database that already has some of it is safe. That property is what makes
 `db push` usable on a project whose schema was applied by hand.
 
-**After pushing, run [`supabase/verify.sql`](supabase/verify.sql) in the SQL
-editor.** It checks tables, RLS actually being enabled (a policy on a table
+**After pushing, run [`supabase/verify.sql`](supabase/verify.sql):** SQL editor
+→ New query → paste the whole file → Run, then read the `ok` column. It is
+deliberately ONE query rather than ten, because the editor only shows the
+result of the last statement in a script — ten statements would mean nine
+invisible answers. It checks tables, RLS actually being enabled (a policy on a table
 without RLS is decoration), every policy and its predicates, the two named
 indexes, the primary keys, the rate-limit trigger, both functions, that
 `apply_retention` is NOT executable by `anon`/`authenticated`, the

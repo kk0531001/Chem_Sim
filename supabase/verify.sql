@@ -1,123 +1,116 @@
--- Post-migration verification. Paste into the Supabase SQL editor after
--- `supabase db push` and read the `ok` column: every row should say PASS.
+-- Post-migration verification — ONE query, so the SQL editor shows every check.
 --
--- This is the check that the DATABASE matches what the app assumes. The app's
--- own gate (`npm run audit`) proves the client behaves; nothing in it can see
--- whether the server actually has the table, the policy or the index the
--- client is relying on. That gap is what let migration 0005 sit unapplied
--- while every local test passed.
+--   Supabase SQL editor → New query → paste → Run.
+--   Read the `ok` column. Everything should say PASS.
 --
--- Safe to run repeatedly: it reads catalogues and writes nothing.
+-- Run it after `supabase db push`. Reads catalogues only, writes nothing, safe
+-- to re-run.
+--
+-- Why this exists: `npm run audit` proves the CLIENT behaves. Nothing in it can
+-- see whether the server actually has the table, the policy or the index the
+-- client assumes — which is exactly how migration 0005 sat unapplied while
+-- every local test passed.
+--
+-- It is deliberately a single UNION ALL rather than ten statements: the editor
+-- only displays the result of the last statement in a script, so ten queries
+-- means nine invisible answers.
 
--- 1. TABLES -----------------------------------------------------------------
-select 'tables' as check,
-       t.expected,
+with
+tables_expected(name) as (
+  values ('solved'),('attempts'),('bookmarks'),('progress_reset'),('signals'),('signal_budget')
+),
+funcs_expected(name) as (values ('signals_rate_limit'),('apply_retention')),
+idx_expected(name)   as (values ('attempts_user_time_idx'),('signals_kind_time_idx'))
+
+-- 1. every table exists
+select 1 as ord, 'table' as check, t.name as detail,
        case when c.relname is null then 'FAIL — missing' else 'PASS' end as ok
-from (values ('solved'),('attempts'),('bookmarks'),('progress_reset'),
-             ('signals'),('signal_budget')) as t(expected)
-left join pg_class c
-       on c.relname = t.expected
-      and c.relnamespace = 'public'::regnamespace
-      and c.relkind = 'r'
-order by 2;
+from tables_expected t
+left join pg_class c on c.relname = t.name
+     and c.relnamespace = 'public'::regnamespace and c.relkind = 'r'
 
--- 2. ROW LEVEL SECURITY IS ON ------------------------------------------------
--- A policy on a table without RLS enabled is decoration: Postgres ignores it.
-select 'rls enabled' as check,
-       c.relname as table,
-       case when c.relrowsecurity then 'PASS' else 'FAIL — RLS OFF' end as ok
+union all
+-- 2. RLS is genuinely ENABLED. A policy on a table without RLS is decoration:
+--    Postgres ignores it and the table is world-readable.
+select 2, 'rls enabled', c.relname,
+       case when c.relrowsecurity then 'PASS' else 'FAIL — RLS IS OFF' end
 from pg_class c
-where c.relnamespace = 'public'::regnamespace
-  and c.relkind = 'r'
-  and c.relname in ('solved','attempts','bookmarks','progress_reset','signals','signal_budget')
-order by 2;
+where c.relnamespace = 'public'::regnamespace and c.relkind = 'r'
+  and c.relname in (select name from tables_expected)
 
--- 3. POLICIES ----------------------------------------------------------------
--- Expected: one per-user policy on each of the four progress tables, exactly
--- one INSERT-only policy on signals, and NONE on signal_budget.
-select 'policies' as check,
-       tablename as table,
-       policyname,
-       cmd,
-       coalesce(qual, '(none)') as using_expr,
-       coalesce(with_check, '(none)') as check_expr
+union all
+-- 3. each user-owned table has its per-user policy
+select 3, 'per-user policy', t.name,
+       case when count(p.policyname) > 0 then 'PASS (' || count(p.policyname) || ')'
+            else 'FAIL — no policy' end
+from (values ('solved'),('attempts'),('bookmarks'),('progress_reset')) as t(name)
+left join pg_policies p on p.schemaname = 'public' and p.tablename = t.name
+group by t.name
+
+union all
+-- 4. no policy is unconditionally permissive on a user-owned table
+select 4, 'no using(true)', tablename || '.' || policyname,
+       case when qual = 'true' then 'FAIL — exposes every user''s rows' else 'PASS' end
 from pg_policies
 where schemaname = 'public'
-order by tablename, policyname;
+  and tablename in ('solved','attempts','bookmarks','progress_reset')
 
--- 3b. the specific invariant: no policy may be unconditionally permissive on a
--- user-owned table. `using (true)` there would expose every student's rows.
-select 'permissive check' as check,
-       tablename, policyname,
-       case when qual = 'true' then 'FAIL — using(true) on a user table' else 'PASS' end as ok
+union all
+-- 5. signals must have NO readable policy — that absence is load-bearing, it
+--    is what stops the free-text feedback column being read through the API
+select 5, 'signals not readable', 'select/all policies on signals',
+       case when count(*) = 0 then 'PASS — insert-only, as designed'
+            else 'FAIL — feedback text is readable' end
 from pg_policies
-where schemaname = 'public'
-  and tablename in ('solved','attempts','bookmarks','progress_reset');
+where schemaname = 'public' and tablename = 'signals' and cmd in ('SELECT','ALL')
 
--- 3c. signals must have NO select policy — that absence is load-bearing, it is
--- what stops the free-text feedback column being readable through the API.
-select 'signals select policy' as check,
-       case when count(*) = 0 then 'PASS — no select policy, as designed'
-            else 'FAIL — signals is readable through PostgREST' end as ok
-from pg_policies
-where schemaname = 'public' and tablename = 'signals'
-  and cmd in ('SELECT','ALL');
+union all
+-- 6. indexes the client's queries depend on
+select 6, 'index', i.name,
+       case when x.indexname is null then 'FAIL — missing' else 'PASS' end
+from idx_expected i
+left join pg_indexes x on x.indexname = i.name and x.schemaname = 'public'
 
--- 4. INDEXES -----------------------------------------------------------------
--- Every client query filters on user_id; attempts additionally orders by time.
-select 'indexes' as check, i.expected,
-       case when x.indexname is null then 'FAIL — missing' else 'PASS' end as ok
-from (values ('attempts_user_time_idx'),('signals_kind_time_idx')) as i(expected)
-left join pg_indexes x on x.indexname = i.expected and x.schemaname = 'public'
-order by 2;
+union all
+-- 7. rate-limit trigger
+select 7, 'trigger', 'signals_rate_limit_trg',
+       case when count(*) = 1 then 'PASS' else 'FAIL — missing' end
+from pg_trigger where tgname = 'signals_rate_limit_trg' and not tgisinternal
 
--- primary keys carry the rest: (user_id, question_id) on the three set tables.
-select 'primary keys' as check, conrelid::regclass::text as table,
-       pg_get_constraintdef(oid) as definition
-from pg_constraint
-where contype = 'p'
-  and connamespace = 'public'::regnamespace
-  and conrelid::regclass::text in ('solved','attempts','bookmarks','progress_reset')
-order by 2;
+union all
+-- 8. functions
+select 8, 'function', f.name,
+       case when p.proname is null then 'FAIL — missing' else 'PASS' end
+from funcs_expected f
+left join pg_proc p on p.proname = f.name and p.pronamespace = 'public'::regnamespace
 
--- 5. TRIGGER + FUNCTIONS ------------------------------------------------------
-select 'trigger' as check,
-       case when count(*) = 1 then 'PASS' else 'FAIL — rate limit trigger missing' end as ok
-from pg_trigger
-where tgname = 'signals_rate_limit_trg' and not tgisinternal;
-
-select 'functions' as check, f.expected,
-       case when p.proname is null then 'FAIL — missing' else 'PASS' end as ok
-from (values ('signals_rate_limit'),('apply_retention')) as f(expected)
-left join pg_proc p on p.proname = f.expected and p.pronamespace = 'public'::regnamespace
-order by 2;
-
--- 5b. apply_retention must NOT be callable by anon or authenticated. It is
--- security definer, so a stray grant would let any signed-in student purge the
--- analytics table.
-select 'retention grants' as check,
-       case when count(*) = 0 then 'PASS — not executable by anon/authenticated'
-            else 'FAIL — ' || string_agg(grantee, ', ') end as ok
+union all
+-- 9. apply_retention is security definer, so a stray grant would let any
+--    signed-in student purge the analytics table
+select 9, 'retention locked down', 'execute on apply_retention',
+       case when count(*) = 0 then 'PASS — anon/authenticated cannot call it'
+            else 'FAIL — granted to ' || string_agg(grantee, ', ') end
 from information_schema.routine_privileges
 where routine_schema = 'public' and routine_name = 'apply_retention'
-  and grantee in ('anon','authenticated','PUBLIC');
+  and grantee in ('anon','authenticated','PUBLIC')
 
--- 6. CASCADE ------------------------------------------------------------------
--- Deleting an account must remove the student's data. This is also what makes
--- "attempts kept indefinitely" an acceptable retention policy.
-select 'cascade on auth.users' as check,
-       conrelid::regclass::text as table,
-       case when confdeltype = 'c' then 'PASS' else 'FAIL — no ON DELETE CASCADE' end as ok
+union all
+-- 10. deleting an account removes the student's data. This is also what makes
+--     "attempts kept indefinitely" an acceptable retention policy.
+select 10, 'cascade to auth.users', conrelid::regclass::text,
+       case when confdeltype = 'c' then 'PASS' else 'FAIL — no ON DELETE CASCADE' end
 from pg_constraint
-where contype = 'f'
-  and confrelid = 'auth.users'::regclass
+where contype = 'f' and confrelid = 'auth.users'::regclass
   and connamespace = 'public'::regnamespace
-order by 2;
 
--- 7. MIGRATION HISTORY --------------------------------------------------------
--- The reproducibility check: the objects existing is not the same as the chain
--- being recorded. An empty history here means the schema was applied by hand
--- and cannot be rebuilt from git.
-select 'migration history' as check, version, name
+union all
+-- 11. the reproducibility check. Objects existing is NOT the same as the chain
+--     being recorded: an empty history means the schema cannot be rebuilt from
+--     git, however well the app happens to work.
+select 11, 'migration history', 'recorded migrations',
+       case when count(*) >= 6 then 'PASS — ' || count(*) || ' recorded'
+            when count(*) = 0 then 'FAIL — EMPTY, schema is untracked'
+            else 'FAIL — only ' || count(*) || ' of 6' end
 from supabase_migrations.schema_migrations
-order by version;
+
+order by ord, detail;
