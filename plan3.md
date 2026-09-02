@@ -1,6 +1,6 @@
 # ChemPrep — plan 3: lower the floor, add air, speak plainly
 
-**Status:** plan only. Nothing here is implemented. Written 2026‑09‑02 after a
+**Status:** live plan, being executed (ticks below are the ledger). Written 2026‑09‑02 after a
 full read of the repo, a run of `tsc` + `npm run audit`, and a look at the live
 site at 1440 px and 375 px.
 
@@ -120,7 +120,7 @@ Verify: screenshot the stoich theory section and the limiting‑reagent card at 
 
 - [x] **2.1** Rewrite the 25 `intro` paragraphs to STYLE.md: ≤ 60 words, first sentence says what the topic *is* in everyday terms, no exam culture, one sentence on what you'll be able to do after. (Prompt 4)
 - [x] **2.2** Rename module titles to plain words where the current title is a term list; keep slugs (they are URLs) and add the old title as an alias. Proposed: Quantum & Atomic Structure → *Atoms & Electrons*; Bonding, VSEPR & MO Theory → *Bonding & Molecular Shape*; Acids · Redox · Kinetics → *Acids, Batteries & Reaction Rates*; Stoichiometry & Solutions → *Moles & Solutions*; Gases, IMFs & Phases → *Gases, Liquids & Solids*. Olympiad‑only modules keep their names. (Prompt 4)
-- [ ] **2.3** A **Basics** theory block per CCC module (8), placed above the existing block, written to STYLE.md: define every term on first use, one worked number before each formula, 400–700 words, no "trap" callouts (those stay in the existing block, now titled "Exam‑level reference"). (Prompt 5)
+- [x] **2.3** A **Basics** theory block per CCC module (8), placed above the existing block, written to STYLE.md: define every term on first use, one worked number before each formula, 400–700 words, no "trap" callouts (those stay in the existing block, now titled "Exam‑level reference"). (Prompt 5)
 - [ ] **2.4** A glossary: `src/content/glossary.ts`, ~120 terms, one plain sentence each; `theory()` and the quiz renderer wrap the first occurrence of a term in a `<dfn>` with a tap/hover popover. One shared map, one renderer. (Prompt 6)
 - [x] **2.5** Rewrite `why` for every Bronze question (existing 5 × 23 banks = 115) to the three‑step shape: what the question is really asking → the rule in plain words → the arithmetic. Rewording is allowed: progress keys on `id`. (Prompt 7)
 - [ ] **2.6** Homepage copy: headline, lede, eyebrow, the "Why it works" row, and the Start CTA target (→ *Moles & Solutions* or a "Start here" run). (Prompt 8)
