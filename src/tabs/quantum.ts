@@ -278,7 +278,35 @@ export const quantumTab: TabDef = {
     root.append(topicPage('quantum', {
       sims: [orbCard, radCard, lvlCard, cfgCard],
       quiz: quiz(QUANTUM_QUIZ, 5),
-      theory: theory('Theory & key equations — quantum / atomic structure', `
+      theory: [
+        theory('Basics — Atoms & Electrons', `
+<h3>What this is about</h3>
+<p>An atom's chemistry is decided by where its electrons sit. This block covers the language used to describe those positions: shells, subshells, orbitals and the four quantum numbers.</p>
+<h3>Orbitals, subshells and shells</h3>
+<p>An orbital is a region around the nucleus where one particular electron is likely to be found. Each orbital holds at most two electrons. Orbitals of the same shape and energy are grouped into a subshell, and the subshells lying at a similar distance from the nucleus make up a shell.</p>
+<p>Shells are numbered n = 1, 2, 3 and so on, and a larger n means a bigger shell further out. Shell n contains n² orbitals. For n = 2 that is 2² = 4 orbitals, one 2s and three 2p. Four orbitals at two electrons each hold 8 electrons, which is 2n².</p>
+<h3>The shapes: s, p and d</h3>
+<p>An s orbital is a sphere centred on the nucleus. A p orbital is a pair of lobes on opposite sides of the nucleus, shaped like a dumbbell, and there are three of them pointing along three directions at right angles. Most d orbitals have four lobes. A p subshell holds three orbitals at two electrons each, so a full p subshell holds 3 × 2 = 6 electrons. An s subshell holds 2 and a d subshell holds 5 × 2 = 10.</p>
+<h3>The four quantum numbers</h3>
+<p>Every electron in an atom is labelled by four numbers.</p>
+<ul>
+<li>n, the principal quantum number, sets the size and the energy of the orbital.</li>
+<li>ℓ, the angular momentum quantum number, sets the shape. ℓ = 0 is a sphere (s), ℓ = 1 a dumbbell (p), ℓ = 2 a d orbital.</li>
+<li>mℓ, the magnetic quantum number, sets which direction the orbital points. It runs from −ℓ to +ℓ, which is why there are three p orbitals.</li>
+<li>ms, the spin quantum number, is +½ or −½ and separates the two electrons that share one orbital.</li>
+</ul>
+<p>No two electrons in one atom may carry all four numbers the same. That single rule is why an orbital stops at two electrons.</p>
+<h3>Nodes: where the electron is never found</h3>
+<p>A node is a surface on which the chance of finding the electron drops to zero. The wave that describes the electron changes sign as it crosses one, which is the blue-to-red switch shown in the first card. A 1s orbital has no node. A 2s orbital has one, a hollow spherical shell inside it. A 2p orbital has one as well, the flat plane through the nucleus that separates its two lobes. Counting nodes is the quickest way to tell two orbitals apart on screen.</p>
+<h3>Filling the orbitals up</h3>
+<p>Electrons go into the lowest-energy orbitals first. Sodium has 11 electrons. Two fill 1s, two fill 2s and six fill 2p, which uses ten of them and matches a neon atom exactly. The eleventh has to start the next shell, so it goes into 3s and the arrangement is written 1s²2s²2p⁶3s¹, shortened to [Ne]3s¹. Those superscripts are electron counts, not powers.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Say how many orbitals and how many electrons a given shell or subshell holds.</li>
+<li>Name the shape that each of s, p and d stands for, and say which quantum number sets it.</li>
+<li>Write the ground-state arrangement of electrons for a light element, and count the nodes in a simple orbital.</li>
+</ul>`, true),
+        theory('Exam-level reference — Atoms & Electrons', `
 <h3>Quantum numbers</h3>
 <ul>
 <li><b>n</b> = 1,2,3… (size/energy) · <b>ℓ</b> = 0…n−1 (shape: s,p,d,f) · <b>m<sub>ℓ</sub></b> = −ℓ…+ℓ (orientation) · <b>m<sub>s</sub></b> = ±½</li>
@@ -301,6 +329,7 @@ export const quantumTab: TabDef = {
 <li>Isoelectronic series: more protons = smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
 <li>PES (photoelectron spectroscopy): each peak = one subshell; peak height ∝ number of electrons; higher binding energy = closer to nucleus.</li>
 </ul>`),
+      ],
     }));
   },
 };

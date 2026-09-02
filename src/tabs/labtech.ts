@@ -316,7 +316,30 @@ export const labTechTab: TabDef = {
     root.append(topicPage('labtech', {
       sims: [makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference()],
       quiz: quiz(LABTECH_QUIZ, 5),
-      theory: theory('Theory — laboratory techniques', `
+      theory: [
+        theory('Basics — Laboratory Techniques', `
+<h3>What this is about</h3>
+<p>A pure compound almost never comes straight out of a reaction flask. This block covers the everyday ways of separating what you want from everything else that came with it.</p>
+<h3>Recrystallisation</h3>
+<p>Most solids dissolve far better in hot solvent than in cold, and recrystallisation lives on that gap. Dissolve the crude solid in the smallest amount of near-boiling solvent that will take it, then let the flask cool slowly. The compound comes back out as crystals. The impurities were only ever present in small amounts, so they stay dissolved in the cold liquid and are poured away.</p>
+<p>You never recover all of it, because the cold solvent still holds some. Say 25 g of solid is recrystallised from 100 mL of a solvent whose cold solubility is 4 g per 100 mL. Then 4 g stays dissolved and 25 − 4 = 21 g crystallises, a recovery of 21 ÷ 25 = 84%. In general, recovery = mass used − (cold solubility × volume of solvent). The first card lets you drag those numbers and watch the recovery collapse as the hot and cold solubilities close up.</p>
+<h3>Filtration</h3>
+<p>Filtration separates a solid from the liquid around it by pouring the mixture through a porous paper. Gravity filtration lets the liquid drain under its own weight, which is gentle and suits a hot solution you want to keep dissolved. Vacuum filtration pulls the liquid through a Büchner funnel using reduced pressure underneath. It is far quicker and leaves the solid drier, which is what a freshly crystallised product needs.</p>
+<h3>Distillation</h3>
+<p>Distillation separates liquids by boiling point, the temperature at which a liquid turns to vapour. Heat a mixture and the lower-boiling liquid is over-represented in the vapour, so condensing that vapour gives a sample richer in it. One round of this is a simple distillation, and it works when the boiling points are far apart.</p>
+<p>When the boiling points are close, one round is not enough. A fractional distillation sends the vapour up a packed column, where it condenses and re-boils many times on the way. Each repeat enriches the vapour a little further, which is what separates liquids only a few degrees apart.</p>
+<h3>Extraction between two solvents</h3>
+<p>Shake a solution with a second solvent that will not mix with the first, such as water against an organic solvent, and the two settle into separate layers. A dissolved compound splits itself between them. The partition coefficient is the ratio of its concentration in one layer to its concentration in the other once they have settled, and it is fixed for that compound with that pair of solvents. A compound that dissolves better in the organic layer builds up there, so running the layers apart carries it away from anything that prefers the water.</p>
+<p>Splitting the solvent into several smaller portions and extracting more than once recovers more than pouring it all in at once.</p>
+<h3>Drying an organic layer</h3>
+<p>An organic layer that has touched water carries some dissolved water away with it. A drying agent is a salt that contains no water of its own and readily takes water up. Anhydrous means exactly that, no water. Stir anhydrous magnesium sulfate, MgSO₄, into the wet layer and it traps the dissolved water as a solid hydrate. Filter that solid off before evaporating the solvent, or the water goes straight back into the product.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Say which property each of recrystallisation, distillation and extraction separates on.</li>
+<li>Work out a recrystallisation recovery from a cold solubility and a solvent volume.</li>
+<li>Choose gravity or vacuum filtration for a given job, and say what a drying agent removes.</li>
+</ul>`, true),
+        theory('Exam-level reference — Laboratory Techniques', `
 <h3>Recrystallization</h3>
 <ul><li>Dissolve in the MINIMUM hot solvent; hot-filter (+ charcoal) to drop insoluble/coloured impurities; cool slowly to grow pure crystals; collect by vacuum filtration; wash with cold solvent.</li>
 <li>Ideal solvent: high hot solubility, low cold solubility. Recovery = mass − (cold solubility × volume).</li></ul>
@@ -338,6 +361,7 @@ export const labTechTab: TabDef = {
 <h3>Uncertainty & safety</h3>
 <ul><li>Accuracy (closeness to true) ≠ precision (reproducibility). Sums add absolute σ in quadrature; products add relative σ in quadrature. Report the correct sig figs.</li>
 <li>Acid to water; know GHS pictograms; segregate incompatibles; goggles/gloves/fume hood; know emergency equipment.</li></ul>`),
+      ],
     }));
   },
 };

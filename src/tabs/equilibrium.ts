@@ -342,7 +342,31 @@ export const equilibriumTab: TabDef = {
     root.append(topicPage('equilibrium', {
       sims: [simCard, iceCard, kspCard],
       quiz: quiz(EQUILIBRIUM_QUIZ, 5),
-      theory: theory('Theory & key equations — equilibrium (highest-volume olympiad topic)', `
+      theory: [
+        theory('Basics — Chemical Equilibrium', `
+<h3>What this is about</h3>
+<p>Most reactions do not run until a reactant is gone. They stop part-way and stay there, and this block covers what that resting point is, how it is measured, and what moves it.</p>
+<h3>Equilibrium is busy, not still</h3>
+<p>Seal N₂O₄ gas in a flask and some of it breaks apart into NO₂. As NO₂ builds up, pairs of NO₂ start joining back into N₂O₄. Before long the two reactions are running at the same speed. From then on the amounts stop changing, and that state is chemical equilibrium.</p>
+<p>Nothing has actually stopped. Molecules keep converting in both directions, only at matching rates, which is why equilibrium is called dynamic. A double arrow ⇌ replaces → to show that a reaction settles this way.</p>
+<p>The amounts that stop changing are hardly ever equal to each other. Equal rates and equal concentrations are two different claims, and only the first one is true.</p>
+<h3>The equilibrium constant</h3>
+<p>The equilibrium constant, K, is the ratio of product amounts to reactant amounts once a reaction has settled. For N₂O₄(g) ⇌ 2NO₂(g) it is <span class="eq">K = [NO₂]² ÷ [N₂O₄]</span>. Square brackets mean concentration in mol/L, and each concentration is raised to the power of its coefficient in the balanced equation. Suppose a flask settles at [NO₂] = 0.60 M and [N₂O₄] = 0.90 M. Then K = 0.60² ÷ 0.90 = 0.40.</p>
+<p>K is one number for one reaction at one temperature. A K far above 1 makes the top of the fraction large, so products dominate at equilibrium. A K far below 1 means the mixture is mostly reactants. K says nothing at all about how long the mixture took to get there.</p>
+<h3>Solids and pure liquids are left out</h3>
+<p>A pure solid or a pure liquid keeps the same density however much of it sits in the flask, so it has no concentration that can change. Its fixed value is folded into K and it is simply left out of the expression. Only gases and dissolved substances are written in.</p>
+<h3>Q says which way the reaction will move</h3>
+<p>The reaction quotient, Q, is the same fraction as K but worked out from the amounts present right now rather than at equilibrium. Comparing the two tells you what happens next. Q smaller than K means there is too little product, so the reaction runs forward. Q larger than K means it runs backward. Q equal to K means the mixture already has its equilibrium composition and nothing shifts.</p>
+<h3>What moves it, and what does not</h3>
+<p>Adding a reactant, removing a product or squeezing a gas mixture all change Q. The reaction then shifts until Q matches K again, but K itself is untouched. A catalyst speeds the forward and reverse reactions up by the same amount, so it arrives at the same equilibrium sooner and changes neither Q nor K.</p>
+<p>Temperature is the one change that alters K. Splitting N₂O₄ into NO₂ absorbs 57 kJ per mole, so warming the flask favours the split and raises K. The gas darkens on warming and pales in ice, because NO₂ is brown and N₂O₄ is colourless. The first card runs this reaction live with K and Q both on screen.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Say what is equal at equilibrium and what is not.</li>
+<li>Write K for a simple gas reaction, leave out pure solids and liquids, and read off what a large or small K means.</li>
+<li>Compare Q with K to say which way a mixture will move, and name the one change that alters K.</li>
+</ul>`, true),
+        theory('Exam-level reference — Chemical Equilibrium', `
 <h3>The law of mass action</h3>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>
 <ul>
@@ -363,6 +387,7 @@ export const equilibriumTab: TabDef = {
 <li>5% rule: if x &lt; 5% of initial, the "small x" shortcut is fine. If K is huge, run the reaction to completion first, then come back a little.</li>
 <li><span class="trap">K<sub>sp</sub>: for Ca₃(PO₄)₂ → 3Ca²⁺ + 2PO₄³⁻, K<sub>sp</sub> = (3s)³(2s)² = 108s⁵. Common-ion effect lowers solubility.</span></li>
 </ul>`),
+      ],
     }));
 
     loop();

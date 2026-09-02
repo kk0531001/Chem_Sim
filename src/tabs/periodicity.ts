@@ -164,7 +164,31 @@ export const periodicityTab: TabDef = {
     root.append(topicPage('periodicity', {
       sims: [makeTrends(), makeSlater(), makeAnomalies()],
       quiz: quiz(PERIODICITY_QUIZ, 5),
-      theory: theory('Theory — periodicity (IChO area 4)', `
+      theory: [
+        theory('Basics — Periodicity', `
+<h3>What this is about</h3>
+<p>The periodic table is arranged so that atoms behaving alike line up in the same column. This block covers the four properties that change in a regular way across a row and down a column, and the reason each one moves.</p>
+<h3>Rows, columns and two competing pulls</h3>
+<p>A row of the table is a period and a column is a group. Moving one step to the right adds one proton to the nucleus and one electron to the same outer shell. Moving one step down starts a whole new shell, further from the nucleus.</p>
+<p>Two things decide how tightly an outer electron is held. The nucleus pulls it inward, and the inner electrons push it out and get in the way of that pull. Screening is the name for that blocking effect. What survives it is the effective nuclear charge, Z_eff, the pull an outer electron actually feels once the inner electrons have screened part of the nucleus.</p>
+<h3>Atomic radius</h3>
+<p>Atomic radius measures how far the outermost electrons sit from the nucleus. Across period 3 it falls from 186 pm at sodium to 99 pm at chlorine. Each added proton is barely screened by an electron entering the same shell, so Z_eff rises and the shell is drawn inward. Down group 1 the radius rises, from 152 pm at lithium to 186 pm at sodium, because sodium's outer electron sits in a new and larger shell.</p>
+<h3>Ionisation energy</h3>
+<p>The first ionisation energy is the energy needed to pull the outermost electron off one atom in the gas phase. Lithium needs 520 kJ/mol and sodium only 496 kJ/mol, so less energy is required further down the group. That electron is in a bigger shell with more inner electrons in the way, so it is held loosely. Across a period the ionisation energy climbs instead, because the same shell is being gripped by a stronger effective pull.</p>
+<h3>Electron affinity and electronegativity</h3>
+<p>Electron affinity is the energy released when a gaseous atom gains an electron. Chlorine releases 349 kJ/mol and fluorine only 328 kJ/mol, so this one does not simply improve up the group. Electronegativity is a different quantity: it is how strongly an atom pulls on the electrons of a bond it already shares. On the Pauling scale it rises going up and to the right, and fluorine tops the scale at 3.98.</p>
+<h3>An ion is a different size from its atom</h3>
+<p>Losing an electron makes a particle smaller and gaining one makes it larger. Sodium gives up its entire outer shell to become Na⁺, so Na⁺ is far smaller than Na. Line up Na, Na⁺, Mg²⁺ and Al³⁺ and the neutral sodium atom is the largest by a wide margin, because the other three have each shed a whole shell.</p>
+<h3>Metals and non-metals</h3>
+<p>Metallic character means how readily an atom gives up electrons. It follows straight from ionisation energy, since electrons that are held loosely leave easily. That happens going down a group and to the left, so the strongest metals sit at the bottom left and the non-metals at the top right.</p>
+<p>The first card plots all four properties for period 2 against period 3. Every place a line bends the wrong way has a reason behind it, and the later sections of this module give those reasons.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>State what happens to radius, ionisation energy and electronegativity across a period and down a group.</li>
+<li>Explain each of those directions using effective nuclear charge and screening.</li>
+<li>Rank an atom against its own ion by size, and point to the most metallic and most electronegative corners of the table.</li>
+</ul>`, true),
+        theory('Exam-level reference — Periodicity', `
 <h3>The trends and their driver</h3>
 <span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>
 <ul>
@@ -184,6 +208,7 @@ export const periodicityTab: TabDef = {
 <li>Diagonal relationships (Li–Mg, Be–Al, B–Si); inert-pair effect for heavy p-block; lanthanide contraction (Zr ≈ Hf).</li>
 <li>Electronegativity scales: Pauling (bond energies), Mulliken (½(IE+EA)), Allred–Rochow (Z_eff/r²).</li>
 </ul>`),
+      ],
     }));
   },
 };

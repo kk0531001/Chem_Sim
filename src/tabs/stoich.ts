@@ -190,7 +190,30 @@ export const stoichTab: TabDef = {
     root.append(topicPage('stoich', {
       sims: [limCard, solCard, yieldCard],
       quiz: quiz(STOICH_QUIZ, 5),
-      theory: theory('Theory & key equations — stoichiometry / reactions / solutions', `
+      theory: [
+        theory('Basics — Moles & Solutions', `
+<h3>What this is about</h3>
+<p>Chemistry counts atoms, but atoms are far too small to count one at a time. This block shows how a mass you can weigh on a balance becomes a number of particles you can compare.</p>
+<h3>The mole is a count</h3>
+<p>A mole is a fixed number of things, the way a dozen is 12. That number is Avogadro's number, 6.022 × 10²³ particles in every mole. One mole of water is 6.022 × 10²³ water molecules. One mole of iron is 6.022 × 10²³ iron atoms.</p>
+<h3>Molar mass turns grams into moles</h3>
+<p>The molar mass is the mass in grams of one mole of a substance. You find it by adding the atomic masses in the formula, read off the periodic table. Water is H₂O, so its molar mass is 2(1.008) + 15.999 = 18.02 g/mol. Weigh out 18.02 g of water and you are holding one mole of it.</p>
+<p>Now a worked number. You have 44.0 g of carbon dioxide, CO₂. One mole of CO₂ weighs 12.011 + 2(15.999) = 44.01 g, so 44.0 ÷ 44.01 = 1.00 mol. The same sum written in general is <span class="eq">n = m ÷ M</span> where n is the amount in moles, m is the mass in grams, and M is the molar mass in g/mol.</p>
+<h3>A balanced equation is a recipe in moles</h3>
+<p>Atoms are never created or destroyed in a reaction. A balanced equation therefore has the same count of each atom on both sides. Burning hydrogen is written 2H₂ + O₂ → 2H₂O, which gives four H and two O on the left and four H and two O on the right. The numbers in front are the coefficients, and they are a ratio of moles, not of grams.</p>
+<p>Never compare masses directly. Two grams of H₂ and two grams of O₂ are not equal amounts, because the two molecules do not weigh the same.</p>
+<h3>Which reactant runs out first</h3>
+<p>Start with 2 mol N₂ and 3 mol H₂, following N₂ + 3H₂ → 2NH₃. Divide each amount by its own coefficient: N₂ gives 2 ÷ 1 = 2, and H₂ gives 3 ÷ 3 = 1. The smaller answer belongs to the reactant that runs out first, so hydrogen is the limiting reagent here. Everything the reaction can make is set by that one reactant, and the extra nitrogen is left over.</p>
+<p>The first card draws exactly this. Each bar shows how much of a reactant was used up and how much remains.</p>
+<h3>Molarity measures concentration</h3>
+<p>Molarity is the number of moles of dissolved substance in one litre of solution. Dissolve 1 mol of table salt and make the total volume up to 2 L, and the molarity is 1 ÷ 2 = 0.5 mol/L, written 0.5 M. In general <span class="eq">c = n ÷ V</span> where c is the molarity in mol/L and V is the volume of the finished solution in litres. That volume is the whole solution, not the water you started with.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Add atomic masses to get a molar mass, then turn a mass in grams into moles with n = m ÷ M.</li>
+<li>Balance a simple equation and read its coefficients as a ratio of moles.</li>
+<li>Divide moles by coefficients to find the reactant that runs out first, and work out a molarity from moles and litres.</li>
+</ul>`, true),
+        theory('Exam-level reference — Moles & Solutions', `
 <h3>The mole highway</h3>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>
 <h3>Reaction types to recognize instantly</h3>
@@ -211,6 +234,7 @@ export const stoichTab: TabDef = {
 <li>Molarity M = mol/L solution (changes with T); molality m = mol/kg solvent (T-independent — use for colligative).</li>
 <li>ppm = mg solute / kg solution ≈ mg/L in dilute water.</li>
 </ul>`),
+      ],
     }));
   },
 };

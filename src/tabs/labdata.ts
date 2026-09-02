@@ -331,8 +331,33 @@ export const labdataTab: TabDef = {
         { label: 'Technique', el: makeTechnique() },
       ])],
       quiz: quiz(LABDATA_QUIZ, 5),
-      // One theory block per panel, beside the tool it explains.
-      theory: [],
+      // Basics first; the exam-level material is one theory block per panel,
+      // beside the tool it explains.
+      theory: [
+        theory('Basics — Lab & Data', `
+<h3>What this is about</h3>
+<p>A measurement is worth only as much as the care taken in reading it and reporting it. This block covers reading glassware, deciding how many digits to keep, and turning a light-absorption reading into a concentration.</p>
+<h3>Reading glassware</h3>
+<p>Water in a narrow glass tube curves upward where it touches the walls. That curved surface is the meniscus, and a burette or a pipette is read at the bottom of the curve. Keep your eye level with the mark while you read it. Looking down at the mark or up at it shifts the apparent position, an error called parallax.</p>
+<p>A burette scale runs downward, so the volume delivered is the final reading minus the starting one. Take both readings to the same number of decimal places.</p>
+<h3>Accuracy and precision are different things</h3>
+<p>Accuracy is how close a measurement is to the true value. Precision is how close repeated measurements are to each other. A burette with a mis-set zero gives readings that agree closely and are all wrong, which is precise without being accurate. Scatter that averages out to the right answer is the opposite case.</p>
+<h3>Significant figures</h3>
+<p>The significant figures of a number are the digits that carry real information about the measurement. An answer must never look more certain than the data behind it.</p>
+<p>Try 12.5 + 1.25. A calculator gives 13.75, but 12.5 was measured only to one decimal place, so the answer cannot claim two. Round it to 13.8. The rule for adding and subtracting is about decimal places: keep as many as the value that has the fewest. Multiplying and dividing use a different rule: keep as many significant figures as the value that has the fewest. So 2.0 × 3.15 = 6.3, not 6.30.</p>
+<h3>Absorbance</h3>
+<p>Shine light through a coloured solution and some of it is absorbed. The fraction that gets through is the transmittance, T. The absorbance is <span class="eq">A = −log T</span>. A solution that lets 10% of the light through has T = 0.10, and −log(0.10) = 1.00, so its absorbance is 1.00. An absorbance of 2 means only one hundredth of the light survived.</p>
+<p>Different wavelengths are absorbed by different amounts. λmax is the wavelength at which a sample absorbs the most, the peak of its absorption curve. Measuring there gives the largest signal for a given amount of substance, so small differences in concentration are easiest to see.</p>
+<h3>Beer's law and a calibration line</h3>
+<p>Absorbance is proportional to how much absorbing substance the light passes through. Double the concentration and the absorbance doubles. Written out, <span class="eq">A = ε b c</span> where c is the concentration in mol/L, b is the path length through the sample in cm, and ε is the molar absorptivity, a constant for that substance at that wavelength.</p>
+<p>That proportionality is what makes the first card work. Measure several solutions of known concentration, plot absorbance against concentration, and the points fall on a straight line. Read an unknown's absorbance off that line to get its concentration. The line is only trustworthy over the range you measured, so a reading above the highest standard should be diluted and measured again.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Read a burette correctly, and say why eye level matters.</li>
+<li>Apply the decimal-place rule to a sum and the significant-figure rule to a product.</li>
+<li>Explain what absorbance measures, why λmax is chosen, and how a calibration line turns an absorbance into a concentration.</li>
+</ul>`, true),
+      ],
     }));
   },
 };

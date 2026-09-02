@@ -203,7 +203,31 @@ export const thermo1Tab: TabDef = {
     root.append(topicPage('thermo1', {
       sims: [calCard, hessCard, bondCard, bhCard],
       quiz: quiz(THERMO1_QUIZ, 5),
-      theory: theory('Theory & key equations — first law / enthalpy', `
+      theory: [
+        theory('Basics — Thermodynamics I', `
+<h3>What this is about</h3>
+<p>Every reaction and every change of state moves energy around as heat. This block covers how that heat is measured, which way it flows, and what the sign of an enthalpy change means.</p>
+<h3>Heat always flows from hot to cold</h3>
+<p>Put a hot block against a cold one and energy moves from the hot one to the cold one. It never runs the other way on its own. The two settle at a single shared temperature, and that state is thermal equilibrium. The system is whatever you are studying, and the surroundings are everything else.</p>
+<h3>Specific heat capacity</h3>
+<p>Specific heat capacity, written c, is the energy needed to warm one gram of a substance by one degree. Its units are joules per gram per kelvin, J/g·K. Water's value is 4.18 J/g·K, which is unusually large. Lead's is 0.128 J/g·K, so the same heat warms a gram of lead about 33 times as much as a gram of water.</p>
+<p>Here is the sum. Warming 100 g of water by 10 °C takes 100 × 4.18 × 10 = 4180 J, or about 4.2 kJ. Written in general that is <span class="eq">q = m c ΔT</span> where q is the heat in joules, m is the mass in grams, c is the specific heat capacity, and ΔT is the temperature change. A degree Celsius and a kelvin are the same size, so ΔT is the same number in either.</p>
+<h3>Mixing two substances</h3>
+<p>Drop hot metal into cool water in an insulated cup and no heat escapes to the room. Whatever the water gains, the metal loses, so the heat gained by one is the heat lost by the other with the sign flipped. Setting those two q = mcΔT expressions against each other gives one final temperature shared by both. That is the calculation the first card solves for you.</p>
+<p>The answer is usually surprising. A large mass of lead barely shifts a smaller mass of water, because the product m × c decides the outcome and water's c is so much bigger.</p>
+<h3>Enthalpy and its sign</h3>
+<p>ΔH, the enthalpy change, is the heat taken in by the system while the pressure is held constant, which is what an open beaker does. A reaction that gives out heat is exothermic, so the system loses energy and ΔH is negative. A reaction that takes heat in is endothermic and ΔH is positive. Burning methane is exothermic. A cold pack dissolving its salt is endothermic.</p>
+<p>The sign is written from the system's point of view, not yours. A beaker that feels hot to the hand is losing energy, so its ΔH is negative.</p>
+<h3>Melting and boiling take heat with no rise in temperature</h3>
+<p>Pulling particles apart costs energy. Melting ice, boiling water and evaporating a solvent are all endothermic. Freezing, condensing and crystallising give that same energy back and are exothermic.</p>
+<p>While ice is melting the temperature stays at 0 °C, even though heat is still going in. All of that energy is spent breaking the solid apart rather than speeding the particles up. Melting one mole of ice takes 6.01 kJ, and q = mcΔT cannot be used during the melt because there is no ΔT to put in it.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Use q = mcΔT to find a heat, a mass or a temperature change, with the right units.</li>
+<li>Give the sign of ΔH for an exothermic and an endothermic change, and sort melting, freezing, boiling and burning into the two.</li>
+<li>Explain why the substance with the larger m × c moves less in temperature when two substances are mixed.</li>
+</ul>`, true),
+        theory('Exam-level reference — Thermodynamics I', `
 <h3>First law</h3>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
 <ul>
@@ -225,6 +249,7 @@ export const thermo1Tab: TabDef = {
 <li><b>Born–Haber cycle:</b> a Hess loop for ionic solids — ΔH_f = ΔH_sub + IE + ½D − EA + U_lattice — lets you extract the unmeasurable lattice energy from measurable steps.</li>
 <li><b>Kirchhoff's law:</b> ΔH is temperature-dependent — ΔH(T₂) = ΔH(T₁) + ΔC_p(T₂ − T₁), where ΔC_p = ΣC_p(products) − ΣC_p(reactants).</li>
 </ul>`),
+      ],
     }));
   },
 };
