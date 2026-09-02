@@ -112,11 +112,15 @@
      Six steps because the pages already cluster into six roles.
      Not in the scale, on purpose: the homepage hero's clamp() display type
      (fluid, doing a job a fixed step cannot) and the big panel readouts
-     (30/34/52px numerals, one-per-view hero figures). */
+     (30/34/52px numerals, one-per-view hero figures).
+     Retuned one step up by plan3 §1.2 (--f-4 15→16, --f-3 13→14, --f-2 12→13):
+     the scale was right, the values were tuned for a reader who already knows
+     the material. --f-1/--f-5/--f-6 stay — the eyebrow is a label, and the two
+     display steps are already at reading size. */
   --f-1: 11px;   /* eyebrow, meter caption, badge */
-  --f-2: 12px;   /* small label: breadcrumb, prereq, nav meter */
-  --f-3: 13px;   /* UI default: buttons, controls, table cells */
-  --f-4: 15px;   /* body copy */
+  --f-2: 13px;   /* small label: breadcrumb, prereq, nav meter */
+  --f-3: 14px;   /* UI default: buttons, controls, table cells */
+  --f-4: 16px;   /* body copy */
   --f-5: 19px;   /* card title (h2) */
   --f-6: 26px;   /* page title (h1) */
 
@@ -130,6 +134,13 @@
   /* The homepage's reading column. Lesson pages deliberately do NOT use it:
      a topic hosts one section at a time and is meant to fill the window. */
   --col: 1120px;
+
+  /* The READING measure (plan3 §1.1). Theory ran 152 characters per line at
+     1440px, which is twice the readable maximum. Prose caps here; canvases,
+     plots, tables, .eq lines and .result readouts are not prose and keep the
+     full card width. Left-aligned, never centred, so prose lines up with the
+     controls beside it. */
+  --measure: 60ch;   /* ~70 characters at 16px in this sans (ch ≈ 0.63em) */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -473,7 +484,7 @@ body { overflow: hidden; }
   font-weight: 700;
   letter-spacing: -0.01em;
 }
-.section-lede { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-loose); max-width: 620px; margin-bottom: 36px; }
+.section-lede { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-loose); max-width: var(--measure); margin-bottom: 36px; }
 
 /* ---- 02 · interactive demo ---- */
 .demo-sect { padding-bottom: 96px; }
@@ -1226,7 +1237,7 @@ body { overflow: hidden; }
   margin: 0 auto 4px;
 }
 .topic-intro p {
-  max-width: 70ch;
+  max-width: var(--measure);
   font-size: var(--f-4);
   line-height: var(--lh-loose);
   color: var(--ink-dim);
@@ -1666,6 +1677,28 @@ a.pill { text-decoration: none; display: inline-block; }
 .theory summary::before { content: '▸'; transition: transform var(--t); font-size: var(--f-1); color: var(--accent); }
 .theory[open] summary::before { transform: rotate(90deg); }
 .theory > div { padding: 2px 20px 18px; font-size: var(--f-4); line-height: var(--lh-body); color: var(--ink-dim); }
+/* Reading measure on the prose, not on the box: capping .theory > div itself
+   would drag the tables and equation lines in with it. Everything the theory
+   HTML puts at top level is prose by default; the exemptions below are the
+   things that are not. */
+.theory > div > * { max-width: var(--measure); }
+.theory > div > .table-scroll,
+.theory > div > table,
+.theory > div > .eq,
+.theory > div > .result,
+.theory > div > figure,
+.theory > div > canvas,
+.theory > div > svg,
+.theory > div > img { max-width: none; }
+/* Vertical rhythm (plan3 §1.2). A heading opens a new idea, so it gets the
+   larger step above it; the first one does not, or it detaches from its own
+   summary row. */
+.theory > div > h3 { margin-top: var(--s-5); }
+.theory > div > :first-child { margin-top: 0; }
+.theory > div > p,
+.theory > div > ul,
+.theory > div > ol { margin-bottom: var(--s-4); }
+.theory li + li { margin-top: var(--s-2); }
 .theory h4 {
   color: var(--ink);
   font-size: var(--f-1);
@@ -1911,6 +1944,7 @@ a.pill { text-decoration: none; display: inline-block; }
   align-items: flex-start;
   gap: 8px;
   margin-top: 10px;
+  max-width: var(--measure);
   padding: 10px 12px;
   /* #eef3f8/#c5d4e4: the misconception note's wash and border — the blue
      equivalent of --accent-wash, which has no token because nothing else
@@ -1989,6 +2023,14 @@ a.pill { text-decoration: none; display: inline-block; }
 .result:has(.big) .eq { color: var(--panel-text); }
 
 .big { font-size: var(--f-4); color: var(--accent-on-panel); font-family: var(--mono); }
+
+/* The worked-solution body from solutionToggle() — question bank FRQs, the
+   challenge ladder, structure.ts — is the one .result that is prose rather
+   than a readout, so it takes the reading measure. Matched by the toggle's
+   own aria-expanded button rather than by tab, because all three callers
+   build it the same way and no simulation readout has that shape. Wide
+   tables inside it already scroll (.table-scroll). */
+.btn[aria-expanded] + .result { max-width: var(--measure); }
 
 /* .muted is used BOTH as body copy on a card (light) and inside a .result
    readout (dark). #869097 is 5.68:1 on --panel but only 2.97:1 on --paper, so
@@ -2322,7 +2364,7 @@ a.pill { text-decoration: none; display: inline-block; }
   background: rgba(224, 49, 49, 0.07);
   color: var(--red-ink);
 }
-.quiz-why { margin-top: 10px; font-size: var(--f-3); line-height: var(--lh-body); border-radius: var(--r-md); }
+.quiz-why { margin-top: 10px; max-width: var(--measure); font-size: var(--f-3); line-height: var(--lh-body); border-radius: var(--r-md); }
 .quiz-why.good, .quiz-why.bad { padding: 11px 14px; margin-bottom: 8px; }
 .quiz-why.good { background: rgba(47, 158, 68, 0.07); border: 1px solid rgba(47, 158, 68, 0.35); color: var(--green-ink); }
 /* #86322c is the same idea for the darker red; --red-ink is its token. */
