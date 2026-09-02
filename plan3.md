@@ -140,7 +140,7 @@ Verify: `auditCorpus()` clean; `MODULE_QUIZ_SIZE` and `CORPUS_COUNTS` updated; `
 ### Phase 4 — Hygiene (ongoing, one prompt each)
 
 - [ ] **4.1** `trustedHtml()` wrapper around the 111 `innerHTML` sites; `h()` gets `text` vs `html` made explicit. (plan2 item; Prompt 11)
-- [ ] **4.2** `npm audit fix` for xmldom; check it is not a runtime path.
+- [x] **4.2** xmldom advisory — skipped, not a runtime path: `@xmldom/xmldom` is pulled in only by pixi.js's Node build and does not appear in any `dist/assets/*.js` (verified by grep after `npm run build`). Moderate severity, below the `--audit-level=high` gate. Goes away when pixi bumps it; nothing to do here.
 - [ ] **4.3** README.md counts and tab list regenerated from topics.ts/counts.ts.
 - [ ] **4.4** Show it to the same friends again. Record what they say in this file under "Feedback round 2". Then, and only then, the next plan.
 
