@@ -9,7 +9,7 @@
  * registry already agree on (CLAUDE.md, "Two topic vocabularies").
  *
  * THE TOPIC HALF MAY DIFFER FROM `toExamTopic(q.topic)`, deliberately. The
- * `aek` module is "Acids, Redox & Kinetics" but collapses to the `acids` exam
+ * `aek` module is "Acids, Batteries & Reaction Rates" but collapses to the `acids` exam
  * topic, so its genuinely-redox questions take `redox/*` skills while their
  * exam topic stays `acids`. Forcing the two to agree would leave those
  * questions untagged to protect a rule that exists only for tidiness — the

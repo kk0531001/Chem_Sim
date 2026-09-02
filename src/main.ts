@@ -42,16 +42,16 @@ const LAZY: { id: string; label: string; group: string; load: () => Promise<{ de
       ? import('./tabs/sandboxSmall')
       : import('./tabs/sandbox') },
   // Foundations
-  { id: 'quantum', label: 'Quantum', group: 'Foundations', load: () => import('./tabs/quantum') },
+  { id: 'quantum', label: 'Atoms & Electrons', group: 'Foundations', load: () => import('./tabs/quantum') },
   { id: 'periodicity', label: 'Periodicity', group: 'Foundations', load: () => import('./tabs/periodicity') },
-  { id: 'bonding', label: 'Bonding & MO', group: 'Foundations', load: () => import('./tabs/bonding') },
-  { id: 'stoich', label: 'Stoichiometry', group: 'Foundations', load: () => import('./tabs/stoich') },
+  { id: 'bonding', label: 'Bonding & Shape', group: 'Foundations', load: () => import('./tabs/bonding') },
+  { id: 'stoich', label: 'Moles & Solutions', group: 'Foundations', load: () => import('./tabs/stoich') },
   // Physical Chemistry
   { id: 'thermo1', label: 'Thermo I', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
   { id: 'thermo2', label: 'Thermo II', group: 'Physical Chemistry', load: () => import('./tabs/thermo2') },
-  { id: 'gases', label: 'Gases & Phases', group: 'Physical Chemistry', load: () => import('./tabs/gases') },
+  { id: 'gases', label: 'Gases, Liquids & Solids', group: 'Physical Chemistry', load: () => import('./tabs/gases') },
   { id: 'equilibrium', label: 'Equilibrium', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
-  { id: 'aek', label: 'Acids · Redox · Kinetics', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
+  { id: 'aek', label: 'Acids, Batteries & Rates', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
   { id: 'physchem', label: 'Advanced Physical', group: 'Physical Chemistry', load: () => import('./tabs/physchem') },
   { id: 'biophys', label: 'Physical & Biochem', group: 'Physical Chemistry', load: () => import('./tabs/biophys') },
   // Organic Chemistry

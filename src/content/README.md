@@ -59,7 +59,7 @@ an identity. Bridge them through the maps, never by assignment.
 ### The bridge
 
 One hand-maintained direction, because the relation is genuinely many-to-many —
-`aek` is literally "Acids, Redox & Kinetics", and `atomic` is taught by both
+`aek` is literally "Acids, Batteries & Reaction Rates", and `atomic` is taught by both
 `quantum` and `periodicity`:
 
 ```ts

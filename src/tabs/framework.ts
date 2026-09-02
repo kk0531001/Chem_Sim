@@ -117,8 +117,8 @@ export interface TabHandle {
 
 /**
  * `label` and `group` are the SIDEBAR's copy of a module's name, deliberately
- * shorter than its `TopicMeta.title` ("Bonding & MO" vs "Bonding, VSEPR & MO
- * Theory"). They live in the LAZY table in main.ts, not here, because a tab
+ * shorter than its `TopicMeta.title` ("Bonding & Shape" vs "Bonding &
+ * Molecular Shape"). They live in the LAZY table in main.ts, not here, because a tab
  * file's own module is only fetched when the tab is first opened — reading a
  * label off it would mean loading all 25 modules to draw the nav. Both are
  * optional so a tab module can export a bare `{ id, mount }`.

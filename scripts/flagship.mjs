@@ -101,7 +101,8 @@ const EXAM_OF = {
 const examTopicOf = q => EXAM_OF[q.topic] ?? q.topic ?? '?';
 
 // AND MEASURE BY SKILL TOO. The exam-topic view has a blind spot it cannot fix:
-// `aek` is "Acids, Redox & Kinetics" and collapses to `acids`, so ten new redox
+// `aek` is "Acids, Batteries & Reaction Rates" and collapses to `acids`, so ten
+// new redox
 // and kinetics questions land in the acids row and the redox and kinetics rows
 // do not move at all. That is the documented exam-topic-vs-skill split working
 // as intended (see src/content/skills.ts), not a bug — but it makes the exam

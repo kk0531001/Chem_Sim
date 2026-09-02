@@ -254,7 +254,7 @@ function stepper(topicId: string, pos: Position): HTMLElement {
  *
  * Both ends come from the spine, so the last section of a topic offers the NEXT
  * TOPIC and the very last section of the spine offers the menu instead. A
- * cross-topic step is named by its TOPIC ("← Acids, Redox & Kinetics"), never
+ * cross-topic step is named by its TOPIC ("← Acids, Batteries & Reaction Rates"), never
  * by a section title: it lands on that topic's entry point, and a button that
  * named a specific section would be promising a destination it does not go to.
  */
