@@ -1,6 +1,7 @@
 # Answer key + explanation verification
 
-plan2.md §1, "Verify every answer key + explanation pair". 853 MC + 119 written,
+plan2 §1, "Verify every answer key + explanation pair" (plan2.md is retired;
+its open items are in [plan3.md](../plan3.md)). 853 MC + 119 written,
 read by hand: does `a` point at the right option, and does `why` argue for that
 option and get its arithmetic right?
 

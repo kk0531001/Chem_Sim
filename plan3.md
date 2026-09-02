@@ -102,7 +102,7 @@ Opus 5 doing the work with you reviewing.
 
 - [ ] **0.1** Confirm or change the three defaults above.
 - [x] **0.2** Write `docs/STYLE.md`, the plain‑language style guide (Prompt 1). Every later content prompt cites it, so it has to exist first.
-- [ ] **0.3** Retire the old ledgers: fold the open items of plan.md, plan2.md, frontend.md, revamp.md into this file's "Carried over" section and delete them (Prompt 10). One plan.
+- [x] **0.3** Retire the old ledgers: fold the open items of plan.md, plan2.md, frontend.md, revamp.md into this file's "Carried over" section and delete them (Prompt 10). One plan.
 
 ### Phase 1 — Breathing room (1–2 days, CSS + small DOM)
 
@@ -542,4 +542,106 @@ _(empty — fill after Phase 3)_
 
 ## Carried over
 
-_(filled by Prompt 10)_
+plan.md, plan2.md, frontend.md and revamp.md were four overlapping ledgers.
+Their open items are below, one line each, keeping the original id or number
+and the source's own HUMAN / BLOCKED / DEFERRED / DECIDED marking. The four
+files are deleted; ROADMAP.md stays as the record of Phases 0–I.
+
+### From plan.md (the five typography/chrome passes)
+
+Checked against the current `src/style.css` and the git log rather than taken
+on trust:
+
+| Pass | State |
+| --- | --- |
+| 1 — type scale | **shipped.** `--f-1`…`--f-6` exist in `:root` (values since retuned by 1.2 above); `#progress-link` and `.btn` inherit the app font; no Arial/Times in the probe. |
+| 2 — colour audit | **shipped** (revamp F1 measured 23 distinct hex literals against a target of 30; 47 uses, all on dark panels or `#fff`). |
+| 3 — mono discipline + line-height roles | **shipped.** `--lh-tight/ui/body/loose` exist; `.mode-btn` no longer exists at all; `.nav-group-n` is `--f-1`. The probe's "≤ 5 distinct line-heights" target is unreachable as written — five ratios over a six-step scale cannot yield five pixel values — recorded, not chased. |
+| 4 — topic-page chrome | items 1 and 2 **shipped** (breadcrumb + prereq merged into one `#topic-chrome` row; stepper is a single scrolling row on mobile and deliberately wraps ≥ 901 px, a reversal with its reason in the CSS). Item 3 open, below. |
+| 5 — tap targets + section chrome | **shipped** by revamp F1 (44 px overlays on bookmark / helpful / search-dismiss; `.section-step` equal flex basis; `transition: all` replaced by named properties). |
+
+- [ ] **plan.md pass 4, item 3** — sticky breadcrumb row on scroll. `DEFERRED`
+      by the plan itself: "do not do it at all if 1 and 2 bring content above
+      the fold." 1 and 2 shipped, so this needs a measurement before it needs
+      an implementation.
+
+### From plan2.md
+
+- [ ] **plan2 §4** — Check loading states.
+- [ ] **plan2 §4** — Check error states.
+- [ ] **plan2 §5** — Test with a screen reader. `HUMAN` (semantics are
+      verified; what VoiceOver/NVDA actually announces is not). Same gap as
+      revamp F3.
+- [ ] **plan2 §7** — Separate animation helpers out of `framework.ts`.
+      Opportunistic only — E1 already took the quiz seam.
+- [ ] **plan2 §7** — Remove dead code after refactors.
+- [ ] **plan2 §8** — Check mobile performance (frame rate on a real phone).
+      `HUMAN`.
+- [ ] **plan2 §8** — Check startup time on slower hardware. `HUMAN`.
+- [ ] **plan2 §11** — The observation protocol behind 4.4: watch students use
+      it unexplained, record hesitation / confusion / what they skip / what
+      they return to, ask which questions feel unfair or too easy, compare
+      desktop vs mobile, turn findings into issues. `HUMAN`.
+- [ ] **plan2 §12** — Get ChemPrep in front of CCC/CCO students. `HUMAN`.
+- [ ] **plan2 §12** — Collect feedback. `HUMAN`.
+
+Dropped as already covered here: §1 "Upgrade weak explanations" → Phase 2
+(2.3 + 2.5); §2 "Separate plain text from trusted HTML" and §2 "Make the
+dangerous API explicit, `trustedHtml(...)`" → 4.1 / Prompt 11; §11 "Give
+ChemSim to actual students" → 4.4; §12 "Improve landing-page messaging" →
+2.6. Dropped as answered elsewhere: §3 analytics retention → revamp D3
+(shipped: `signals` 12 months, progress data indefinitely, written into
+`0003_signals.sql`); §3 database deployment → done, migrations 0001–0007
+applied and smoke-tested. §9 search/sorting and §12 acquisition analytics were
+declined, not missed — see Standing decisions.
+
+### From frontend.md
+
+Weeks 1–3 all shipped (items 1–9 and Week 3's 0–5). Its own Deferred list
+carries over unchanged, all `DEFERRED`:
+
+- [ ] **frontend Deferred** — sticky Learn / Practice / Prove rail.
+- [ ] **frontend Deferred** — a generic "Show me" tween on every sim.
+- [ ] **frontend Deferred** — misconception clustering.
+- [ ] **frontend Deferred** — the full `/today` dashboard (the route ships the
+      Continue block only).
+- [ ] **frontend Deferred** — inline landing-page onboarding question.
+- [ ] **frontend Deferred** — micro-interactions and success animations.
+
+Dropped as already covered here: "token retrofit across `style.css`" → the
+"Not doing" entry above (only the tokens and the reading measure change).
+
+### From revamp.md
+
+Tracks S, D, Q, E and A are closed; F1, F2, F4, F5 shipped. Open:
+
+- [ ] **revamp F3** — Real-device sweep: iPhone Safari, landscape phone,
+      keyboard-only, screen reader, 200 % zoom. `HUMAN`. A headless viewport
+      resize is not this.
+- [ ] **revamp A2** — `why2` from evidence: high wrong-rate → inspect → write
+      the alternate explanation. `BLOCKED` on real traffic.
+- [ ] **revamp P1** — Ship to students. `HUMAN`. Its gate (S4, the signals
+      rate limit) is now live. 4.4 above is the first, smallest version of it.
+
+### Standing decisions
+
+Principles, not tasks — from plan2's "Things I would NOT work on yet",
+revamp's "Not doing" and plan.md's non-scope, deduplicated against this file's
+own "Not doing" (which already covers new modules, a new tier, another visual
+redesign, AI explanations and the spacing sweep):
+
+- **No gamification.** XP, badges, leaderboards. Not the bottleneck.
+- **No more dashboards.** Useful signals, not mission control.
+- **No framework rewrite.**
+- **No Postgres tuning for imaginary scale.** Four tables, one developer.
+- **No dark mode.** The dark panels are a contrast device inside one theme,
+  not a half-built second theme; a real one is a separate project with its own
+  contrast matrix.
+- **No new accent.** One flame accent is the identity.
+- **No third-party acquisition analytics.** `signals` is first-party and
+  already there; a tag would mean widening a CSP that has no `unsafe-inline`
+  and no `unsafe-eval`.
+- **Question-bank search and sorting: leave them.** Measured at 0.1–2.8 ms,
+  returning modules and questions; no concrete deficiency to fix.
+- **No content changes as a side effect of a visual pass.** Chemistry prose
+  changes only under a content item.

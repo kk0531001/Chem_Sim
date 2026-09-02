@@ -4,7 +4,8 @@ A chronological account of the project, from a particle sandbox to a routed
 olympiad-training site with cloud-synced progress. Written from the commit
 record, not from memory, so the dates and numbers are the real ones.
 
-For the *forward* plan see [ROADMAP.md](../ROADMAP.md). For the code map and
+For the *forward* plan see [plan3.md](../plan3.md) — [ROADMAP.md](../ROADMAP.md)
+is the record of Phases 0–I, not the live plan. For the code map and
 working rules see [README.md](../README.md) and [CLAUDE.md](../CLAUDE.md).
 
 ---

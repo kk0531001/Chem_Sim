@@ -1,8 +1,12 @@
 # ChemPrep — Roadmap
 
+> **Not the live plan.** [plan3.md](plan3.md) is; this file is the record of
+> Phases 0–I, which are done or superseded. Anything still open from the older
+> ledgers lives in plan3.md's "Carried over".
+
 > "You've already built the platform. Now build the learning experience."
 
-This is the working plan. It is ordered by **impact ÷ effort**, and it deviates
+This was the working plan. It is ordered by **impact ÷ effort**, and it deviates
 from the phase numbering in the original feedback in two places — both noted
 inline, both because a dependency was hiding in the ordering.
 

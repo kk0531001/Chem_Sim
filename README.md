@@ -124,9 +124,10 @@ local-only mode.
 
 ## Roadmap — toward "all of chemistry"
 
-> **For the current product roadmap — phases, sequencing, and open decisions —
-> see [ROADMAP.md](ROADMAP.md). For how the project got here, stage by stage,
-> see [docs/HISTORY.md](docs/HISTORY.md).** The list below is the original
+> **For the current plan — phases, sequencing, and open decisions — see
+> [plan3.md](plan3.md); [ROADMAP.md](ROADMAP.md) is the record of Phases 0–I,
+> kept as history. For how the project got here, stage by stage, see
+> [docs/HISTORY.md](docs/HISTORY.md).** The list below is the original
 > *simulation engine* roadmap, kept for historical context; most of it has
 > shipped.
 
