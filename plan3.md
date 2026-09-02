@@ -101,13 +101,13 @@ Opus 5 doing the work with you reviewing.
 ### Phase 0 — Decide and write the rules (half a day, you + one prompt)
 
 - [ ] **0.1** Confirm or change the three defaults above.
-- [ ] **0.2** Write `docs/STYLE.md`, the plain‑language style guide (Prompt 1). Every later content prompt cites it, so it has to exist first.
+- [x] **0.2** Write `docs/STYLE.md`, the plain‑language style guide (Prompt 1). Every later content prompt cites it, so it has to exist first.
 - [ ] **0.3** Retire the old ledgers: fold the open items of plan.md, plan2.md, frontend.md, revamp.md into this file's "Carried over" section and delete them (Prompt 10). One plan.
 
 ### Phase 1 — Breathing room (1–2 days, CSS + small DOM)
 
-- [ ] **1.1** Reading measure: 68 ch on `.theory > div`, `.quiz-why`, `.misconception`, FRQ solution bodies, `.topic-intro p` (already 70 ch). Left‑aligned, not centered, so it lines up with the cards. (Prompt 2)
-- [ ] **1.2** Type: `--f-4` 15 → 16 px, `--f-3` 13 → 14 px, `--f-2` 12 → 13 px; `--lh-body` to 1.6; paragraph spacing `--s-4`; `h3` in theory gets `--s-5` above. (Prompt 2)
+- [x] **1.1** Reading measure: 60 ch (68ch rendered ~83 characters in this font) on `.theory > div`, `.quiz-why`, `.misconception`, FRQ solution bodies, `.topic-intro p` (already 70 ch). Left‑aligned, not centered, so it lines up with the cards. (Prompt 2)
+- [x] **1.2** Type: `--f-4` 15 → 16 px, `--f-3` 13 → 14 px, `--f-2` 12 → 13 px; `--lh-body` to 1.6; paragraph spacing `--s-4`; `h3` in theory gets `--s-5` above. (Prompt 2)
 - [ ] **1.3** Sidebar: collapse the auth panel to one "Sign in" button that opens the existing popover (authWidget.ts has it); move the mode pills into the menu's Level filter only; keep search, nav, streak. (Prompt 3)
 - [ ] **1.4** Section chip row: wrap onto two lines at ≥ 900 px; on mobile keep scroll but add edge fades and never clip the active chip. (Prompt 3)
 - [ ] **1.5** Sim cards: controls and result visible; mission ladder collapsed to one line ("Mission 1 of 3 — Show") until opened; caption under the result. (Prompt 3)
@@ -118,11 +118,11 @@ Verify: screenshot the stoich theory section and the limiting‑reagent card at 
 
 ### Phase 2 — Plain language (1–2 weeks, content)
 
-- [ ] **2.1** Rewrite the 25 `intro` paragraphs to STYLE.md: ≤ 60 words, first sentence says what the topic *is* in everyday terms, no exam culture, one sentence on what you'll be able to do after. (Prompt 4)
-- [ ] **2.2** Rename module titles to plain words where the current title is a term list; keep slugs (they are URLs) and add the old title as an alias. Proposed: Quantum & Atomic Structure → *Atoms & Electrons*; Bonding, VSEPR & MO Theory → *Bonding & Molecular Shape*; Acids · Redox · Kinetics → *Acids, Batteries & Reaction Rates*; Stoichiometry & Solutions → *Moles & Solutions*; Gases, IMFs & Phases → *Gases, Liquids & Solids*. Olympiad‑only modules keep their names. (Prompt 4)
+- [x] **2.1** Rewrite the 25 `intro` paragraphs to STYLE.md: ≤ 60 words, first sentence says what the topic *is* in everyday terms, no exam culture, one sentence on what you'll be able to do after. (Prompt 4)
+- [x] **2.2** Rename module titles to plain words where the current title is a term list; keep slugs (they are URLs) and add the old title as an alias. Proposed: Quantum & Atomic Structure → *Atoms & Electrons*; Bonding, VSEPR & MO Theory → *Bonding & Molecular Shape*; Acids · Redox · Kinetics → *Acids, Batteries & Reaction Rates*; Stoichiometry & Solutions → *Moles & Solutions*; Gases, IMFs & Phases → *Gases, Liquids & Solids*. Olympiad‑only modules keep their names. (Prompt 4)
 - [ ] **2.3** A **Basics** theory block per CCC module (8), placed above the existing block, written to STYLE.md: define every term on first use, one worked number before each formula, 400–700 words, no "trap" callouts (those stay in the existing block, now titled "Exam‑level reference"). (Prompt 5)
 - [ ] **2.4** A glossary: `src/content/glossary.ts`, ~120 terms, one plain sentence each; `theory()` and the quiz renderer wrap the first occurrence of a term in a `<dfn>` with a tap/hover popover. One shared map, one renderer. (Prompt 6)
-- [ ] **2.5** Rewrite `why` for every Bronze question (existing 5 × 25 = 125) to the three‑step shape: what the question is really asking → the rule in plain words → the arithmetic. Rewording is allowed: progress keys on `id`. (Prompt 7)
+- [x] **2.5** Rewrite `why` for every Bronze question (existing 5 × 23 banks = 115) to the three‑step shape: what the question is really asking → the rule in plain words → the arithmetic. Rewording is allowed: progress keys on `id`. (Prompt 7)
 - [ ] **2.6** Homepage copy: headline, lede, eyebrow, the "Why it works" row, and the Start CTA target (→ *Moles & Solutions* or a "Start here" run). (Prompt 8)
 - [ ] **2.7** Level filter labels get a plain subtitle: CCC — "Grade 11–12 / high school"; USNCO — "Advanced high school"; CCO — "National olympiad"; IChO — "International". (Prompt 8)
 
@@ -520,6 +520,21 @@ Prompt 10 (one plan) any time after Prompt 1.  Prompt 11 any time.
 Prompts 2–3 and 4–7 are independent and can run in parallel sessions. Show the
 site to the friends after Prompt 3 (cramped), again after Prompt 6 (jargon),
 and again after Prompt 9 (level). Write what they say in this file.
+
+## Found while executing
+
+- **Warm-ups that are not warm-ups.** In the CCO-tier modules the first five
+  questions are definitional questions about advanced material, not beginner
+  questions. Rewritten in place (ids never move); Phase 3 should decide whether
+  these modules get real Bronze questions or whether Bronze is simply out of
+  scope there. Clearly beyond a beginner: `ain-001`, `ain-003`, `ain-005`,
+  `phy-001`–`phy-004`, `coo-001`, `coo-003`, `coo-005`, `og3-001`, `og3-005`.
+  Borderline: `ain-002`, `ain-004`, `coo-004`, `og3-004`, `ana-003`.
+- **Two factual errors fixed in passing:** `bon-005` quoted ΔEN 2.1 for NaCl
+  (Pauling 0.93 vs 3.16 → about 2.2); `qua-016` said the photoelectric effect
+  "killed the wave model".
+- **Prompt 2's `ch` finding:** in this sans stack `1ch ≈ 0.63em`, so a target of
+  N characters needs roughly `0.87N ch`. `--measure` is 60ch (~73 characters).
 
 ## Feedback round 2
 
