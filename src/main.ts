@@ -106,7 +106,7 @@ notFoundEl.id = 'notfound';
 notFoundEl.hidden = true;
 mainEl.insertBefore(notFoundEl, footerEl);
 
-brandEl.innerHTML = `${TILE_HTML}<span><b>ChemPrep</b><small>CCC Trainer</small></span>`;
+brandEl.innerHTML = `${TILE_HTML}<span><b>ChemPrep</b><small>Chemistry, running</small></span>`;
 
 // ---- mobile drawer ---------------------------------------------------------
 // Under 900px the sidebar slides in over the lesson. Deliberately NOT a focus
@@ -317,7 +317,7 @@ function updateTopicChrome(tabId: string): void {
   );
 }
 
-const BASE_TITLE = 'ChemPrep — Chemistry Olympiad Trainer';
+const BASE_TITLE = 'ChemPrep — Chemistry, from the basics to olympiad';
 
 // Which topic we were last on, so a navigation can be told apart from a reload
 // or a resume (focus should move on the former only).

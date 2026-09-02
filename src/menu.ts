@@ -14,6 +14,7 @@ import { TILE_HTML } from './home';
 import { onProgressChange, solvedCount } from './progress';
 import { activeMode, inScope, onModeChange, setMode, MODE_SHORT, type Mode } from './mode';
 import { GUIDES } from './guides';
+import { COMP_PLAIN, type Comp } from './content/topicIds';
 
 const LEVELS = ['CCC', 'USNCO', 'CCO', 'IChO'] as const;
 type Level = (typeof LEVELS)[number];
@@ -113,12 +114,15 @@ export function buildMenuPage(
   // picker, the keyboard handling and the touch target for it.
   const chipRows: HTMLElement[] = [];
   function chipRow<T extends string>(
-    label: string, options: readonly { value: T; label: string }[],
+    label: string, options: readonly { value: T; label: string; plain?: string }[],
     get: () => T, set: (v: T) => void,
   ): HTMLElement {
     const apply = (v: T): void => { set(v); syncChips(); render(); };
     const btns = options.map(o => {
-      const b = h('button', { type: 'button', class: 'pill' }, o.label);
+      // `plain` is the acronym said in words (COMP_PLAIN). On the pill it is a
+      // tooltip; in the select it has to be part of the option text, because a
+      // native option has nowhere else to put it.
+      const b = h('button', { type: 'button', class: 'pill', ...(o.plain ? { title: o.plain } : {}) }, o.label);
       b.addEventListener('click', () => apply(o.value));
       b.dataset.value = o.value;
       return b;
@@ -126,7 +130,7 @@ export function buildMenuPage(
     // aria-label rather than a wrapping <label>: the row's own caption is the
     // visible name on desktop, and it is hidden when the select is showing.
     const sel = h('select', { class: 'menu-filter-select', 'aria-label': label },
-      ...options.map(o => h('option', { value: o.value }, o.label)));
+      ...options.map(o => h('option', { value: o.value }, o.plain ? `${o.label} — ${o.plain}` : o.label)));
     sel.addEventListener('change', () => apply(sel.value as T));
     const row = h('div', { class: 'menu-filter-row' },
       h('span', { class: 'menu-filter-label' }, label),
@@ -152,8 +156,13 @@ export function buildMenuPage(
   // syllabus chip below, the scope marks on the cards, the next-lesson
   // recommendation — follows the level you are browsing at.
   const levelRow = chipRow<Level | 'any'>('Level',
-    [{ value: 'any', label: 'All levels' }, ...LEVELS.map(l => ({ value: l, label: l }))],
+    [{ value: 'any', label: 'All levels' },
+     ...LEVELS.map(l => ({ value: l, label: l, plain: COMP_PLAIN[l.toLowerCase() as Comp] }))],
     () => level, v => { level = v; setMode(v === 'any' ? 'all' : v.toLowerCase() as Mode); });
+  // The pills are four acronyms. This says the chosen one in words, once,
+  // under the row — a tooltip is not readable on a phone and not discoverable
+  // anywhere. Empty (and gone) at "All levels", where there is nothing to gloss.
+  const levelNote = h('p', { class: 'muted', style: 'margin:0' });
   const statusRow = chipRow<Status>('Progress',
     (Object.keys(STATUS_LABEL) as Status[]).map(s => ({ value: s, label: STATUS_LABEL[s] })),
     () => status, v => { status = v; });
@@ -203,6 +212,8 @@ export function buildMenuPage(
         ),
       );
     }
+    levelNote.textContent = level === 'any' ? '' : COMP_PLAIN[level.toLowerCase() as Comp];
+    levelNote.hidden = level === 'any';
     // The syllabus chip only exists in a competition mode; in "All" it would be
     // a control with nothing to filter.
     scopeRow.hidden = activeMode() === 'all';
@@ -240,12 +251,12 @@ export function buildMenuPage(
   return h('div', { id: 'menu-page' },
     h('main', { class: 'home-wrap' },
       h('div', { class: 'home-top' },
-        h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>CCC Trainer</small>` }),
+        h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>Chemistry, running</small>` }),
         h('button', { class: 'btn-ghost', onclick: onHome }, '← Home'),
       ),
       h('section', { style: 'padding:44px 0 10px' },
         h('h1', { style: 'font-family:var(--serif);font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700;margin-bottom:10px' }, 'All Topics'),
-        h('p', { class: 'section-lede' }, `Browse the full syllabus — ${TOPICS.length} modules from foundations through the advanced CCO problem sets.`),
+        h('p', { class: 'section-lede' }, `Every module on the site — ${TOPICS.length} of them, starting from the basics and going as far as the hardest contest material.`),
         // I.3: the contest guides are entry points from search, but they are
         // also the best answer to "where do I start" — so the directory names
         // them rather than leaving them reachable only from Google.
@@ -256,7 +267,7 @@ export function buildMenuPage(
               `${MODE_SHORT[g.comp]} study guide`),
           ])),
         searchIn,
-        h('div', { class: 'menu-filters' }, levelRow, statusRow, groupRow, scopeRow),
+        h('div', { class: 'menu-filters' }, levelRow, levelNote, statusRow, groupRow, scopeRow),
         h('div', { class: 'menu-count-row' }, countNote, clearBtn),
       ),
       body,

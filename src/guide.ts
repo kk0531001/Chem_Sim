@@ -15,6 +15,7 @@ import { TOPICS, renderTopicCard } from './topics';
 import { TILE_HTML } from './home';
 import { CORPUS_COUNTS } from './content/counts';
 import { setMode, inScope, MODE_SHORT } from './mode';
+import { COMP_PLAIN } from './content/topicIds';
 import type { Guide } from './guides';
 
 export function buildGuidePage(
@@ -41,12 +42,15 @@ export function buildGuidePage(
   return h('div', { class: 'guide-page' },
     h('main', { class: 'home-wrap' },
       h('div', { class: 'home-top' },
-        h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>${MODE_SHORT[guide.comp]} Trainer</small>` }),
+        h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>Chemistry, running</small>` }),
         h('button', { class: 'btn-ghost', onclick: onHome }, '← Home'),
       ),
 
       h('section', { class: 'guide-head' },
         h('h1', {}, guide.title),
+        // Who this level is for, in words, before the acronym is used again.
+        // Never what the paper is like — no dates, scoring or eligibility here.
+        h('p', { class: 'muted', style: 'margin-bottom:var(--s-2)' }, COMP_PLAIN[guide.comp]),
         h('p', { class: 'section-lede', html: guide.lede }),
         h('div', { class: 'guide-stats' },
           stat(String(modules.length), 'modules in scope'),

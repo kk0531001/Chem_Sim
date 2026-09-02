@@ -305,6 +305,19 @@ export const COMP_LABEL: Record<Comp, string> = {
   icho: 'International Chemistry Olympiad',
 };
 
+/**
+ * The same four levels said in plain words, for a reader who has never heard of
+ * any of them. Shown as a one-line subtitle wherever COMP_LABEL is offered as a
+ * filter or an explainer. Says who the level is FOR — never dates, scoring or
+ * eligibility, which are the organiser's to publish (see the guides rule).
+ */
+export const COMP_PLAIN: Record<Comp, string> = {
+  ccc: 'Grade 11-12 high school',
+  usnco: 'Advanced high school',
+  cco: 'National olympiad',
+  icho: 'International olympiad',
+};
+
 /** `difficulty` in topics.ts uses these display labels; this is the bridge. */
 const COMP_OF_LABEL: Record<string, Comp> = { CCC: 'ccc', USNCO: 'usnco', CCO: 'cco', IChO: 'icho' };
 export const compRank = (c: Comp): number => COMPS.indexOf(c) + 1;

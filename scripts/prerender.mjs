@@ -24,6 +24,12 @@ import { SITE_URL } from './site-url.mjs';
 
 const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 
+// The site's own title and description. Kept identical to index.html and to the
+// homepage lede in src/home.ts — a shared link and the page it opens must say
+// the same thing. If you edit one, edit all three.
+const BASE_TITLE = 'ChemPrep — Chemistry, from the basics to olympiad';
+const BASE_DESCRIPTION = '25 interactive chemistry modules, from atoms and moles to enzyme kinetics, with 893 worked exam-style questions and 5 full mock papers. Start at the basics with no chemistry behind you, and the same modules carry on to contest level.';
+
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 /** Blurbs are plain, but intros carry inline markup — meta content cannot. */
 const plain = s => esc(s.replace(/<[^>]+>/g, ''));
@@ -102,14 +108,15 @@ async function page(dir, html) {
 }
 
 await writeFile(join(DIST, 'index.html'), noMathFonts(withLd(body(shell,
-  `<h1>ChemPrep — Chemistry Olympiad Trainer</h1>
-<p>Interactive training for the CCC, USNCO, CCO and IChO: ${TOPICS.length} modules, worked exam
-questions and full mock papers. The simulations need JavaScript; the topic list does not.</p>
+  `<h1>${BASE_TITLE}</h1>
+<p>${TOPICS.length} interactive modules, worked exam-style questions and full mock papers. Start at
+the basics with no chemistry behind you; the same modules carry on to contest level. The simulations
+need JavaScript; the topic list does not.</p>
 ${links}`), {
   '@type': 'WebSite',
   name: 'ChemPrep',
   url: `${SITE_URL}/`,
-  description: 'Interactive chemistry olympiad training for the CCC, USNCO, CCO and IChO.',
+  description: BASE_DESCRIPTION,
   inLanguage: 'en-CA',
   isAccessibleForFree: true,
 })));
@@ -150,7 +157,7 @@ for (const g of GUIDES) {
 await page('menu', noMathFonts(body(
   head(shell, {
     title: 'All Topics — ChemPrep',
-    description: `Every ChemPrep module: ${TOPICS.length} interactive chemistry olympiad topics, from quantum orbitals to enzyme kinetics.`,
+    description: `Every ChemPrep module: ${TOPICS.length} interactive chemistry topics, from atoms and moles to enzyme kinetics.`,
     url: `${SITE_URL}/menu`,
   }),
   `<h1>All Topics</h1>\n${links}`)));

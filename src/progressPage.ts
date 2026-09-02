@@ -103,7 +103,7 @@ export function buildProgressPage(): HTMLElement {
   const page = h('div', { id: 'progress-page' },
     h('main', { class: 'home-wrap' },
       h('div', { class: 'home-top' },
-        h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>CCC Trainer</small>` }),
+        h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>Chemistry, running</small>` }),
         h('button', { class: 'btn-ghost', onclick: () => navigate({ kind: 'home' }) }, '← Home'),
       ),
       body,

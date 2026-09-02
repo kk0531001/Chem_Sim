@@ -8,6 +8,7 @@ import { onProgressChange, lastTopic } from './progress';
 import { recommendNext } from './recommend';
 import { CORPUS_COUNTS } from './content/counts';
 import { CLOCK_ICON } from './icons';
+import { COMP_PLAIN, type Comp } from './content/topicIds';
 
 // The tile is a logo mark, and it always sits immediately before the word
 // "ChemPrep" — so its "Ch" (plus the "25" the stylesheet adds via ::after) is
@@ -250,6 +251,10 @@ function competitionCard(name: string, badge: string, line: string): HTMLElement
       h('h3', {}, name),
       ...difficultyBadges([badge]),
     ),
+    // The acronym said in plain words, first, for a reader who has met none of
+    // them. Same line as the menu's Level filter and the guide headers.
+    h('p', { class: 'comp-count', style: 'margin:0 0 var(--s-2)' },
+      COMP_PLAIN[badge.toLowerCase() as Comp]),
     h('p', {}, line),
     h('p', { class: 'comp-count' },
       `${TOPICS.filter(t => t.difficulty.includes(badge)).length} of ${TOPICS.length} modules are pitched at this level`),
@@ -317,17 +322,28 @@ export function continueBlock(onEnter: (id: string, section?: string) => void): 
   return { el, refresh };
 }
 
+/**
+ * Where every "start here" button goes.
+ *
+ * NOT quantum. The first module of the beginner run when there is one, and
+ * moles otherwise — a reader who has just been told they can start at the
+ * basics must not land on orbitals. Resolved at CLICK TIME, so the run can be
+ * added to PATHS later and this picks it up with no edit here.
+ */
+const startTopic = (): string =>
+  PATHS.find(p => p.id === 'start-here')?.topicIds[0] ?? 'stoich';
+
 export function buildHome(onEnter: (tabId: string, section?: string) => void, onMenu: () => void): HTMLElement {
   const progress = h('div', { class: 'scroll-progress' });
 
   // ---- top bar ----
   const accountHolder = h('div', {});
   const topBar = h('div', { class: 'home-top' },
-    h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>CCC Trainer</small>` }),
+    h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>Chemistry, running</small>` }),
     h('div', { class: 'home-top-right' },
       h('button', { class: 'btn-ghost', onclick: onMenu }, 'All Topics'),
       accountHolder,
-      h('button', { class: 'btn-ghost', onclick: () => onEnter('quantum') }, 'Open the app'),
+      h('button', { class: 'btn-ghost', onclick: () => onEnter(startTopic()) }, 'Open the app'),
     ),
   );
   mountHomepageAccountWidget(accountHolder);
@@ -336,23 +352,23 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   const sim = makeHeroSim();
   // One filled accent button per screen. For a returning student the Continue
   // block below IS the call to action, so "Start learning" — which for them
-  // means "start over at Quantum" — steps down to a ghost rather than
+  // means "start over at the first module" — steps down to a ghost rather than
   // competing with it. Re-checked on every repaint, because the block can
   // appear while this page is open (another tab, a fresh sign-in).
-  const startBtn = h('button', { class: 'btn-hero', onclick: () => onEnter('quantum') }, 'Start learning');
+  const startBtn = h('button', { class: 'btn-hero', onclick: () => onEnter(startTopic()) }, 'Start learning');
   const cont = continueBlock(onEnter);
   const syncStart = (): void => { startBtn.className = cont.el.hidden ? 'btn-hero' : 'btn-ghost'; };
   syncStart();
   onProgressChange(syncStart);
   const hero = h('section', { class: 'hero' },
     h('div', {},
-      h('p', { class: 'eyebrow' }, 'CCC · CCO · USNCO preparation'),
-      h('h1', { html: 'The chemistry in this page is <em>actually running</em>.' }),
+      h('p', { class: 'eyebrow' }, 'Grade 11 to olympiad · interactive'),
+      h('h1', { html: 'High school chemistry you can <em>run</em>.' }),
       // Every number in this sentence is interpolated from the corpus, for the
       // same reason the stats strip is: the page that promises numerical care
       // cannot be the one page nobody checks.
       h('p', { class: 'lede' },
-        `${TOPICS.length} interactive modules — quantum orbitals to enzyme kinetics — plus ${CORPUS_COUNTS.mc} exam-style questions, ${CORPUS_COUNTS.frq} multi-part written problems and ${CORPUS_COUNTS.papers} full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.`),
+        `${TOPICS.length} interactive modules, from atoms and moles to enzyme kinetics. ${CORPUS_COUNTS.mc} exam-style questions, ${CORPUS_COUNTS.frq} multi-part written problems and ${CORPUS_COUNTS.papers} full mock papers, every answer worked out. Start at the basics with no chemistry behind you, and the same modules carry on to contest level.`),
       h('div', { class: 'cta' },
         startBtn,
         h('button', {
@@ -493,7 +509,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   const comps = h('section', { class: 'comps-sect' },
     h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '04'), h('h2', {}, 'Which competition')),
     h('p', { class: 'section-lede reveal' },
-      'Every module carries the levels it is pitched at, and the same badges appear on each card below and throughout the app.'),
+      'Every module carries the levels it is pitched at, from grade 11 up to international olympiad level. The same badges appear on each card below and throughout the app.'),
     h('div', { class: 'comp-grid' },
       competitionCard('CCC', 'CCC', 'The Canadian Chemistry Contest — the entry level here, and the assumed starting point for everything else.'),
       competitionCard('USNCO', 'USNCO', 'The US National Chemistry Olympiad. Broader coverage than CCC, with quantitative work expected throughout.'),
@@ -529,7 +545,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   const footer = h('section', { class: 'home-end' },
     h('h2', { class: 'reveal' }, 'Ready when you are.'),
     h('p', { class: 'reveal' }, 'No accounts, no installs — everything runs locally in this tab.'),
-    h('button', { class: 'btn-hero reveal', onclick: () => onEnter('quantum') }, 'Enter ChemPrep'),
+    h('button', { class: 'btn-hero reveal', onclick: () => onEnter(startTopic()) }, 'Enter ChemPrep'),
   );
 
   const root = h('div', { id: 'home' },

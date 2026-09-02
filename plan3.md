@@ -123,8 +123,8 @@ Verify: screenshot the stoich theory section and the limiting‑reagent card at 
 - [x] **2.3** A **Basics** theory block per CCC module (8), placed above the existing block, written to STYLE.md: define every term on first use, one worked number before each formula, 400–700 words, no "trap" callouts (those stay in the existing block, now titled "Exam‑level reference"). (Prompt 5)
 - [ ] **2.4** A glossary: `src/content/glossary.ts`, ~120 terms, one plain sentence each; `theory()` and the quiz renderer wrap the first occurrence of a term in a `<dfn>` with a tap/hover popover. One shared map, one renderer. (Prompt 6)
 - [x] **2.5** Rewrite `why` for every Bronze question (existing 5 × 23 banks = 115) to the three‑step shape: what the question is really asking → the rule in plain words → the arithmetic. Rewording is allowed: progress keys on `id`. (Prompt 7)
-- [ ] **2.6** Homepage copy: headline, lede, eyebrow, the "Why it works" row, and the Start CTA target (→ *Moles & Solutions* or a "Start here" run). (Prompt 8)
-- [ ] **2.7** Level filter labels get a plain subtitle: CCC — "Grade 11–12 / high school"; USNCO — "Advanced high school"; CCO — "National olympiad"; IChO — "International". (Prompt 8)
+- [x] **2.6** Homepage copy: headline, lede, eyebrow, the "Why it works" row, and the Start CTA target (→ *Moles & Solutions* or a "Start here" run). (Prompt 8)
+- [x] **2.7** Level filter labels get a plain subtitle: CCC — "Grade 11–12 / high school"; USNCO — "Advanced high school"; CCO — "National olympiad"; IChO — "International". (Prompt 8)
 
 Verify: read every rewritten intro aloud once; run `npm run audit` (question ids untouched); a friend who complained reads two Basics blocks and reports one confusing sentence or fewer.
 
