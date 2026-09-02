@@ -445,6 +445,13 @@ export interface MissionDef {
 export interface MissionLadderHandle {
   el: HTMLElement;
   tick: () => void;
+  /**
+   * The mission ids, in ladder order. Read-only, and read by exactly one
+   * caller: `cardWithMissions` keys the ladder's collapsed/expanded state on
+   * ids[0], which is permanent and namespaced (`msn-<tab>-<n>`) where a card
+   * title is neither. Nothing here writes progress.
+   */
+  ids: readonly string[];
 }
 
 /** Sequential mission ladder — one shared helper for every simulation tab. */
@@ -719,7 +726,7 @@ export function missionLadder(defs: MissionDef[]): MissionLadderHandle {
   view = Math.min(firstOpen(), defs.length - 1);
   refreshLocks();
   tick();
-  return { el: wrap, tick };
+  return { el: wrap, tick, ids: defs.map(d => d.id) };
 }
 
 // Append screen-reader-only text to an element, once.

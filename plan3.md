@@ -108,11 +108,11 @@ Opus 5 doing the work with you reviewing.
 
 - [x] **1.1** Reading measure: 60 ch (68ch rendered ~83 characters in this font) on `.theory > div`, `.quiz-why`, `.misconception`, FRQ solution bodies, `.topic-intro p` (already 70 ch). Left‑aligned, not centered, so it lines up with the cards. (Prompt 2)
 - [x] **1.2** Type: `--f-4` 15 → 16 px, `--f-3` 13 → 14 px, `--f-2` 12 → 13 px; `--lh-body` to 1.6; paragraph spacing `--s-4`; `h3` in theory gets `--s-5` above. (Prompt 2)
-- [ ] **1.3** Sidebar: collapse the auth panel to one "Sign in" button that opens the existing popover (authWidget.ts has it); move the mode pills into the menu's Level filter only; keep search, nav, streak. (Prompt 3)
-- [ ] **1.4** Section chip row: wrap onto two lines at ≥ 900 px; on mobile keep scroll but add edge fades and never clip the active chip. (Prompt 3)
-- [ ] **1.5** Sim cards: controls and result visible; mission ladder collapsed to one line ("Mission 1 of 3 — Show") until opened; caption under the result. (Prompt 3)
-- [ ] **1.6** Hero: remove the reveal delay on the hero itself (keep `.reveal` for below‑the‑fold sections). (Prompt 3)
-- [ ] **1.7** Menu filters: Level + Area as two dropdown‑style selects on mobile, pills on desktop; Progress filter hidden until the user has progress. (Prompt 3)
+- [x] **1.3** Sidebar: collapse the auth panel to one "Sign in" button that opens the existing popover (authWidget.ts has it); move the mode pills into the menu's Level filter only; keep search, nav, streak. (Prompt 3)
+- [x] **1.4** Section chip row: wrap onto two lines at ≥ 900 px; on mobile keep scroll but add edge fades and never clip the active chip. (Prompt 3)
+- [x] **1.5** Sim cards: controls and result visible; mission ladder collapsed to one line ("Mission 1 of 3 — Show") until opened; caption under the result. (Prompt 3)
+- [x] **1.6** Hero: remove the reveal delay on the hero itself (keep `.reveal` for below‑the‑fold sections). (Prompt 3)
+- [x] **1.7** Menu filters: Level + Area as two dropdown‑style selects on mobile, pills on desktop; Progress filter hidden until the user has progress. (Prompt 3)
 
 Verify: screenshot the stoich theory section and the limiting‑reagent card at 1440 and 375 before/after; `documentElement.scrollWidth === 375` on mobile; `tsc` clean.
 

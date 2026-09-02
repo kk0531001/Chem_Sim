@@ -11,8 +11,8 @@
 import { h } from './tabs/framework';
 import { TOPICS, renderTopicCard, moduleProgress, type TopicMeta } from './topics';
 import { TILE_HTML } from './home';
-import { onProgressChange } from './progress';
-import { activeMode, inScope, onModeChange, MODE_SHORT } from './mode';
+import { onProgressChange, solvedCount } from './progress';
+import { activeMode, inScope, onModeChange, setMode, MODE_SHORT, type Mode } from './mode';
 import { GUIDES } from './guides';
 
 const LEVELS = ['CCC', 'USNCO', 'CCO', 'IChO'] as const;
@@ -105,25 +105,40 @@ export function buildMenuPage(
   // aria-pressed states it. Both, always together — the paint alone is
   // invisible to a screen reader, and the attribute alone is invisible to
   // everyone else.
+  //
+  // Every row is built TWICE — as pills and as one native <select> over the same
+  // options, wired to the same setter — and a media query shows exactly one of
+  // them. Below 700px the four rows were 17 pills stacked ahead of the first
+  // topic card; a <select> is one line, and the platform already draws the
+  // picker, the keyboard handling and the touch target for it.
   const chipRows: HTMLElement[] = [];
   function chipRow<T extends string>(
     label: string, options: readonly { value: T; label: string }[],
     get: () => T, set: (v: T) => void,
   ): HTMLElement {
+    const apply = (v: T): void => { set(v); syncChips(); render(); };
     const btns = options.map(o => {
       const b = h('button', { type: 'button', class: 'pill' }, o.label);
-      b.addEventListener('click', () => { set(o.value); syncChips(); render(); });
+      b.addEventListener('click', () => apply(o.value));
       b.dataset.value = o.value;
       return b;
     });
+    // aria-label rather than a wrapping <label>: the row's own caption is the
+    // visible name on desktop, and it is hidden when the select is showing.
+    const sel = h('select', { class: 'menu-filter-select', 'aria-label': label },
+      ...options.map(o => h('option', { value: o.value }, o.label)));
+    sel.addEventListener('change', () => apply(sel.value as T));
     const row = h('div', { class: 'menu-filter-row' },
-      h('span', { class: 'menu-filter-label' }, label), ...btns);
+      h('span', { class: 'menu-filter-label' }, label),
+      h('div', { class: 'menu-filter-pills' }, ...btns),
+      sel);
     (row as HTMLElement & { sync?: () => void }).sync = () => {
       for (const b of btns) {
         const on = b.dataset.value === get();
         b.classList.toggle('active', on);
         b.setAttribute('aria-pressed', String(on));
       }
+      sel.value = get();
     };
     chipRows.push(row);
     return row;
@@ -132,9 +147,13 @@ export function buildMenuPage(
     for (const r of chipRows) (r as HTMLElement & { sync?: () => void }).sync?.();
   }
 
+  // The Level filter is also the site's mode picker now (the sidebar's five
+  // buttons are gone, plan3 §1.3): everything that reads `activeMode()` — the
+  // syllabus chip below, the scope marks on the cards, the next-lesson
+  // recommendation — follows the level you are browsing at.
   const levelRow = chipRow<Level | 'any'>('Level',
     [{ value: 'any', label: 'All levels' }, ...LEVELS.map(l => ({ value: l, label: l }))],
-    () => level, v => { level = v; });
+    () => level, v => { level = v; setMode(v === 'any' ? 'all' : v.toLowerCase() as Mode); });
   const statusRow = chipRow<Status>('Progress',
     (Object.keys(STATUS_LABEL) as Status[]).map(s => ({ value: s, label: STATUS_LABEL[s] })),
     () => status, v => { status = v; });
@@ -187,7 +206,14 @@ export function buildMenuPage(
     // The syllabus chip only exists in a competition mode; in "All" it would be
     // a control with nothing to filter.
     scopeRow.hidden = activeMode() === 'all';
-    (scopeRow.querySelectorAll('.pill')[1] as HTMLElement).textContent = `${MODE_SHORT[activeMode()]} only`;
+    const scopeLabel = `${MODE_SHORT[activeMode()]} only`;
+    (scopeRow.querySelectorAll('.pill')[1] as HTMLElement).textContent = scopeLabel;
+    (scopeRow.querySelectorAll('option')[1] as HTMLElement).textContent = scopeLabel;
+    // A progress filter is noise for someone with no progress: nothing it can
+    // be set to would change the list. It comes back with the first solved
+    // question — and stays if a shared URL arrived with it already set, or the
+    // reader would be looking at a filtered directory with no visible cause.
+    statusRow.hidden = solvedCount() === 0 && status === 'any';
     const filtered = level !== 'any' || status !== 'any' || group !== 'any' || onlyInScope || !!searchIn.value.trim();
     countNote.textContent = filtered
       ? `${shownTotal} of ${TOPICS.length} modules match`

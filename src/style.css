@@ -223,7 +223,7 @@ body { overflow: hidden; }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .hero-in, .reveal, .feature { opacity: 1 !important; transform: none !important; }
+  .reveal, .feature { opacity: 1 !important; transform: none !important; }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -307,6 +307,19 @@ body { overflow: hidden; }
 /* ---- account widget: homepage popover ---- */
 .account-widget { position: relative; }
 .acc-trigger { padding: 8px 16px; }
+/* The sidebar variant (plan3 §1.3). #sidenav is a scroll container, which would
+   clip a floating dropdown to a 232px column, so there the same panel opens IN
+   FLOW under its trigger and the sidebar scrolls to it like any other content.
+   Same widget, same form — only the placement differs. */
+.account-widget.inline { display: flex; flex-direction: column; gap: var(--s-2); }
+.account-widget.inline .acc-trigger { padding: var(--s-2) var(--s-3); text-align: left; }
+.account-widget.inline .acc-dropdown {
+  position: static;
+  width: auto;
+  padding: var(--s-3);
+  box-shadow: none;
+  background: var(--paper-3);
+}
 .acc-dropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -442,13 +455,15 @@ body { overflow: hidden; }
 }
 .fig-cap b { font-family: var(--mono); font-weight: 600; color: var(--accent-dark); font-size: var(--f-1); }
 
-/* scroll reveals — subtle and quick */
-.hero-in, .reveal {
+/* scroll reveals — subtle and quick.
+   The hero is NOT in here: it is above the fold on first paint, so a reveal on
+   it is a delay with nothing to trigger it (plan3 §1.6). */
+.reveal {
   opacity: 0;
   transform: translateY(12px);
   transition: opacity var(--t-enter) ease, transform var(--t-enter) ease;
 }
-.hero-in.visible, .reveal.visible { opacity: 1; transform: none; }
+.reveal.visible { opacity: 1; transform: none; }
 
 /* ---- stats strip ---- */
 .stats-sect { padding-bottom: 88px; }
@@ -883,18 +898,6 @@ body { overflow: hidden; }
   font-size: var(--f-2);
 }
 #progress-panel input:focus { border-color: var(--accent); }
-#progress-panel .pp-btn {
-  font: inherit;
-  font-size: var(--f-2);
-  font-weight: 500;
-  padding: 6px 10px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--rule-2);
-  background: var(--paper-2);
-  color: var(--ink);
-  cursor: pointer;
-}
-#progress-panel .pp-btn:hover { border-color: var(--accent); }
 
 .solved-tag {
   font-size: var(--f-1);
@@ -1571,10 +1574,12 @@ body { overflow: hidden; }
 }
 
 .pill-bar { display: flex; gap: 8px; margin: 0 auto 18px; flex-wrap: wrap; max-width: 1480px; }
-/* One row at EVERY width. A 13-section topic wrapped to two rows on desktop
-   (109px of stepper before the lesson); the scrolling row the mobile layout
-   already used behaves the same everywhere. The current pill scrolls itself
-   into view — that logic is width-agnostic. */
+/* Scrolls below 900px, WRAPS above it (plan3 §1.4). The single row was chosen
+   to keep the stepper off the lesson, and it cost the last chip on a 13-section
+   topic: "Referen…", clipped, with no scroll affordance to say there was more.
+   Two lines of chips is a smaller price than a navigation you cannot see the
+   end of. Below the breakpoint it still scrolls — there the row is edge-faded
+   and the current chip is centred by the stepper itself (page.ts). */
 .section-steps {
   display: flex;
   gap: 8px;
@@ -1585,6 +1590,9 @@ body { overflow: hidden; }
   scrollbar-width: none;
 }
 .section-steps::-webkit-scrollbar { display: none; }
+@media (min-width: 901px) {
+  .section-steps { flex-wrap: wrap; overflow-x: visible; row-gap: var(--s-2); }
+}
 .section-steps .pill { white-space: nowrap; flex: 0 0 auto; }
 /* The stepper's pills are real links (crawlable, cmd-clickable), not buttons. */
 a.pill { text-decoration: none; display: inline-block; }
@@ -1735,7 +1743,40 @@ a.pill { text-decoration: none; display: inline-block; }
 .trap { color: var(--accent-dark); font-weight: 550; }
 
 /* ---- simulation missions ---- */
+/* The fold (plan3 §1.5): one line until the student opens the ladder. */
+.mission-fold { display: flex; flex-direction: column; gap: var(--s-2); margin-bottom: 14px; }
+.mission-fold-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: var(--f-3);
+  color: var(--ink-dim);
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-3);
+  cursor: pointer;
+  transition: border-color var(--t), color var(--t);
+}
+.mission-fold-btn:hover { border-color: var(--accent); color: var(--ink); }
+.mission-fold-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mission-fold-action {
+  flex: none;
+  font-size: var(--f-2);
+  font-weight: 600;
+  color: var(--accent-dark);
+}
 .mission-ladder { display: flex; flex-direction: column; gap: var(--s-2); margin-bottom: 14px; }
+.mission-fold .mission-ladder { margin-bottom: 0; }
 
 /* One mission on screen at a time (see missionLadder): the pager replaces the
    stack, so a three-mission card no longer outgrows the simulation it teaches. */
@@ -2390,6 +2431,13 @@ a.pill { text-decoration: none; display: inline-block; }
     margin-inline: calc(-1 * var(--s-4));
   }
   .section-steps .pill { max-width: 62vw; overflow: hidden; text-overflow: ellipsis; }
+  /* The affordance the scrolling row was missing: chips fade out at both ends
+     instead of ending in a hard cut that reads as a clipped last item.
+     A mask, not an overlay — the row scrolls under it, and there is no extra
+     element to sit on top of the chips and eat their taps. */
+  .section-steps {
+    mask-image: linear-gradient(to right, transparent 0, #000 var(--s-5), #000 calc(100% - var(--s-5)), transparent 100%);
+  }
   /* 30px is fine with a mouse; this list is a thumb-tapped drawer here. */
   .nav-item { min-height: 44px; }
   /* the two bands stack again below the drawer breakpoint — the push-right
@@ -2928,6 +2976,11 @@ a.pill { text-decoration: none; display: inline-block; }
   gap: var(--s-2);
   flex-wrap: wrap;
 }
+.menu-filter-pills { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+/* Pills on a desktop, a native <select> on a phone (plan3 §1.7): the four rows
+   were 17 pills ahead of the first topic card at 375px. Both are wired to the
+   same state — only one of them is ever on screen. */
+.menu-filter-select { display: none; }
 .menu-filter-label {
   font-size: var(--f-1);
   letter-spacing: 0.09em;
@@ -2953,8 +3006,24 @@ a.pill { text-decoration: none; display: inline-block; }
 }
 .menu-clear { font-size: var(--f-2); padding: 4px 11px; }
 
-@media (max-width: 640px) {
-  .menu-filter-label { min-width: 0; width: 100%; }
+@media (max-width: 700px) {
+  .menu-filters { gap: var(--s-3); }
+  .menu-filter-label { min-width: 0; flex: none; }
+  .menu-filter-pills { display: none; }
+  .menu-filter-select {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    font-size: var(--f-3);
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--rule-2);
+    border-radius: var(--r-md);
+    /* 44px: this is a thumb target, and the native picker is the whole control. */
+    min-height: 44px;
+    padding: var(--s-2) var(--s-3);
+  }
 }
 
 /* ---- learning-path progress (F.2) ---- */
@@ -3191,47 +3260,43 @@ a.pill { text-decoration: none; display: inline-block; }
 /* ============================================================
    Competition mode (Phase G)
    ============================================================ */
-#mode-picker {
-  margin: 14px 14px 0;
-  padding-top: var(--s-3);
-  border-top: 1px solid var(--rule);
+/* The sidebar shows the mode; the menu's Level filter sets it (plan3 §1.3).
+   The five-button picker under the search box was 40px of permanent chrome for
+   a setting that is changed about once. This is the readout that replaced it:
+   one chip on the search row, and a link to the page that changes it. */
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  margin: var(--s-3) var(--s-4) 0;
 }
-.mode-label {
-  display: block;
-  font-size: var(--f-1);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.mode-btns { display: flex; flex-wrap: wrap; gap: 4px; }
-/* Same treatment as the difficulty badges it names (.badge above) rather than a
-   third style for the same four words, and enough vertical padding to be a
-   36px tap target — it was 20px. */
-.mode-btn {
+/* Beside the field when the sidebar is wide enough for both, tucked under it
+   (right-aligned) when it isn't — which is every width the sidebar currently
+   has. The basis is what "Search 850+ questions" + the shortcut hint needs to
+   stay on one line: squeezing 39px out of a 204px column turned a two-line
+   control into a three-line one, and the chip is the thing that should give. */
+.search-row #search-link { margin: 0; flex: 1 1 240px; min-width: 0; }
+#mode-picker { flex: none; }
+.mode-chip {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  min-height: 34px;
   font-family: var(--mono);
   font-size: var(--f-1);
   font-weight: 700;
   letter-spacing: 0.4px;
   line-height: var(--lh-ui);
+  text-decoration: none;
   color: var(--ink-dim);
   background: var(--paper);
   border: 1px solid var(--rule-2);
-  border-radius: var(--r-lg);
-  padding: 3px 10px;
-  cursor: pointer;
-  transition: color var(--t), background var(--t), border-color var(--t);
+  border-radius: var(--r-pill);
+  padding: 3px var(--s-2);
+  transition: color var(--t), border-color var(--t);
 }
-.mode-btn:hover { border-color: var(--accent); color: var(--ink); }
-.mode-btn.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
-}
+.mode-chip:hover { border-color: var(--accent); color: var(--ink); }
 
 /* "Beyond CCC" — a mark on the card, never a reason to hide it. */
 .topic-scope {

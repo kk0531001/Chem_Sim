@@ -444,7 +444,70 @@ export function task(text: string): HTMLElement {
 /** Card with missions pinned above the simulation controls. */
 export function cardWithMissions(title: string, missions: MissionLadderHandle, ...children: (Node | string)[]): HTMLElement {
   const [brief, rest] = takeTask(children);
-  return h('section', { class: 'card' }, h('h2', {}, title), brief, missions.el, ...rest);
+  return h('section', { class: 'card' }, h('h2', {}, title), brief, foldMissions(missions), ...rest);
+}
+
+const MISSION_OPEN_KEY = 'chemprep_missions_open_v1:';
+
+/**
+ * The ladder, folded to one line until the student asks for it (plan3 §1.5).
+ *
+ * A sim card was a task line, a mission box with its pager, meter, hint and
+ * check buttons, then the controls, the readout and the caption — and the part
+ * that teaches, the simulation, started below the fold. The missions are still
+ * the first thing under the brief; they are just one line of it until opened.
+ *
+ * This is PRESENTATION ONLY. Mission ids, tick(), meter(), markSolved and
+ * recordAttempt are untouched — a folded ladder still ticks (its meters are
+ * simply not on screen), and nothing here can complete a mission.
+ *
+ * The open/closed bit is per card, keyed on the FIRST MISSION ID (permanent and
+ * namespaced, unlike a card title) and kept in sessionStorage: a fold is a
+ * this-sitting preference, not progress, so it must not outlive the tab or sync
+ * anywhere. Storage can throw (Safari private mode), and a card that cannot
+ * remember its fold is still a working card.
+ */
+function foldMissions(missions: MissionLadderHandle): HTMLElement {
+  const id = missions.ids[0] ?? '';
+  const key = MISSION_OPEN_KEY + id;
+  missions.el.id = `missions-${id}`;
+  const text = h('span', { class: 'mission-fold-text' });
+  const action = h('span', { class: 'mission-fold-action' });
+  // A real button with aria-expanded — this is a disclosure, and the arrow-key
+  // and Enter/Space behaviour comes free with the element.
+  const toggle = h('button', {
+    type: 'button', class: 'mission-fold-btn', 'aria-controls': missions.el.id,
+  }, text, action);
+
+  const summary = (): string => {
+    const at = missions.el.querySelector('.mission-page-label')?.textContent?.trim() || 'Missions';
+    const prompt = missions.el.querySelector('.mission-strip:not([hidden]) .mission-prompt');
+    // textContent, so the prompt's markup (\ce{}, <b>, <span class=badge>) is
+    // never re-inserted as HTML into this line. The badge repeats the pager's
+    // "Mission n", so it comes off the front.
+    const words = (prompt?.textContent ?? '').replace(/^\s*Mission\s+\d+\s*/, '').replace(/\s+/g, ' ').trim();
+    return words ? `${at} · ${words.length > 60 ? words.slice(0, 60).trimEnd() + '…' : words}` : at;
+  };
+
+  let open = false;
+  const setOpen = (next: boolean): void => {
+    open = next;
+    missions.el.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    action.textContent = open ? 'Hide' : 'Show';
+    if (!open) text.textContent = summary();
+    else text.textContent = 'Missions';
+    try { sessionStorage.setItem(key, open ? '1' : '0'); } catch { /* fold just won't be remembered */ }
+  };
+
+  let stored: string | null = null;
+  try { stored = sessionStorage.getItem(key); } catch { /* ignore */ }
+  toggle.addEventListener('click', () => setOpen(!open));
+  const wrap = h('div', { class: 'mission-fold' }, toggle, missions.el);
+  // The summary reads the ladder's own DOM, which missionLadder() has already
+  // painted by the time it hands the handle over.
+  setOpen(stored === '1');
+  return wrap;
 }
 
 

@@ -1,6 +1,8 @@
 // Shared account/sign-in widget: solved-question count plus email magic-link
-// and Google OAuth sign-in. Rendered as an always-open panel in the app
-// sidebar, and as a small popover off a "Sign in" trigger on the homepage.
+// and Google OAuth sign-in. ONE implementation, mounted twice — as a popover
+// off a "Sign in" trigger in the homepage top bar, and as the same panel
+// (expanding in flow, see AccountWidgetOpts.inline) in the app sidebar, which
+// used to hold a second, always-open copy of the same three controls.
 import { h } from './tabs/framework';
 import {
   isCloudConfigured, currentEmail, signInWithEmail, signInWithGoogle, signOut,
@@ -51,45 +53,30 @@ function buildSignInForm(): HTMLElement {
   );
 }
 
-// Always-open panel for the app sidebar.
-export function mountSidebarAccountPanel(container: HTMLElement): void {
-  render();
-  onProgressChange(render);
-
-  function render(): void {
-    container.replaceChildren();
-    // No solved count here: the mastery strip immediately above this panel
-    // carries it, alongside the streak and the weakest topic. Two copies of the
-    // same number in one footer is one copy too many.
-    const rows: (Node | string)[] = [];
-    if (!isCloudConfigured()) {
-      rows.push(h('div', { class: 'pp-note' }, 'Saved on this device. Add Supabase keys to sync across devices.'));
-      container.append(...rows);
-      return;
-    }
-    const email = currentEmail();
-    if (email) {
-      rows.push(
-        h('div', { class: 'pp-note' }, `Synced · ${email}`),
-        h('button', { class: 'pp-btn', onclick: () => void signOut() }, 'Sign out'),
-      );
-    } else {
-      rows.push(h('div', { class: 'pp-note' }, 'Sign in to sync across devices:'), buildSignInForm());
-    }
-    container.append(...rows);
-  }
+/**
+ * Where the panel is being mounted.
+ *
+ * `inline` is the sidebar: #sidenav is a scroll container (`overflow-y: auto`),
+ * which clips an absolutely-positioned dropdown to a 232px column, so there the
+ * same panel expands in flow under its trigger instead of floating over it.
+ * Same widget, same form, one implementation — only the placement differs.
+ */
+export interface AccountWidgetOpts {
+  triggerClass?: string;
+  inline?: boolean;
 }
 
-// Compact "Sign in" trigger + popover for the homepage top bar.
+// Compact "Sign in" trigger + popover, used by the homepage top bar and by the
+// app sidebar's account slot.
 //
 // The trigger is built ONCE and lives outside render(). It used to be rebuilt
 // on every render, which meant opening the popover from the keyboard removed
 // the very button that had focus — focus fell to <body> and the reader had to
 // tab from the top of the document to reach the thing they had just opened.
-export function mountHomepageAccountWidget(container: HTMLElement): void {
+export function mountHomepageAccountWidget(container: HTMLElement, opts: AccountWidgetOpts = {}): void {
   let open = false;
-  const wrap = h('div', { class: 'account-widget' });
-  const trigger = h('button', { class: 'btn-ghost acc-trigger', 'aria-expanded': 'false', 'aria-haspopup': 'dialog' });
+  const wrap = h('div', { class: `account-widget${opts.inline ? ' inline' : ''}` });
+  const trigger = h('button', { class: `${opts.triggerClass ?? 'btn-ghost'} acc-trigger`, 'aria-expanded': 'false', 'aria-haspopup': 'dialog' });
   const pop = h('div', { class: 'acc-dropdown', role: 'dialog', 'aria-label': 'Account' });
   pop.hidden = true;
   wrap.append(trigger, pop);
@@ -127,7 +114,7 @@ export function mountHomepageAccountWidget(container: HTMLElement): void {
     } else if (email) {
       pop.append(
         h('div', { class: 'pp-note' }, `${solvedCount()} solved · synced`),
-        h('button', { class: 'btn', onclick: () => void signOut() }, 'Sign out'),
+        h('button', { class: 'btn btn-quiet', onclick: () => void signOut() }, 'Sign out'),
       );
     } else {
       pop.append(

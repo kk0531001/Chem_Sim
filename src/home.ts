@@ -346,14 +346,14 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   onProgressChange(syncStart);
   const hero = h('section', { class: 'hero' },
     h('div', {},
-      h('p', { class: 'eyebrow hero-in' }, 'CCC · CCO · USNCO preparation'),
-      h('h1', { class: 'hero-in', style: 'transition-delay:.06s', html: 'The chemistry in this page is <em>actually running</em>.' }),
+      h('p', { class: 'eyebrow' }, 'CCC · CCO · USNCO preparation'),
+      h('h1', { html: 'The chemistry in this page is <em>actually running</em>.' }),
       // Every number in this sentence is interpolated from the corpus, for the
       // same reason the stats strip is: the page that promises numerical care
       // cannot be the one page nobody checks.
-      h('p', { class: 'lede hero-in', style: 'transition-delay:.12s' },
+      h('p', { class: 'lede' },
         `${TOPICS.length} interactive modules — quantum orbitals to enzyme kinetics — plus ${CORPUS_COUNTS.mc} exam-style questions, ${CORPUS_COUNTS.frq} multi-part written problems and ${CORPUS_COUNTS.papers} full mock papers, every answer worked out. Built for olympiad preparation, not for slideshows.`),
-      h('div', { class: 'cta hero-in', style: 'transition-delay:.18s' },
+      h('div', { class: 'cta' },
         startBtn,
         h('button', {
           class: 'btn-ghost',
@@ -366,7 +366,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
       ),
       cont.el,
     ),
-    h('div', { class: 'hero-in', style: 'transition-delay:.1s' },
+    h('div', {},
       h('div', { class: 'figure' }, sim.canvas),
       h('p', { class: 'fig-cap', html: '<b>Fig. 1</b> — hydrogen (white) and oxygen (orange) finding each other, live. Valence rules only: H makes one bond, O makes two. Click "Particle Sandbox" for the full engine.' }),
     ),
@@ -573,10 +573,13 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
     });
   });
 
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    root.querySelectorAll('.hero-in').forEach(el => el.classList.add('visible'));
-    sim.setRunning(true);
-  }));
+  // The hero is NOT revealed on a timer any more (plan3 §1.6). Its four
+  // children each faded in behind a transition-delay that only started after
+  // two animation frames, so the first thing anyone saw of this site was an
+  // empty screen for the better part of a second — on a cold load, longer.
+  // Everything below the fold keeps `.reveal`: that one is scroll-triggered,
+  // so it is never what a reader is waiting on.
+  requestAnimationFrame(() => sim.setRunning(true));
 
   return root;
 }

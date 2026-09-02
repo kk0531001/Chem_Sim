@@ -8,8 +8,8 @@ import { CLOCK_ICON, ARROW_ICON, SEARCH_ICON, topicIconSVG } from './icons';
 import { initProgress, needsIdMigration, onProgressChange, setLastTopic, streakDays, solvedCount, weakTopics } from './progress';
 import { recommendNext } from './recommend';
 import { initSearch } from './search';
-import { MODES, MODE_SHORT, MODE_LABEL, activeMode, setMode, onModeChange } from './mode';
-import { mountSidebarAccountPanel } from './authWidget';
+import { MODE_SHORT, MODE_LABEL, activeMode, onModeChange } from './mode';
+import { mountHomepageAccountWidget } from './authWidget';
 import { mountFeedback } from './feedback';
 import { buildGuidePage } from './guide';
 import { guideBySlug } from './guides';
@@ -534,35 +534,49 @@ searchLinkEl.innerHTML =
 
 // ---- competition mode (Phase G) ----
 //
-// A row of radio-behaving buttons rather than a <select>: there are five, they
-// are the site's primary framing, and a picker you can see the state of at a
-// glance is worth the extra 40px in a sidebar this tall.
+// The sidebar READS the mode; it no longer sets it. The five-button picker was
+// a permanent 40px of chrome for a setting most readers change once, so what is
+// left is one chip next to the search box saying which mode is on, linking to
+// the directory where the Level filter picks it (and the guide pages, which set
+// it as a side effect of being about one competition).
+//
+// A real <a href="/menu">, not a button: it goes to a page, so cmd-click and
+// "copy link address" must work. The plain left click is routed.
 {
-  const btns = MODES.map(m => {
-    const b = h('button', {
-      type: 'button', class: 'mode-btn', title: MODE_LABEL[m],
-      onclick: () => setMode(m),
-    }, MODE_SHORT[m]);
-    return [m, b] as const;
+  const chip = h('a', {
+    class: 'mode-chip', href: '/menu',
+    onclick: (e: Event) => {
+      const me = e as MouseEvent;
+      if (me.metaKey || me.ctrlKey || me.shiftKey || me.altKey || me.button !== 0) return;
+      e.preventDefault();
+      closeDrawer();
+      navigate({ kind: 'menu' });
+    },
   });
-  modePickerEl.append(
-    h('span', { class: 'mode-label' }, 'Preparing for'),
-    h('div', { class: 'mode-btns' }, ...btns.map(([, b]) => b)),
-  );
+  // index.html declares the slot as role="group" for the old button set; one
+  // link is not a group, and an empty group name is worse than none.
+  modePickerEl.removeAttribute('role');
+  modePickerEl.removeAttribute('aria-label');
+  modePickerEl.append(chip);
   const sync = (): void => {
-    for (const [m, b] of btns) {
-      const on = m === activeMode();
-      b.classList.toggle('active', on);
-      // aria-pressed, not aria-checked: these are toggle buttons in a group,
-      // not a native radio set, and pressed is what a button can honestly claim.
-      b.setAttribute('aria-pressed', String(on));
-    }
+    chip.textContent = MODE_SHORT[activeMode()];
+    chip.setAttribute('aria-label', `Preparing for ${MODE_LABEL[activeMode()]} — change level in All Topics`);
+    chip.title = `Preparing for ${MODE_LABEL[activeMode()]} — change level in All Topics`;
   };
   sync();
   onModeChange(sync);
   // The mode changes what the footer recommends and what the cards are marked
   // with, so a switch has to repaint the page you are already on.
   onModeChange(() => { if (lastTopicId) updateTopicChrome(lastTopicId); });
+}
+
+// The chip belongs beside the search field, not in a band of its own: it is a
+// one-word readout, and the row it shares is the sidebar's "where am I looking"
+// line. Wrapping here rather than in index.html keeps the markup one slot.
+{
+  const row = h('div', { class: 'search-row' });
+  searchLinkEl.parentElement!.insertBefore(row, searchLinkEl);
+  row.append(searchLinkEl, modePickerEl);
 }
 
 // ---- LaTeX / mhchem typesetting (KaTeX) across app view, home, and menu ----
@@ -607,7 +621,13 @@ autoTypeset(viewEl, home, menuPage);
 }
 
 // ---- progress / account panel ----
-mountSidebarAccountPanel(document.getElementById('progress-panel')!);
+// The sidebar's account slot is the HOMEPAGE widget, not a second copy of the
+// sign-in form: one quiet "Sign in" button that opens the same panel. The
+// always-open Google button + email field + magic-link button below the module
+// list was three controls of permanent chrome for a thing most readers never do.
+mountHomepageAccountWidget(document.getElementById('progress-panel')!, {
+  triggerClass: 'btn btn-quiet', inline: true,
+});
 // I.2: a way to report a wrong answer or a broken sim, on every page of the app.
 mountFeedback(homeLinkEl);
 // The id migration has to run AFTER initProgress: it rewrites the stored keys,
