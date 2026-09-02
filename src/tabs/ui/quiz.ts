@@ -18,7 +18,7 @@ import { toExamTopic, isExamTopicId, EXAM_TOPIC_LABEL } from '../../content/topi
 import { signal, registerQuizReporter } from '../../signals';
 import { recommendNext } from '../../recommend';
 import { navigate } from '../../router';
-import { h, button, typesetMath, copyLinkButton } from '../framework';
+import { h, button, typesetMath, copyLinkButton, annotateTerms } from '../framework';
 
 // ---- quick-quiz widget: one question at a time, instant feedback ----
 /**
@@ -361,6 +361,9 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
           whyHtml += `<div class="misconception" role="note">${MISCON_ICON}<span><strong>Common misconception:</strong> ${q.misconception}</span></div>`;
         }
         whyEl.innerHTML = whyHtml;
+        // Glossary underlines on the explanation only (plan3 §2.4) — not on the
+        // question or the options, where a definition would give the answer away.
+        annotateTerms(whyEl);
         whyEl.classList.add(right ? 'good' : 'bad');
         if (q.why2) {
           // Offered whether or not they got it right: a lucky guess is exactly

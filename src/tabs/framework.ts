@@ -640,9 +640,26 @@ export function solutionToggle(html: string): { btn: HTMLButtonElement; panel: H
 }
 
 export function theory(title: string, html: string, open = false): HTMLElement {
-  const d = h('details', { class: 'theory' }, h('summary', {}, title), h('div', { html }));
+  const content = h('div', { html });
+  const d = h('details', { class: 'theory' }, h('summary', {}, title), content);
   if (open || html.length <= THEORY_AUTO_OPEN) d.setAttribute('open', '');
+  annotateTerms(content);
   return d;
+}
+
+/**
+ * Underline the glossary terms in a block of prose (plan3 §2.4).
+ *
+ * DYNAMIC import, and that is the whole point: home.ts and menu.ts import `h`
+ * from this file, so a static import would put the glossary's ~14 kB of
+ * definitions in the ENTRY chunk — paid for by every reader, used only on a
+ * topic page. Same trade as KaTeX above.
+ *
+ * Fire-and-forget, and silent on failure: a dotted underline is an
+ * enhancement, and a chunk that fails to load must not blank a theory block.
+ */
+export function annotateTerms(el: HTMLElement): void {
+  void import('./ui/glossary').then(m => m.annotateTerms(el)).catch(() => { /* prose is fine without it */ });
 }
 
 let ctlSeq = 0;
