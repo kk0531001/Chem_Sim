@@ -259,21 +259,29 @@ export interface LearningPath {
 
 export const PATHS: readonly LearningPath[] = [
   {
+    // FIRST on purpose: home.ts's startTopic() resolves every "start here"
+    // button through this run, so its head module is the site's front door.
+    id: 'start-here',
+    title: 'Start here',
+    blurb: 'The eight modules to work through first, in the order they build on each other.',
+    topicIds: ['stoich', 'quantum', 'periodicity', 'bonding', 'thermo1', 'equilibrium', 'aek', 'labdata'],
+  },
+  {
     id: 'ccc-foundation',
     title: 'CCC foundation',
-    blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and four advanced problem sets with full worked solutions.',
+    blurb: 'The core sequence, in prerequisite order: structure and bonding first, then the mole, then energy and equilibrium, finishing in the lab.',
     topicIds: ['quantum', 'periodicity', 'bonding', 'stoich', 'thermo1', 'equilibrium', 'labdata'],
   },
   {
     id: 'organic-run',
     title: 'Organic, end to end',
-    blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and four advanced problem sets with full worked solutions.',
+    blurb: 'Mechanisms before synthesis, and structure determination last — you can only confirm a product once you know what it should be.',
     topicIds: ['organic1', 'organic2', 'organic3', 'polymers', 'spectroscopy', 'structure'],
   },
   {
     id: 'cco-advanced',
     title: 'CCO / IChO advanced',
-    blurb: 'Original exam-format practice: Part I multiple choice, Part II & III written problems, and four advanced problem sets with full worked solutions.',
+    blurb: 'The contest-level material, assuming the foundation run: rigorous thermodynamics and kinetics, coordination chemistry, and quantitative lab work.',
     topicIds: ['thermo2', 'physchem', 'biophys', 'coordchem', 'advinorganic', 'analytical'],
   },
 ];

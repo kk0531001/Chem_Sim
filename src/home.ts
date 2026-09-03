@@ -444,9 +444,9 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
 
   // ---- 03 · learning paths ----
   const paths = h('section', { class: 'paths-sect' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '03'), h('h2', {}, 'Three ways through')),
+    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '03'), h('h2', {}, 'Ways through')),
     h('p', { class: 'section-lede reveal' },
-      'Ordered runs through the modules that already exist — start at the top of one and work down, or ignore them entirely and pick your own.'),
+      'Ordered runs through the modules that already exist — start at the top of one and work down, or ignore them entirely and pick your own. The first is the one to take if you are new here.'),
     h('div', { class: 'path-grid' },
       ...PATHS.map(p => {
         const mods = pathTopics(p);
