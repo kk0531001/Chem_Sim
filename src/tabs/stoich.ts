@@ -189,7 +189,7 @@ export const stoichTab: TabDef = {
     );
     root.append(topicPage('stoich', {
       sims: [limCard, solCard, yieldCard],
-      quiz: quiz(STOICH_QUIZ, 5),
+      quiz: quiz(STOICH_QUIZ, 10),
       theory: [
         theory('Basics — Moles & Solutions', `
 <h3>What this is about</h3>

@@ -341,7 +341,7 @@ export const equilibriumTab: TabDef = {
 
     root.append(topicPage('equilibrium', {
       sims: [simCard, iceCard, kspCard],
-      quiz: quiz(EQUILIBRIUM_QUIZ, 5),
+      quiz: quiz(EQUILIBRIUM_QUIZ, 10),
       theory: [
         theory('Basics — Chemical Equilibrium', `
 <h3>What this is about</h3>

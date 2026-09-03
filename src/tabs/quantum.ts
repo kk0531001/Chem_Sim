@@ -277,7 +277,7 @@ export const quantumTab: TabDef = {
     setZ(26);
     root.append(topicPage('quantum', {
       sims: [orbCard, radCard, lvlCard, cfgCard],
-      quiz: quiz(QUANTUM_QUIZ, 5),
+      quiz: quiz(QUANTUM_QUIZ, 10),
       theory: [
         theory('Basics — Atoms & Electrons', `
 <h3>What this is about</h3>

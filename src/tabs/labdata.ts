@@ -330,7 +330,7 @@ export const labdataTab: TabDef = {
         { label: 'Qual. analysis', el: makeQualTests() },
         { label: 'Technique', el: makeTechnique() },
       ])],
-      quiz: quiz(LABDATA_QUIZ, 5),
+      quiz: quiz(LABDATA_QUIZ, 10),
       // Basics first; the exam-level material is one theory block per panel,
       // beside the tool it explains.
       theory: [

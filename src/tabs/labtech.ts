@@ -315,7 +315,7 @@ export const labTechTab: TabDef = {
   mount(root) {
     root.append(topicPage('labtech', {
       sims: [makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference()],
-      quiz: quiz(LABTECH_QUIZ, 5),
+      quiz: quiz(LABTECH_QUIZ, 10),
       theory: [
         theory('Basics — Laboratory Techniques', `
 <h3>What this is about</h3>

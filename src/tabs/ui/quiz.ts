@@ -159,8 +159,20 @@ function plainOpt(html: string): string {
   return String(html).replace(/<\/?(?:div|p|ul|li|table)[^>]*>/gi, ' ').trim();
 }
 
+/**
+ * `warmupCount` splits the bank into two visible STAGES (plan3 3.2): the first
+ * n are "Basics" and the rest "Exam-style", with a checkpoint card between
+ * them. It is a presentation of a split the bank already has — the questions
+ * are unchanged, no progress field is added, and `recordAttempt`/`markSolved`
+ * never see the checkpoint, because a screen that grades nothing must not
+ * appear in anyone's attempt log.
+ */
 export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => string): HTMLElement {
   let i = 0, score = 0, answered = false;
+  // Shown once per run-through, on the way from the last Basics question to
+  // the first exam-style one. "Review basics again" deliberately leaves this
+  // false: a student who goes back to re-read gets the boundary marked again.
+  let pastCheckpoint = false;
   // What the student picked, per index. Going BACK restores the answered state
   // from this rather than re-grading: a second recordAttempt for a question
   // they are only re-reading would count as a fresh answer and skew every
@@ -224,6 +236,9 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
     const at = ids.indexOf(id);
     if (at < 0) return false;
     i = at;
+    // A ?q= link points at a question, so it must open that question and not
+    // the checkpoint that happens to sit at the same index.
+    if (at >= warmupCount) pastCheckpoint = true;
     if (repaint) render(true);
     // After layout, or the scroll target has no position yet.
     requestAnimationFrame(() => wrap.scrollIntoView({ block: 'center', behavior: 'auto' }));
@@ -264,7 +279,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
    * Restart drops to quiet: it is available, but it is not the advice.
    */
   function doneActions(): (HTMLElement | string)[] {
-    const restart = button('Restart quiz', () => { i = 0; score = 0; render(true); }, 'btn-quiet');
+    const restart = button('Restart quiz', () => { i = 0; score = 0; pastCheckpoint = false; render(true); }, 'btn-quiet');
     const weak = weakTopics(1)[0];
     if (weak && isExamTopicId(weak.topic)) {
       const label = EXAM_TOPIC_LABEL[weak.topic];
@@ -296,6 +311,26 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
         (score === qs.length ? '— perfect!' : score >= Math.ceil(qs.length * 0.7) ? '— solid!' : '— review the theory panel and retry.');
       setOptsGrouped(false);
       optsEl.replaceChildren(...doneActions());
+      if (moveFocus) head.focus();
+      return;
+    }
+    // ---- the checkpoint between the two stages ----
+    // Reuses the "Done" screen's own shape — headline in qEl, buttons in
+    // optsEl — so it needs no CSS of its own and cannot drift from it. Like
+    // that screen it is not a question: the options container drops its group
+    // role, and there is nothing here to bookmark or grade.
+    if (warmupCount > 0 && i === warmupCount && !pastCheckpoint) {
+      const right = chosen.slice(0, warmupCount).filter((c, k) => c !== null && c === qs[k].a).length;
+      prevBtn.style.display = 'none';
+      bmBtn.hidden = true;
+      setProgress(`Basics complete · ${warmupCount} of ${qs.length} questions`);
+      qEl.innerHTML = `You have the basics — <b>${right}/${warmupCount}</b> right. `
+        + 'The rest of this quiz is exam-style: the same chemistry, with more steps in each question.';
+      setOptsGrouped(false);
+      optsEl.replaceChildren(
+        button('Continue to exam-style', () => { pastCheckpoint = true; render(true); }, 'primary'),
+        button('Review basics again', () => { i = 0; render(true); }, 'btn-quiet'),
+      );
       if (moveFocus) head.focus();
       return;
     }
@@ -400,7 +435,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
 
   function updateProgressLine(): void {
     if (i >= qs.length) return;
-    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · warm-up' : ' · olympiad';
+    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · Basics' : ' · exam-style';
     const note = noteFor?.(qs[i]);
     const done = solvedOf(ids);
     setProgress(`Question ${i + 1} of ${qs.length}${tier}${note ? ' · ' + note : ''}`

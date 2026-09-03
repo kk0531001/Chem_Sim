@@ -202,7 +202,7 @@ export const thermo1Tab: TabDef = {
     bhCalc();
     root.append(topicPage('thermo1', {
       sims: [calCard, hessCard, bondCard, bhCard],
-      quiz: quiz(THERMO1_QUIZ, 5),
+      quiz: quiz(THERMO1_QUIZ, 10),
       theory: [
         theory('Basics — Thermodynamics I', `
 <h3>What this is about</h3>

@@ -203,7 +203,7 @@ export const bondingTab: TabDef = {
     setMO('O₂');
     root.append(topicPage('bonding', {
       sims: [vseprCard, moCard],
-      quiz: quiz(BONDING_QUIZ, 5),
+      quiz: quiz(BONDING_QUIZ, 10),
       theory: [
         theory('Basics — Bonding & Molecular Shape', `
 <h3>What this is about</h3>

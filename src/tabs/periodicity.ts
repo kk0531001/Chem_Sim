@@ -163,7 +163,7 @@ export const periodicityTab: TabDef = {
   mount(root) {
     root.append(topicPage('periodicity', {
       sims: [makeTrends(), makeSlater(), makeAnomalies()],
-      quiz: quiz(PERIODICITY_QUIZ, 5),
+      quiz: quiz(PERIODICITY_QUIZ, 10),
       theory: [
         theory('Basics — Periodicity', `
 <h3>What this is about</h3>
