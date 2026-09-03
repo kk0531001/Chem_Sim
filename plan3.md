@@ -521,6 +521,124 @@ Prompts 2–3 and 4–7 are independent and can run in parallel sessions. Show t
 site to the friends after Prompt 3 (cramped), again after Prompt 6 (jargon),
 and again after Prompt 9 (level). Write what they say in this file.
 
+## Phase 5 — The homepage (audit 2026‑09‑03)
+
+### What is there now, measured at 1440 × 900
+
+| Metric | Value |
+| --- | --- |
+| Page height | 8,067 px = **9 viewports** (about 20 phone screens) |
+| Rendered words | **1,548** (a landing page that converts reads in under 300) |
+| Buttons and links | **70** |
+| Sections | top bar, hero, Why it works (3 feature rows + 3 SVG figures), Try one, Ways through (4 path cards listing 27 module names), Which competition (4 cards), the full 25‑module catalogue, a stats strip, a footer CTA |
+| Buttons that all open the same first module | 3 ("Open the app", "Start learning", "Enter ChemPrep") |
+| Decorations | scroll‑progress bar, count‑up animation on the stats, scroll‑reveal fade on every section, section numbers "01–06" that are out of order (06 comes last, 05 is used twice in the source, 03 twice) |
+
+### Why it reads as vibecoded
+
+Every landing‑page trope is present at once: numbered sections, a stats strip with a count‑up, "Why it works" feature rows with figures, "Try it", learning paths, a comparison grid, a full catalogue, and a closing "Ready when you are." Each one is competently built. Together they say *a template was filled in*, and none of them was cut when the next was added.
+
+**Jargon** (all in the register STYLE.md bans on the homepage):
+
+- "watch it chase K back down", "a real kinetic system", "Nuclei decay at random yet trace the exponential law"
+- "Half‑equivalence gives pKa; equivalence sits above 7"
+- "The (2x)² inside the ICE table. Losing 4s before 3d. Chlorine's electron affinity beating fluorine's."
+- "Valence rules only", "the ensemble still obeys first‑order kinetics", "N = N₀·(½)^(t/t½)", "a catalyst lowers the barrier for both directions; ΔH and K don't move"
+- the demo readout `[N₂O₄] = 0.775 · [NO₂] = 0.450 · Q = [NO₂]²/[N₂O₄] = 0.26 (K = 0.50)`
+- "Fig. 1 —", "Fig. 2 —" … five figure captions styled as a journal article
+
+**Useless or duplicated information:**
+
+- The lede is a numbers dump (25 / 933 / 128 / 5). The stats strip repeats the same four numbers, then animates them.
+- "Which competition" (148 words) duplicates the menu's Level filter and the four guide pages.
+- "Ways through" (244 words) lists every module in every run, then the catalogue (696 words) lists every module again, then "Browse the full directory" links to /menu, which lists them a third time.
+- "Browse the modules" in the hero scrolls the page to the catalogue instead of going anywhere.
+- The hero caption ends "Click 'Particle Sandbox' for the full engine" — there is no such link on the screen.
+- "Chemistry, running" as a brand tag means nothing to a reader.
+- The footer says "No accounts, no installs" next to a Sign in button.
+
+**Now false**, after Phase 3: "five warm‑ups, then twenty contest‑level problems" (quizzes are 10 Basics + 20–30 exam‑style, 30–40 long) and "a 25‑question quiz — five warm‑ups, twenty at contest level".
+
+**What is good and stays:** the hero simulation (atoms bonding, live), the equilibrium demo (the strongest thing on the page), the Continue block for returning students, the paper/ink design, the type.
+
+### The decision
+
+A first‑time visitor should be able to read the whole page in a minute and know three things: what this is, that they can start with no chemistry, and where to click. Everything that does not serve one of those three leaves. **Target: 3 viewports, under 300 words, one primary button.**
+
+### The new page, top to bottom
+
+1. **Top bar.** Wordmark (no tag line), "All topics" → /menu, Sign in. Drop "Open the app".
+2. **Hero.** Headline as now. One sentence, no numbers: *"Interactive lessons from the first mole up to olympiad level. Every topic starts with the basics and every answer is explained."* One primary button "Start with the basics" → Moles & Solutions. One quiet link "See all 25 topics" → /menu (a real page, not a scroll). Hero sim stays; caption in plain words, no "Fig. 1": *"Hydrogen and oxygen atoms bonding into water, live. Hydrogen makes one bond, oxygen makes two."* Returning students see the Continue block in place of the primary button, as now.
+3. **Try it.** The equilibrium demo, kept, with a plain instruction and a plain readout: *"Press Add NO₂ and watch the mixture settle back. Brown NO₂ is 0.45 mol/L · colourless N₂O₄ is 0.78 mol/L · it is [moving / settled]."* The K/Q algebra moves into the module. One quiet link "Open the equilibrium topic".
+4. **Start here.** The one run, as eight numbered steps with the module titles, minutes total, and one button "Start step 1". The other three runs get one line: "Doing a contest? Runs for CCC, organic, and advanced are in All topics." Progress bar stays for returning students.
+5. **Three reasons, one line each, no figures.** *Simulations you control, not videos.* · *Every answer explained, right or wrong.* · *A Basics level in every topic, then exam‑style.* No section number, no heading larger than the lines.
+6. **Footer.** "Made for Canadian high‑school students, free, no account needed to start." with the All topics link. No third CTA, no "Ready when you are."
+
+**Removed:** Why it works (the three feature rows and their three SVG figures), Which competition, the 25‑card catalogue, the stats strip and count‑up, the scroll‑progress bar, the section numbers, the scroll‑reveal fade (content is visible on arrival; motion is reserved for the two simulations), "Enter ChemPrep". Dead code goes with it: `FIG_TITRATION`, `FIG_ENERGY`, `FIG_DECAY`, `featureRow`, `competitionCard`, `countUp`, the progress bar and its scroll listener, and the `.reveal` CSS (check `menu.ts`/`guide.ts` for other users first).
+
+**Kept and untouched:** `continueBlock` (also drives /today), `startTopic()`, `makeHeroSim`, `makeDemoSim` (readout text changes only), `renderTopicCard` in topics.ts (the menu uses it), the OG/meta description (already matches the new lede's meaning; re‑check the exact sentence).
+
+- [ ] **5.1** Copy and structure per the list above (Prompt 12).
+- [ ] **5.2** Delete the removed sections' code and CSS; confirm the entry chunk shrinks (Prompt 12).
+- [ ] **5.3** Mobile: the page must be ≤ 6 phone screens at 375 px; the hero sim canvas and the demo stay full‑width (Prompt 12).
+- [ ] **5.4** Show it to the friends. Ask one question: "What is this site and what would you click first?"
+
+### Prompt 12 — The homepage, cut to what a visitor needs
+
+```
+Read CLAUDE.md, docs/STYLE.md, and plan3.md "Phase 5 — The homepage" in
+full: it is the spec. Then read src/home.ts end to end, src/style.css from
+the ".home-wrap" rule through the ".home-end" rule (the homepage styles),
+src/topics.ts (PATHS, pathTopics, renderTopicCard — the menu uses the last
+one, do not remove it), src/progressPage.ts and src/main.ts for every import
+from home.ts (continueBlock, TILE_HTML, buildHome), and index.html /
+scripts/prerender.mjs for the no-JS copy and meta description.
+
+Rebuild buildHome() to the six-part structure in Phase 5, in this order:
+top bar · hero (with Continue block for returning students) · Try it ·
+Start here · three one-line reasons · footer. Use the exact copy given in
+the plan; where the plan gives a sentence in quotes, ship that sentence.
+Target: under 300 rendered words for a first-time visitor, one primary
+(.btn-hero) button, page height <= 3 viewports at 1440x900 and <= 6 at
+375 px wide.
+
+Remove, with their CSS: the "Why it works" feature rows and FIG_TITRATION /
+FIG_ENERGY / FIG_DECAY / featureRow, "Which competition" and
+competitionCard, the 25-card catalogue section, the stats strip and
+countUp, the scroll-progress bar and its scroll listener, the section
+numbers (.sect-no), the "Ready when you are" footer, and the .reveal
+scroll-fade (grep menu.ts, guide.ts, progressPage.ts first; if another page
+uses .reveal keep the CSS rule and only stop applying it here). Everything
+must be visible on arrival; the only motion is the two simulations, still
+gated by IntersectionObserver and prefers-reduced-motion as now.
+
+Try it: keep makeDemoSim, change only its readout to the plain sentence in
+the plan (concentrations in mol/L to two decimals, and "moving" while
+|Q - K| is beyond the sim's own settled threshold, else "settled"); the K
+and Q algebra is deleted from the homepage, not moved. Start here: render
+the run whose id is 'start-here' from PATHS as an ordered list of its
+module titles with total minutes and one "Start step 1" button (or
+"Continue: <title>" with the progress bar when the student has progress,
+reusing the existing paint logic); the other runs become the single
+sentence in the plan linking to /menu. Fix the hero caption (no "Fig.",
+no "Particle Sandbox" reference). Delete every sentence that states quiz
+counts ("five warm-ups, twenty…").
+
+Update index.html's <noscript>/no-JS copy and the meta/OG description in
+index.html and scripts/prerender.mjs so they say the same thing as the new
+lede (no numbers). Keep the JSON-LD valid.
+
+Verify: `npx tsc --noEmit && npm run audit && npm run build`; report the
+entry chunk size before and after (expect it to shrink). On the dev server
+(Browser preview, "chemprep", http://127.0.0.1:5174) at 1440x900: report
+document words (#home innerText word count), page height in viewports, the
+count of .btn-hero elements (must be 1), and a screenshot of each viewport;
+at the 375 preset: height in screens and documentElement.scrollWidth ===
+375. Clear localStorage first so you see the first-visit page, then set a
+lastTopic to confirm the Continue block still replaces the primary button.
+Do NOT commit; the lead reviews and commits.
+```
+
 ## Found while executing
 
 - **Warm-ups that are not warm-ups.** In the CCO-tier modules the first five
