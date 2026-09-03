@@ -100,8 +100,8 @@
   --shadow-3: 0 8px 22px rgba(28, 30, 33, 0.07);
 
   /* D.7: hover and collapse transitions ≤ 150 ms. --t-enter is for one-shot
-     entrances (scroll reveals), which are not hover feedback and are killed
-     outright by the prefers-reduced-motion block below. */
+     entrances (a tab's first paint), which are not hover feedback and are
+     killed outright by the prefers-reduced-motion block below. */
   --t: 0.15s;
   --t-enter: 0.4s;
 
@@ -213,9 +213,9 @@ body { overflow: hidden; }
    focus ring around the question block would just look like a rendering bug. */
 .quiz-head:focus { outline: none; }
 
-/* Honour the OS "reduce motion" setting: kill the scroll reveals, the card
-   lifts, the count-ups and the tab fade. The homepage hero simulation stops
-   itself on a frame budget — see makeHeroSim in home.ts. */
+/* Honour the OS "reduce motion" setting: kill the card lifts and the tab fade.
+   The homepage hero simulation stops itself on a frame budget — see
+   makeHeroSim in home.ts. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -223,7 +223,6 @@ body { overflow: hidden; }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .reveal, .feature { opacity: 1 !important; transform: none !important; }
 }
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -267,15 +266,6 @@ body { overflow: hidden; }
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
-}
-
-.scroll-progress {
-  position: sticky;
-  top: 0;
-  height: 2px;
-  width: 0%;
-  background: var(--accent);
-  z-index: 50;
 }
 
 .home-wrap { max-width: var(--col); margin: 0 auto; padding: 0 28px; }
@@ -455,44 +445,8 @@ body { overflow: hidden; }
 }
 .fig-cap b { font-family: var(--mono); font-weight: 600; color: var(--accent-dark); font-size: var(--f-1); }
 
-/* scroll reveals — subtle and quick.
-   The hero is NOT in here: it is above the fold on first paint, so a reveal on
-   it is a delay with nothing to trigger it (plan3 §1.6). */
-.reveal {
-  opacity: 0;
-  transform: translateY(12px);
-  transition: opacity var(--t-enter) ease, transform var(--t-enter) ease;
-}
-.reveal.visible { opacity: 1; transform: none; }
-
-/* ---- stats strip ---- */
-.stats-sect { padding-bottom: 88px; }
-.stats {
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding: 32px 0;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-}
-.stat { display: flex; align-items: baseline; gap: 10px; }
-.stat-n {
-  font-family: var(--serif);
-  font-size: clamp(1.7rem, 2.6vw, 2.2rem);
-  font-weight: 700;
-  line-height: 1;
-}
-.stat-label { color: var(--ink-faint); font-size: var(--f-3); }
-
-/* ---- numbered sections ---- */
+/* ---- section headings ---- */
 .sect-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 10px; }
-.sect-no {
-  font-family: var(--mono);
-  font-size: var(--f-2);
-  color: var(--accent-dark); /* 12px body text: --accent is only 3.26:1 */
-  letter-spacing: 1px;
-}
 .sect-head h2 {
   font-family: var(--serif);
   font-size: clamp(1.5rem, 2.6vw, 2rem);
@@ -501,34 +455,19 @@ body { overflow: hidden; }
 }
 .section-lede { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-loose); max-width: var(--measure); margin-bottom: 36px; }
 
-/* ---- 02 · interactive demo ---- */
-.demo-sect { padding-bottom: 96px; }
+/* ---- try it ---- */
+.demo-sect { padding-bottom: var(--s-8); }
+.demo-sect .section-lede { margin-bottom: var(--s-4); }
 .demo-card { max-width: 680px; }
 .demo-card canvas { width: 100%; height: auto; display: block; }
+/* A sentence, not a mono readout: it is the one line on the page a first-time
+   reader is meant to read WHILE the curves move, so it reads like prose. */
 .demo-readout {
-  font-family: var(--mono);
-  font-size: var(--f-2);
+  font-size: var(--f-3);
   color: var(--ink-dim);
-  margin-top: 12px;
+  margin-top: var(--s-3);
 }
-.demo-readout b { color: var(--ink); }
 .demo-controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-
-/* ---- 03 · learning paths ---- */
-.paths-sect { padding-bottom: 96px; }
-.path-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-.path-card {
-  background: var(--paper-2);
-  border: 1px solid rgba(28, 30, 33, 0.05);
-  border-radius: var(--r-lg);
-  padding: 24px;
-}
-.path-card h3 { font-family: var(--serif); font-size: var(--f-5); margin-bottom: 10px; }
-.path-card > p { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-body); margin: 12px 0 4px; }
 .path-steps { list-style: decimal; padding-left: 20px; margin-top: 10px; }
 .path-steps li { color: var(--ink-faint); font-size: var(--f-3); margin: 5px 0; }
 .path-step {
@@ -544,40 +483,7 @@ body { overflow: hidden; }
 }
 .path-step:hover { color: var(--accent-dark); border-bottom-color: var(--accent); }
 
-/* ---- 04 · competition scope ---- */
-.comps-sect { padding-bottom: 96px; }
-.comp-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 18px;
-}
-.comp-card {
-  background: var(--paper-2);
-  border: 1px solid rgba(28, 30, 33, 0.05);
-  border-radius: var(--r-lg);
-  padding: 20px;
-}
-.comp-card-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.comp-card-top h3 { font-family: var(--serif); font-size: var(--f-5); }
-.comp-card p { color: var(--ink-dim); font-size: var(--f-3); line-height: var(--lh-body); }
-.comp-count {
-  margin-top: 10px;
-  font-family: var(--mono);
-  font-size: var(--f-1);
-  color: var(--ink-faint);
-}
-
 /* ---- topic grid ---- */
-.topics { padding-bottom: 100px; }
-.topic-group-head {
-  font-family: var(--mono);
-  font-size: var(--f-1);
-  text-transform: uppercase;
-  letter-spacing: 1.6px;
-  color: var(--ink-faint);
-  margin: 40px 0 16px;
-}
-.topic-group-head:first-of-type { margin-top: 0; }
 .topic-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -695,31 +601,32 @@ body { overflow: hidden; }
 .badge-cco { background: var(--accent-wash); color: var(--accent-dark); border-color: var(--accent-edge); }
 .badge-icho { background: rgba(122, 90, 168, 0.1); color: var(--purple-ink); border-color: rgba(122, 90, 168, 0.25); }
 
-/* ---- feature rows ---- */
-.features { display: flex; flex-direction: column; gap: 88px; padding-bottom: 108px; }
-.feature {
-  display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: clamp(28px, 5vw, 64px);
-  align-items: center;
-  opacity: 0;
-  transform: translateY(14px);
-  transition: opacity var(--t-enter) ease, transform var(--t-enter) ease;
-}
-.feature.visible { opacity: 1; transform: none; }
-.feature.right .feature-text { order: 2; }
-.feature.right .feature-visual { order: 1; }
-.feature-text h3 { font-family: var(--serif); font-size: clamp(1.25rem, 2vw, 1.6rem); margin-bottom: 12px; font-weight: 700; }
-.feature-text p { color: var(--ink-dim); font-size: var(--f-4); line-height: var(--lh-loose); margin-bottom: 18px; }
-
 /* ---- footer ---- */
 .home-end {
-  text-align: center;
-  padding: 66px 0 96px;
+  padding: var(--s-6) 0 var(--s-7);
   border-top: 1px solid var(--rule);
 }
-.home-end h2 { font-family: var(--serif); font-size: clamp(1.6rem, 2.8vw, 2.2rem); margin-bottom: 10px; }
-.home-end p { color: var(--ink-faint); margin-bottom: 26px; font-size: var(--f-4); }
+.home-end p { color: var(--ink-faint); font-size: var(--f-3); margin: 0; }
+
+/* ---- start here ---- */
+.start-sect { padding-bottom: var(--s-8); }
+.start-sect .meta-time { margin-bottom: var(--s-3); }
+.start-sect .path-steps { max-width: var(--measure); }
+.start-sect .path-progress { max-width: 340px; }
+.home-other-runs { color: var(--ink-faint); font-size: var(--f-3); margin-top: var(--s-4); }
+
+/* ---- three reasons: one line each, nothing larger than the lines ---- */
+.reasons {
+  border-top: 1px solid var(--rule);
+  padding: var(--s-5) 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.reasons p { font-size: var(--f-4); color: var(--ink-dim); margin: 0; }
+
+/* the one quiet link that follows a section's content */
+.home-more { margin-top: var(--s-4); }
 
 /* ============================================================
    MENU PAGE (full topic directory)
@@ -2521,9 +2428,6 @@ dfn.term {
   #app-main { padding-top: 44px; }
 
   .hero { grid-template-columns: 1fr; }
-  .feature, .feature.right { grid-template-columns: 1fr; }
-  .feature.right .feature-text { order: 1; }
-  .feature.right .feature-visual { order: 2; }
 
   /* W3.3: a canvas authored at 460 px must not force the page sideways on a
      390 px phone. Width from the card, height from the authored aspect —
@@ -3055,7 +2959,6 @@ dfn.term {
 }
 
 /* ---- learning-path progress (F.2) ---- */
-.path-card { display: flex; flex-direction: column; }
 .path-progress {
   display: flex;
   align-items: center;
@@ -3086,11 +2989,7 @@ dfn.term {
   text-decoration: none;
   font-weight: 700;
 }
-.path-continue {
-  margin-top: auto;
-  align-self: flex-start;
-  font-size: var(--f-3);
-}
+.path-continue { font-size: var(--f-3); }
 .path-steps { margin-bottom: var(--s-4); }
 
 /* ============================================================

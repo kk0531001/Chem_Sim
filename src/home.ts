@@ -1,58 +1,18 @@
-// Landing page — "Lab Journal" design: paper & ink, serif display type,
-// one flame accent, and the chemistry itself as the artwork (a live mini
-// simulation in the hero, figure panels with captions elsewhere).
-import { h, prefersReducedMotion } from './tabs/framework';
+// Landing page — "Lab Journal" design: paper & ink, serif display type, one
+// flame accent. Six blocks and nothing else (plan3 Phase 5): top bar, hero,
+// Try it, Start here, three reasons, footer. Everything is visible on arrival;
+// the only motion on the page is the two simulations.
+import { h } from './tabs/framework';
 import { mountHomepageAccountWidget } from './authWidget';
-import { TOPICS, PATHS, pathTopics, renderTopicCard, difficultyBadges, moduleCompletion, moduleProgress, topicById } from './topics';
+import { TOPICS, PATHS, pathTopics, moduleCompletion, moduleProgress, topicById } from './topics';
 import { onProgressChange, lastTopic } from './progress';
 import { recommendNext } from './recommend';
-import { CORPUS_COUNTS } from './content/counts';
-import { CLOCK_ICON } from './icons';
-import { COMP_PLAIN, type Comp } from './content/topicIds';
 
 // The tile is a logo mark, and it always sits immediately before the word
 // "ChemPrep" — so its "Ch" (plus the "25" the stylesheet adds via ::after) is
 // pure noise to a screen reader reading the wordmark. Hidden at the source, so
 // every place that embeds TILE_HTML gets it right.
 export const TILE_HTML = `<span class="tile" aria-hidden="true">Ch</span>`;
-
-// ---- static figure SVGs for the feature rows (dark panels, one accent) ----
-const FIG_TITRATION = `
-<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
-  <g stroke="#242b33" stroke-width="1">${[40, 80, 120, 160].map(y => `<line x1="34" y1="${y}" x2="306" y2="${y}"/>`).join('')}</g>
-  <line x1="34" y1="14" x2="34" y2="182" stroke="#3a424d" stroke-width="1.2"/>
-  <line x1="34" y1="182" x2="306" y2="182" stroke="#3a424d" stroke-width="1.2"/>
-  <path d="M 40 172 C 110 164, 130 152, 158 140 C 172 132, 174 60, 190 46 C 220 24, 268 22, 300 20"
-        fill="none" stroke="#e8590c" stroke-width="2.4" stroke-linecap="round"/>
-  <circle cx="172" cy="96" r="4.5" fill="#f5f0e8"/>
-  <text x="182" y="92" fill="#8a939e" font-size="10.5" font-family="Menlo, monospace">equivalence</text>
-  <text x="40" y="26" fill="#8a939e" font-size="10" font-family="Menlo, monospace">pH</text>
-  <text x="252" y="196" fill="#8a939e" font-size="10" font-family="Menlo, monospace">V added</text>
-</svg>`;
-
-const FIG_ENERGY = `
-<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
-  <line x1="30" y1="182" x2="306" y2="182" stroke="#3a424d" stroke-width="1.2"/>
-  <path d="M 36 120 C 90 120, 100 44, 160 44 C 220 44, 226 140, 300 140"
-        fill="none" stroke="#5c646e" stroke-width="2" stroke-dasharray="5 4"/>
-  <path d="M 36 120 C 96 120, 112 78, 160 78 C 210 78, 230 140, 300 140"
-        fill="none" stroke="#e8590c" stroke-width="2.4" stroke-linecap="round"/>
-  <line x1="160" y1="44" x2="160" y2="120" stroke="#8a939e" stroke-width="1" stroke-dasharray="2 3"/>
-  <text x="168" y="64" fill="#8a939e" font-size="10.5" font-family="Menlo, monospace">Ea, catalyzed ↓</text>
-  <text x="38" y="110" fill="#8a939e" font-size="10" font-family="Menlo, monospace">reactants</text>
-  <text x="252" y="132" fill="#8a939e" font-size="10" font-family="Menlo, monospace">products</text>
-</svg>`;
-
-const FIG_DECAY = `
-<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
-  ${Array.from({ length: 60 }, (_, i) => {
-    const x = 46 + (i % 10) * 16, y = 30 + Math.floor(i / 10) * 15;
-    const dead = (i * 7 + 3) % 11 < 4;
-    return `<circle cx="${x}" cy="${y}" r="4" fill="${dead ? '#2c333c' : '#f5f0e8'}"/>`;
-  }).join('')}
-  <path d="M 36 132 C 90 150, 150 166, 300 176" fill="none" stroke="#e8590c" stroke-width="2.2" stroke-linecap="round"/>
-  <text x="222" y="160" fill="#8a939e" font-size="10.5" font-family="Menlo, monospace">N = N₀·(½)^(t/t½)</text>
-</svg>`;
 
 // ---- live hero simulation: H and O atoms bonding into water ----
 function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) => void } {
@@ -156,6 +116,8 @@ function makeHeroSim(): { canvas: HTMLCanvasElement; setRunning: (v: boolean) =>
 // The physics is the same twenty lines either way.
 function makeDemoSim(): { el: HTMLElement; setRunning: (v: boolean) => void } {
   const KF = 0.30, KR = 0.60;              // K = kf/kr = 0.5, as in the module
+  const K = KF / KR;
+  const SETTLED = 0.005;                   // |Q − K| below this reads as settled
   const A0 = 1.0;
   let A = A0, B = 0, t = 0;
   const histA: number[] = [], histB: number[] = [];
@@ -204,9 +166,15 @@ function makeDemoSim(): { el: HTMLElement; setRunning: (v: boolean) => void } {
     ctx.fillText('N₂O₄', 40, 20);
     ctx.fillStyle = '#e8590c';
     ctx.fillText('NO₂', 84, 20);
+    // No Q/K algebra on the landing page — that is the module's job. What a
+    // first-time reader can check with their own eyes is the two numbers and
+    // whether they are still changing, so that is all this says. "Settled" is
+    // measured the way the sim itself defines it: the reaction quotient has
+    // reached K, within the drift one integration step can produce.
     const Q = A > 1e-6 ? (B * B) / A : Infinity;
-    out.innerHTML = `[N₂O₄] = <b>${A.toFixed(3)}</b> · [NO₂] = <b>${B.toFixed(3)}</b> · `
-      + `Q = [NO₂]²/[N₂O₄] = <b>${Number.isFinite(Q) ? Q.toFixed(2) : '—'}</b> (K = 0.50)`;
+    const settled = Number.isFinite(Q) && Math.abs(Q - K) < SETTLED;
+    out.textContent = `Brown NO₂ is ${B.toFixed(2)} mol/L · colourless N₂O₄ is `
+      + `${A.toFixed(2)} mol/L · it is ${settled ? 'settled' : 'moving'}.`;
   }
 
   function loop(): void {
@@ -225,7 +193,6 @@ function makeDemoSim(): { el: HTMLElement; setRunning: (v: boolean) => void } {
       disturb('Add NO₂', () => { B += 0.6; }),
       disturb('Reset', () => { A = A0; B = 0; t = 0; histA.length = 0; histB.length = 0; }),
     ),
-    h('p', { class: 'fig-cap', html: '<b>Fig. 5</b> — push either side and the system walks back until Q meets K again. Nothing here is scripted: the curves are the rate equations being integrated in your browser.' }),
   );
 
   // Reduced motion: draw one settled frame instead of animating, and let the
@@ -243,22 +210,6 @@ function makeDemoSim(): { el: HTMLElement; setRunning: (v: boolean) => void } {
       else if (v && frameId === null && !reduceMotion) loop();
     },
   };
-}
-
-function competitionCard(name: string, badge: string, line: string): HTMLElement {
-  return h('article', { class: 'comp-card reveal' },
-    h('div', { class: 'comp-card-top' },
-      h('h3', {}, name),
-      ...difficultyBadges([badge]),
-    ),
-    // The acronym said in plain words, first, for a reader who has met none of
-    // them. Same line as the menu's Level filter and the guide headers.
-    h('p', { class: 'comp-count', style: 'margin:0 0 var(--s-2)' },
-      COMP_PLAIN[badge.toLowerCase() as Comp]),
-    h('p', {}, line),
-    h('p', { class: 'comp-count' },
-      `${TOPICS.filter(t => t.difficulty.includes(badge)).length} of ${TOPICS.length} modules are pitched at this level`),
-  );
 }
 
 /**
@@ -290,7 +241,10 @@ export function continueBlock(onEnter: (id: string, section?: string) => void): 
     // count as the meter rather than stored — a second source would be a
     // second thing to get out of step with the bar sitting next to it.
     const step = !p ? topic.blurb
-      : p.done === 0 ? `Nothing answered yet — the quiz opens with ${Math.min(5, p.total)} warm-ups.`
+      // No quiz count here: the banks are no longer "five warm-ups then
+      // twenty", and a number in this line is one more thing that goes stale
+      // every time a module gains a question.
+      : p.done === 0 ? 'Nothing answered yet — start at the first question.'
       : p.done >= p.total ? 'Quiz complete — the challenge ladder is what is left.'
       : `${p.total - p.done} of ${p.total} questions still unanswered.`;
     const kids: (HTMLElement | null)[] = [
@@ -334,28 +288,24 @@ const startTopic = (): string =>
   PATHS.find(p => p.id === 'start-here')?.topicIds[0] ?? 'stoich';
 
 export function buildHome(onEnter: (tabId: string, section?: string) => void, onMenu: () => void): HTMLElement {
-  const progress = h('div', { class: 'scroll-progress' });
-
-  // ---- top bar ----
+  // ---- 1 · top bar ----
   const accountHolder = h('div', {});
   const topBar = h('div', { class: 'home-top' },
-    h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b><small>Chemistry, running</small>` }),
+    h('div', { class: 'wordmark', html: `${TILE_HTML}<b>ChemPrep</b>` }),
     h('div', { class: 'home-top-right' },
-      h('button', { class: 'btn-ghost', onclick: onMenu }, 'All Topics'),
+      h('button', { class: 'btn-ghost', onclick: onMenu }, 'All topics'),
       accountHolder,
-      h('button', { class: 'btn-ghost', onclick: () => onEnter(startTopic()) }, 'Open the app'),
     ),
   );
   mountHomepageAccountWidget(accountHolder);
 
-  // ---- hero ----
+  // ---- 2 · hero ----
   const sim = makeHeroSim();
-  // One filled accent button per screen. For a returning student the Continue
-  // block below IS the call to action, so "Start learning" — which for them
-  // means "start over at the first module" — steps down to a ghost rather than
-  // competing with it. Re-checked on every repaint, because the block can
+  // THE one filled button on the page. For a returning student the Continue
+  // block below IS the call to action, so this steps down to a ghost rather
+  // than competing with it — re-checked on every repaint, because the block can
   // appear while this page is open (another tab, a fresh sign-in).
-  const startBtn = h('button', { class: 'btn-hero', onclick: () => onEnter(startTopic()) }, 'Start learning');
+  const startBtn = h('button', { class: 'btn-hero', onclick: () => onEnter(startTopic()) }, 'Start with the basics');
   const cont = continueBlock(onEnter);
   const syncStart = (): void => { startBtn.className = cont.el.hidden ? 'btn-hero' : 'btn-ghost'; };
   syncStart();
@@ -364,208 +314,110 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
     h('div', {},
       h('p', { class: 'eyebrow' }, 'Grade 11 to olympiad · interactive'),
       h('h1', { html: 'High school chemistry you can <em>run</em>.' }),
-      // Every number in this sentence is interpolated from the corpus, for the
-      // same reason the stats strip is: the page that promises numerical care
-      // cannot be the one page nobody checks.
       h('p', { class: 'lede' },
-        `${TOPICS.length} interactive modules, from atoms and moles to enzyme kinetics. ${CORPUS_COUNTS.mc} exam-style questions, ${CORPUS_COUNTS.frq} multi-part written problems and ${CORPUS_COUNTS.papers} full mock papers, every answer worked out. Start at the basics with no chemistry behind you, and the same modules carry on to contest level.`),
+        'Interactive lessons from the first mole up to olympiad level. Every topic '
+        + 'starts with the basics and every answer is explained.'),
       h('div', { class: 'cta' },
         startBtn,
-        h('button', {
-          class: 'btn-ghost',
-          // The reduced-motion block in style.css sets scroll-behavior, which an
-          // explicit JS `behavior` option overrides — so gate it here too.
-          onclick: () => document.querySelector('.topics')?.scrollIntoView({
-            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
-          }),
-        }, 'Browse the modules'),
+        // A page, not a scroll: the catalogue this used to jump to is gone, and
+        // /menu is where someone comparing modules was always going to end up.
+        h('button', { class: 'btn-ghost', onclick: onMenu }, `See all ${TOPICS.length} topics`),
       ),
       cont.el,
     ),
     h('div', {},
       h('div', { class: 'figure' }, sim.canvas),
-      h('p', { class: 'fig-cap', html: '<b>Fig. 1</b> — hydrogen (white) and oxygen (orange) finding each other, live. Valence rules only: H makes one bond, O makes two. Click "Particle Sandbox" for the full engine.' }),
+      h('p', { class: 'fig-cap' },
+        'Hydrogen and oxygen atoms bonding into water, live. Hydrogen makes one '
+        + 'bond, oxygen makes two.'),
     ),
   );
 
-  // ---- 05 · the corpus, counted ----
-  // Every figure comes from TOPICS or CORPUS_COUNTS. The previous strip
-  // hard-coded four numbers and three were wrong (18 modules, 650+ questions,
-  // and "65+ simulations" / "90+ equations", which nothing counted at all).
-  // A stat with no source of truth is not a stat, so those two are gone rather
-  // than replaced with a fresh guess.
-  const statDefs = [
-    { n: TOPICS.length, label: 'interactive modules' },
-    { n: CORPUS_COUNTS.mc, label: 'practice questions' },
-    { n: CORPUS_COUNTS.frq, label: 'written problems, worked' },
-    { n: CORPUS_COUNTS.papers, label: 'full mock papers' },
-  ];
-  const stats = h('section', { class: 'stats-sect' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '06'), h('h2', {}, 'What is actually in here')),
-    h('p', { class: 'section-lede reveal' },
-      'Counted from the question bank at build time, not rounded up for the landing page.'),
-    h('div', { class: 'stats' },
-      ...statDefs.map(s =>
-        h('div', { class: 'stat reveal' },
-          h('span', { class: 'stat-n', 'data-n': s.n }, '0'),
-          h('span', { class: 'stat-label' }, s.label),
-        )),
-    ),
-  );
-
-  // ---- 01 · why it works (builds trust before the full catalog) ----
-  const features = h('section', { class: 'features' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '01'), h('h2', {}, 'Why it works')),
-    featureRow('left', 'Simulations, not flashcards',
-      'The equilibrium module is a real kinetic system — add reactant, compress the vessel, heat it, and watch it chase K back down. Gases push on their walls. Nuclei decay at random yet trace the exponential law. You learn the behavior, not a sentence about the behavior.',
-      'See the live equilibrium', () => onEnter('equilibrium'),
-      FIG_ENERGY, '<b>Fig. 2</b> — a catalyst lowers the barrier for both directions; ΔH and K don\'t move.'),
-    featureRow('right', 'Questions that explain themselves',
-      'Every module quiz opens with five warm-ups, then twenty contest-level problems built around the classic traps. The exam-format bank adds Part I multiple choice, Part II free response with worked solutions, and Part III lab practicals. Every answer — right or wrong — comes with the reasoning.',
-      'Open the question bank', () => onEnter('qbank'),
-      FIG_TITRATION, '<b>Fig. 3</b> — a weak-acid titration curve. Half-equivalence gives pKa; equivalence sits above 7. Both facts are quiz questions.'),
-    featureRow('left', 'The exam traps, catalogued',
-      'The wet Erlenmeyer flask that changes nothing. The (2x)² inside the ICE table. Losing 4s before 3d. Chlorine\'s electron affinity beating fluorine\'s. The traps that reappear every year are marked in every theory panel and drilled in every quiz.',
-      'Open Lab & Data', () => onEnter('labdata'),
-      FIG_DECAY, '<b>Fig. 4</b> — sixty nuclei, each deciding at random; the ensemble still obeys first-order kinetics.'),
-  );
-
-  // ---- 02 · try one ----
+  // ---- 3 · try it ----
   const demo = makeDemoSim();
   const demoSect = h('section', { class: 'demo-sect' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '02'), h('h2', {}, 'Try one right now')),
-    h('p', { class: 'section-lede reveal' },
-      'This is the equilibrium module\'s core simulation, running on this page. Disturb it and watch Le Chatelier\'s principle happen rather than be asserted.'),
-    h('div', { class: 'reveal' }, demo.el),
-    h('div', { style: 'text-align:center;margin-top:24px' },
-      h('button', { class: 'btn-ghost', onclick: () => onEnter('equilibrium') }, 'Open the full module →'),
+    h('div', { class: 'sect-head' }, h('h2', {}, 'Try it')),
+    h('p', { class: 'section-lede' }, 'Press Add NO₂ and watch the mixture settle back.'),
+    demo.el,
+    h('div', { class: 'home-more' },
+      h('button', { class: 'btn-ghost', onclick: () => onEnter('equilibrium') }, 'Open the equilibrium topic'),
     ),
   );
 
-  // ---- 03 · learning paths ----
-  const paths = h('section', { class: 'paths-sect' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '03'), h('h2', {}, 'Ways through')),
-    h('p', { class: 'section-lede reveal' },
-      'Ordered runs through the modules that already exist — start at the top of one and work down, or ignore them entirely and pick your own. The first is the one to take if you are new here.'),
-    h('div', { class: 'path-grid' },
-      ...PATHS.map(p => {
-        const mods = pathTopics(p);
-        const mins = mods.reduce((s, t) => s + t.estMinutes, 0);
-        // Badges are the union of the levels its modules carry, in tier order,
-        // so a path can never claim a level none of its modules is pitched at.
-        const levels = ['CCC', 'USNCO', 'CCO', 'IChO'].filter(d => mods.some(t => t.difficulty.includes(d)));
-
-        // ---- progress along the path (ROADMAP F.2) ----
-        // The paths were already data; what was missing is where you are in
-        // one. Steps mark themselves done, and "Continue" jumps to the first
-        // module that isn't — which is the only button on the card that knows
-        // anything, and the reason a path beats a plain list of links.
-        const steps = mods.map(t => h('button', {
-          class: 'path-step', type: 'button', onclick: () => onEnter(t.id),
-        }, t.title));
-        const bar = h('div', { class: 'pbar' });
-        const count = h('span', { class: 'path-count' });
-        const cont = h('button', { class: 'btn path-continue', type: 'button' });
-        const paint = (): void => {
-          const done = mods.map(t => moduleCompletion(t.id) >= 1);
-          const n = done.filter(Boolean).length;
-          steps.forEach((s, i) => s.classList.toggle('done', done[i]));
-          bar.replaceChildren(h('div', {
-            class: `pbar-fill${n ? '' : ' zero'}`,
-            style: `width:${n ? Math.max(Math.round((n / mods.length) * 100), 2) : 0}%`,
-          }));
-          bar.setAttribute('role', 'img');
-          bar.setAttribute('aria-label', `${n} of ${mods.length} modules complete`);
-          count.textContent = n === mods.length ? 'Complete' : `${n}/${mods.length} modules`;
-          count.classList.toggle('all-done', n === mods.length);
-          const next = mods.find((_, i) => !done[i]);
-          // Colon, not an em dash: four module titles already contain one
-          // ("Organic I — Mechanisms"), and "Start — Organic I — Mechanisms"
-          // reads as two separators fighting.
-          cont.textContent = next ? `${n ? 'Continue' : 'Start'}: ${next.title}` : 'Revisit from the top';
-          cont.onclick = () => onEnter((next ?? mods[0]).id);
-        };
-        paint();
-        onProgressChange(paint);
-
-        return h('article', { class: 'path-card reveal' },
-          h('h3', {}, p.title),
-          h('div', { class: 'topic-meta' },
-            h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${Math.round(mins / 60)} h`),
-            ...difficultyBadges(levels),
-          ),
-          h('p', {}, p.blurb),
-          h('div', { class: 'path-progress' }, bar, count),
-          h('ol', { class: 'path-steps' }, ...steps.map(s => h('li', {}, s))),
-          cont,
-        );
-      }),
-    ),
+  // ---- 4 · start here ----
+  // One run, not four. The other three are a sentence pointing at /menu: a
+  // reader who already knows they want the organic sequence does not need it
+  // spelled out on the front page, and a reader who does not is being asked to
+  // choose before they have started.
+  const run = PATHS.find(p => p.id === 'start-here');
+  const mods = run ? pathTopics(run) : [];
+  const steps = mods.map(t => h('button', {
+    class: 'path-step', type: 'button', onclick: () => onEnter(t.id),
+  }, t.title));
+  const bar = h('div', { class: 'pbar' });
+  const count = h('span', { class: 'path-count' });
+  const meter = h('div', { class: 'path-progress' }, bar, count);
+  const runBtn = h('button', { class: 'btn path-continue', type: 'button' });
+  const paint = (): void => {
+    const done = mods.map(t => moduleCompletion(t.id) >= 1);
+    const n = done.filter(Boolean).length;
+    steps.forEach((s, i) => s.classList.toggle('done', done[i]));
+    bar.replaceChildren(h('div', {
+      class: `pbar-fill${n ? '' : ' zero'}`,
+      style: `width:${n ? Math.max(Math.round((n / mods.length) * 100), 2) : 0}%`,
+    }));
+    bar.setAttribute('role', 'img');
+    bar.setAttribute('aria-label', `${n} of ${mods.length} modules complete`);
+    count.textContent = n === mods.length ? 'Complete' : `${n}/${mods.length} modules`;
+    count.classList.toggle('all-done', n === mods.length);
+    // Hidden on a first visit: an empty bar reading "0/8" is a progress report
+    // on something the reader has not been offered yet.
+    meter.hidden = n === 0;
+    const next = mods.find((_, i) => !done[i]);
+    // Colon, not an em dash: four module titles already contain one
+    // ("Organic I — Mechanisms"), and "Continue — Organic I — Mechanisms"
+    // reads as two separators fighting.
+    runBtn.textContent = !n ? 'Start step 1'
+      : next ? `Continue: ${next.title}` : 'Revisit from the top';
+    runBtn.onclick = () => onEnter((next ?? mods[0]).id);
+  };
+  paint();
+  onProgressChange(paint);
+  const mins = mods.reduce((s, t) => s + t.estMinutes, 0);
+  const startHere = h('section', { class: 'start-sect' },
+    h('div', { class: 'sect-head' }, h('h2', {}, 'Start here')),
+    h('p', { class: 'meta-time' }, `${mins} minutes in total`),
+    h('ol', { class: 'path-steps' }, ...steps.map(s => h('li', {}, s))),
+    meter,
+    runBtn,
+    h('p', { class: 'home-other-runs' },
+      'Doing a contest? Runs for CCC, organic, and advanced are in ',
+      h('button', { class: 'link-btn', type: 'button', onclick: onMenu }, 'All topics'),
+      '.'),
   );
 
-  // ---- 04 · competition scope ----
-  // Only what TopicMeta.difficulty supports — no dates, formats, cutoffs or
-  // qualification rules, none of which this repo has a source for.
-  const comps = h('section', { class: 'comps-sect' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '04'), h('h2', {}, 'Which competition')),
-    h('p', { class: 'section-lede reveal' },
-      'Every module carries the levels it is pitched at, from grade 11 up to international olympiad level. The same badges appear on each card below and throughout the app.'),
-    h('div', { class: 'comp-grid' },
-      competitionCard('CCC', 'CCC', 'The Canadian Chemistry Contest — the entry level here, and the assumed starting point for everything else.'),
-      competitionCard('USNCO', 'USNCO', 'The US National Chemistry Olympiad. Broader coverage than CCC, with quantitative work expected throughout.'),
-      competitionCard('CCO', 'CCO', 'The Canadian Chemistry Olympiad. Rigorous physical chemistry, coordination chemistry and multi-step synthesis.'),
-      competitionCard('IChO', 'IChO', 'The International Chemistry Olympiad — the deepest material in the app, layered on top of the CCO modules.'),
-    ),
+  // ---- 5 · three reasons ----
+  const reasons = h('section', { class: 'reasons' },
+    h('p', {}, 'Simulations you control, not videos.'),
+    h('p', {}, 'Every answer explained, right or wrong.'),
+    h('p', {}, 'A Basics level in every topic, then exam-style.'),
   );
 
-  // ---- 05 · the full catalog, grouped by domain ----
-  // The catalogue is the SECONDARY way in, and it now looks like one: 27 equal
-  // tiles competing at full weight was a decision the reader had to make before
-  // they could start. The Resume card in the hero is the primary route; this is
-  // the fallback for someone who wants something else, so it renders compact
-  // and unemphasised under a lower-case aside of a heading.
-  const groupsInOrder = [...new Set(TOPICS.map(t => t.group))];
-  const topics = h('section', { class: 'topics' },
-    h('div', { class: 'sect-head reveal' }, h('span', { class: 'sect-no' }, '05'), h('h2', {}, 'or jump to a topic')),
-    h('p', { class: 'section-lede reveal' },
-      'Each module pairs hands-on simulations with the key equations and the traps examiners reuse, then tests you with a 25-question quiz — five warm-ups, twenty at contest level.'),
-    ...groupsInOrder.flatMap(g => [
-      h('h3', { class: 'topic-group-head reveal' }, g),
-      h('div', { class: 'topic-grid' },
-        ...TOPICS.filter(t => t.group === g)
-          .map((t, i) => renderTopicCard(t, onEnter, ' reveal compact', `transition-delay:${(i % 3) * 60}ms`)),
-      ),
-    ]),
-    h('div', { style: 'text-align:center;margin-top:34px' },
-      h('button', { class: 'btn-ghost', onclick: onMenu }, 'Browse the full directory →'),
-    ),
-  );
-
-  // ---- 03 · footer ----
+  // ---- 6 · footer ----
   const footer = h('section', { class: 'home-end' },
-    h('h2', { class: 'reveal' }, 'Ready when you are.'),
-    h('p', { class: 'reveal' }, 'No accounts, no installs — everything runs locally in this tab.'),
-    h('button', { class: 'btn-hero reveal', onclick: () => onEnter(startTopic()) }, 'Enter ChemPrep'),
+    h('p', {},
+      'Made for Canadian high-school students, free, no account needed to start. ',
+      h('button', { class: 'link-btn', type: 'button', onclick: onMenu }, 'All topics'),
+    ),
   );
 
   const root = h('div', { id: 'home' },
-    progress,
-    h('main', { class: 'home-wrap' }, topBar, hero, features, demoSect, paths, comps, topics, stats, footer),
+    h('main', { class: 'home-wrap' }, topBar, hero, demoSect, startHere, reasons, footer),
   );
 
-  // ---- scroll reveals + count-up ----
-  const io = new IntersectionObserver(entries => {
-    for (const e of entries) {
-      if (!e.isIntersecting) continue;
-      e.target.classList.add('visible');
-      const num = e.target.querySelector<HTMLElement>('.stat-n');
-      if (num && !num.dataset.done) { num.dataset.done = '1'; countUp(num); }
-      io.unobserve(e.target);
-    }
-  }, { threshold: 0.15 });
-  root.querySelectorAll('.reveal, .feature').forEach(el => io.observe(el));
-
-  // hero sim runs only while the hero is on screen and home is visible
+  // The page has NO scroll-triggered reveal: everything is on screen from the
+  // first paint. The only two IntersectionObservers left are the ones that stop
+  // a simulation nobody is looking at.
   const simIO = new IntersectionObserver(entries => {
     sim.setRunning(entries.some(e => e.isIntersecting) && !root.hidden);
   }, { threshold: 0.05 });
@@ -578,52 +430,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   }, { threshold: 0.05 });
   demoIO.observe(demo.el);
 
-  let ticking = false;
-  root.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => {
-      const max = root.scrollHeight - root.clientHeight;
-      progress.style.width = `${max > 0 ? (root.scrollTop / max) * 100 : 0}%`;
-      ticking = false;
-    });
-  });
-
-  // The hero is NOT revealed on a timer any more (plan3 §1.6). Its four
-  // children each faded in behind a transition-delay that only started after
-  // two animation frames, so the first thing anyone saw of this site was an
-  // empty screen for the better part of a second — on a cold load, longer.
-  // Everything below the fold keeps `.reveal`: that one is scroll-triggered,
-  // so it is never what a reader is waiting on.
   requestAnimationFrame(() => sim.setRunning(true));
 
   return root;
-}
-
-function featureRow(side: 'left' | 'right', title: string, body: string, cta: string, go: () => void, figSVG: string, caption: string): HTMLElement {
-  return h('div', { class: `feature ${side}` },
-    h('div', { class: 'feature-text' },
-      h('h3', {}, title),
-      h('p', {}, body),
-      h('button', { class: 'btn-ghost', onclick: go }, cta),
-    ),
-    h('div', { class: 'feature-visual' },
-      h('div', { class: 'figure', html: figSVG }),
-      h('p', { class: 'fig-cap', html: caption }),
-    ),
-  );
-}
-
-function countUp(el: HTMLElement): void {
-  const target = Number(el.dataset.n);
-  const suffix = el.dataset.suffix ?? '';
-  const t0 = performance.now();
-  const dur = 900;
-  const tick = (t: number) => {
-    const p = Math.min(1, (t - t0) / dur);
-    const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = `${Math.round(target * eased)}${suffix}`;
-    if (p < 1) requestAnimationFrame(tick);
-  };
-  requestAnimationFrame(tick);
 }

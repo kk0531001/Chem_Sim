@@ -578,9 +578,9 @@ A first‑time visitor should be able to read the whole page in a minute and kno
 
 **Kept and untouched:** `continueBlock` (also drives /today), `startTopic()`, `makeHeroSim`, `makeDemoSim` (readout text changes only), `renderTopicCard` in topics.ts (the menu uses it), the OG/meta description (already matches the new lede's meaning; re‑check the exact sentence).
 
-- [ ] **5.1** Copy and structure per the list above (Prompt 12).
-- [ ] **5.2** Delete the removed sections' code and CSS; confirm the entry chunk shrinks (Prompt 12).
-- [ ] **5.3** Mobile: the page must be ≤ 6 phone screens at 375 px; the hero sim canvas and the demo stay full‑width (Prompt 12).
+- [x] **5.1** Copy and structure per the list above (Prompt 12).
+- [x] **5.2** Delete the removed sections' code and CSS; confirm the entry chunk shrinks (Prompt 12).
+- [x] **5.3** Mobile: the page must be ≤ 6 phone screens at 375 px; the hero sim canvas and the demo stay full‑width (Prompt 12).
 - [ ] **5.4** Show it to the friends. Ask one question: "What is this site and what would you click first?"
 
 ### Prompt 12 — The homepage, cut to what a visitor needs
