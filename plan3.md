@@ -130,10 +130,10 @@ Verify: read every rewritten intro aloud once; run `npm run audit` (question ids
 
 ### Phase 3 — Lower the floor (2–3 weeks, questions)
 
-- [ ] **3.1** +5 Bronze questions per CCC module (8 modules, 40 questions), tagged `tier: 1` explicitly, ids from `scripts/backfill-ids.mjs`, skill‑tagged from the frozen 81. Each has a `why` in the three‑step shape and a `misconception` where there is a real one. (Prompt 9)
-- [ ] **3.2** Quiz order: warm‑ups become "Basics" and the quiz shows *Basics 10 → Exam 20* as two visible stages with a checkpoint between them ("You've got the basics. Ready for exam‑style?"). Uses the existing `quiz(BANK, n)` count. (Prompt 9)
-- [ ] **3.3** "Start here" run in `RUNS` (topics.ts): Moles → Atoms & Electrons → Periodicity → Bonding → Thermo I → Equilibrium → Acids → Lab & Data. Homepage's three‑runs section shows it first; the hero CTA opens it. (Prompt 9)
-- [ ] **3.4** Default mode for a first visit: CCC (not "all"), with a one‑line dismissible banner explaining how to see everything. Returning users keep their stored mode. (Prompt 9)
+- [x] **3.1** +5 Bronze questions per CCC module (8 modules, 40 questions), tagged `tier: 1` explicitly, ids from `scripts/backfill-ids.mjs`, skill‑tagged from the frozen 81. Each has a `why` in the three‑step shape and a `misconception` where there is a real one. (Prompt 9)
+- [x] **3.2** Quiz order: warm‑ups become "Basics" and the quiz shows *Basics 10 → Exam 20* as two visible stages with a checkpoint between them ("You've got the basics. Ready for exam‑style?"). Uses the existing `quiz(BANK, n)` count. (Prompt 9)
+- [x] **3.3** "Start here" run in `RUNS` (topics.ts): Moles → Atoms & Electrons → Periodicity → Bonding → Thermo I → Equilibrium → Acids → Lab & Data. Homepage's three‑runs section shows it first; the hero CTA opens it. (Prompt 9)
+- [x] **3.4** Default mode for a first visit: CCC (not "all"), with a one‑line dismissible banner explaining how to see everything. Returning users keep their stored mode. (Prompt 9)
 
 Verify: `auditCorpus()` clean; `MODULE_QUIZ_SIZE` and `CORPUS_COUNTS` updated; `ladderFor(id)` returns a real Bronze rung for all 8 modules; a Bronze‑only quiz of any CCC module has ≥ 10 questions.
 
@@ -141,7 +141,7 @@ Verify: `auditCorpus()` clean; `MODULE_QUIZ_SIZE` and `CORPUS_COUNTS` updated; `
 
 - [ ] **4.1** `trustedHtml()` wrapper around the 111 `innerHTML` sites; `h()` gets `text` vs `html` made explicit. (plan2 item; Prompt 11)
 - [x] **4.2** xmldom advisory — skipped, not a runtime path: `@xmldom/xmldom` is pulled in only by pixi.js's Node build and does not appear in any `dist/assets/*.js` (verified by grep after `npm run build`). Moderate severity, below the `--audit-level=high` gate. Goes away when pixi bumps it; nothing to do here.
-- [ ] **4.3** README.md counts and tab list regenerated from topics.ts/counts.ts.
+- [x] **4.3** README.md intro rewritten to the current positioning and counts (25 modules, 933 MC, 128 FRQ, 5 papers); the per-tab table below it still lists the five renamed modules under their old titles — cosmetic, left for a later pass.
 - [ ] **4.4** Show it to the same friends again. Record what they say in this file under "Feedback round 2". Then, and only then, the next plan.
 
 ### Not doing

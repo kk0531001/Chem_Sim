@@ -1,10 +1,13 @@
-# Chemistry Engine — CCC Olympiad Trainer
+# Chemistry Engine — ChemPrep
 
-An interactive chemistry learning environment built for Chemistry Olympiad (CCC /
-USNCO-style) preparation. A live particle sandbox plus **12 topic tabs**, each with
-interactive simulations, a 🎯 instant-feedback quiz (25 questions per topic —
-5 warm-ups then 20 olympiad-style, 300 questions total), and a theory panel of
-key equations and olympiad traps.
+High-school chemistry you can run: an interactive learning site that starts at
+the basics and goes up to olympiad (CCC / CCO / USNCO / IChO) level. A live
+particle sandbox plus **25 topic modules**, each with a plain-language Basics
+block, an exam-level reference, interactive simulations with missions, and a
+two-stage quiz (Basics, then exam-style). The corpus holds 933 multiple-choice
+questions, 128 multi-part written problems and 5 original mock papers, every
+answer worked out. See [plan3.md](plan3.md) for the live plan and
+[docs/STYLE.md](docs/STYLE.md) for the writing standard.
 
 Built with **TypeScript + Vite + PixiJS v8 + Tweakpane**, following the
 "appropriately simple" architecture: a flat particle array, a bond list, and one
