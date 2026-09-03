@@ -2905,16 +2905,16 @@ dfn.term {
 .menu-filters {
   display: flex;
   flex-direction: column;
-  gap: var(--s-2);
-  margin-top: var(--s-4);
+  gap: var(--s-4);
+  margin-top: var(--s-5);
 }
 .menu-filter-row {
   display: flex;
   align-items: center;
-  gap: var(--s-2);
+  gap: var(--s-3);
   flex-wrap: wrap;
 }
-.menu-filter-pills { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.menu-filter-pills { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
 /* Pills on a desktop, a native <select> on a phone (plan3 §1.7): the four rows
    were 17 pills ahead of the first topic card at 375px. Both are wired to the
    same state — only one of them is ever on screen. */
@@ -3274,6 +3274,13 @@ dfn.term {
 
 /* ---- competition study guides (I.3) ---- */
 .menu-guides { font-size: var(--f-3); color: var(--ink-dim); margin: -22px 0 26px; }
+/* The same line inside the filter block (the first-visit level note) has no
+   lede above it to tuck under, so the negative margin that positions the
+   guides line would pull it onto the search box. */
+.menu-filters .menu-guides { margin: 0; }
+/* "Grade 11-12 high school" belongs to the Level row above it, not to the
+   row below: pull it up to --s-2 from its row and leave the full gap after. */
+.menu-filters .menu-level-note { margin: calc(-1 * var(--s-2)) 0 0; }
 /* --accent-dark (4.82:1 on paper), not --accent (3.26:1): this is body-size
    text, so it needs 4.5:1. --accent stays for borders, marks and display type,
    which are judged at 3:1. */

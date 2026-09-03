@@ -166,7 +166,7 @@ export function buildMenuPage(
   // The pills are four acronyms. This says the chosen one in words, once,
   // under the row — a tooltip is not readable on a phone and not discoverable
   // anywhere. Empty (and gone) at "All levels", where there is nothing to gloss.
-  const levelNote = h('p', { class: 'muted', style: 'margin:0' });
+  const levelNote = h('p', { class: 'muted menu-level-note' });
   const statusRow = chipRow<Status>('Progress',
     (Object.keys(STATUS_LABEL) as Status[]).map(s => ({ value: s, label: STATUS_LABEL[s] })),
     () => status, v => { status = v; });
