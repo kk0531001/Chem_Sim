@@ -530,6 +530,9 @@ and again after Prompt 9 (level). Write what they say in this file.
   scope there. Clearly beyond a beginner: `ain-001`, `ain-003`, `ain-005`,
   `phy-001`–`phy-004`, `coo-001`, `coo-003`, `coo-005`, `og3-001`, `og3-005`.
   Borderline: `ain-002`, `ain-004`, `coo-004`, `og3-004`, `ana-003`.
+  **Decided (owner, 2026-09-03): leave as is.** Bronze is out of scope for
+  the CCO/IChO modules; their first five stay definitional, with the `why`
+  rewritten to define the term in-sentence.
 - **Two factual errors fixed in passing:** `bon-005` quoted ΔEN 2.1 for NaCl
   (Pauling 0.93 vs 3.16 → about 2.2); `qua-016` said the photoelectric effect
   "killed the wave model".
