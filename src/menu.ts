@@ -12,7 +12,7 @@ import { h } from './tabs/framework';
 import { TOPICS, renderTopicCard, moduleProgress, type TopicMeta } from './topics';
 import { TILE_HTML } from './home';
 import { onProgressChange, solvedCount } from './progress';
-import { activeMode, inScope, onModeChange, setMode, dismissAutoMode, isAutoMode, MODE_SHORT, type Mode } from './mode';
+import { activeMode, inScope, onModeChange, setMode, MODE_SHORT, type Mode } from './mode';
 import { GUIDES } from './guides';
 import { COMP_PLAIN, type Comp } from './content/topicIds';
 
@@ -51,11 +51,8 @@ export function buildMenuPage(
     groups.get(t.group)!.push(t);
   }
 
-  // The Level row IS the mode picker, so it opens on whatever mode is active
-  // when that mode was chosen FOR the reader — otherwise the note below would
-  // say "showing high-school level" over a directory showing everything.
-  // A URL that carries ?level= still wins, in readUrl().
-  let level: Level | 'any' = isAutoMode() ? 'CCC' : 'any';
+  // A URL that carries ?level= wins, in readUrl().
+  let level: Level | 'any' = 'any';
   let status: Status = 'any';
   let group = 'any';
   // Off-syllabus modules are SHOWN by default even in a competition mode —
@@ -179,22 +176,6 @@ export function buildMenuPage(
     [{ value: 'all', label: 'Everything' }, { value: 'scope', label: 'On syllabus only' }],
     () => (onlyInScope ? 'scope' : 'all'), v => { onlyInScope = v === 'scope'; });
 
-  // One line, above the filters, and ONLY while the CCC default is one the
-  // reader never chose (mode.ts's isAutoMode). Anything they do — pressing
-  // either button here, or touching the Level row — retires it for good.
-  const autoNote = h('p', { class: 'menu-guides' }, 'Showing high-school level. ');
-  autoNote.append(
-    h('button', {
-      type: 'button', class: 'link-btn',
-      onclick: () => { level = 'any'; setMode('all'); syncChips(); render(); },
-    }, 'Show everything'),
-    ' · ',
-    h('button', {
-      type: 'button', class: 'link-btn',
-      onclick: () => { dismissAutoMode(); render(); },
-    }, 'Dismiss'),
-  );
-
   const clearBtn = h('button', { type: 'button', class: 'btn menu-clear' }, 'Clear filters');
   clearBtn.addEventListener('click', () => {
     level = 'any'; status = 'any'; group = 'any'; onlyInScope = false; searchIn.value = '';
@@ -232,7 +213,6 @@ export function buildMenuPage(
         ),
       );
     }
-    autoNote.hidden = !isAutoMode();
     levelNote.textContent = level === 'any' ? '' : COMP_PLAIN[level.toLowerCase() as Comp];
     levelNote.hidden = level === 'any';
     // The syllabus chip only exists in a competition mode; in "All" it would be
@@ -288,7 +268,7 @@ export function buildMenuPage(
               `${MODE_SHORT[g.comp]} study guide`),
           ])),
         searchIn,
-        h('div', { class: 'menu-filters' }, autoNote, levelRow, levelNote, statusRow, groupRow, scopeRow),
+        h('div', { class: 'menu-filters' }, levelRow, levelNote, statusRow, groupRow, scopeRow),
         h('div', { class: 'menu-count-row' }, countNote, clearBtn),
       ),
       body,

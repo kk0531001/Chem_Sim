@@ -133,7 +133,7 @@ Verify: read every rewritten intro aloud once; run `npm run audit` (question ids
 - [x] **3.1** +5 Bronze questions per CCC module (8 modules, 40 questions), tagged `tier: 1` explicitly, ids from `scripts/backfill-ids.mjs`, skill‑tagged from the frozen 81. Each has a `why` in the three‑step shape and a `misconception` where there is a real one. (Prompt 9)
 - [x] **3.2** Quiz order: warm‑ups become "Basics" and the quiz shows *Basics 10 → Exam 20* as two visible stages with a checkpoint between them ("You've got the basics. Ready for exam‑style?"). Uses the existing `quiz(BANK, n)` count. (Prompt 9)
 - [x] **3.3** "Start here" run in `RUNS` (topics.ts): Moles → Atoms & Electrons → Periodicity → Bonding → Thermo I → Equilibrium → Acids → Lab & Data. Homepage's three‑runs section shows it first; the hero CTA opens it. (Prompt 9)
-- [x] **3.4** Default mode for a first visit: CCC (not "all"), with a one‑line dismissible banner explaining how to see everything. Returning users keep their stored mode. (Prompt 9)
+- [x] **3.4** Default mode for a first visit: CCC (not "all"), with a one‑line dismissible banner explaining how to see everything. Returning users keep their stored mode. (Prompt 9) — reverted: default is All levels (owner decision 2026-09-03)
 
 Verify: `auditCorpus()` clean; `MODULE_QUIZ_SIZE` and `CORPUS_COUNTS` updated; `ladderFor(id)` returns a real Bronze rung for all 8 modules; a Bronze‑only quiz of any CCC module has ≥ 10 questions.
 
