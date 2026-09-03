@@ -308,13 +308,17 @@ export const COMP_LABEL: Record<Comp, string> = {
 /**
  * The same four levels said in plain words, for a reader who has never heard of
  * any of them. Shown as a one-line subtitle wherever COMP_LABEL is offered as a
- * filter or an explainer. Says who the level is FOR — never dates, scoring or
+ * filter or an explainer. Says what the level IS — never dates, scoring or
  * eligibility, which are the organiser's to publish (see the guides rule).
+ *
+ * None of these names a beginner level: every one of them is a contest pitched
+ * above the school course. The beginner entry point is the Basics block and the
+ * warm-up questions inside each module, which belong to no competition.
  */
 export const COMP_PLAIN: Record<Comp, string> = {
-  ccc: 'Grade 11-12 high school',
-  usnco: 'Advanced high school',
-  cco: 'National olympiad',
+  ccc: 'Canadian high-school contest — beyond the regular course',
+  usnco: 'US high-school olympiad — advanced',
+  cco: 'Canadian national olympiad',
   icho: 'International olympiad',
 };
 

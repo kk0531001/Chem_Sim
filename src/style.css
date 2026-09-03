@@ -631,11 +631,14 @@ body { overflow: hidden; }
 /* ============================================================
    MENU PAGE (full topic directory)
    ============================================================ */
-/* Both full-page views scroll INSIDE themselves: <body> is overflow:hidden so
-   the app shell can own the viewport, and a page that relied on the document
-   scrolling would work by accident. */
+/* Every full-page view scrolls INSIDE itself: <body> is overflow:hidden so the
+   app shell can own the viewport, and a page that relied on the document
+   scrolling would work by accident. A page root added without this rule does
+   not scroll at all — the guide pages shipped that way. */
 #menu-page,
-#progress-page {
+#progress-page,
+.guide-page,
+.today-page {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -2155,7 +2158,7 @@ dfn.term {
 .continue-count { font-family: var(--mono); font-size: var(--f-2); color: var(--ink-dim); }
 .continue-next { margin-left: -14px; font-size: var(--f-3); }
 
-.today-page { min-height: 100vh; background: var(--paper); }
+/* .today-page scrolls via the shared page-root rule above (MENU PAGE). */
 /* Centred column, and only a column: /today is one decision wide. */
 .today-col {
   max-width: 34rem;
@@ -3274,11 +3277,7 @@ dfn.term {
 
 /* ---- competition study guides (I.3) ---- */
 .menu-guides { font-size: var(--f-3); color: var(--ink-dim); margin: -22px 0 26px; }
-/* The same line inside the filter block (the first-visit level note) has no
-   lede above it to tuck under, so the negative margin that positions the
-   guides line would pull it onto the search box. */
-.menu-filters .menu-guides { margin: 0; }
-/* "Grade 11-12 high school" belongs to the Level row above it, not to the
+/* The plain-words level line belongs to the Level row above it, not to the
    row below: pull it up to --s-2 from its row and leave the full gap after. */
 .menu-filters .menu-level-note { margin: calc(-1 * var(--s-2)) 0 0; }
 /* --accent-dark (4.82:1 on paper), not --accent (3.26:1): this is body-size

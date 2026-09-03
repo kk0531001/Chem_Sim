@@ -312,7 +312,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   onProgressChange(syncStart);
   const hero = h('section', { class: 'hero' },
     h('div', {},
-      h('p', { class: 'eyebrow' }, 'Grade 11 to olympiad · interactive'),
+      h('p', { class: 'eyebrow' }, 'From the basics to olympiad · interactive'),
       h('h1', { html: 'High school chemistry you can <em>run</em>.' }),
       h('p', { class: 'lede' },
         'Interactive lessons from the first mole up to olympiad level. Every topic '
@@ -406,7 +406,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   // ---- 6 · footer ----
   const footer = h('section', { class: 'home-end' },
     h('p', {},
-      'Made for Canadian high-school students, free, no account needed to start. ',
+      'Made for high-school students, free, no account needed to start. ',
       h('button', { class: 'link-btn', type: 'button', onclick: onMenu }, 'All topics'),
     ),
   );
