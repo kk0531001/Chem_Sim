@@ -238,14 +238,33 @@ function scrollToTop(from: HTMLElement): void {
   window.scrollTo({ top: 0 });
 }
 
+/**
+ * Chip labels only: drop a trailing parenthetical.
+ *
+ * "Energy levels & spectral lines (Rydberg)" is a good card title and a bad
+ * chip — two of them were wide enough to push the strip onto a third row. The
+ * slug, the card's own heading and the document title all still come from the
+ * FULL title, so nothing bookmarkable moves; the full text is on the chip's
+ * `title` attribute. A strip that collides with another chip keeps its
+ * parenthetical, because two identical chips is worse than one long one.
+ */
+function chipLabels(sections: readonly { title: string }[]): string[] {
+  const short = sections.map(s => s.title.replace(/\s*\([^()]*\)\s*$/, '').trim() || s.title);
+  const seen = new Map<string, number>();
+  for (const t of short) seen.set(t, (seen.get(t) ?? 0) + 1);
+  return short.map((t, i) => (seen.get(t)! > 1 ? sections[i].title : t));
+}
+
 function stepper(topicId: string, pos: Position): HTMLElement {
   const nav = h('nav', { class: 'section-steps', 'aria-label': 'Sections of this topic' });
-  for (const s of pos.sections) {
+  const labels = chipLabels(pos.sections);
+  pos.sections.forEach((s, i) => {
     const current = s.slug === pos.current.slug;
-    const a = sectionLink(topicId, s.slug, s.title, `pill${current ? ' active' : ''}`);
+    const a = sectionLink(topicId, s.slug, labels[i], `pill${current ? ' active' : ''}`);
+    a.title = s.title;
     if (current) a.setAttribute('aria-current', 'page');
     nav.append(a);
-  }
+  });
   return nav;
 }
 

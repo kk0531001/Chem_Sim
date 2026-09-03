@@ -1146,6 +1146,9 @@ body { overflow: hidden; }
   max-width: 1480px;
   margin: 0 auto 4px;
 }
+/* The page-level heading of the overview. It had no margin at all: the serif
+   title sat straight on its own paragraph. */
+.topic-intro h2 { margin: 0 0 var(--s-4); }
 .topic-intro p {
   max-width: var(--measure);
   font-size: var(--f-4);
@@ -1161,7 +1164,7 @@ body { overflow: hidden; }
 .topic-intro h3 {
   font-family: var(--serif);
   font-size: var(--f-5);
-  margin: var(--s-6) 0 var(--s-3);
+  margin: var(--s-6) 0 var(--s-4);
 }
 .toc {
   display: grid;
@@ -1312,7 +1315,7 @@ body { overflow: hidden; }
      title than the content below it deserved */
   border-bottom: 1px solid var(--paper-3);
 }
-.card h3 { font-size: var(--f-3); font-weight: 650; color: var(--accent-dark); margin: 18px 0 7px; }
+.card h3 { font-size: var(--f-3); font-weight: 650; color: var(--accent-dark); margin: 18px 0 var(--s-3); }
 .card p, .card li { font-size: var(--f-4); line-height: var(--lh-body); color: var(--ink-dim); }
 .card ul, .card ol { padding-left: 20px; margin: 4px 0; }
 .card canvas, .card svg {
@@ -1489,8 +1492,12 @@ body { overflow: hidden; }
    and the current chip is centred by the stepper itself (page.ts). */
 .section-steps {
   display: flex;
-  gap: 8px;
-  margin: 0 auto 18px;
+  /* one consistent step between chips, in both axes: the wrapped row used to
+     read as three dense lines because 8px between rows is tighter than the
+     chips' own padding. */
+  gap: var(--s-3);
+  padding-top: var(--s-4);
+  margin: 0 auto var(--s-5);
   max-width: 1480px;
   flex-wrap: nowrap;
   overflow-x: auto;
@@ -1498,7 +1505,7 @@ body { overflow: hidden; }
 }
 .section-steps::-webkit-scrollbar { display: none; }
 @media (min-width: 901px) {
-  .section-steps { flex-wrap: wrap; overflow-x: visible; row-gap: var(--s-2); }
+  .section-steps { flex-wrap: wrap; overflow-x: visible; }
 }
 .section-steps .pill { white-space: nowrap; flex: 0 0 auto; }
 /* The stepper's pills are real links (crawlable, cmd-clickable), not buttons. */
@@ -1647,7 +1654,7 @@ dfn.term {
   font-size: var(--f-1);
   text-transform: uppercase;
   letter-spacing: 1.3px;
-  margin: 16px 0 6px;
+  margin: 16px 0 var(--s-2);
   font-weight: 700;
 }
 .theory table { border-collapse: collapse; margin: 8px 0; font-size: var(--f-3); }
@@ -1963,7 +1970,7 @@ dfn.term {
   border: 1px solid var(--panel-border);
   border-radius: var(--r-md);
   padding: 13px 15px;
-  margin-top: 10px;
+  margin-top: var(--s-4);
   font-size: var(--f-3);
   line-height: var(--lh-body);
   color: var(--panel-text);
@@ -2100,7 +2107,7 @@ dfn.term {
   letter-spacing: 1px;
   margin-bottom: 9px;
 }
-.quiz-q { font-size: var(--f-4); font-weight: 600; line-height: var(--lh-body); color: var(--ink); margin-bottom: 13px; }
+.quiz-q { font-size: var(--f-4); font-weight: 600; line-height: var(--lh-body); color: var(--ink); margin-bottom: var(--s-4); }
 /* ============================================================
    Continue block (homepage hero + /today) and the sidebar
    mastery strip. Both are "where was I" surfaces. The Continue
@@ -2196,7 +2203,7 @@ dfn.term {
    body copy, and not a .muted aside — it is the instruction, so it reads at
    full contrast. */
 .card-task {
-  margin: -2px 0 14px;
+  margin: -2px 0 var(--s-4);
   font-size: var(--f-3);
   line-height: var(--lh-body);
   color: var(--ink-dim);
@@ -2359,7 +2366,6 @@ dfn.term {
      is the only overview of it there is), but costs one line. The current pill
      is scrolled into view by the stepper itself. */
   .section-steps {
-    margin-bottom: var(--s-4);
     /* Full-bleed so the row scrolls edge to edge rather than in a slot with
        cropped pills at both ends. */
     padding-inline: var(--s-4);
