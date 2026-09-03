@@ -105,11 +105,12 @@ const EXAM_BANKS = (() => {
 // characters, which is what makes brace matching safe in files stuffed with
 // LaTeX (`\\(\\ce{...}\\)`), HTML (`<td>`) and apostrophes (`don\'t`).
 
+// A backtick is only a problem when it opens a TEMPLATE LITERAL, i.e. when it
+// appears in code. Testing the raw source instead (`src.includes('`')`) failed
+// on files whose only backticks are inside a comment — `\`why\`` in a doc
+// comment is prose, not something to brace-match — so the check now runs
+// inside the scan, where comments and strings have already been skipped.
 function codeMask(src, label) {
-  if (src.includes('`')) {
-    fail(`${label} contains a template literal; this script cannot brace-match `
-      + `\${…} interpolation. Inspect and extend the scanner before proceeding.`);
-  }
   const mask = new Uint8Array(src.length);
   let i = 0;
   while (i < src.length) {
@@ -133,6 +134,10 @@ function codeMask(src, label) {
         i++;
       }
       continue;
+    }
+    if (c === '`') {
+      fail(`${label}: a template literal in CODE at offset ${i}; this script cannot `
+        + `brace-match \${…} interpolation. Extend the scanner before proceeding.`);
     }
     mask[i] = 1;
     i++;
