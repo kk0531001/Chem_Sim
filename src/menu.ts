@@ -276,7 +276,7 @@ export function buildMenuPage(
         h('button', { class: 'btn-ghost', onclick: onHome }, '← Home'),
       ),
       h('section', { style: 'padding:44px 0 10px' },
-        h('h1', { style: 'font-family:var(--serif);font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700;margin-bottom:10px' }, 'All Topics'),
+        h('h1', { style: 'font-family:var(--serif);font-size:clamp(1.8rem,3.4vw,2.6rem);font-weight:700;margin-bottom:var(--s-4)' }, 'All Topics'),
         h('p', { class: 'section-lede' }, `Every module on the site — ${TOPICS.length} of them, starting from the basics and going as far as the hardest contest material.`),
         // I.3: the contest guides are entry points from search, but they are
         // also the best answer to "where do I start" — so the directory names
