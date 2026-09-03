@@ -639,6 +639,229 @@ lastTopic to confirm the Continue block still replaces the primary button.
 Do NOT commit; the lead reviews and commits.
 ```
 
+## Phase 6 — A middle layer (audit 2026‑09‑03)
+
+### The complaint, verified
+
+"The progression from basic to advanced is too fast: we go from defining an
+atom straight to exam traps." Measured on Atoms & Electrons:
+
+| Step a beginner takes | What they meet |
+| --- | --- |
+| Chip 2, Basics | "An atom is a dense central nucleus … an electron is a very light particle" |
+| Chip 3, Exam‑level reference | "Nodes: total = n−1; angular = ℓ; radial = n−ℓ−1. Classic trap: how many radial nodes in 4d?" |
+| Chip 4, first simulation | "Hydrogen orbital viewer — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)" |
+| Quiz question 11, first after Basics | "How many radial nodes does a 4d orbital have?" |
+
+Bonding is the same: Basics ends at "a double bond is one sigma and one pi", question 11 is XeF₄'s shape, 12 is paramagnetism by molecular‑orbital theory, 13 is the bond order of superoxide. The first simulation on Acids, Batteries & Reaction Rates is the buffer designer; on Lab & Data it is Beer's law.
+
+**Root cause: every module has two layers and no middle.** Basics (Phase 2) and Contest (the original content) sit next to each other. The grade 11–12 course itself — shells and configurations, VSEPR shapes, molarity and dilution, calorimetry, Kc and Le Chatelier at course level — is not written anywhere as a layer of its own. The "Silver" tier that should be that layer is *derived* (`tierOf()` floors every non‑warm‑up at Silver), so it is a label on contest questions, not a set of course‑level ones. Simulations are in author order, with the most advanced one often first.
+
+### The decision
+
+**Three authored layers per high‑school module: Basics → Core → Contest**, and the page, the simulations and the quiz all follow that order.
+
+- **Basics** (exists): first contact, everything defined, one worked number. Tier 1.
+- **Core** (new): the grade 11–12 course as it is taught — the standard skills with a worked example each, and questions a strong student in the course could answer. Tier 2, *authored*, with `tier: 2` explicit.
+- **Contest** (exists, renamed): the current "Exam‑level reference", the Gold questions, the advanced simulations. Tier 3–4. Labelled so a beginner knows it is not for them yet.
+
+Nine modules get the treatment: the eight CCC modules plus `aek`. Advanced modules keep two layers; their audience already has the middle.
+
+### What changes
+
+1. **A `level` on every theory block and sim card** (`'basics' | 'core' | 'contest'`; default `'contest'` so untagged advanced modules are unchanged). `topicPage` orders sections by level, keeping author order inside a level: Overview · Basics theory · Basics sims · Core theory · Core sims · Quick quiz · Contest reference · Contest sims · Challenge ladder · References. The chip row shows the three groups with a small label before each ("Basics", "Core", "For contests").
+2. **The quiz has three stages**, Basics 10 → Core 10 → Contest (the rest), with the checkpoint card between each. `quiz(BANK, [10, 20])` replaces `quiz(BANK, 10)`. Stage names appear in the progress line.
+3. **A Core theory block per module** (9), 500–800 words, course‑level, written to STYLE.md (exam culture still banned — it is the course, not the contest). Titled "Core — <topic>". Sits after the Basics simulations.
+4. **Core questions**: positions 11–20 of each bank hold ten `tier: 2` questions answerable from the Core block. Existing derived‑Silver questions are triaged: course‑level ones get `tier: 2` and move up; contest ones get `tier: 3` and move down; new ones are written where a bank has fewer than ten. Ids never change (order inside a bank may). `scripts/test-bronze.mjs` grows a Core check.
+5. **Contest reference** retitled "Contest reference — <topic>" with a one‑line preface: "Traps and shortcuts for contest papers. You do not need this until the Core quiz feels easy."
+6. **Simulation levels**, per module (author order kept within a level):
+
+| Module | Basics | Core | Contest |
+| --- | --- | --- | --- |
+| Moles & Solutions | Limiting reagent visualizer | Solution chemistry tools · Percent yield | — |
+| Atoms & Electrons | Electron configuration builder | Energy levels & spectral lines · Hydrogen orbital viewer (retitle "Orbital shapes"; keep the ψ‑sign control, move its mention out of the title) | Radial distribution |
+| Periodicity | Periodic trends explorer | — | Anomalies, diagonals & amphoterism |
+| Bonding & Molecular Shape | VSEPR geometry explorer | — | MO diagram |
+| Thermodynamics I | Calorimetry | ΔH from bond enthalpies | Born–Haber cycle |
+| Equilibrium | Live N₂O₄ ⇌ 2NO₂ | ICE table solver | Ksp |
+| Acids, Batteries & Reaction Rates | Titration simulator | Galvanic cell builder · Integrated rate laws · Electrolysis / Faraday | Buffer designer · Latimer diagram · Arrhenius |
+| Lab & Data | Sig fig counter · Glassware | Beer's law · Titration technique · Error direction | Uncertainty propagation · Q‑test · Functional‑group tests · Cation/anion & gas tests |
+| Lab Technique | Recrystallization | Distillation · Extraction · Standard‑solution prep · Filtration/drying/safety | Chromatography |
+
+7. **Missions on Basics sims must be Basics‑level.** Replay each Basics sim's mission prompts against its Basics block; a mission that needs Core vocabulary moves to a Core sim or gets a Basics rewrite.
+8. `estMinutes` for the nine modules is re‑estimated (Core adds 10–15 minutes each); the Start‑here run total updates itself.
+
+### Not doing
+
+- A per‑page "hide contest material" toggle. Ordering plus labels first; a toggle only if the friends still trip over the Contest layer after this.
+- Splitting modules into separate pages per layer. One URL per topic stays; the layers are sections.
+- Touching the advanced (CCO/IChO) modules.
+
+- [ ] **6.1** Level tags, page order, chip groups, three‑stage quiz, Core check (Prompt 13, engineering).
+- [ ] **6.2** Core theory block on each of the nine modules (Prompt 14, content). Can run alongside 6.1.
+- [ ] **6.3** Core questions: triage plus new, positions 11–20 tier 2 (Prompt 15, content). After 6.1 and 6.2.
+- [ ] **6.4** Show it to the friends: "Start Atoms & Electrons and tell me when it first feels too hard."
+
+### Prompt 13 — Level tags, page order and a three‑stage quiz
+
+```
+Read CLAUDE.md (page contract, missions, quiz rules, tokens), plan3.md
+"Phase 6" in full (it is the spec; the sim-level table is authoritative),
+src/tabs/page.ts (topicPage, simBlocks, block, sectionHead, chipLabels,
+the DEV page-contract checks), src/tabs/framework.ts (theory(), card(),
+cardWithMissions(), task()), src/tabs/ui/quiz.ts (quiz(BANK, warmupCount)
+and the checkpoint card from plan3 3.2), src/content/registry.ts (tierOf),
+scripts/test-bronze.mjs, and the nine module files: stoich, quantum,
+periodicity, bonding, thermo1, equilibrium, aek, labdata, labtech.
+
+A. Level tag. Add `level?: 'basics' | 'core' | 'contest'` as a data
+attribute on theory blocks and sim cards: theory(title, html, open, level)
+and an options bag or trailing arg on card()/cardWithMissions() — pick the
+smallest change that keeps every existing call site compiling unchanged
+(default 'contest'). Set data-level on the element.
+
+B. Page order. topicPage orders sections: Overview · theory[basics] ·
+sims[basics] · theory[core] · sims[core] · Quick quiz · theory[contest] ·
+sims[contest] · extra · Challenge ladder · References. Author order is kept
+within a level. Slugs come from titles as today, so URLs do not move
+(scripts/test-router.mjs must pass unchanged). In the chip row, insert a
+small non-interactive label before the first chip of each level that has
+any chips: "Basics", "Core", "For contests" (class .section-group-label,
+--f-1 uppercase like .menu-filter-label, tokens for spacing). Modules with
+no tagged blocks (the advanced ones) render exactly as today: no labels.
+
+C. Tag the nine modules per the Phase 6 table: Basics theory blocks get
+'basics', the "Exam-level reference" blocks get 'contest' and are retitled
+"Contest reference — <topic>" with this first paragraph prepended to their
+html: "<p>Traps and shortcuts for contest papers. You do not need this until
+the Core quiz feels easy.</p>". Sim cards get the level in the table.
+Retitle the quantum orbital viewer "Orbital shapes" (its slug changes —
+update scripts/test-router.mjs expectations if it lists that slug, and add
+the old slug as an alias if the router supports section aliases; if not,
+report it). Do NOT write Core theory blocks (Prompt 14 does) — leave a gap.
+
+D. Quiz stages. Change quiz()'s second parameter to accept a number (as
+today) or an array of stage boundaries, e.g. quiz(BANK, [10, 20]) →
+stages "Basics" (0–9), "Core" (10–19), "Contest" (20+), with the existing
+checkpoint card shown at each boundary ("Basics complete" / "Core
+complete", score for that stage, Continue / Review this stage). Progress
+line names the stage. `?q=` deep links past a boundary skip its checkpoint
+as today. No new progress fields; recordAttempt/markSolved untouched. Then
+call quiz(BANK, [10, 20]) in the nine modules. Until Prompt 15 lands,
+positions 11–20 are whatever is there — that is expected.
+
+E. Core check. Extend scripts/test-bronze.mjs (or add test-core.mjs wired
+into `npm run audit`) to assert, for the nine modules, positions 11–20 carry
+explicit `tier: 2` — and mark it EXPECTED-FAIL with a clear message until
+Prompt 15 runs: print the failure but exit 0 when an env var
+ALLOW_CORE_GAP=1 is set, and set that var in the audit script for now with
+a comment saying Prompt 15 removes it.
+
+F. Missions on Basics sims: list every mission prompt on a 'basics' sim
+and, in your report, flag any that uses a term the module's Basics block
+does not define. Do not rewrite them (content is Prompt 14/15's job).
+
+Verify: `npx tsc --noEmit && npm run audit && npm run build`; on the dev
+server (Browser preview "chemprep", http://127.0.0.1:5174) open
+/topic/quantum-and-atomic-structure: chips read Overview · [Basics] Basics ·
+Electron configuration builder · [Core] Energy levels & spectral lines ·
+Orbital shapes · Quick quiz · [For contests] Contest reference · Radial
+distribution · Challenge ladder · References; screenshot at 1440 and 375;
+scrollWidth 375 on mobile. Open the quiz, answer 10, see "Basics complete",
+continue, answer 10 more, see "Core complete". Do NOT commit.
+```
+
+### Prompt 14 — Core theory blocks
+
+```
+Read CLAUDE.md, docs/STYLE.md in full, plan3.md "Phase 6", and, for each
+of stoich, quantum, periodicity, bonding, thermo1, equilibrium, aek,
+labdata, labtech: the module's Basics block, its Contest reference block,
+and its quiz bank (find it in src/tabs/questions*.ts).
+
+Write ONE Core theory block per module: theory('Core — <plain title>',
+html, true, 'core') placed in the `theory` array between the Basics block
+and the Contest reference (Prompt 13 added the level argument; if it has
+not landed yet, place the block second and omit the argument, and say so).
+500–800 words, house markup (h3, p, ul/li, span.eq). Register: the grade
+11–12 course as taught — not first contact (Basics did that), not the
+contest (the reference does that). STYLE.md applies in full, including
+rule 4 (no exam culture). Every skill gets: the idea in two sentences, one
+worked example with real numbers, then the general form. Open with two
+sentences on what Core adds to Basics; close with an h3 "What you should
+be able to do now" and three to five bullets.
+
+Scope per module (cover these; nothing from the Contest column):
+- stoich: mole ratios in a balanced equation; mass→mol→mass; limiting
+  reagent with leftover; percent yield; molarity, dilution (c1V1 = c2V2),
+  molar concentration of ions; empirical formula from % composition.
+- quantum: shells, subshells, orbitals and the 2/8/18 pattern; the
+  filling order to Kr; core vs valence electrons; configurations of ions;
+  the periodic table's s/p/d blocks; why the group number gives valence
+  electrons; light as photons, E = hc/λ, absorb vs emit.
+- periodicity: atomic radius, ionic radius, first ionisation energy,
+  electronegativity, electron affinity — the trends and the reason (Zeff
+  and shells), with values; metallic character; the trends applied to
+  predicting which of two atoms is bigger or more electronegative.
+- bonding: Lewis structures with lone pairs and formal charge; VSEPR for
+  2–4 groups with angles; polarity from shape plus ΔEN; sigma and pi;
+  intermolecular forces (dispersion, dipole, hydrogen bonding) and boiling
+  point.
+- thermo1: q = mcΔT with both substances; ΔH for a reaction from
+  calorimetry per mole; exothermic/endothermic diagrams; Hess's law with a
+  two-step worked example; bond enthalpies to estimate ΔH.
+- equilibrium: writing Kc and Kp; ICE tables with a worked example
+  (small-x where valid, with the 5% check); Q vs K; Le Chatelier for
+  concentration, pressure, temperature; why catalysts do not move K.
+- aek: strong vs weak acids and Ka; pH of strong acids/bases; conjugate
+  pairs; neutralisation stoichiometry and titration calculations to the
+  equivalence point; oxidation states and half-equations; a galvanic cell
+  and E°cell = E°cathode − E°anode; rate = Δ[ ]/Δt, rate laws and order
+  from data; collision theory and catalysts.
+- labdata: significant figures in a calculation; precision vs accuracy;
+  glassware tolerances; reading a burette; Beer's law A = εlc with a
+  calibration line; simple error direction (a wet flask, an air bubble).
+- labtech: recrystallisation and choosing a solvent; simple vs fractional
+  distillation; extraction and which layer is which; preparing a standard
+  solution; filtration; drying agents; safety basics.
+
+Textbook values only; name the source per module in the report. No emoji.
+Do not edit questions, page.ts, quiz.ts or style.css. Do NOT commit. After
+all nine: `npx tsc --noEmit && npm run audit`; report word counts and any
+scope item you left out and why.
+```
+
+### Prompt 15 — Core questions
+
+```
+Read CLAUDE.md fully (ids permanent; skills frozen at 81; counts.ts;
+ORIGINAL questions only), docs/STYLE.md, plan3.md "Phase 6", the Core
+blocks from Prompt 14, src/content/registry.ts tierOf(), scripts/
+test-bronze.mjs (and the Core check Prompt 13 added), scripts/
+backfill-ids.mjs, scripts/deskew-answers.mjs.
+
+For each of the nine modules' banks:
+1. Triage every question from position 11 onward: answerable from the
+   Core block → `tier: 2`; needs the Contest reference → `tier: 3` (or
+   leave an existing tier 3/4). Write the decision per id in your report.
+2. Reorder the bank so positions 1–10 stay the Bronze ten, 11–20 are ten
+   tier-2 questions, 21+ the rest. Ids do not change. If a bank has fewer
+   than ten tier-2 questions, write new ORIGINAL ones to reach ten: Core
+   register, three-step `why`, misconception only where real, skill from
+   the frozen 81 or untagged, ids from backfill-ids.mjs (dry-run, read,
+   apply), answer positions spread across A–D per module (apply the
+   deskew rule to new ids only, as Phase 3.1 did).
+3. Update counts.ts (MODULE_QUIZ_SIZE, CORPUS_COUNTS.mc). Remove the
+   ALLOW_CORE_GAP escape from the audit script so the Core check is a hard
+   gate. `npx tsc --noEmit && npm run audit && npm run build` must pass.
+4. Re-estimate estMinutes for the nine modules in topics.ts (+10–15 each,
+   your judgement from the block length) and say what you set.
+
+Every value textbook-correct. Report per module: triage table, new ids,
+counts, and any question you are less than fully confident about. Do NOT
+commit.
+```
+
 ## Found while executing
 
 - **Warm-ups that are not warm-ups.** In the CCO-tier modules the first five
