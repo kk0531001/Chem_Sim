@@ -639,7 +639,7 @@ lastTopic to confirm the Continue block still replaces the primary button.
 Do NOT commit; the lead reviews and commits.
 ```
 
-## Phase 6 — A middle layer (audit 2026‑09‑03)
+## Phase 6 — Split every high‑school module into a course page and a contest page (audit 2026‑09‑03, revised)
 
 ### The complaint, verified
 
@@ -655,31 +655,85 @@ atom straight to exam traps." Measured on Atoms & Electrons:
 
 Bonding is the same: Basics ends at "a double bond is one sigma and one pi", question 11 is XeF₄'s shape, 12 is paramagnetism by molecular‑orbital theory, 13 is the bond order of superoxide. The first simulation on Acids, Batteries & Reaction Rates is the buffer designer; on Lab & Data it is Beer's law.
 
-**Root cause: every module has two layers and no middle.** Basics (Phase 2) and Contest (the original content) sit next to each other. The grade 11–12 course itself — shells and configurations, VSEPR shapes, molarity and dilution, calorimetry, Kc and Le Chatelier at course level — is not written anywhere as a layer of its own. The "Silver" tier that should be that layer is *derived* (`tierOf()` floors every non‑warm‑up at Silver), so it is a label on contest questions, not a set of course‑level ones. Simulations are in author order, with the most advanced one often first.
+**Root cause: every module has two layers and no middle**, and both layers share one page. The grade 11–12 course itself is not written anywhere; the "Silver" tier is derived from contest questions, not authored. Simulations are in author order, often hardest first.
 
-### The decision
+### The decision (owner, 2026‑09‑03)
 
-**Three authored layers per high‑school module: Basics → Core → Contest**, and the page, the simulations and the quiz all follow that order.
+**Separate topics, not layers on one page.** Each of the nine high‑school
+modules (stoich, quantum, periodicity, bonding, thermo1, equilibrium, aek,
+labdata, labtech) becomes **two topic pages**:
 
-- **Basics** (exists): first contact, everything defined, one worked number. Tier 1.
-- **Core** (new): the grade 11–12 course as it is taught — the standard skills with a worked example each, and questions a strong student in the course could answer. Tier 2, *authored*, with `tier: 2` explicit.
-- **Contest** (exists, renamed): the current "Exam‑level reference", the Gold questions, the advanced simulations. Tier 3–4. Labelled so a beginner knows it is not for them yet.
+- **The course page** keeps the module's name, id, slug and URL: *Atoms &
+  Electrons*. Basics + Core. Everything on it is grade 11–12 course level.
+  Nothing on it mentions a contest.
+- **The contest page** is a new topic: *Atoms & Electrons — Contest*, its own
+  slug (`atoms-and-electrons-contest`), its own card in the menu and the
+  sidebar, its own quiz and progress bar, with the course page as its
+  prerequisite. The current "Exam‑level reference", the Gold questions, the
+  advanced simulations and the challenge ladder live here.
 
-Nine modules get the treatment: the eight CCC modules plus `aek`. Advanced modules keep two layers; their audience already has the middle.
+25 topics become 34. The advanced (CCO/IChO) modules are untouched.
 
-### What changes
+### How to split without breaking what works
 
-1. **A `level` on every theory block and sim card** (`'basics' | 'core' | 'contest'`; default `'contest'` so untagged advanced modules are unchanged). `topicPage` orders sections by level, keeping author order inside a level: Overview · Basics theory · Basics sims · Core theory · Core sims · Quick quiz · Contest reference · Contest sims · Challenge ladder · References. The chip row shows the three groups with a small label before each ("Basics", "Core", "For contests").
-2. **The quiz has three stages**, Basics 10 → Core 10 → Contest (the rest), with the checkpoint card between each. `quiz(BANK, [10, 20])` replaces `quiz(BANK, 10)`. Stage names appear in the progress line.
-3. **A Core theory block per module** (9), 500–800 words, course‑level, written to STYLE.md (exam culture still banned — it is the course, not the contest). Titled "Core — <topic>". Sits after the Basics simulations.
-4. **Core questions**: positions 11–20 of each bank hold ten `tier: 2` questions answerable from the Core block. Existing derived‑Silver questions are triaged: course‑level ones get `tier: 2` and move up; contest ones get `tier: 3` and move down; new ones are written where a bank has fewer than ten. Ids never change (order inside a bank may). `scripts/test-bronze.mjs` grows a Core check.
-5. **Contest reference** retitled "Contest reference — <topic>" with a one‑line preface: "Traps and shortcuts for contest papers. You do not need this until the Core quiz feels easy."
-6. **Simulation levels**, per module (author order kept within a level):
+The content model keys everything on the **module** (question ids `qua-…`,
+`QuizQ.topic`, `toExamTopic`, skills, the attempt log, `byModule`,
+`ladderFor`). None of that should move. So the split is a **presentation of
+one module on two pages**, not two modules:
+
+- `TopicMeta` gains `layer: 'course' | 'contest'` and, on a contest page,
+  `parent: ModuleId`. The contest page's questions, ladder and stats are the
+  parent's; only which blocks it *shows* differs.
+- Every theory block and sim card carries a `level` (`basics | core |
+  contest`). One `TabDef.mount` builds all blocks as today; `topicPage(pageId,
+  …)` keeps the blocks whose level belongs to that page's layer (course →
+  basics + core; contest → contest) and orders them Basics before Core.
+- The quiz bank is one array in one order: positions 1–10 Bronze, 11–20 Core
+  (tier 2), 21+ Contest. The course page runs `quiz(BANK.slice(0, 20), [10])`
+  (two stages, Basics → Core); the contest page runs `quiz(BANK.slice(20))`.
+  Ids never change; `MODULE_QUIZ_SIZE` is keyed by page id (20 for the course
+  page, the rest for the contest page) so each progress bar has the right
+  denominator; the registry's per‑module views are unchanged.
+- The sidebar's lazy loader (`LAZY` in main.ts) maps both page ids to the same
+  module file. The router, prerender, sitemap and `test-router.mjs` derive
+  from `TOPICS`, so the nine new slugs appear once the entries exist.
+- Prereqs: contest page requires its course page. The **Start‑here** run
+  lists course pages only. The `ccc-foundation` run lists the contest pages.
+  `recommendNext` follows prereqs, so a student who finishes a course page is
+  offered its contest page next.
+
+### The level below CCC
+
+The course pages need a badge, and none of the four contests is honest for
+them (the owner's point: the CCC is harder than the course). **Add a fifth
+level at the bottom of `COMPS`: `hs`, label "High school course", short
+"HS".** `comps` is an upward closure from the lowest level in `difficulty`,
+so HS content is in scope for every mode, which is exactly right. Course
+pages carry `difficulty: ['HS']`; contest pages inherit the module's current
+difficulty (`['CCC']`, `['CCC','USNCO']`…). The menu's Level filter gains
+"HS — the grade 11–12 course"; `tierOf`'s floor for an HS‑only module is
+Silver (tier 2) which now means Core, so the derived default stays true.
+This is the one taxonomy change in the plan; it is the badge the split needs
+and nothing else.
+
+### What each page holds
+
+| | Course page (existing id and URL) | Contest page (new) |
+| --- | --- | --- |
+| Overview | rewritten intro, course register | short new intro: what a contest adds, prerequisite named |
+| Theory | Basics block (exists) · **Core block (new, Prompt 14)** | "Contest reference" (the current exam‑level block, retitled) |
+| Simulations | Basics + Core sims from the table below | Contest sims |
+| Quiz | positions 1–20, stages Basics → Core | positions 21+ |
+| Challenge ladder | none; a quiet "Ready for contests? → <title> — Contest" link | the existing ladder |
+| References | the module's | the module's |
+| Badge | HS | the module's current levels |
+
+**Simulation levels** (author order kept within a level):
 
 | Module | Basics | Core | Contest |
 | --- | --- | --- | --- |
-| Moles & Solutions | Limiting reagent visualizer | Solution chemistry tools · Percent yield | — |
-| Atoms & Electrons | Electron configuration builder | Energy levels & spectral lines · Hydrogen orbital viewer (retitle "Orbital shapes"; keep the ψ‑sign control, move its mention out of the title) | Radial distribution |
+| Moles & Solutions | Limiting reagent visualizer | Solution chemistry tools · Percent yield | — (contest page has quiz + ladder + reference only) |
+| Atoms & Electrons | Electron configuration builder | Energy levels & spectral lines · Orbital shapes (the orbital viewer, retitled) | Radial distribution |
 | Periodicity | Periodic trends explorer | — | Anomalies, diagonals & amphoterism |
 | Bonding & Molecular Shape | VSEPR geometry explorer | — | MO diagram |
 | Thermodynamics I | Calorimetry | ΔH from bond enthalpies | Born–Haber cycle |
@@ -688,87 +742,120 @@ Nine modules get the treatment: the eight CCC modules plus `aek`. Advanced modul
 | Lab & Data | Sig fig counter · Glassware | Beer's law · Titration technique · Error direction | Uncertainty propagation · Q‑test · Functional‑group tests · Cation/anion & gas tests |
 | Lab Technique | Recrystallization | Distillation · Extraction · Standard‑solution prep · Filtration/drying/safety | Chromatography |
 
-7. **Missions on Basics sims must be Basics‑level.** Replay each Basics sim's mission prompts against its Basics block; a mission that needs Core vocabulary moves to a Core sim or gets a Basics rewrite.
-8. `estMinutes` for the nine modules is re‑estimated (Core adds 10–15 minutes each); the Start‑here run total updates itself.
+A contest page with no sim of its own (Moles) is still a page: reference,
+quiz, ladder. The page contract (`sims` non‑empty) is relaxed for
+`layer: 'contest'` pages, not for course pages.
 
 ### Not doing
 
-- A per‑page "hide contest material" toggle. Ordering plus labels first; a toggle only if the friends still trip over the Contest layer after this.
-- Splitting modules into separate pages per layer. One URL per topic stays; the layers are sections.
-- Touching the advanced (CCO/IChO) modules.
+- Two module files per topic. One file, two pages; the content model does not learn about the split.
+- Splitting the advanced modules. Their readers already have the middle.
+- A per‑page "show contest material" toggle. The split makes it unnecessary.
 
-- [ ] **6.1** Level tags, page order, chip groups, three‑stage quiz, Core check (Prompt 13, engineering).
-- [ ] **6.2** Core theory block on each of the nine modules (Prompt 14, content). Can run alongside 6.1.
+- [ ] **6.1** `hs` level; `layer`/`parent` on TopicMeta; level tags; two pages per module; quiz slicing; MODULE_QUIZ_SIZE per page; prereqs and runs; router/prerender/sitemap (Prompt 13, engineering).
+- [ ] **6.2** Core theory block on each of the nine modules (Prompt 14, content). Runs alongside 6.1.
 - [ ] **6.3** Core questions: triage plus new, positions 11–20 tier 2 (Prompt 15, content). After 6.1 and 6.2.
-- [ ] **6.4** Show it to the friends: "Start Atoms & Electrons and tell me when it first feels too hard."
+- [ ] **6.4** Intros for the nine course pages (rewrite to course register) and the nine contest pages (new, short) (Prompt 16, content). After 6.1.
+- [ ] **6.5** Show it to the friends: "Start Atoms & Electrons and tell me when it first feels too hard."
 
-### Prompt 13 — Level tags, page order and a three‑stage quiz
+### Prompt 13 — Two pages per module
 
 ```
-Read CLAUDE.md (page contract, missions, quiz rules, tokens), plan3.md
-"Phase 6" in full (it is the spec; the sim-level table is authoritative),
-src/tabs/page.ts (topicPage, simBlocks, block, sectionHead, chipLabels,
-the DEV page-contract checks), src/tabs/framework.ts (theory(), card(),
-cardWithMissions(), task()), src/tabs/ui/quiz.ts (quiz(BANK, warmupCount)
-and the checkpoint card from plan3 3.2), src/content/registry.ts (tierOf),
-scripts/test-bronze.mjs, and the nine module files: stoich, quantum,
-periodicity, bonding, thermo1, equilibrium, aek, labdata, labtech.
+Read CLAUDE.md in full (pages & routing, the page contract, topics.ts as
+the single source of topic metadata, the content model, competition
+modes), plan3.md "Phase 6" in full (it is the spec; its tables are
+authoritative), then: src/topics.ts (TopicMeta, TOPICS, PATHS,
+moduleProgress, renderTopicCard), src/content/topicIds.ts (COMPS,
+COMP_LABEL, COMP_PLAIN, MODE_SHORT in mode.ts, compsForDifficulty,
+ceilingRank, ModuleId), src/content/counts.ts, src/content/registry.ts
+(tierOf, ladderFor, auditTopicPages), src/main.ts (LAZY, DEFS, the
+sidebar), src/router.ts, scripts/prerender.mjs, scripts/test-router.mjs,
+scripts/test-spine.mjs, src/tabs/page.ts (topicPage, simBlocks, block,
+the DEV contract checks), src/tabs/framework.ts (theory, card,
+cardWithMissions), src/tabs/ui/quiz.ts (quiz(BANK, warmupCount) and the
+checkpoint), src/tabs/challenge.ts (challengeLadder(id)), src/recommend.ts,
+src/mode.ts, src/guide.ts + guides.ts (inScope), src/icons.ts (badges),
+and the nine module files: stoich, quantum, periodicity, bonding, thermo1,
+equilibrium, aek, labdata, labtech.
 
-A. Level tag. Add `level?: 'basics' | 'core' | 'contest'` as a data
-attribute on theory blocks and sim cards: theory(title, html, open, level)
-and an options bag or trailing arg on card()/cardWithMissions() — pick the
-smallest change that keeps every existing call site compiling unchanged
-(default 'contest'). Set data-level on the element.
+Deliver, in separate reviewable hunk groups, no commits:
 
-B. Page order. topicPage orders sections: Overview · theory[basics] ·
-sims[basics] · theory[core] · sims[core] · Quick quiz · theory[contest] ·
-sims[contest] · extra · Challenge ladder · References. Author order is kept
-within a level. Slugs come from titles as today, so URLs do not move
-(scripts/test-router.mjs must pass unchanged). In the chip row, insert a
-small non-interactive label before the first chip of each level that has
-any chips: "Basics", "Core", "For contests" (class .section-group-label,
---f-1 uppercase like .menu-filter-label, tokens for spacing). Modules with
-no tagged blocks (the advanced ones) render exactly as today: no labels.
+A. The HS level. Add 'hs' FIRST in COMPS with COMP_LABEL "High school
+course", COMP_PLAIN "The grade 11-12 course, before any contest",
+MODE_SHORT "HS", a badge in icons.ts matching the existing set (no emoji),
+menu Level pill + select option, and difficulty string 'HS' accepted by
+compsForDifficulty/ceilingRank (rank 1; CCC becomes 2, etc. — check every
+place that compares ranks or hard-codes 'CCC' as the lowest, including
+tierOf's floor logic, guides.ts inScope text, and tests). Modes: 'hs' is a
+valid Mode; in HS mode only HS-tagged pages are in scope.
 
-C. Tag the nine modules per the Phase 6 table: Basics theory blocks get
-'basics', the "Exam-level reference" blocks get 'contest' and are retitled
-"Contest reference — <topic>" with this first paragraph prepended to their
-html: "<p>Traps and shortcuts for contest papers. You do not need this until
-the Core quiz feels easy.</p>". Sim cards get the level in the table.
-Retitle the quantum orbital viewer "Orbital shapes" (its slug changes —
-update scripts/test-router.mjs expectations if it lists that slug, and add
-the old slug as an alias if the router supports section aliases; if not,
-report it). Do NOT write Core theory blocks (Prompt 14 does) — leave a gap.
+B. TopicMeta gains `layer: 'course' | 'contest'` (default 'course' for
+every existing entry; add it explicitly) and optional `parent: ModuleId`.
+For each of the nine modules add a contest entry directly after it in
+TOPICS: id `<id>-contest`, slug `<current-title-slugified>-contest`
+(atoms-and-electrons-contest, moles-and-solutions-contest, …), title
+"<Title> — Contest", same group and icon, difficulty = the module's
+current difficulty, prereqs [<id>], layer 'contest', parent <id>, intro
+placeholder EXACTLY "" (Prompt 16 writes it; an empty intro must render as
+no Overview paragraph, not as an empty box), refs = parent's. The nine
+course entries get difficulty ['HS'] and keep everything else. estMinutes:
+course page keeps the current number for now; contest page 25.
 
-D. Quiz stages. Change quiz()'s second parameter to accept a number (as
-today) or an array of stage boundaries, e.g. quiz(BANK, [10, 20]) →
-stages "Basics" (0–9), "Core" (10–19), "Contest" (20+), with the existing
-checkpoint card shown at each boundary ("Basics complete" / "Core
-complete", score for that stage, Continue / Review this stage). Progress
-line names the stage. `?q=` deep links past a boundary skip its checkpoint
-as today. No new progress fields; recordAttempt/markSolved untouched. Then
-call quiz(BANK, [10, 20]) in the nine modules. Until Prompt 15 lands,
-positions 11–20 are whatever is there — that is expected.
+C. Level tags. theory(title, html, open, level) and an options bag on
+card()/cardWithMissions() (or the smallest equivalent) set data-level
+('basics' | 'core' | 'contest', default 'contest'). Tag the nine modules'
+blocks per the Phase 6 sim table; Basics theory blocks 'basics'; the
+exam-level blocks 'contest', retitled "Contest reference — <Title>".
+Retitle the quantum orbital viewer "Orbital shapes" (URL of that section
+changes; update test-router if it lists it).
 
-E. Core check. Extend scripts/test-bronze.mjs (or add test-core.mjs wired
-into `npm run audit`) to assert, for the nine modules, positions 11–20 carry
-explicit `tier: 2` — and mark it EXPECTED-FAIL with a clear message until
-Prompt 15 runs: print the failure but exit 0 when an env var
-ALLOW_CORE_GAP=1 is set, and set that var in the audit script for now with
-a comment saying Prompt 15 removes it.
+D. Two pages, one mount. LAZY/DEFS in main.ts register both page ids to
+the same module loader. TabDef.mount receives the page id (or topicPage
+reads it from the route) and topicPage(pageId, blocks) keeps blocks whose
+level matches the page's layer (course: basics then core, author order
+within each; contest: contest). Course pages get no challenge ladder but a
+quiet link card "Ready for contests? <Title> — Contest" after the quiz;
+contest pages get the ladder (challengeLadder(parent)). The page contract:
+`sims` may be empty on a contest page (Moles has none) — relax the DEV
+check for layer 'contest' only. Breadcrumb, prev/next, section chips and
+"In this topic" work per page as today.
 
-F. Missions on Basics sims: list every mission prompt on a 'basics' sim
-and, in your report, flag any that uses a term the module's Basics block
-does not define. Do not rewrite them (content is Prompt 14/15's job).
+E. Quiz slicing. Course page: quiz(BANK.slice(0, 20), 10) — stages
+"Basics" and "Core" (rename the second stage label from "exam-style" to
+"Core"). Contest page: quiz(BANK.slice(20), 0). MODULE_QUIZ_SIZE keyed by
+page id: course 20, contest = bank length − 20. moduleProgress() must
+count solved ONLY among that page's questions: it needs the page's id
+list — expose a cheap PAGE_QUESTION_IDS map from counts.ts or compute from
+the bank slice inside the module and register it; pick the one that keeps
+counts.ts free of bank imports (CLAUDE.md: home/menu must not import
+banks). auditTopicPages: bank-size floor becomes per page (course = 20
+exactly, contest ≥ 5). Until Prompt 15 lands, positions 11–20 are a mix —
+expected; say so in the report.
 
-Verify: `npx tsc --noEmit && npm run audit && npm run build`; on the dev
-server (Browser preview "chemprep", http://127.0.0.1:5174) open
-/topic/quantum-and-atomic-structure: chips read Overview · [Basics] Basics ·
-Electron configuration builder · [Core] Energy levels & spectral lines ·
-Orbital shapes · Quick quiz · [For contests] Contest reference · Radial
-distribution · Challenge ladder · References; screenshot at 1440 and 375;
-scrollWidth 375 on mobile. Open the quiz, answer 10, see "Basics complete",
-continue, answer 10 more, see "Core complete". Do NOT commit.
+F. Runs and prereqs. Start-here lists course pages only (unchanged ids).
+ccc-foundation lists the nine contest pages in its current order. Guides:
+inScope uses difficulty, so contest pages appear in CCC guides and course
+pages in none — confirm and report; if the CCC guide should also show the
+course pages as "start here", add one sentence, no mechanics.
+
+G. Verify: `npx tsc --noEmit && npm run audit && npm run build` (34 topic
+pages prerendered + guides + menu; sitemap lists the nine new slugs;
+test-router covers them; test-spine passes with the prereq chain). Dev
+server (Browser preview "chemprep", http://127.0.0.1:5174):
+/topic/quantum-and-atomic-structure shows Overview · Basics · Electron
+configuration builder · Energy levels & spectral lines · Orbital shapes ·
+Quick quiz · Ready for contests · References, badge HS; /topic/
+atoms-and-electrons-contest shows Overview · Contest reference · Radial
+distribution · Quick quiz · Challenge ladder · References with a
+prerequisite line naming Atoms & Electrons; /menu shows 34 cards with the
+HS filter working; sidebar lists both under Foundations; screenshots at
+1440 and 375; scrollWidth 375. Answer the first ten questions on the
+course page and see "Basics complete"; check the contest page's progress
+bar denominator equals its bank slice.
+
+Report: per hunk group what changed; every place 'CCC'-as-lowest was
+assumed and what you did; the new slugs; anything in the spec you could
+not do as written.
 ```
 
 ### Prompt 14 — Core theory blocks
@@ -781,8 +868,8 @@ and its quiz bank (find it in src/tabs/questions*.ts).
 
 Write ONE Core theory block per module: theory('Core — <plain title>',
 html, true, 'core') placed in the `theory` array between the Basics block
-and the Contest reference (Prompt 13 added the level argument; if it has
-not landed yet, place the block second and omit the argument, and say so).
+and the Contest reference (Prompt 13 adds the level argument; if it has
+not landed yet, place the block second, omit the argument, and say so).
 500–800 words, house markup (h3, p, ul/li, span.eq). Register: the grade
 11–12 course as taught — not first contact (Basics did that), not the
 contest (the reference does that). STYLE.md applies in full, including
@@ -801,15 +888,15 @@ Scope per module (cover these; nothing from the Contest column):
   electrons; light as photons, E = hc/λ, absorb vs emit.
 - periodicity: atomic radius, ionic radius, first ionisation energy,
   electronegativity, electron affinity — the trends and the reason (Zeff
-  and shells), with values; metallic character; the trends applied to
-  predicting which of two atoms is bigger or more electronegative.
+  and shells), with values; metallic character; predicting which of two
+  atoms is bigger or more electronegative.
 - bonding: Lewis structures with lone pairs and formal charge; VSEPR for
   2–4 groups with angles; polarity from shape plus ΔEN; sigma and pi;
   intermolecular forces (dispersion, dipole, hydrogen bonding) and boiling
   point.
-- thermo1: q = mcΔT with both substances; ΔH for a reaction from
-  calorimetry per mole; exothermic/endothermic diagrams; Hess's law with a
-  two-step worked example; bond enthalpies to estimate ΔH.
+- thermo1: q = mcΔT with both substances; ΔH per mole from calorimetry;
+  exothermic/endothermic diagrams; Hess's law with a two-step worked
+  example; bond enthalpies to estimate ΔH.
 - equilibrium: writing Kc and Kp; ICE tables with a worked example
   (small-x where valid, with the 5% check); Q vs K; Le Chatelier for
   concentration, pressure, temperature; why catalysts do not move K.
@@ -826,9 +913,9 @@ Scope per module (cover these; nothing from the Contest column):
   solution; filtration; drying agents; safety basics.
 
 Textbook values only; name the source per module in the report. No emoji.
-Do not edit questions, page.ts, quiz.ts or style.css. Do NOT commit. After
-all nine: `npx tsc --noEmit && npm run audit`; report word counts and any
-scope item you left out and why.
+Do not edit questions, page.ts, quiz.ts, topics.ts or style.css. Do NOT
+commit. After all nine: `npx tsc --noEmit && npm run audit`; report word
+counts and any scope item you left out and why.
 ```
 
 ### Prompt 15 — Core questions
@@ -837,30 +924,66 @@ scope item you left out and why.
 Read CLAUDE.md fully (ids permanent; skills frozen at 81; counts.ts;
 ORIGINAL questions only), docs/STYLE.md, plan3.md "Phase 6", the Core
 blocks from Prompt 14, src/content/registry.ts tierOf(), scripts/
-test-bronze.mjs (and the Core check Prompt 13 added), scripts/
-backfill-ids.mjs, scripts/deskew-answers.mjs.
+test-bronze.mjs, scripts/backfill-ids.mjs, scripts/deskew-answers.mjs,
+and how Prompt 13 slices each bank (positions 1–20 = course page, 21+ =
+contest page).
 
 For each of the nine modules' banks:
 1. Triage every question from position 11 onward: answerable from the
    Core block → `tier: 2`; needs the Contest reference → `tier: 3` (or
-   leave an existing tier 3/4). Write the decision per id in your report.
+   keep an existing tier 3/4). Write the decision per id in your report.
 2. Reorder the bank so positions 1–10 stay the Bronze ten, 11–20 are ten
    tier-2 questions, 21+ the rest. Ids do not change. If a bank has fewer
    than ten tier-2 questions, write new ORIGINAL ones to reach ten: Core
    register, three-step `why`, misconception only where real, skill from
    the frozen 81 or untagged, ids from backfill-ids.mjs (dry-run, read,
-   apply), answer positions spread across A–D per module (apply the
-   deskew rule to new ids only, as Phase 3.1 did).
-3. Update counts.ts (MODULE_QUIZ_SIZE, CORPUS_COUNTS.mc). Remove the
-   ALLOW_CORE_GAP escape from the audit script so the Core check is a hard
-   gate. `npx tsc --noEmit && npm run audit && npm run build` must pass.
-4. Re-estimate estMinutes for the nine modules in topics.ts (+10–15 each,
-   your judgement from the block length) and say what you set.
+   apply), answer positions spread across A–D per module (deskew rule on
+   new ids only, as Phase 3.1 did). No contest vocabulary in positions
+   1–20 (grep for olympiad/CCC/CCO/trap/classic in q, opts, why).
+3. Update counts.ts (per-page MODULE_QUIZ_SIZE, CORPUS_COUNTS.mc) and
+   extend scripts/test-bronze.mjs to assert positions 11–20 are tier 2 for
+   the nine modules. `npx tsc --noEmit && npm run audit && npm run build`
+   must pass.
+4. Re-estimate estMinutes for the nine course pages in topics.ts (+10–15
+   each, your judgement from the Core block length) and say what you set.
 
 Every value textbook-correct. Report per module: triage table, new ids,
 counts, and any question you are less than fully confident about. Do NOT
 commit.
 ```
+
+### Prompt 16 — Intros for eighteen pages
+
+```
+Read CLAUDE.md, docs/STYLE.md, plan3.md "Phase 6", src/topics.ts (the
+nine course entries and their nine -contest siblings), and each module's
+Core block (Prompt 14) and Contest reference.
+
+Course pages: rewrite the nine intros for the course register — what the
+topic is, what the student can do after Basics + Core, no contest
+vocabulary at all, ≤ 60 words, one <b> for the key habit. Contest pages:
+write nine new intros, ≤ 50 words: the first sentence names the
+prerequisite in plain words ("Do Atoms & Electrons first."), the second
+says what a contest adds (the specific extra ideas — nodes, PES, the
+anomalies), no exam mechanics, no "marks"/"trap"/"classic" (the word
+"contest" itself is fine here: it is the page's subject). Also write the
+nine contest pages' blurbs (one plain sentence each). Do not touch any
+other field. `npx tsc --noEmit && npm run audit && npm run build`
+(prerender must emit the new descriptions). Do NOT commit. Report word
+counts.
+```
+
+### Order of operations
+
+```
+Prompt 13 (two pages, engineering) ─┬─ Prompt 15 (Core questions) ── Prompt 16 (intros)
+Prompt 14 (Core theory)  ───────────┘
+```
+
+13 and 14 run in parallel (disjoint files: 14 touches only the nine module
+files' theory arrays; 13 touches everything else — if 13 also needs to edit
+those files for tags, run 14 first and 13 second instead). 15 needs both;
+16 needs 13.
 
 ## Found while executing
 
