@@ -99,7 +99,7 @@ export const TOPICS: TopicMeta[] = [
       { text: ZUMDAHL, chapter: 'Gases, and Liquids and solids' },
       { text: ATKINS, chapter: 'The properties of gases, Physical transformations of pure substances, and Molecules in motion' },
     ] },
-  { id: 'equilibrium', slug: 'chemical-equilibrium', aliases: ['equilibrium'], title: 'Chemical Equilibrium', tag: 'Physical', group: 'Physical Chemistry', icon: 'equilibrium', estMinutes: 45, difficulty: ['CCC', 'USNCO'], prereqs: ['thermo2'],
+  { id: 'equilibrium', slug: 'chemical-equilibrium', aliases: ['equilibrium'], title: 'Chemical Equilibrium', tag: 'Physical', group: 'Physical Chemistry', icon: 'equilibrium', estMinutes: 45, difficulty: ['CCC', 'USNCO'], prereqs: ['thermo1'],
     blurb: 'A live N₂O₄ ⇌ 2NO₂ system you can shove around, an ICE solver, and the full Ksp toolkit.',
     intro: 'Many reactions stop short of finishing: products turn back into reactants at the same rate they form, and the amounts stop changing. Here you push a real N₂O₄ ⇌ 2NO₂ mixture and watch it settle again. You will predict which way it shifts, and know that <b>only temperature changes K</b>, the ratio of products to reactants a settled mixture reaches.',
     refs: [

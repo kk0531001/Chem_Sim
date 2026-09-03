@@ -358,7 +358,7 @@ export const equilibriumTab: TabDef = {
 <h3>Q says which way the reaction will move</h3>
 <p>The reaction quotient, Q, is the same fraction as K but worked out from the amounts present right now rather than at equilibrium. Comparing the two tells you what happens next. Q smaller than K means there is too little product, so the reaction runs forward. Q larger than K means it runs backward. Q equal to K means the mixture already has its equilibrium composition and nothing shifts.</p>
 <h3>What moves it, and what does not</h3>
-<p>Adding a reactant, removing a product or squeezing a gas mixture all change Q. The reaction then shifts until Q matches K again, but K itself is untouched. A catalyst speeds the forward and reverse reactions up by the same amount, so it arrives at the same equilibrium sooner and changes neither Q nor K.</p>
+<p>Adding a reactant, removing a product or squeezing a gas mixture all change Q. The reaction then shifts until Q matches K again, but K itself is untouched. That response has a name: Le Châtelier's principle says a disturbed mixture shifts in the direction that partly undoes the disturbance. A catalyst is a substance that speeds a reaction up without being used up, and it speeds the forward and reverse reactions up by the same amount, so it arrives at the same equilibrium sooner and changes neither Q nor K.</p>
 <p>Temperature is the one change that alters K. Splitting N₂O₄ into NO₂ absorbs 57 kJ per mole, so warming the flask favours the split and raises K. The gas darkens on warming and pales in ice, because NO₂ is brown and N₂O₄ is colourless. The first card runs this reaction live with K and Q both on screen.</p>
 <h3>What you should be able to do now</h3>
 <ul>

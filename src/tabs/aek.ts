@@ -605,8 +605,39 @@ export const aekTab: TabDef = {
         { label: 'Kinetics', el: makeKinetics() },
       ])],
       quiz: quiz(AEK_QUIZ, 5),
-      // Three sub-topics, three theory blocks, each inside the panel it explains.
-      theory: [],
+      // Three sub-topics, three "essentials" theory blocks, each inside the
+      // panel it explains. Only the shared Basics block is page-level: it has
+      // to come before all three panels, because nothing in them defines acid,
+      // pH, oxidation or rate for a reader meeting those words here first.
+      theory: [
+        theory('Basics — Acids, Batteries & Reaction Rates', `
+<h3>What this is about</h3>
+<p>Three questions share this module. How acidic is a solution, which way do electrons flow between two metals, and how fast does a reaction go? This block gives the words each question needs.</p>
+<h3>Acids and bases</h3>
+<p>An acid is a substance that gives away hydrogen ions, H⁺, when it dissolves in water. Hydrochloric acid, HCl, splits into H⁺ and Cl⁻. A base accepts hydrogen ions, most often by supplying hydroxide ions, OH⁻, of its own. Sodium hydroxide, NaOH, splits into Na⁺ and OH⁻.</p>
+<p>A strong acid gives up nearly all of its hydrogen ions in water, and a weak acid gives up only a small fraction. Strong is not the same word as concentrated. Strong describes the substance, and concentrated describes how much of it is in the solution.</p>
+<h3>pH is a scale of acidity</h3>
+<p>Pure water at 25 °C holds 1.0 × 10⁻⁷ mol/L of hydrogen ions. Numbers that small are easier to compare as powers of ten, so acidity is reported as <span class="eq">pH = −log[H⁺]</span>, where [H⁺] is the hydrogen ion concentration in mol/L. Water gives −log(10⁻⁷) = 7, and that is neutral. Below 7 is acidic and above 7 is basic.</p>
+<p>Now a real solution. In 0.01 M HCl the acid is strong, so [H⁺] = 0.01 = 10⁻² mol/L and the pH is 2. Each whole step down the scale is ten times more hydrogen ions, so pH 3 holds a hundred times more of them than pH 5.</p>
+<p>pOH is the same idea for the base side, pOH = −log[OH⁻]. In water at 25 °C the two concentrations always multiply to 1.0 × 10⁻¹⁴, and taking logs turns that product into pH + pOH = 14.</p>
+<h3>Neutralisation and titration</h3>
+<p>An acid and a base cancel each other out: H⁺ + OH⁻ → H₂O. That reaction is neutralisation, and it leaves water plus a salt, the compound built from the acid's negative ion and the base's positive one. Here that salt is NaCl.</p>
+<p>A titration measures an unknown by running a solution of known concentration into it from a burette, a graduated tube with a tap, until the reaction is exactly complete. That moment is the equivalence point. The first card runs this experiment and draws the pH curve.</p>
+<h3>A battery is two metals and a wire</h3>
+<p>Some metals give electrons away more readily than others. Stand a zinc strip in one solution and a copper strip in another, join them with a wire, and electrons flow from the zinc to the copper. That flow is an electric current, and the arrangement is a galvanic cell, which is what a battery is.</p>
+<p>Losing electrons is oxidation and gaining them is reduction, and one never happens without the other. The zinc is oxidised, Zn → Zn²⁺ + 2e⁻, and copper ions are reduced, Cu²⁺ + 2e⁻ → Cu. The push behind the electrons is measured in volts, and this pair delivers 1.10 V under standard conditions.</p>
+<h3>Reaction rate</h3>
+<p>A reaction rate is an amount of change divided by the time it took. A reactant falling from 0.50 mol/L to 0.40 mol/L in 20 seconds has an average rate of 0.10 ÷ 20 = 0.005 mol/L per second. A product's rise is measured the same way.</p>
+<p>Molecules react only when they collide hard enough. The activation energy is the least energy a collision needs before the reactants can turn into products. Heating gives a larger share of collisions that much energy, which is why almost every reaction speeds up when it is warmed.</p>
+<p>A catalyst speeds a reaction up by offering a route with a lower activation energy. It is not used up, so a small amount goes on working, and it changes how fast the mixture gets there without changing what it ends up as.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Turn a strong acid's concentration into a pH, and use pH + pOH = 14.</li>
+<li>Say what neutralisation produces and what a titration is for.</li>
+<li>Name which metal is oxidised in a cell and which way its electrons travel.</li>
+<li>Work out an average rate, and say what a catalyst does and does not change.</li>
+</ul>`, true),
+      ],
     }));
   },
 };

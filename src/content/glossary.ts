@@ -124,6 +124,10 @@ export const GLOSSARY: Record<string, string> = {
   'paramagnetic': 'Having one or more unpaired electrons, so the substance is pulled into a magnetic field.',
   'diamagnetic': 'Having all electrons paired, so the substance is very slightly pushed out of a magnetic field.',
   'lattice energy': 'The energy released when gaseous ions come together to build one mole of an ionic solid.',
+  'lattice': 'The repeating three-dimensional grid of ions or atoms that makes up a crystal.',
+  'main-group': 'The elements of the tall columns at the left and right of the periodic table, which fill only s and p orbitals.',
+  'trigonal planar': 'The flat triangular shape of an atom with three electron groups and no lone pairs, with 120° bond angles.',
+  'trigonal pyramidal': 'The squashed pyramid shape of an atom with three bonds and one lone pair, as in ammonia, near 107°.',
 
   // ---- energy and spontaneity (thermo) ----
   'enthalpy': 'The heat content of a substance; the enthalpy change ΔH is the heat given out or taken in at constant pressure.',
@@ -158,6 +162,9 @@ export const GLOSSARY: Record<string, string> = {
   'acid': 'A substance that gives away hydrogen ions, H⁺, in water.',
   'base': 'A substance that accepts hydrogen ions, H⁺, often by supplying hydroxide ions instead.',
   'ph': 'A scale of acidity: pH = −log[H⁺], so 7 is neutral, below 7 acidic and above 7 basic.',
+  'poh': 'A scale of how basic a solution is: pOH = −log[OH⁻], and at 25 °C pH + pOH = 14.',
+  'salt': 'The ionic compound left when an acid neutralises a base, such as the NaCl from HCl and NaOH.',
+  'galvanic cell': 'Two metals in solution joined by a wire, so that electrons flow from one to the other; a battery.',
   'strong acid': 'An acid that gives up essentially all of its hydrogen ions in water, such as HCl.',
   'weak acid': 'An acid that gives up only a small fraction of its hydrogen ions in water, such as acetic acid.',
   'conjugate base': 'What is left of an acid after it has given away one hydrogen ion.',
@@ -202,6 +209,7 @@ export const GLOSSARY: Record<string, string> = {
   'pipette': 'A glass tube that delivers one fixed, accurately known volume of liquid.',
   'volumetric flask': 'A flask with a single mark on its neck, used to make a solution up to an exact volume.',
   'meniscus': 'The curved liquid surface in a narrow tube, read at its lowest point for water.',
+  'cuvette': 'The small clear cell a sample sits in while its absorbance is measured; its width is the path length.',
   'standard solution': 'A solution whose concentration is known accurately, used as the reference in a titration.',
   'serial dilution': 'Making a set of steadily weaker solutions by diluting each one from the last by a fixed factor.',
   'supernatant': 'The clear liquid left above a solid after it has settled or been spun down.',

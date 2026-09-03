@@ -281,7 +281,7 @@ export const quantumTab: TabDef = {
       theory: [
         theory('Basics — Atoms & Electrons', `
 <h3>What this is about</h3>
-<p>An atom's chemistry is decided by where its electrons sit. This block covers the language used to describe those positions: shells, subshells, orbitals and the four quantum numbers.</p>
+<p>An atom is a dense central nucleus, made of positively charged protons and uncharged neutrons, with electrons around it. An electron is a very light particle carrying a negative charge, and an atom's chemistry is decided by where its electrons sit. This block covers the language used to describe those positions: shells, subshells, orbitals and the four quantum numbers.</p>
 <h3>Orbitals, subshells and shells</h3>
 <p>An orbital is a region around the nucleus where one particular electron is likely to be found. Each orbital holds at most two electrons. Orbitals of the same shape and energy are grouped into a subshell, and the subshells lying at a similar distance from the nucleus make up a shell.</p>
 <p>Shells are numbered n = 1, 2, 3 and so on, and a larger n means a bigger shell further out. Shell n contains n² orbitals. For n = 2 that is 2² = 4 orbitals, one 2s and three 2p. Four orbitals at two electrons each hold 8 electrons, which is 2n².</p>
@@ -299,7 +299,7 @@ export const quantumTab: TabDef = {
 <h3>Nodes: where the electron is never found</h3>
 <p>A node is a surface on which the chance of finding the electron drops to zero. The wave that describes the electron changes sign as it crosses one, which is the blue-to-red switch shown in the first card. A 1s orbital has no node. A 2s orbital has one, a hollow spherical shell inside it. A 2p orbital has one as well, the flat plane through the nucleus that separates its two lobes. Counting nodes is the quickest way to tell two orbitals apart on screen.</p>
 <h3>Filling the orbitals up</h3>
-<p>Electrons go into the lowest-energy orbitals first. Sodium has 11 electrons. Two fill 1s, two fill 2s and six fill 2p, which uses ten of them and matches a neon atom exactly. The eleventh has to start the next shell, so it goes into 3s and the arrangement is written 1s²2s²2p⁶3s¹, shortened to [Ne]3s¹. Those superscripts are electron counts, not powers.</p>
+<p>Electrons go into the lowest-energy orbitals available, and that lowest arrangement is called the ground state. Sodium has 11 electrons. Two fill 1s, two fill 2s and six fill 2p, which uses ten of them and matches a neon atom exactly. The eleventh has to start the next shell, so it goes into 3s and the arrangement is written 1s²2s²2p⁶3s¹, shortened to [Ne]3s¹. That list of occupied orbitals is the atom's electron configuration. Those superscripts are electron counts, not powers.</p>
 <h3>What you should be able to do now</h3>
 <ul>
 <li>Say how many orbitals and how many electrons a given shell or subshell holds.</li>
