@@ -481,10 +481,14 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   if (introEl) {
     const rest = sections.filter(s => s.el !== introEl);
     if (rest.length) {
+      // The SAME labels as the section chips (walkthrough row 33): the strip
+      // says "Energy levels & spectral lines" and this list said "… (Rydberg)",
+      // which reads as two different sections rather than one named twice.
+      const tocLabels = chipLabels(rest);
       introEl.append(
         h('h3', {}, 'In this topic'),
-        h('ol', { class: 'toc' }, ...rest.map(s =>
-          h('li', {}, sectionLink(id, s.slug, s.title, 'toc-link')))),
+        h('ol', { class: 'toc' }, ...rest.map((s, n) =>
+          h('li', {}, sectionLink(id, s.slug, tocLabels[n], 'toc-link')))),
       );
     }
     if (bmBtn) introEl.append(bmBtn);

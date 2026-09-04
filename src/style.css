@@ -749,6 +749,10 @@ body { overflow: hidden; }
   cursor: pointer;
   transition: background var(--t), color var(--t), border-color var(--t);
 }
+/* Full page titles in the rail (walkthrough row 139): "Coordination &
+   Organometallic" is wider than 240px, so the long ones ellipsise and keep the
+   whole title in a title attribute (set in main.ts). */
+.nav-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nav-item:hover { color: var(--ink); background: var(--paper-2); }
 #menu-link {
   margin: 12px 14px 0;
@@ -956,6 +960,11 @@ body { overflow: hidden; }
 .crumb-list li + li::before { content: '/'; color: var(--rule-2); }
 .crumb-current { color: var(--ink); font-weight: 600; }
 .crumb-meta { display: inline-flex; align-items: center; gap: 7px; margin-left: 12px; }
+/* The one level badge said in words (walkthrough row 10): the acronym has no
+   legend anywhere on a topic page. Hidden on a phone, where the row is the
+   breadcrumb's to spend. */
+.crumb-level { font-size: var(--f-1); color: var(--ink-faint); }
+@media (max-width: 700px) { .crumb-level { display: none; } }
 
 #topic-prereq {
   display: flex;
@@ -3278,6 +3287,9 @@ dfn.term {
 
 /* ---- competition study guides (I.3) ---- */
 .menu-guides { font-size: var(--f-3); color: var(--ink-dim); margin: -22px 0 26px; }
+/* One line under each group heading saying what that area of chemistry is
+   (walkthrough rows 127/138). Pulled up under the heading's own margin. */
+.menu-group-gloss { margin: calc(-1 * var(--s-3)) 0 var(--s-4); max-width: var(--measure); }
 /* The plain-words level line belongs to the Level row above it, not to the
    row below: pull it up to --s-2 from its row and leave the full gap after. */
 .menu-filters .menu-level-note { margin: calc(-1 * var(--s-2)) 0 0; }

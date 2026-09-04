@@ -168,7 +168,14 @@ function plainOpt(html: string): string {
  * never see the checkpoint, because a screen that grades nothing must not
  * appear in anyone's attempt log.
  */
-export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => string): HTMLElement {
+export function quiz(
+  qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => string,
+  // What the "Done" screen tells a low scorer to go back to. It has to be
+  // something they can SEE on the page they are on: "the theory panel" is not a
+  // name anything on the site carries (walkthrough row 144), and the two halves
+  // of a split module have different blocks to send them back to.
+  reviewHint = 'the theory section',
+): HTMLElement {
   let i = 0, score = 0, answered = false;
   // Shown once per run-through, on the way from the last Basics question to
   // the first Core one. "Review basics again" deliberately leaves this
@@ -309,7 +316,9 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
     if (i >= qs.length) {
       setProgress('');
       qEl.innerHTML = `Done — score <b>${score}/${qs.length}</b> ` +
-        (score === qs.length ? '— perfect!' : score >= Math.ceil(qs.length * 0.7) ? '— solid!' : '— review the theory panel and retry.');
+        (score === qs.length ? '— perfect!'
+          : score >= Math.ceil(qs.length * 0.7) ? '— solid!'
+          : `— re-read ${reviewHint}, then retry.`);
       setOptsGrouped(false);
       optsEl.replaceChildren(...doneActions());
       if (moveFocus) head.focus();
@@ -324,14 +333,21 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
       const right = chosen.slice(0, warmupCount).filter((c, k) => c !== null && c === qs[k].a).length;
       prevBtn.style.display = 'none';
       bmBtn.hidden = true;
+      // The copy BRANCHES on the stage score, and so does which button is the
+      // primary one. "You have the basics" under a 2/10 is not encouragement,
+      // it is the site telling a student something they can see is untrue — and
+      // the accented Continue button was steering them into Core anyway.
+      const ok = right >= Math.ceil(warmupCount * 0.7);
       setProgress(`Basics complete · ${warmupCount} of ${qs.length} questions`);
-      qEl.innerHTML = `You have the basics — <b>${right}/${warmupCount}</b> right. `
-        + 'The rest of this quiz is Core: the same chemistry, with more steps in each question.';
+      qEl.innerHTML = ok
+        ? `You have the basics — <b>${right}/${warmupCount}</b> right. `
+          + 'The rest of this quiz is Core: the same chemistry, with more steps in each question.'
+        : `<b>${right}/${warmupCount}</b> — worth another pass at Basics before Core. `
+          + 'Core asks the same chemistry with more steps in each question, so the basics have to be solid first.';
       setOptsGrouped(false);
-      optsEl.replaceChildren(
-        button('Continue to Core', () => { pastCheckpoint = true; render(true); }, 'primary'),
-        button('Review basics again', () => { i = 0; render(true); }, 'btn-quiet'),
-      );
+      const goOn = button('Continue to Core', () => { pastCheckpoint = true; render(true); }, ok ? 'primary' : 'btn-quiet');
+      const back = button('Review basics again', () => { i = 0; render(true); }, ok ? 'btn-quiet' : 'primary');
+      optsEl.replaceChildren(...(ok ? [goOn, back] : [back, goOn]));
       if (moveFocus) head.focus();
       return;
     }
@@ -438,9 +454,11 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
     if (i >= qs.length) return;
     const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · Basics' : ' · Core';
     const note = noteFor?.(qs[i]);
+    // ONE counter. "score 3 · 3/20 solved" was the same fact said twice in one
+    // line (walkthrough row 142); the score belongs on the checkpoint and the
+    // Done screen, where it is the whole point of the screen.
     const done = solvedOf(ids);
-    setProgress(`Question ${i + 1} of ${qs.length}${tier}${note ? ' · ' + note : ''}`
-      + ` · score ${score} · ${done}/${qs.length} solved`);
+    setProgress(`Question ${i + 1} of ${qs.length}${tier}${note ? ' · ' + note : ''} · ${done} solved`);
   }
 
   jump(new URLSearchParams(location.search).get('q') ?? '', false);
@@ -459,8 +477,8 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
  */
 export function pageQuiz(pageId: string, bank: QuizQ[]): HTMLElement {
   return pageId.endsWith('-contest')
-    ? quiz(bank.slice(COURSE_QUIZ_SIZE), 0)
-    : quiz(bank.slice(0, COURSE_QUIZ_SIZE), 10);
+    ? quiz(bank.slice(COURSE_QUIZ_SIZE), 0, undefined, 'the Contest reference')
+    : quiz(bank.slice(0, COURSE_QUIZ_SIZE), 10, undefined, 'Basics and Core');
 }
 
 // ---- interactive simulation missions ----

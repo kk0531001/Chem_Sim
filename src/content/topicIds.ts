@@ -81,6 +81,34 @@ export const EXAM_TOPIC_LABEL: Record<ExamTopicId, string> = {
 };
 
 /**
+ * The same twelve topics said the way the site says them everywhere else.
+ *
+ * EXAM_TOPIC_LABEL is the reporting vocabulary — it names the CCC/CCO areas, and
+ * the question bank's filters are the right place for it. It is the wrong thing
+ * to put in front of a student who has just answered a question: "Stoichiometry"
+ * is a word this site deliberately retired in favour of "Moles & Solutions"
+ * (STYLE.md rule 8), and the sidebar's weakest-topic line was showing it.
+ *
+ * Twelve entries by hand rather than derived from the module titles: several
+ * exam topics span two or three modules, so a derivation would name whichever
+ * module happened to come first.
+ */
+export const EXAM_TOPIC_PLAIN: Record<ExamTopicId, string> = {
+  stoich: 'Moles & Solutions',
+  states: 'Gases, Liquids & Solids',
+  thermo: 'Heat & Energy',
+  kinetics: 'Reaction Rates',
+  equilibrium: 'Equilibrium',
+  acids: 'Acids & Bases',
+  redox: 'Batteries & Electron Transfer',
+  atomic: 'Atoms & Electrons',
+  bonding: 'Bonding & Molecular Shape',
+  descriptive: 'The Elements',
+  organic: 'Carbon Compounds',
+  lab: 'Lab & Data',
+};
+
+/**
  * The exam topics grouped into the site's chemistry domains, for the question
  * bank's two-level browse (ROADMAP D.8).
  *

@@ -14,7 +14,8 @@ import { mountFeedback } from './feedback';
 import { buildGuidePage } from './guide';
 import { guideBySlug } from './guides';
 import { viewTopic, reportQuizzes } from './signals';
-import { EXAM_TOPIC_LABEL, isExamTopicId } from './content/topicIds';
+import { COMP_PLAIN, EXAM_TOPIC_PLAIN, isExamTopicId, type Comp } from './content/topicIds';
+import { CORPUS_COUNTS } from './content/counts';
 
 /**
  * The sidebar, and the loader for each module behind it.
@@ -25,19 +26,23 @@ import { EXAM_TOPIC_LABEL, isExamTopicId } from './content/topicIds';
  * only wanted the homepage downloaded 1.76 MB of chemistry they never opened.
  * Vite gives each `import()` below its own chunk for free.
  *
- * This table is the ONE place the sidebar's short labels live (the tab modules
- * export a bare `{ id, mount }`); the longer public names, blurbs and ordering
- * stay in topics.ts. Order here is the sidebar's, grouped by chemistry domain,
- * and must match that module's run in TOPICS.
+ * This table holds only the id, the nav group and the loader. The sidebar's
+ * LABEL is the page's real title, read from topics.ts below — walkthrough row
+ * 139: the six short forms here ("Bonding & Shape", "Thermo I", "Analytical &
+ * Quant.") were a second set of names for pages the rest of the site calls
+ * something else, so a reader arriving from the menu could not find in the
+ * sidebar the module they had just opened. Long titles ellipsise in CSS and
+ * carry the full text as a tooltip. Order here is the sidebar's, grouped by
+ * chemistry domain, and must match that module's run in TOPICS.
  */
-const LAZY: { id: string; label: string; group: string; load: () => Promise<{ default?: unknown } & Record<string, unknown>> }[] = [
+const LAZY: { id: string; group: string; load: () => Promise<{ default?: unknown } & Record<string, unknown>> }[] = [
   // W3.5: below the drawer breakpoint the sandbox loads a static stand-in.
   // The choice has to be made HERE, in the loader, not inside sandbox.ts:
   // that module reaches pixi.js through sim.ts and tweakpane through ui.ts at
   // import time, so an early return inside mount() would still have cost a
   // phone both libraries. Read at mount, so a resized window gets the right one
   // on the next visit to the tab.
-  { id: 'sandbox', label: 'Sandbox', group: 'Playground',
+  { id: 'sandbox', group: 'Playground',
     load: () => window.matchMedia('(max-width: 899px)').matches
       ? import('./tabs/sandboxSmall')
       : import('./tabs/sandbox') },
@@ -46,51 +51,51 @@ const LAZY: { id: string; label: string; group: string; load: () => Promise<{ de
   // A SPLIT module (plan3 Phase 6) is listed TWICE, course page then contest
   // page, both pointing at the same file: one module, two pages. The mount is
   // handed the page id below and keeps that page's blocks.
-  { id: 'quantum', label: 'Atoms & Electrons', group: 'Foundations', load: () => import('./tabs/quantum') },
-  { id: 'quantum-contest', label: 'Atoms & Electrons — Contest', group: 'Foundations', load: () => import('./tabs/quantum') },
-  { id: 'periodicity', label: 'Periodicity', group: 'Foundations', load: () => import('./tabs/periodicity') },
-  { id: 'periodicity-contest', label: 'Periodicity — Contest', group: 'Foundations', load: () => import('./tabs/periodicity') },
-  { id: 'bonding', label: 'Bonding & Shape', group: 'Foundations', load: () => import('./tabs/bonding') },
-  { id: 'bonding-contest', label: 'Bonding & Shape — Contest', group: 'Foundations', load: () => import('./tabs/bonding') },
-  { id: 'stoich', label: 'Moles & Solutions', group: 'Foundations', load: () => import('./tabs/stoich') },
-  { id: 'stoich-contest', label: 'Moles & Solutions — Contest', group: 'Foundations', load: () => import('./tabs/stoich') },
+  { id: 'quantum', group: 'Foundations', load: () => import('./tabs/quantum') },
+  { id: 'quantum-contest', group: 'Foundations', load: () => import('./tabs/quantum') },
+  { id: 'periodicity', group: 'Foundations', load: () => import('./tabs/periodicity') },
+  { id: 'periodicity-contest', group: 'Foundations', load: () => import('./tabs/periodicity') },
+  { id: 'bonding', group: 'Foundations', load: () => import('./tabs/bonding') },
+  { id: 'bonding-contest', group: 'Foundations', load: () => import('./tabs/bonding') },
+  { id: 'stoich', group: 'Foundations', load: () => import('./tabs/stoich') },
+  { id: 'stoich-contest', group: 'Foundations', load: () => import('./tabs/stoich') },
   // Physical Chemistry
-  { id: 'thermo1', label: 'Thermo I', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
-  { id: 'thermo1-contest', label: 'Thermo I — Contest', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
-  { id: 'thermo2', label: 'Thermo II', group: 'Physical Chemistry', load: () => import('./tabs/thermo2') },
-  { id: 'gases', label: 'Gases, Liquids & Solids', group: 'Physical Chemistry', load: () => import('./tabs/gases') },
-  { id: 'equilibrium', label: 'Equilibrium', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
-  { id: 'equilibrium-contest', label: 'Equilibrium — Contest', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
-  { id: 'aek', label: 'Acids, Batteries & Rates', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
-  { id: 'aek-contest', label: 'Acids, Batteries & Rates — Contest', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
-  { id: 'physchem', label: 'Advanced Physical', group: 'Physical Chemistry', load: () => import('./tabs/physchem') },
-  { id: 'biophys', label: 'Physical & Biochem', group: 'Physical Chemistry', load: () => import('./tabs/biophys') },
+  { id: 'thermo1', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
+  { id: 'thermo1-contest', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
+  { id: 'thermo2', group: 'Physical Chemistry', load: () => import('./tabs/thermo2') },
+  { id: 'gases', group: 'Physical Chemistry', load: () => import('./tabs/gases') },
+  { id: 'equilibrium', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
+  { id: 'equilibrium-contest', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
+  { id: 'aek', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
+  { id: 'aek-contest', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
+  { id: 'physchem', group: 'Physical Chemistry', load: () => import('./tabs/physchem') },
+  { id: 'biophys', group: 'Physical Chemistry', load: () => import('./tabs/biophys') },
   // Organic Chemistry
-  { id: 'organic1', label: 'Organic I', group: 'Organic Chemistry', load: () => import('./tabs/organic1') },
-  { id: 'organic2', label: 'Organic II', group: 'Organic Chemistry', load: () => import('./tabs/organic2') },
-  { id: 'organic3', label: 'Organic III — Synthesis', group: 'Organic Chemistry', load: () => import('./tabs/organic3') },
-  { id: 'polymers', label: 'Polymers', group: 'Organic Chemistry', load: () => import('./tabs/polymers') },
+  { id: 'organic1', group: 'Organic Chemistry', load: () => import('./tabs/organic1') },
+  { id: 'organic2', group: 'Organic Chemistry', load: () => import('./tabs/organic2') },
+  { id: 'organic3', group: 'Organic Chemistry', load: () => import('./tabs/organic3') },
+  { id: 'polymers', group: 'Organic Chemistry', load: () => import('./tabs/polymers') },
   // Inorganic Chemistry
-  { id: 'nuclear', label: 'Nuclear & Coord.', group: 'Inorganic Chemistry', load: () => import('./tabs/nuclear') },
-  { id: 'coordchem', label: 'Coordination & Organometallic', group: 'Inorganic Chemistry', load: () => import('./tabs/coordchem') },
-  { id: 'advinorganic', label: 'Advanced Inorganic', group: 'Inorganic Chemistry', load: () => import('./tabs/advinorganic') },
+  { id: 'nuclear', group: 'Inorganic Chemistry', load: () => import('./tabs/nuclear') },
+  { id: 'coordchem', group: 'Inorganic Chemistry', load: () => import('./tabs/coordchem') },
+  { id: 'advinorganic', group: 'Inorganic Chemistry', load: () => import('./tabs/advinorganic') },
   // Laboratory Skills
-  { id: 'labdata', label: 'Lab & Data', group: 'Laboratory Skills', load: () => import('./tabs/labdata') },
-  { id: 'labdata-contest', label: 'Lab & Data — Contest', group: 'Laboratory Skills', load: () => import('./tabs/labdata') },
-  { id: 'labtech', label: 'Lab Techniques', group: 'Laboratory Skills', load: () => import('./tabs/labtech') },
-  { id: 'labtech-contest', label: 'Lab Techniques — Contest', group: 'Laboratory Skills', load: () => import('./tabs/labtech') },
-  { id: 'analytical', label: 'Analytical & Quant.', group: 'Laboratory Skills', load: () => import('./tabs/analytical') },
+  { id: 'labdata', group: 'Laboratory Skills', load: () => import('./tabs/labdata') },
+  { id: 'labdata-contest', group: 'Laboratory Skills', load: () => import('./tabs/labdata') },
+  { id: 'labtech', group: 'Laboratory Skills', load: () => import('./tabs/labtech') },
+  { id: 'labtech-contest', group: 'Laboratory Skills', load: () => import('./tabs/labtech') },
+  { id: 'analytical', group: 'Laboratory Skills', load: () => import('./tabs/analytical') },
   // Spectroscopy
-  { id: 'spectroscopy', label: 'Spectroscopy & Synthesis', group: 'Spectroscopy', load: () => import('./tabs/spectroscopy') },
-  { id: 'structure', label: 'Structure Determination', group: 'Spectroscopy', load: () => import('./tabs/structure') },
+  { id: 'spectroscopy', group: 'Spectroscopy', load: () => import('./tabs/spectroscopy') },
+  { id: 'structure', group: 'Spectroscopy', load: () => import('./tabs/structure') },
   // Practice
-  { id: 'qbank', label: 'Question Bank', group: 'Practice', load: () => import('./tabs/qbank') },
+  { id: 'qbank', group: 'Practice', load: () => import('./tabs/qbank') },
 ];
 
 // Each tab module exports exactly one TabDef; find it by shape rather than by
 // name, so a module's export can be renamed without breaking the loader.
-const DEFS: TabDef[] = LAZY.map(({ id, label, group, load }) => ({
-  id, label, group,
+const DEFS: TabDef[] = LAZY.map(({ id, group, load }) => ({
+  id, label: topicById(id)?.title ?? id, group,
   mount: root => load().then(mod => {
     const def = Object.values(mod).find(
       (v): v is TabDef => !!v && typeof v === 'object' && typeof (v as TabDef).mount === 'function',
@@ -247,6 +252,12 @@ function showProgressPage(): void {
   }).finally(() => { progressLoading = false; });
 }
 
+/** A level said in words, trimmed to the clause that names it. */
+function shortPlain(difficulty: string): string {
+  const plain = COMP_PLAIN[difficulty.toLowerCase() as Comp];
+  return plain ? plain.split(/\s*[—,]\s*/)[0].replace(/^The\b/, 'the') : '';
+}
+
 function updateTopicChrome(tabId: string): void {
   const idx = TOPICS.findIndex(t => t.id === tabId);
   const topic = TOPICS[idx];
@@ -271,6 +282,11 @@ function updateTopicChrome(tabId: string): void {
     h('span', { class: 'crumb-meta' },
       h('span', { class: 'meta-time', html: CLOCK_ICON }, ` ${topic.estMinutes} min`),
       ...difficultyBadges(topic.difficulty),
+      // The badge alone is an acronym with no legend anywhere on the page
+      // (walkthrough row 10). Said in words beside it, but only where there is
+      // exactly ONE badge: on a page carrying two or three, the plain line
+      // would have to gloss all of them and the row is not that wide.
+      topic.difficulty.length === 1 ? h('span', { class: 'crumb-level' }, shortPlain(topic.difficulty[0])) : null,
     ),
   );
 
@@ -445,7 +461,13 @@ function showRoute(route: Route): void {
   appEl.hidden = false;
   // Selecting a module from the drawer must close it, or the lesson you just
   // chose is hidden behind the thing you chose it from.
-  if (!tabs) tabs = initTabs(DEFS, navEl, viewEl, id => { closeDrawer(); navigate({ kind: 'topic', id }); });
+  if (!tabs) {
+    tabs = initTabs(DEFS, navEl, viewEl, id => { closeDrawer(); navigate({ kind: 'topic', id }); });
+    // The nav items now carry full page titles (row 139), and the longest of
+    // them ellipsise in the 240px rail. The tooltip is the whole title, so a
+    // truncated row is still identifiable — one pass over a list built once.
+    for (const b of navEl.querySelectorAll('.nav-item')) b.setAttribute('title', b.textContent ?? '');
+  }
   if (tabs.current() === route.id) tabs.resume();
   else tabs.show(route.id);
   updateTopicChrome(route.id);
@@ -540,11 +562,13 @@ const search = initSearch();
 searchLinkEl.addEventListener('click', () => { closeDrawer(); search.open(); });
 // Shaped like a search field rather than a nav item, and saying what it
 // searches: "Search" alone read as a page you navigate to, and nobody presses a
-// shortcut they have not been shown. The count is deliberately a floor — it
-// cannot go stale downwards, and the registry stays lazily imported.
+// shortcut they have not been shown. The count comes from counts.ts — three
+// stated numbers checked by `npm run audit` against the real banks — so it is
+// exact and still costs nothing, where "850+" was a hand-written floor that had
+// drifted 83 questions out of date.
 searchLinkEl.innerHTML =
   `<span class="search-link-icon">${SEARCH_ICON}</span>` +
-  '<span class="search-link-text">Search 850+ questions</span>' +
+  `<span class="search-link-text">Search ${CORPUS_COUNTS.mc} questions</span>` +
   `<kbd>${/Mac|iP(hone|ad|od)/.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'}</kbd>`;
 
 // ---- competition mode (Phase G) ----
@@ -574,9 +598,12 @@ searchLinkEl.innerHTML =
   modePickerEl.removeAttribute('aria-label');
   modePickerEl.append(chip);
   const sync = (): void => {
-    chip.textContent = MODE_SHORT[activeMode()];
-    chip.setAttribute('aria-label', `Preparing for ${MODE_LABEL[activeMode()]} — change level in All Topics`);
-    chip.title = `Preparing for ${MODE_LABEL[activeMode()]} — change level in All Topics`;
+    // "Level: HS", not a bare "HS": the chip is a readout, and a reader who has
+    // not set the mode cannot tell what the one word is the value OF.
+    chip.textContent = `Level: ${MODE_SHORT[activeMode()]}`;
+    const say = `Preparing for: ${MODE_LABEL[activeMode()]} — change level in All Topics`;
+    chip.setAttribute('aria-label', say);
+    chip.title = say;
   };
   sync();
   onModeChange(sync);
@@ -627,7 +654,7 @@ autoTypeset(viewEl, home, menuPage);
         type: 'button', class: 'mastery-weak',
         onclick: () => navigate({ kind: 'topic', id: 'qbank' }, false,
           '?' + new URLSearchParams({ part: 'results', topic: weak.topic })),
-      }, `Weakest: ${isExamTopicId(weak.topic) ? EXAM_TOPIC_LABEL[weak.topic] : weak.topic} ${Math.round(weak.accuracy * 100)}%`));
+      }, `Weakest: ${isExamTopicId(weak.topic) ? EXAM_TOPIC_PLAIN[weak.topic] : weak.topic} ${Math.round(weak.accuracy * 100)}%`));
     }
     strip.replaceChildren(...bits);
   };

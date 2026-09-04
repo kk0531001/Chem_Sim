@@ -188,9 +188,10 @@ function makeDemoSim(): { el: HTMLElement; setRunning: (v: boolean) => void } {
   const el = h('div', { class: 'demo-card' },
     h('div', { class: 'figure' }, canvas),
     out,
+    h('p', { class: 'muted demo-note' }, 'mol/L means moles per litre — how much is packed into each litre.'),
     h('div', { class: 'demo-controls' },
-      disturb('Add N₂O₄', () => { A += 0.6; }),
-      disturb('Add NO₂', () => { B += 0.6; }),
+      disturb('Add colourless gas (N₂O₄)', () => { A += 0.6; }),
+      disturb('Add brown gas (NO₂)', () => { B += 0.6; }),
       disturb('Reset', () => { A = A0; B = 0; t = 0; histA.length = 0; histB.length = 0; }),
     ),
   );
@@ -254,7 +255,7 @@ export function continueBlock(onEnter: (id: string, section?: string) => void): 
       p ? h('div', { class: 'continue-meter' },
         h('div', { class: 'pbar', role: 'img', 'aria-label': `${p.done} of ${p.total} questions solved` },
           h('div', { class: `pbar-fill${p.done ? '' : ' zero'}`, style: `width:${p.done ? Math.max(pct, 2) : 0}%` })),
-        h('span', { class: 'continue-count' }, `${p.done}/${p.total} solved`),
+        p.done ? h('span', { class: 'continue-count' }, `${p.done}/${p.total} solved`) : null,
       ) : null,
       // THE one accent button on this card. "Recommended next" is a different
       // module, so it stays a quiet alternative — two filled buttons side by
@@ -315,7 +316,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
       h('p', { class: 'eyebrow' }, 'From the basics to olympiad · interactive'),
       h('h1', { html: 'High school chemistry you can <em>run</em>.' }),
       h('p', { class: 'lede' },
-        'Interactive lessons from the first mole up to olympiad level. Every topic '
+        'Interactive lessons from your first chemistry class up to olympiad level. Every topic '
         + 'starts with the basics and every answer is explained.'),
       h('div', { class: 'cta' },
         startBtn,
@@ -328,8 +329,8 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
     h('div', {},
       h('div', { class: 'figure' }, sim.canvas),
       h('p', { class: 'fig-cap' },
-        'Hydrogen and oxygen atoms bonding into water, live. Hydrogen makes one '
-        + 'bond, oxygen makes two.'),
+        'Hydrogen and oxygen atoms joining into water, live. A bond is a shared pair '
+        + 'of electrons. Hydrogen makes one bond, oxygen makes two.'),
     ),
   );
 
@@ -337,10 +338,10 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   const demo = makeDemoSim();
   const demoSect = h('section', { class: 'demo-sect' },
     h('div', { class: 'sect-head' }, h('h2', {}, 'Try it')),
-    h('p', { class: 'section-lede' }, 'Press Add NO₂ and watch the mixture settle back.'),
+    h('p', { class: 'section-lede' }, 'Press Add brown gas and watch the mixture settle back to its balance point.'),
     demo.el,
     h('div', { class: 'home-more' },
-      h('button', { class: 'btn-ghost', onclick: () => onEnter('equilibrium') }, 'Open the equilibrium topic'),
+      h('button', { class: 'btn-ghost', onclick: () => onEnter('equilibrium') }, 'Open the topic on reactions that settle (Chemical Equilibrium)'),
     ),
   );
 
@@ -391,7 +392,8 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
     meter,
     runBtn,
     h('p', { class: 'home-other-runs' },
-      'Doing a contest? Runs for CCC, organic, and advanced are in ',
+      'Doing a contest? Ready-made sequences for the Canadian Chemistry Contest, '
+      + 'organic chemistry and advanced work are in ',
       h('button', { class: 'link-btn', type: 'button', onclick: onMenu }, 'All topics'),
       '.'),
   );
@@ -400,7 +402,7 @@ export function buildHome(onEnter: (tabId: string, section?: string) => void, on
   const reasons = h('section', { class: 'reasons' },
     h('p', {}, 'Simulations you control, not videos.'),
     h('p', {}, 'Every answer explained, right or wrong.'),
-    h('p', {}, 'A Basics level in every topic, then exam-style.'),
+    h('p', {}, 'A Basics level in every topic, then Core, then contest material.'),
   );
 
   // ---- 6 · footer ----

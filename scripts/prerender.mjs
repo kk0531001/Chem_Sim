@@ -28,7 +28,7 @@ const DIST = join(dirname(fileURLToPath(import.meta.url)), '..', 'dist');
 // homepage lede in src/home.ts — a shared link and the page it opens must say
 // the same thing. If you edit one, edit all three.
 const BASE_TITLE = 'ChemPrep — Chemistry, from the basics to olympiad';
-const BASE_DESCRIPTION = 'Interactive lessons from the first mole up to olympiad level. Every topic starts with the basics and every answer is explained.';
+const BASE_DESCRIPTION = 'Interactive lessons from your first chemistry class up to olympiad level. Every topic starts with the basics and every answer is explained.';
 
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 /** Blurbs are plain, but intros carry inline markup — meta content cannot. */
@@ -109,7 +109,7 @@ async function page(dir, html) {
 
 await writeFile(join(DIST, 'index.html'), noMathFonts(withLd(body(shell,
   `<h1>${BASE_TITLE}</h1>
-<p>Interactive lessons from the first mole up to olympiad level. Every topic starts with the basics
+<p>Interactive lessons from your first chemistry class up to olympiad level. Every topic starts with the basics
 and every answer is explained. The simulations need JavaScript; the topic list does not.</p>
 ${links}`), {
   '@type': 'WebSite',

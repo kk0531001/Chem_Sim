@@ -14,10 +14,30 @@ import { TILE_HTML } from './home';
 import { onProgressChange, solvedCount } from './progress';
 import { activeMode, inScope, onModeChange, setMode, MODE_SHORT, type Mode } from './mode';
 import { GUIDES } from './guides';
-import { COMP_PLAIN, type Comp } from './content/topicIds';
+import { COMP_LABEL, COMP_PLAIN, type Comp } from './content/topicIds';
 
 const LEVELS = ['HS', 'CCC', 'USNCO', 'CCO', 'IChO'] as const;
 type Level = (typeof LEVELS)[number];
+
+/**
+ * One line saying what each area of chemistry actually covers.
+ *
+ * The group names are the profession's divisions ("Physical Chemistry"), and a
+ * student who has not met them cannot tell which one holds the thing they are
+ * looking for. Shown under the heading HERE only — the sidebar's group headings
+ * stay terse, because that list is navigation the reader has already learned by
+ * the time they are using it.
+ */
+const GROUP_GLOSS: Record<string, string> = {
+  Playground: 'the particle sandbox',
+  Foundations: 'atoms, bonds and the mole',
+  'Physical Chemistry': 'energy, rates and how far reactions go',
+  'Organic Chemistry': 'carbon compounds and their reactions',
+  'Inorganic Chemistry': 'metals, complexes and solids',
+  'Laboratory Skills': 'measuring, separating and reporting',
+  Spectroscopy: 'reading a molecule from its light',
+  Practice: 'exam-format questions',
+};
 
 type Status = 'any' | 'todo' | 'doing' | 'done';
 const STATUS_LABEL: Record<Status, string> = {
@@ -208,6 +228,7 @@ export function buildMenuPage(
       shownTotal += shown.length;
       body.append(
         h('div', { class: 'sect-head', style: 'margin-top:34px' }, h('h2', {}, g)),
+        ...(GROUP_GLOSS[g] ? [h('p', { class: 'muted menu-group-gloss' }, `${g} — ${GROUP_GLOSS[g]}`)] : []),
         h('div', { class: 'topic-grid' },
           ...shown.map(t => renderTopicCard(t, onOpen, '', '', true)),
         ),
@@ -264,8 +285,11 @@ export function buildMenuPage(
         h('p', { class: 'menu-guides' }, 'Preparing for one contest? ',
           ...GUIDES.flatMap((g, i) => [
             i ? ' · ' : '',
+            // Row 125 of the walkthrough: the four acronyms were never expanded
+            // anywhere a reader could see them, and this line is the first place
+            // on the site that names all four. Each one is said once, in full.
             h('button', { type: 'button', class: 'link-btn', onclick: () => onGuide(g.slug) },
-              `${MODE_SHORT[g.comp]} study guide`),
+              `${MODE_SHORT[g.comp]} — ${COMP_LABEL[g.comp]}`),
           ])),
         searchIn,
         h('div', { class: 'menu-filters' }, levelRow, levelNote, statusRow, groupRow, scopeRow),
