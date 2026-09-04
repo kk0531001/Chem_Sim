@@ -33,6 +33,7 @@ function transpile(srcPath, outName, rewrites = []) {
 writeFileSync(join(scratch, 'stub.mjs'),
   'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n' +
   'export const ID_PREFIX = {};\nexport const MODULE_QUIZ_SIZE = {};\n' +
+  'export const PAGE_QUESTION_IDS = {};\nexport const solvedOf = () => 0;\n' +
   'export const solvedWithPrefix = () => 0;\nexport const onProgressChange = () => {};\n' +
   'export const activeMode = () => "all";\nexport const inScope = () => true;\n' +
   'export const onModeChange = () => {};\nexport const MODE_SHORT = {};\n');
@@ -42,6 +43,7 @@ transpile('src/topics.ts', 'topics.mjs', [
   ["'./icons'", "'./stub.mjs'"],
   ["'./content/topicIds'", "'./stub.mjs'"],
   ["'./content/counts'", "'./stub.mjs'"],
+  ["'./content/pageQuestions'", "'./stub.mjs'"],
   ["'./progress'", "'./stub.mjs'"],
   ["'./mode'", "'./stub.mjs'"],
 ]);
@@ -146,14 +148,31 @@ check(reported.kind === 'topic' && reported.id === 'thermo1',
   `got ${JSON.stringify(reported)} — this is the exact URL from the bug report`);
 
 // ---- 5. Tolerances that a typed URL needs
+// Checked on the first topic AND on a contest page (plan3 Phase 6), whose slug
+// is the only kind with two hyphenated words plus a suffix.
 const t0 = TOPICS[0];
-for (const [path, why] of [
-  [`/topic/${t0.slug.toUpperCase()}`, 'uppercase'],
-  [`/topic/${t0.slug}/`, 'trailing slash'],
-]) {
-  const r = parseRoute(path);
-  check(r.kind === 'topic' && r.id === t0.id, `${path} (${why}) did not resolve`, `got ${JSON.stringify(r)}`);
+const tContest = TOPICS.find(t => t.layer === 'contest');
+check(!!tContest, 'no contest page in TOPICS', 'Phase 6 adds nine of them');
+for (const t of [t0, tContest].filter(Boolean)) {
+  for (const [path, why] of [
+    [`/topic/${t.slug.toUpperCase()}`, 'uppercase'],
+    [`/topic/${t.slug}/`, 'trailing slash'],
+    [`/topic/${t.slug}/quiz`, 'section'],
+  ]) {
+    const r = parseRoute(path);
+    check(r.kind === 'topic' && r.id === t.id, `${path} (${why}) did not resolve`, `got ${JSON.stringify(r)}`);
+  }
 }
+// A course page and its contest page are two DIFFERENT routes.
+for (const t of TOPICS.filter(t => t.layer === 'contest')) {
+  const r = parseRoute(`/topic/${t.slug}`);
+  check(r.kind === 'topic' && r.id === t.id, `/topic/${t.slug} did not resolve to the contest page`, `got ${JSON.stringify(r)}`);
+  check(r.id !== t.parent, `/topic/${t.slug} resolved to its parent module`, 'the two pages must not share a URL');
+  check(routeToPath({ kind: 'topic', id: t.id }) === `/topic/${t.slug}`,
+    `${t.id} does not round-trip to its slug`, `got ${routeToPath({ kind: 'topic', id: t.id })}`);
+}
+check(parseRoute('/topic/quantum-contest-2').kind === 'notfound',
+  'a near-miss contest slug does not 404', 'it must reach the router 404');
 
 // ---- 6. The two static routes
 check(parseRoute('/').kind === 'home', '/ is not home', `got ${JSON.stringify(parseRoute('/'))}`);

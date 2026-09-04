@@ -28,9 +28,14 @@ function transpile(srcPath, outName, rewrites = []) {
 
 // The progress store, stubbed: `solved` is a module id -> count map the tests
 // set directly, and `weak` is the weakTopics() answer.
+//
+// `solvedOf(ids)` is how a SPLIT module's page counts its own questions
+// (plan3 Phase 6). The stub honours the same "first n of this page's list are
+// solved" model, so setDone() below works identically on both kinds of page.
 writeFileSync(join(scratch, 'progress.mjs'), `
-export const state = { solved: {}, weak: [] };
+export const state = { solved: {}, weak: [], solvedIds: new Set() };
 export const solvedWithPrefix = p => state.solved[p] ?? 0;
+export const solvedOf = ids => ids.filter(id => state.solvedIds.has(id)).length;
 export const weakTopics = () => state.weak;
 export const onProgressChange = () => {};
 `);
@@ -50,11 +55,13 @@ export const MODE_SHORT = { all: 'All', hs: 'HS', ccc: 'CCC', usnco: 'USNCO', cc
 
 transpile('src/content/topicIds.ts', 'topicIds.mjs');
 transpile('src/content/counts.ts', 'counts.mjs');
+transpile('src/content/pageQuestions.ts', 'pageQuestions.mjs');
 transpile('src/topics.ts', 'topics.mjs', [
   ["'./tabs/framework'", "'./stub.mjs'"],
   ["'./icons'", "'./stub.mjs'"],
   ["'./content/topicIds'", "'./topicIds.mjs'"],
   ["'./content/counts'", "'./counts.mjs'"],
+  ["'./content/pageQuestions'", "'./pageQuestions.mjs'"],
   ["'./progress'", "'./progress.mjs'"],
   ["'./mode'", "'./mode.mjs'"],
 ]);
@@ -68,10 +75,10 @@ transpile('src/recommend.ts', 'recommend.mjs', [
 
 const load = n => import(pathToFileURL(join(scratch, n)).href);
 
-let recommend, progress, topicIds, counts, modeMod, topicsMod;
+let recommend, progress, topicIds, counts, modeMod, topicsMod, pageQ;
 try {
-  [recommend, progress, topicIds, counts, modeMod, topicsMod] = await Promise.all(
-    ['recommend.mjs', 'progress.mjs', 'topicIds.mjs', 'counts.mjs', 'mode.mjs', 'topics.mjs'].map(load));
+  [recommend, progress, topicIds, counts, modeMod, topicsMod, pageQ] = await Promise.all(
+    ['recommend.mjs', 'progress.mjs', 'topicIds.mjs', 'counts.mjs', 'mode.mjs', 'topics.mjs', 'pageQuestions.mjs'].map(load));
 } catch (err) {
   console.error('FATAL: could not load recommend.ts —', err.message);
   process.exit(1);
@@ -81,11 +88,13 @@ const { recommendNext, completion } = recommend;
 const { state } = progress;
 const { ID_PREFIX } = topicIds;
 const { MODULE_QUIZ_SIZE } = counts;
+const { PAGE_QUESTION_IDS } = pageQ;
 
 let failures = 0;
 function check(name, fn) {
   state.solved = {};
   state.weak = [];
+  state.solvedIds = new Set();
   modeMod.state.mode = 'all';
   try {
     fn();
@@ -98,8 +107,16 @@ function check(name, fn) {
 const eq = (got, want, what) => {
   if (got !== want) throw new Error(`${what}: expected ${want}, got ${got}`);
 };
-/** Mark a module as `frac` complete, by id. */
-const setDone = (id, frac) => { state.solved[ID_PREFIX[id]] = Math.round(MODULE_QUIZ_SIZE[id] * frac); };
+/** Mark a PAGE as `frac` complete, by id — a split module's two pages count
+ *  their own question ids, everything else counts by id namespace. */
+const setDone = (id, frac) => {
+  const ids = PAGE_QUESTION_IDS[id];
+  if (ids) {
+    for (const q of ids.slice(0, Math.round(ids.length * frac))) state.solvedIds.add(q);
+    return;
+  }
+  state.solved[ID_PREFIX[id]] = Math.round(MODULE_QUIZ_SIZE[id] * frac);
+};
 
 console.log('recommendNext:');
 
@@ -236,6 +253,24 @@ check('switching mode changes the recommendation, not the data', () => {
   if (!modeMod.inScope(cccMode.topic.difficulty, 'ccc')) {
     throw new Error(`CCC mode picked ${cccMode.topic.id}, which is off the CCC syllabus`);
   }
+});
+
+// The handover the split is FOR (plan3 Phase 6): a student who finishes a
+// course page is offered its contest page, because the contest page lists the
+// course page as its one prerequisite and sits directly after it in TOPICS.
+check('a finished course page offers its contest page next', () => {
+  setDone('quantum', 1);
+  const r = recommendNext('quantum');
+  eq(r.topic.id, 'quantum-contest', 'next after a finished course page');
+});
+
+check('an unfinished course page is not skipped for its contest page', () => {
+  // Rule 1: the contest page's prerequisite is the course page, and half a bank
+  // is what counts as met — below that, being sent on would be wrong advice.
+  setDone('quantum', 0.2);
+  const r = recommendNext('quantum-contest');
+  eq(r.topic.id, 'quantum', 'sent back to the course page');
+  if (!r.reason.includes('builds on it')) throw new Error(`reason was "${r.reason}"`);
 });
 
 // The HS level sits BELOW the four contests (plan3 Phase 6). The upward

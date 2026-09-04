@@ -20,7 +20,8 @@ import {
   type Comp, type ExamTopicId, type QuizModuleId, type Tier,
 } from './topicIds';
 import { TOPICS, topicById } from '../topics';
-import { CORPUS_COUNTS, MODULE_QUIZ_SIZE } from './counts';
+import { CORPUS_COUNTS, MODULE_QUIZ_SIZE, COURSE_QUIZ_SIZE } from './counts';
+import { PAGE_QUESTION_IDS } from './pageQuestions';
 import { skillLabel } from './skills';
 
 // ---- quiz banks (one per topic module) ----
@@ -300,19 +301,43 @@ export function auditTopicPages(): { problems: string[]; misconceptions: number 
     // fake quiz bank or an audit that is permanently red.
     if (CONTRACT_EXEMPT.has(topic.id)) continue;
     const where = topic.id;
-    if (topic.intro.trim().length < 200) problems.push(`${where}: intro is too short to be an introduction`);
+    // The nine contest pages ship with `intro: ''` until Prompt 16 writes them.
+    // An empty intro renders nothing at all (see topicPage) rather than an empty
+    // box, so this is a gap in the copy, not a broken page — and saying so nine
+    // times would drown the audit's real findings until then.
+    if (topic.intro.trim().length < 200 && !(topic.layer === 'contest' && !topic.intro)) {
+      problems.push(`${where}: intro is too short to be an introduction`);
+    }
     if (topic.refs.length < 2) problems.push(`${where}: ${topic.refs.length} reference(s), the contract asks for 2–4`);
     for (const r of topic.refs) if (!r.text.trim()) problems.push(`${where}: a reference with no text`);
 
-    const bank = (QUIZ_BANKS as Record<string, QuizQ[] | undefined>)[where];
+    // A split module's bank is divided between its two PAGES (plan3 Phase 6):
+    // the course page runs exactly the first COURSE_QUIZ_SIZE, the contest page
+    // whatever is left — which has to be enough to be worth a page.
+    const module = topic.parent ?? topic.id;
+    const bank = (QUIZ_BANKS as Record<string, QuizQ[] | undefined>)[module];
     if (!bank) { problems.push(`${where}: no quiz bank registered in QUIZ_BANKS`); continue; }
-    if (bank.length < 25) problems.push(`${where}: quiz has ${bank.length} questions, the contract asks for 25`);
+    const split = `${module}-contest` in MODULE_QUIZ_SIZE;
+    const pageBank = !split ? bank
+      : topic.layer === 'contest' ? bank.slice(COURSE_QUIZ_SIZE) : bank.slice(0, COURSE_QUIZ_SIZE);
+    if (!split && bank.length < 25) problems.push(`${where}: quiz has ${bank.length} questions, the contract asks for 25`);
+    if (split && topic.layer === 'course' && pageBank.length !== COURSE_QUIZ_SIZE) {
+      problems.push(`${where}: course page has ${pageBank.length} questions, the contract asks for exactly ${COURSE_QUIZ_SIZE}`);
+    }
+    if (split && topic.layer === 'contest' && pageBank.length < 5) {
+      problems.push(`${where}: contest page has ${pageBank.length} questions, the contract asks for at least 5`);
+    }
+    // Counted per PAGE (the two slices partition the bank, so the corpus total
+    // is unchanged) but the four-box floor stays a rule about the MODULE, and
+    // is therefore checked once — on the course page. Splitting the floor as
+    // well would demand eight boxes from a module that has five.
+    misconceptions += pageBank.filter(q => q.misconception?.trim()).length;
+    if (topic.layer === 'contest') continue;
     const withMiscon = bank.filter(q => q.misconception?.trim()).length;
-    misconceptions += withMiscon;
     // Not every question earns one — a box on an arithmetic slip is noise — but
     // a whole module without any means nobody has read the bank for wrong
     // models yet.
-    if (withMiscon < 4) problems.push(`${where}: ${withMiscon} misconception box(es) in 25 questions`);
+    if (withMiscon < 4) problems.push(`${where}: ${withMiscon} misconception box(es) in ${bank.length} questions`);
   }
 
   return { problems, misconceptions };
@@ -334,14 +359,30 @@ export function auditCorpus(): string[] {
   // The topic cards' progress bars read their denominator from MODULE_QUIZ_SIZE
   // (the homepage cannot import the banks to count them). A stale entry there
   // shows "26/25 solved" on a card, which is worse than showing nothing.
+  // A split module (plan3 Phase 6) has TWO entries — its course page and its
+  // `-contest` page — and the two must add up to the bank, because between them
+  // they show all of it.
   for (const [module, bank] of Object.entries(QUIZ_BANKS)) {
-    const stated = MODULE_QUIZ_SIZE[module];
+    const contestPage = `${module}-contest`;
+    const split = contestPage in MODULE_QUIZ_SIZE;
+    const stated = split ? MODULE_QUIZ_SIZE[module] + MODULE_QUIZ_SIZE[contestPage] : MODULE_QUIZ_SIZE[module];
     if (stated !== bank.length) {
-      problems.push(`MODULE_QUIZ_SIZE.${module} says ${stated ?? 'nothing'}, the bank has ${bank.length} — update src/content/counts.ts`);
+      problems.push(`MODULE_QUIZ_SIZE.${module}${split ? ' + .' + contestPage : ''} says ${stated ?? 'nothing'}, the bank has ${bank.length} — update src/content/counts.ts`);
+    }
+    if (split && MODULE_QUIZ_SIZE[module] !== COURSE_QUIZ_SIZE) {
+      problems.push(`MODULE_QUIZ_SIZE.${module} is ${MODULE_QUIZ_SIZE[module]}, but a course page runs exactly ${COURSE_QUIZ_SIZE} questions`);
+    }
+    // The ids the page's progress bar counts have to BE the ids its quiz shows.
+    for (const [page, slice] of [[module, bank.slice(0, COURSE_QUIZ_SIZE)], [contestPage, bank.slice(COURSE_QUIZ_SIZE)]] as const) {
+      const listed = split ? PAGE_QUESTION_IDS[page] : undefined;
+      if (listed && listed.join() !== slice.map(q => q.id).join()) {
+        problems.push(`PAGE_QUESTION_IDS.${page} is stale — run node scripts/gen-page-questions.mjs`);
+      }
     }
   }
-  for (const module of Object.keys(MODULE_QUIZ_SIZE)) {
-    if (!(module in QUIZ_BANKS)) problems.push(`MODULE_QUIZ_SIZE has "${module}", which is not a module with a quiz bank`);
+  for (const page of Object.keys(MODULE_QUIZ_SIZE)) {
+    const module = page.replace(/-contest$/, '');
+    if (!(module in QUIZ_BANKS)) problems.push(`MODULE_QUIZ_SIZE has "${page}", which is not a module with a quiz bank`);
   }
 
   const seen = new Map<string, string>();

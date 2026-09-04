@@ -1,6 +1,6 @@
 // Stoichiometry, reactions, solution chemistry: limiting reagent visualizer,
 // molarity/dilution tools.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, pageQuiz, atLevel, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { STOICH_QUIZ } from './questions1';
 
@@ -17,7 +17,7 @@ const REACTIONS: Reaction[] = [
 
 export const stoichTab: TabDef = {
   id: 'stoich',
-  mount(root) {
+  mount(root, pageId) {
     // ---- limiting reagent ----
     let rx = REACTIONS[1];
     let molA = 2, molB = 3;
@@ -187,9 +187,11 @@ export const stoichTab: TabDef = {
         h('li', {}, 'Molecular formula = empirical × (molar mass ÷ empirical mass).'),
       ),
     );
-    root.append(topicPage('stoich', {
-      sims: [limCard, solCard, yieldCard],
-      quiz: quiz(STOICH_QUIZ, 10),
+    root.append(topicPage(pageId ?? 'stoich', {
+      // Phase 6: Basics is the limiting reagent, Core the solution tools and
+      // percent yield. The contest page has no simulation of its own.
+      sims: [atLevel('basics', limCard), atLevel('core', solCard), atLevel('core', yieldCard)],
+      quiz: pageQuiz(pageId ?? 'stoich', STOICH_QUIZ),
       theory: [
         theory('Basics — Moles & Solutions', `
 <h3>What this is about</h3>
@@ -212,7 +214,7 @@ export const stoichTab: TabDef = {
 <li>Add atomic masses to get a molar mass, then turn a mass in grams into moles with n = m ÷ M.</li>
 <li>Balance a simple equation and read its coefficients as a ratio of moles.</li>
 <li>Divide moles by coefficients to find the reactant that runs out first, and work out a molarity from moles and litres.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Moles & Solutions', `
 <h3>What this block adds</h3>
 <p>Basics turned a mass into moles and found the reactant that runs out first. Core does the whole journey: grams in, grams out, with the leftover, the yield and the concentrations included.</p>
@@ -247,8 +249,8 @@ export const stoichTab: TabDef = {
 <li>Work out a percent yield from a collected mass and a predicted one.</li>
 <li>Use n = cV and c₁V₁ = c₂V₂, and give the concentration of each ion in a dissolved salt.</li>
 <li>Turn a percentage composition into an empirical formula, then into a molecular formula.</li>
-</ul>`, true),
-        theory('Exam-level reference — Moles & Solutions', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Moles & Solutions', `
 <h3>The mole highway</h3>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>
 <h3>Reaction types to recognize instantly</h3>
@@ -268,7 +270,7 @@ export const stoichTab: TabDef = {
 <ul>
 <li>Molarity M = mol/L solution (changes with T); molality m = mol/kg solvent (T-independent — use for colligative).</li>
 <li>ppm = mg solute / kg solution ≈ mg/L in dilute water.</li>
-</ul>`),
+</ul>`, false, 'contest'),
       ],
     }));
   },

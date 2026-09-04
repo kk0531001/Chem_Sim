@@ -22,6 +22,7 @@ const scratch = mkdtempSync(join(tmpdir(), 'chemprep-topics-'));
 writeFileSync(join(scratch, 'stub.mjs'),
   'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n' +
   'export const ID_PREFIX = {};\nexport const MODULE_QUIZ_SIZE = {};\n' +
+  'export const PAGE_QUESTION_IDS = {};\nexport const solvedOf = () => 0;\n' +
   'export const solvedWithPrefix = () => 0;\nexport const onProgressChange = () => {};\n' +
   'export const activeMode = () => "all";\nexport const inScope = () => true;\n' +
   'export const onModeChange = () => {};\nexport const MODE_SHORT = {};\n');
@@ -36,7 +37,7 @@ function transpile(srcPath, outName, rewrites = {}) {
 }
 
 export const { TOPICS } = await transpile('src/topics.ts', 'topics.mjs', Object.fromEntries(
-  ['./tabs/framework', './icons', './content/topicIds', './content/counts', './progress', './mode']
+  ['./tabs/framework', './icons', './content/topicIds', './content/counts', './content/pageQuestions', './progress', './mode']
     .map(m => [m, './stub.mjs'])));
 
 // topicIds.ts and guides.ts import nothing at all (guides.ts's one import is a

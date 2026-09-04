@@ -1,7 +1,7 @@
 // Laboratory Skills — practical techniques: recrystallization, the distillation
 // family, filtration, liquid–liquid extraction, drying agents, standard-solution
 // and buffer preparation, uncertainty, and safety.
-import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, plot, linspace, pageQuiz, atLevel, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { LABTECH_QUIZ } from './questions7';
 
@@ -312,10 +312,12 @@ function makeReference(): HTMLElement {
 
 export const labTechTab: TabDef = {
   id: 'labtech',
-  mount(root) {
-    root.append(topicPage('labtech', {
-      sims: [makeRecryst(), makeDistillation(), makeExtraction(), makeChromatography(), makeStandardBuffer(), makeReference()],
-      quiz: quiz(LABTECH_QUIZ, 10),
+  mount(root, pageId) {
+    root.append(topicPage(pageId ?? 'labtech', {
+      sims: [atLevel('basics', makeRecryst()), atLevel('core', makeDistillation()),
+        atLevel('core', makeExtraction()), atLevel('contest', makeChromatography()),
+        atLevel('core', makeStandardBuffer()), atLevel('core', makeReference())],
+      quiz: pageQuiz(pageId ?? 'labtech', LABTECH_QUIZ),
       theory: [
         theory('Basics — Laboratory Techniques', `
 <h3>What this is about</h3>
@@ -338,7 +340,7 @@ export const labTechTab: TabDef = {
 <li>Say which property each of recrystallisation, distillation and extraction separates on.</li>
 <li>Work out a recrystallisation recovery from a cold solubility and a solvent volume.</li>
 <li>Choose gravity or vacuum filtration for a given job, and say what a drying agent removes.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Laboratory Techniques', `
 <h3>What this block adds</h3>
 <p>Basics named what each technique separates on. Core is about choosing between them and setting the numbers: which solvent, how many extractions, and what mass to weigh out.</p>
@@ -371,8 +373,8 @@ export const labTechTab: TabDef = {
 <li>Identify the organic layer from a density, and show that two small extractions beat one large one.</li>
 <li>Weigh out and make up a standard solution, and say why sodium hydroxide is not a primary standard.</li>
 <li>State the safety rules for heating, diluting acid and handling volatile substances.</li>
-</ul>`, true),
-        theory('Exam-level reference — Laboratory Techniques', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Laboratory Techniques', `
 <h3>Recrystallization</h3>
 <ul><li>Dissolve in the MINIMUM hot solvent; hot-filter (+ charcoal) to drop insoluble/coloured impurities; cool slowly to grow pure crystals; collect by vacuum filtration; wash with cold solvent.</li>
 <li>Ideal solvent: high hot solubility, low cold solubility. Recovery = mass − (cold solubility × volume).</li></ul>
@@ -393,7 +395,7 @@ export const labTechTab: TabDef = {
 <li>Buffer: pH = pKa + log([A⁻]/[HA]); choose pKa within ±1 of the target pH for good capacity.</li></ul>
 <h3>Uncertainty & safety</h3>
 <ul><li>Accuracy (closeness to true) ≠ precision (reproducibility). Sums add absolute σ in quadrature; products add relative σ in quadrature. Report the correct sig figs.</li>
-<li>Acid to water; know GHS pictograms; segregate incompatibles; goggles/gloves/fume hood; know emergency equipment.</li></ul>`),
+<li>Acid to water; know GHS pictograms; segregate incompatibles; goggles/gloves/fume hood; know emergency equipment.</li></ul>`, false, 'contest'),
       ],
     }));
   },

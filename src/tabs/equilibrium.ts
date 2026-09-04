@@ -1,13 +1,13 @@
 // Chemical equilibrium: live N2O4 ⇌ 2NO2 kinetic simulation with Le Chatelier
 // perturbations, plus an ICE-table solver.
-import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, quiz, numberInput, numVal, type TabDef, type TabHandle, ctlRow, task } from './framework';
+import { h, playPause, cardWithMissions, missionLadder, theory, slider, select, button, plot, pageQuiz, atLevel, numberInput, numVal, type TabDef, type TabHandle, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { EQUILIBRIUM_QUIZ } from './questions1';
 
 
 export const equilibriumTab: TabDef = {
   id: 'equilibrium',
-  mount(root): TabHandle {
+  mount(root, pageId): TabHandle {
     // ---- live sim: N2O4 (A) ⇌ 2 NO2 (B) ----
     let kf = 0.30, kr = 0.60; // K = kf/kr = 0.5
     let A = 1.0, B = 0.0;     // mol/L
@@ -339,9 +339,9 @@ export const equilibriumTab: TabDef = {
     );
     kspCalc();
 
-    root.append(topicPage('equilibrium', {
-      sims: [simCard, iceCard, kspCard],
-      quiz: quiz(EQUILIBRIUM_QUIZ, 10),
+    root.append(topicPage(pageId ?? 'equilibrium', {
+      sims: [atLevel('basics', simCard), atLevel('core', iceCard), atLevel('contest', kspCard)],
+      quiz: pageQuiz(pageId ?? 'equilibrium', EQUILIBRIUM_QUIZ),
       theory: [
         theory('Basics — Chemical Equilibrium', `
 <h3>What this is about</h3>
@@ -365,7 +365,7 @@ export const equilibriumTab: TabDef = {
 <li>Say what is equal at equilibrium and what is not.</li>
 <li>Write K for a simple gas reaction, leave out pure solids and liquids, and read off what a large or small K means.</li>
 <li>Compare Q with K to say which way a mixture will move, and name the one change that alters K.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Chemical Equilibrium', `
 <h3>What this block adds</h3>
 <p>Basics wrote K for one reaction and compared Q with K to get a direction. Core writes K in both of its forms, calculates the equilibrium amounts from a starting mixture, and gives the reason behind each shift.</p>
@@ -399,8 +399,8 @@ export const equilibriumTab: TabDef = {
 <li>Use the small-x shortcut and apply the 5% check to decide whether it was allowed.</li>
 <li>Calculate Q and compare it with K to give the direction of the next change.</li>
 <li>Predict the shift for a change in concentration, pressure or temperature, and say which of them moves K.</li>
-</ul>`, true),
-        theory('Exam-level reference — Chemical Equilibrium', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Chemical Equilibrium', `
 <h3>The law of mass action</h3>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>
 <ul>
@@ -420,7 +420,7 @@ export const equilibriumTab: TabDef = {
 <li>ICE tables: define x from stoichiometry, watch coefficient multipliers ((2x)² for 2NO₂!).</li>
 <li>5% rule: if x &lt; 5% of initial, the "small x" shortcut is fine. If K is huge, run the reaction to completion first, then come back a little.</li>
 <li><span class="trap">K<sub>sp</sub>: for Ca₃(PO₄)₂ → 3Ca²⁺ + 2PO₄³⁻, K<sub>sp</sub> = (3s)³(2s)² = 108s⁵. Common-ion effect lowers solubility.</span></li>
-</ul>`),
+</ul>`, false, 'contest'),
       ],
     }));
 

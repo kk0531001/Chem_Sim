@@ -14,15 +14,20 @@ function isWarmup(id) {
   const m = /^[a-z0-9]{3}-(\d{3})$/.exec(id);
   return !!m && moduleOfId(id) !== undefined && Number(m[1]) <= 5;
 }
-// difficulty scale per module (mirrors topics.ts, CCC=1..IChO=4 ceiling)
-const RANK = { CCC: 1, USNCO: 2, CCO: 3, IChO: 4 };
+// difficulty scale per module (mirrors topics.ts, HS=0..IChO=4 ceiling).
+//
+// The nine modules split by plan3 Phase 6 carry ['HS'] on their COURSE page,
+// which is what a question's module resolves to — their contest pages own no
+// questions. HS is below CCC and the floor of 2 (Silver) below is what keeps
+// the derived tier the same, exactly as tierOf() does in registry.ts.
+const RANK = { HS: 0, CCC: 1, USNCO: 2, CCO: 3, IChO: 4 };
 const MODULE_DIFFICULTY = {
-  sandbox: ['CCC'], quantum: ['CCC'], periodicity: ['CCC'], bonding: ['CCC', 'USNCO'], stoich: ['CCC'],
-  thermo1: ['CCC'], thermo2: ['USNCO'], gases: ['USNCO'], equilibrium: ['CCC', 'USNCO'], aek: ['USNCO'],
+  sandbox: ['CCC'], quantum: ['HS'], periodicity: ['HS'], bonding: ['HS'], stoich: ['HS'],
+  thermo1: ['HS'], thermo2: ['USNCO'], gases: ['USNCO'], equilibrium: ['HS'], aek: ['HS'],
   physchem: ['USNCO', 'CCO'], biophys: ['CCO', 'IChO'],
   organic1: ['USNCO'], organic2: ['USNCO', 'CCO'], organic3: ['USNCO', 'CCO'], polymers: ['USNCO'],
   nuclear: ['USNCO'], coordchem: ['CCO', 'IChO'], advinorganic: ['CCO', 'IChO'],
-  labdata: ['CCC', 'USNCO'], analytical: ['CCO', 'IChO'], labtech: ['CCO', 'IChO'],
+  labdata: ['HS'], analytical: ['CCO'], labtech: ['HS'],
   spectroscopy: ['CCO', 'IChO'], structure: ['CCO', 'IChO'],
 };
 function ceilingRank(mod) {

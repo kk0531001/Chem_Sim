@@ -47,7 +47,7 @@ export const GUIDES: Guide[] = [
       },
       {
         heading: 'Work the foundations until the simulations are boring',
-        body: 'Start at Moles & Solutions and work along the Foundations and Physical Chemistry groups. Every module has a simulation with missions attached; when you can predict what the sim will do before you drag the slider, that topic is done. That is a better completion test than a score.',
+        body: 'Start at Moles & Solutions and work along the Foundations and Physical Chemistry groups. Each of those topics comes in two pages — the course page, which is the grade 11–12 material, and a Contest page that takes the same chemistry further; start on the course page unless it is already easy. Every module has a simulation with missions attached; when you can predict what the sim will do before you drag the slider, that topic is done. That is a better completion test than a score.',
       },
       {
         heading: 'Then practise in exam format, not in topic order',

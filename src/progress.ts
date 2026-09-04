@@ -615,7 +615,7 @@ export function remapProgressIds(map: Record<string, string>): number {
 
 export function isSolved(id: string): boolean { return solved.has(id); }
 export function solvedCount(): number { return solved.size; }
-export function solvedOf(ids: string[]): number { return ids.reduce((n, id) => n + (solved.has(id) ? 1 : 0), 0); }
+export function solvedOf(ids: readonly string[]): number { return ids.reduce((n, id) => n + (solved.has(id) ? 1 : 0), 0); }
 
 /**
  * How many solved questions came from one id namespace — `solvedOf` for

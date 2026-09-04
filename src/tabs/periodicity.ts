@@ -1,6 +1,6 @@
 // Periodicity — interactive trends explorer, Slater's-rules Z_eff calculator,
 // and the anomaly/amphoterism reference. (IChO area 4.)
-import { h, card, cardWithMissions, missionLadder, theory, select, plot, quiz, type TabDef, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, select, plot, pageQuiz, atLevel, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { PERIODICITY_QUIZ } from './questions5';
 
@@ -160,10 +160,13 @@ function makeAnomalies(): HTMLElement {
 
 export const periodicityTab: TabDef = {
   id: 'periodicity',
-  mount(root) {
-    root.append(topicPage('periodicity', {
-      sims: [makeTrends(), makeSlater(), makeAnomalies()],
-      quiz: quiz(PERIODICITY_QUIZ, 10),
+  mount(root, pageId) {
+    root.append(topicPage(pageId ?? 'periodicity', {
+      // Slater's rules is not in the Phase 6 table; Z_eff by Slater is contest
+      // material, so it sits with the anomalies.
+      sims: [atLevel('basics', makeTrends()), atLevel('contest', makeSlater()),
+        atLevel('contest', makeAnomalies())],
+      quiz: pageQuiz(pageId ?? 'periodicity', PERIODICITY_QUIZ),
       theory: [
         theory('Basics — Periodicity', `
 <h3>What this is about</h3>
@@ -187,7 +190,7 @@ export const periodicityTab: TabDef = {
 <li>State what happens to radius, ionisation energy and electronegativity across a period and down a group.</li>
 <li>Explain each of those directions using effective nuclear charge and screening.</li>
 <li>Rank an atom against its own ion by size, and point to the most metallic and most electronegative corners of the table.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Periodicity', `
 <h3>What this block adds</h3>
 <p>Basics gave the four trends and the direction each one runs. Core puts numbers on them, estimates the effective nuclear charge by counting, and turns the trends into a way of comparing any two atoms.</p>
@@ -218,8 +221,8 @@ export const periodicityTab: TabDef = {
 <li>Rank an atom against its own ion, and order an isoelectronic set by size.</li>
 <li>Say why chlorine's electron affinity beats fluorine's, and why aluminium's ionisation energy dips below magnesium's.</li>
 <li>Decide which of two named atoms is larger or more electronegative, and say which comparison needs a table.</li>
-</ul>`, true),
-        theory('Exam-level reference — Periodicity', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Periodicity', `
 <h3>The trends and their driver</h3>
 <span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>
 <ul>
@@ -238,7 +241,7 @@ export const periodicityTab: TabDef = {
 <li>Metallic ↔ non-metallic character; amphoterism (Al, Zn, Be, Sn, Pb); oxide acid–base trend across a period.</li>
 <li>Diagonal relationships (Li–Mg, Be–Al, B–Si); inert-pair effect for heavy p-block; lanthanide contraction (Zr ≈ Hf).</li>
 <li>Electronegativity scales: Pauling (bond energies), Mulliken (½(IE+EA)), Allred–Rochow (Z_eff/r²).</li>
-</ul>`),
+</ul>`, false, 'contest'),
       ],
     }));
   },

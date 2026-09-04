@@ -1,6 +1,6 @@
 // Acid-base (titration curves), electrochemistry (galvanic cells + Nernst),
 // kinetics (integrated rate laws + Arrhenius). Three pill sections.
-import { h, cardWithMissions, missionLadder, theory, slider, select, pills, plot, linspace, quiz, type TabDef, task } from './framework';
+import { h, cardWithMissions, missionLadder, theory, slider, select, pills, plot, linspace, pageQuiz, atLevel, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { AEK_QUIZ } from './questions2';
 
@@ -222,10 +222,14 @@ function makeAcidBase(): HTMLElement {
   shockCalc();
 
   return h('div', { class: 'cards' },
-    cardWithMissions('Titration simulator: acid + NaOH', titrMissions,
+    // The pills group is FLATTENED into one section per card by topicPage, so
+    // each card carries its own level (plan3 Phase 6) rather than the group
+    // carrying one. The three "essentials" blocks are the module's exam-level
+    // reference, split three ways, and belong to the contest page.
+    atLevel('basics', cardWithMissions('Titration simulator: acid + NaOH', titrMissions,
       task('Titrate a weak acid and find the two landmarks: the half-equivalence point where pH = pKa, and the equivalence point, which is not at pH 7.'),
-      controls, curveCanvas, liveOut, out),
-    bufferCard,
+      controls, curveCanvas, liveOut, out)),
+    atLevel('contest', bufferCard),
     theory('Acid–base essentials', `
 <span class="eq">pH = −log[H⁺] · pH + pOH = 14 (25 °C) · K<sub>a</sub>K<sub>b</sub> = K<sub>w</sub> · pK<sub>a</sub> + pK<sub>b</sub> = 14</span>
 <span class="eq">Henderson–Hasselbalch: pH = pK<sub>a</sub> + log([A⁻]/[HA]) — buffers only!</span>
@@ -236,7 +240,7 @@ function makeAcidBase(): HTMLElement {
 <li>Polyprotic: treat one proton at a time; [second anion] ≈ K<sub>a2</sub> for a weak diprotic acid solution.</li>
 <li><span class="trap">Very dilute acid (10⁻⁸ M HCl) → pH ≈ 6.98, not 8! Water's autoionization dominates.</span></li>
 <li>Buffer capacity ∝ concentrations; works within pK<sub>a</sub> ± 1. Choose an acid whose pK<sub>a</sub> ≈ target pH.</li>
-</ul>`, true),
+</ul>`, true, 'contest'),
   );
 }
 
@@ -412,16 +416,16 @@ function makeElectro(): HTMLElement {
   latCalc();
 
   const el = h('div', { class: 'cards' },
-    cardWithMissions('Galvanic cell builder', cellMissions,
+    atLevel('core', cardWithMissions('Galvanic cell builder', cellMissions,
       task('Pair two half-cells, check which one is the cathode, then drag log Q to see how far the Nernst term can move E.'),
       select('half-cell 1', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c1 = COUPLES.find(c => c.label === v)!; recompute(); }, c1.label),
       select('half-cell 2', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c2 = COUPLES.find(c => c.label === v)!; recompute(); }, c2.label),
       out,
       slider({ label: 'log Q', min: -8, max: 8, step: 0.5, value: 0, onInput: v => { logQ = v; recompute(); } }),
       nernstOut,
-    ),
-    faradayCard,
-    latCard,
+    )),
+    atLevel('core', faradayCard),
+    atLevel('contest', latCard),
     theory('Electrochemistry essentials', `
 <span class="eq">E°cell = E°cat − E°an &nbsp;·&nbsp; ΔG° = −nFE° &nbsp;·&nbsp; E = E° − (0.0592/n)logQ (25 °C) &nbsp;·&nbsp; log K = nE°/0.0592</span>
 <ul>
@@ -439,7 +443,7 @@ function makeElectro(): HTMLElement {
 <h3>Reading potential diagrams</h3>
 <ul>
 <li><b>Latimer diagrams</b> chain species by reduction potential; a species disproportionates when the potential to its right exceeds the one to its left. <b>Frost diagrams</b> plot nΔE° vs oxidation state — the lowest point is most stable, and a species above the line joining its neighbours disproportionates.</li>
-</ul>`, true),
+</ul>`, true, 'contest'),
   );
   recompute();
   return el;
@@ -565,15 +569,15 @@ function makeKinetics(): HTMLElement {
   };
 
   const el = h('div', { class: 'cards' },
-    cardWithMissions('Integrated rate laws — find the order from the straight line', kinMissions,
+    atLevel('core', cardWithMissions('Integrated rate laws — find the order from the straight line', kinMissions,
       task('Switch the order and watch which of the three plots straightens — that is exactly how the order is determined from data.'),
       select('order', [{ value: '0', label: '0th order' }, { value: '1', label: '1st order' }, { value: '2', label: '2nd order' }],
         v => { order = Number(v) as 0 | 1 | 2; draw(); }, '1'),
       slider({ label: 'k', min: 0.02, max: 1, step: 0.01, value: k, fmt: v => v.toFixed(2), onInput: v => { k = v; draw(); } }),
       slider({ label: '[A]₀ (M)', min: 0.2, max: 2, step: 0.1, value: A0, fmt: v => v.toFixed(1), onInput: v => { A0 = v; draw(); } }),
       cCanvas, linCanvas, out, mysteryTable,
-    ),
-    cardWithMissions('Arrhenius: temperature sensitivity', arrMissions,
+    )),
+    atLevel('contest', cardWithMissions('Arrhenius: temperature sensitivity', arrMissions,
       task('Raise Ea and see how much more the same 10 K change in temperature multiplies the rate.'),
       slider({ label: 'Ea (kJ/mol)', min: 10, max: 200, step: 1, value: Ea, onInput: v => { Ea = v; arrCalc(); } }),
       slider({ label: 'T₁ (K)', min: 250, max: 400, step: 1, value: T1, onInput: v => { T1 = v; arrCalc(); } }),
@@ -588,7 +592,7 @@ function makeKinetics(): HTMLElement {
 <li>Catalyst: lowers E<sub>a</sub> for forward AND reverse equally; appears in rate law if in the slow step; K unchanged.</li>
 <li>Collision theory: rate ∝ collisions × orientation factor × e^(−Ea/RT).</li>
 </ul>`),
-    ),
+    )),
   );
   draw();
   arrCalc();
@@ -597,14 +601,14 @@ function makeKinetics(): HTMLElement {
 
 export const aekTab: TabDef = {
   id: 'aek',
-  mount(root) {
-    root.append(topicPage('aek', {
+  mount(root, pageId) {
+    root.append(topicPage(pageId ?? 'aek', {
       sims: [pills([
         { label: 'Acid–Base & Titration', el: makeAcidBase() },
         { label: 'Electrochemistry', el: makeElectro() },
         { label: 'Kinetics', el: makeKinetics() },
       ])],
-      quiz: quiz(AEK_QUIZ, 5),
+      quiz: pageQuiz(pageId ?? 'aek', AEK_QUIZ),
       // Three sub-topics, three "essentials" theory blocks, each inside the
       // panel it explains. Only the shared Basics block is page-level: it has
       // to come before all three panels, because nothing in them defines acid,
@@ -636,7 +640,7 @@ export const aekTab: TabDef = {
 <li>Say what neutralisation produces and what a titration is for.</li>
 <li>Name which metal is oxidised in a cell and which way its electrons travel.</li>
 <li>Work out an average rate, and say what a catalyst does and does not change.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Acids, Batteries & Reaction Rates', `
 <h3>What this block adds</h3>
 <p>Basics defined pH, neutralisation, oxidation and rate. Core makes each one calculable: a pH from a Ka, a concentration from a titration, a voltage from a table.</p>
@@ -674,7 +678,7 @@ export const aekTab: TabDef = {
 <li>Work a titration through to a concentration, with the right ratio for a diprotic acid.</li>
 <li>Assign oxidation states, write half-equations, and get E°cell from two standard potentials.</li>
 <li>Read a rate law and rate constant off a table, and explain a rate change by collisions.</li>
-</ul>`, true),
+</ul>`, true, 'core'),
       ],
     }));
   },

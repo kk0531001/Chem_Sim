@@ -1,5 +1,5 @@
 // Thermodynamics I: first law, calorimetry, Hess's law, bond enthalpies.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, quiz, type TabDef, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, pageQuiz, atLevel, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { THERMO1_QUIZ } from './questions1';
 
@@ -56,7 +56,7 @@ const BOND_RXNS: { name: string; broken: [string, number][]; formed: [string, nu
 
 export const thermo1Tab: TabDef = {
   id: 'thermo1',
-  mount(root) {
+  mount(root, pageId) {
     // ---- calorimetry mixer ----
     let sA = SUBSTANCES[3], sB = SUBSTANCES[0];
     let mA = 100, tA = 95, mB = 200, tB = 20;
@@ -200,9 +200,12 @@ export const thermo1Tab: TabDef = {
       h('p', { class: 'muted' }, 'Defaults are NaCl, whose measured steps return U ≈ −788 kJ/mol. The cycle is just Hess\'s law drawn as a loop — the unmeasurable lattice energy falls out of the measurable steps.'),
     );
     bhCalc();
-    root.append(topicPage('thermo1', {
-      sims: [calCard, hessCard, bondCard, bhCard],
-      quiz: quiz(THERMO1_QUIZ, 10),
+    root.append(topicPage(pageId ?? 'thermo1', {
+      // Hess's law is not in the Phase 6 table; it is Core material by the
+      // same reading as the Core theory block, which teaches it.
+      sims: [atLevel('basics', calCard), atLevel('core', hessCard),
+        atLevel('core', bondCard), atLevel('contest', bhCard)],
+      quiz: pageQuiz(pageId ?? 'thermo1', THERMO1_QUIZ),
       theory: [
         theory('Basics — Thermodynamics I', `
 <h3>What this is about</h3>
@@ -226,7 +229,7 @@ export const thermo1Tab: TabDef = {
 <li>Use q = mcΔT to find a heat, a mass or a temperature change, with the right units.</li>
 <li>Give the sign of ΔH for an exothermic and an endothermic change, and sort melting, freezing, boiling and burning into the two.</li>
 <li>Explain why the substance with the larger m × c moves less in temperature when two substances are mixed.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Thermodynamics I', `
 <h3>What this block adds</h3>
 <p>Basics used q = mcΔT on a single substance and gave the sign of ΔH. Core runs that equation on both substances at once and turns a measured heat into an enthalpy change per mole. It also finds ΔH for a reaction that was never carried out.</p>
@@ -258,8 +261,8 @@ export const thermo1Tab: TabDef = {
 <li>Sketch and read an energy diagram for an exothermic and an endothermic change.</li>
 <li>Combine two known reactions by Hess's law, reversing and scaling the ΔH values as you go.</li>
 <li>Estimate ΔH from bond enthalpies, and say why the answer is only an estimate.</li>
-</ul>`, true),
-        theory('Exam-level reference — Thermodynamics I', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Thermodynamics I', `
 <h3>First law</h3>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
 <ul>
@@ -280,7 +283,7 @@ export const thermo1Tab: TabDef = {
 <li>Three routes to ΔH: formation enthalpies (exact), Hess cycles (exact), bond enthalpies (estimate, gas phase only).</li>
 <li><b>Born–Haber cycle:</b> a Hess loop for ionic solids — ΔH_f = ΔH_sub + IE + ½D − EA + U_lattice — lets you extract the unmeasurable lattice energy from measurable steps.</li>
 <li><b>Kirchhoff's law:</b> ΔH is temperature-dependent — ΔH(T₂) = ΔH(T₁) + ΔC_p(T₂ − T₁), where ΔC_p = ΣC_p(products) − ΣC_p(reactants).</li>
-</ul>`),
+</ul>`, false, 'contest'),
       ],
     }));
   },

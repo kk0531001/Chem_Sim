@@ -1,6 +1,6 @@
 // Quantum mechanics & atomic structure: hydrogen orbital viewer,
 // energy levels / spectral series, electron configuration builder.
-import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, quiz, type TabDef, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, select, plot, pageQuiz, atLevel, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { QUANTUM_QUIZ } from './questions1';
 
@@ -152,7 +152,7 @@ function configHTML(Z: number): string {
 
 export const quantumTab: TabDef = {
   id: 'quantum',
-  mount(root) {
+  mount(root, pageId) {
     // orbital viewer
     const orbCanvas = h('canvas', { width: 320, height: 320 });
     const orbDesc = h('p', { class: 'muted' });
@@ -192,7 +192,9 @@ export const quantumTab: TabDef = {
       orbDesc.textContent = `n=${o.n}, ℓ=${o.l} · radial nodes = n−ℓ−1 = ${o.n - o.l - 1} · angular nodes = ℓ = ${o.l} · ${o.desc}`;
       orbMissions.tick();
     };
-    const orbCard = cardWithMissions('Hydrogen orbital viewer — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)', orbMissions,
+    // "Orbital shapes" on the course page (plan3 Phase 6): the old title named
+    // the plotted quantity before the reader knew what an orbital looked like.
+    const orbCard = cardWithMissions('Orbital shapes — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)', orbMissions,
       task('Step through the orbitals and count the nodes, watching where the wavefunction changes sign.'),
       select('orbital', Object.keys(ORBITALS).map(k => ({ value: k, label: k.replace('z2', ' z²').replace('x2y2', ' x²−y²') })), drawOrb, '2pz'),
       orbCanvas, orbDesc,
@@ -275,9 +277,16 @@ export const quantumTab: TabDef = {
       cfgOut,
     );
     setZ(26);
-    root.append(topicPage('quantum', {
-      sims: [orbCard, radCard, lvlCard, cfgCard],
-      quiz: quiz(QUANTUM_QUIZ, 10),
+    root.append(topicPage(pageId ?? 'quantum', {
+      // Course page: the builder first, then the two cards that explain where
+      // its numbers come from. Contest page: the radial distribution.
+      sims: [
+        atLevel('basics', cfgCard),
+        atLevel('core', lvlCard),
+        atLevel('core', orbCard),
+        atLevel('contest', radCard),
+      ],
+      quiz: pageQuiz(pageId ?? 'quantum', QUANTUM_QUIZ),
       theory: [
         theory('Basics — Atoms & Electrons', `
 <h3>What this is about</h3>
@@ -305,7 +314,7 @@ export const quantumTab: TabDef = {
 <li>Say how many orbitals and how many electrons a given shell or subshell holds.</li>
 <li>Name the shape that each of s, p and d stands for, and say which quantum number sets it.</li>
 <li>Write the ground-state arrangement of electrons for a light element, and count the nodes in a simple orbital.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Atoms & Electrons', `
 <h3>What this block adds</h3>
 <p>Basics named the parts of an atom and wrote one configuration out in full. Core turns that into a system: the filling order up to krypton, the configurations of ions, and how the table's layout follows from both.</p>
@@ -338,8 +347,8 @@ export const quantumTab: TabDef = {
 <li>Separate core from valence electrons, and get the valence count from the group number.</li>
 <li>Write the configuration of a common cation or anion, taking 4s electrons out before 3d.</li>
 <li>Turn a wavelength into a photon energy, and say why absorption and emission share a wavelength.</li>
-</ul>`, true),
-        theory('Exam-level reference — Atoms & Electrons', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Atoms & Electrons', `
 <h3>Quantum numbers</h3>
 <ul>
 <li><b>n</b> = 1,2,3… (size/energy) · <b>ℓ</b> = 0…n−1 (shape: s,p,d,f) · <b>m<sub>ℓ</sub></b> = −ℓ…+ℓ (orientation) · <b>m<sub>s</sub></b> = ±½</li>
@@ -361,7 +370,7 @@ export const quantumTab: TabDef = {
 <li>Successive IEs jump hugely once you break into a core shell — use the jump to identify the group.</li>
 <li>Isoelectronic series: more protons = smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
 <li>PES (photoelectron spectroscopy): each peak = one subshell; peak height ∝ number of electrons; higher binding energy = closer to nucleus.</li>
-</ul>`),
+</ul>`, false, 'contest'),
       ],
     }));
   },

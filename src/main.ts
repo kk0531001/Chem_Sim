@@ -42,16 +42,27 @@ const LAZY: { id: string; label: string; group: string; load: () => Promise<{ de
       ? import('./tabs/sandboxSmall')
       : import('./tabs/sandbox') },
   // Foundations
+  //
+  // A SPLIT module (plan3 Phase 6) is listed TWICE, course page then contest
+  // page, both pointing at the same file: one module, two pages. The mount is
+  // handed the page id below and keeps that page's blocks.
   { id: 'quantum', label: 'Atoms & Electrons', group: 'Foundations', load: () => import('./tabs/quantum') },
+  { id: 'quantum-contest', label: 'Atoms & Electrons — Contest', group: 'Foundations', load: () => import('./tabs/quantum') },
   { id: 'periodicity', label: 'Periodicity', group: 'Foundations', load: () => import('./tabs/periodicity') },
+  { id: 'periodicity-contest', label: 'Periodicity — Contest', group: 'Foundations', load: () => import('./tabs/periodicity') },
   { id: 'bonding', label: 'Bonding & Shape', group: 'Foundations', load: () => import('./tabs/bonding') },
+  { id: 'bonding-contest', label: 'Bonding & Shape — Contest', group: 'Foundations', load: () => import('./tabs/bonding') },
   { id: 'stoich', label: 'Moles & Solutions', group: 'Foundations', load: () => import('./tabs/stoich') },
+  { id: 'stoich-contest', label: 'Moles & Solutions — Contest', group: 'Foundations', load: () => import('./tabs/stoich') },
   // Physical Chemistry
   { id: 'thermo1', label: 'Thermo I', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
+  { id: 'thermo1-contest', label: 'Thermo I — Contest', group: 'Physical Chemistry', load: () => import('./tabs/thermo1') },
   { id: 'thermo2', label: 'Thermo II', group: 'Physical Chemistry', load: () => import('./tabs/thermo2') },
   { id: 'gases', label: 'Gases, Liquids & Solids', group: 'Physical Chemistry', load: () => import('./tabs/gases') },
   { id: 'equilibrium', label: 'Equilibrium', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
+  { id: 'equilibrium-contest', label: 'Equilibrium — Contest', group: 'Physical Chemistry', load: () => import('./tabs/equilibrium') },
   { id: 'aek', label: 'Acids, Batteries & Rates', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
+  { id: 'aek-contest', label: 'Acids, Batteries & Rates — Contest', group: 'Physical Chemistry', load: () => import('./tabs/aek') },
   { id: 'physchem', label: 'Advanced Physical', group: 'Physical Chemistry', load: () => import('./tabs/physchem') },
   { id: 'biophys', label: 'Physical & Biochem', group: 'Physical Chemistry', load: () => import('./tabs/biophys') },
   // Organic Chemistry
@@ -65,7 +76,9 @@ const LAZY: { id: string; label: string; group: string; load: () => Promise<{ de
   { id: 'advinorganic', label: 'Advanced Inorganic', group: 'Inorganic Chemistry', load: () => import('./tabs/advinorganic') },
   // Laboratory Skills
   { id: 'labdata', label: 'Lab & Data', group: 'Laboratory Skills', load: () => import('./tabs/labdata') },
+  { id: 'labdata-contest', label: 'Lab & Data — Contest', group: 'Laboratory Skills', load: () => import('./tabs/labdata') },
   { id: 'labtech', label: 'Lab Techniques', group: 'Laboratory Skills', load: () => import('./tabs/labtech') },
+  { id: 'labtech-contest', label: 'Lab Techniques — Contest', group: 'Laboratory Skills', load: () => import('./tabs/labtech') },
   { id: 'analytical', label: 'Analytical & Quant.', group: 'Laboratory Skills', load: () => import('./tabs/analytical') },
   // Spectroscopy
   { id: 'spectroscopy', label: 'Spectroscopy & Synthesis', group: 'Spectroscopy', load: () => import('./tabs/spectroscopy') },
@@ -83,7 +96,9 @@ const DEFS: TabDef[] = LAZY.map(({ id, label, group, load }) => ({
       (v): v is TabDef => !!v && typeof v === 'object' && typeof (v as TabDef).mount === 'function',
     );
     if (!def) throw new Error(`tab module "${id}" exports no TabDef`);
-    return def.mount(root);
+    // The PAGE id, not `def.id` — a split module is registered twice and its
+    // mount has to know which of its two pages it is building.
+    return def.mount(root, id);
   }),
 }));
 const VALID_IDS = new Set(DEFS.map(d => d.id));

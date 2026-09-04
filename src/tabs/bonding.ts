@@ -1,5 +1,5 @@
 // Chemical bonding: VSEPR geometry explorer + MO diagrams for diatomics.
-import { h, cardWithMissions, missionLadder, theory, select, quiz, type TabDef, task } from './framework';
+import { h, cardWithMissions, missionLadder, theory, select, pageQuiz, atLevel, type TabDef, task } from './framework';
 import { topicPage } from './page';
 import { BONDING_QUIZ } from './questions1';
 
@@ -126,7 +126,7 @@ function moDiagram(canvas: HTMLCanvasElement, sp: MOSpecies): string {
 
 export const bondingTab: TabDef = {
   id: 'bonding',
-  mount(root) {
+  mount(root, pageId) {
     // VSEPR card
     const shapeBox = h('div', {});
     const infoBox = h('div', { class: 'result' });
@@ -201,9 +201,9 @@ export const bondingTab: TabDef = {
       moCanvas, moOut,
     );
     setMO('O₂');
-    root.append(topicPage('bonding', {
-      sims: [vseprCard, moCard],
-      quiz: quiz(BONDING_QUIZ, 10),
+    root.append(topicPage(pageId ?? 'bonding', {
+      sims: [atLevel('basics', vseprCard), atLevel('contest', moCard)],
+      quiz: pageQuiz(pageId ?? 'bonding', BONDING_QUIZ),
       theory: [
         theory('Basics — Bonding & Molecular Shape', `
 <h3>What this is about</h3>
@@ -226,7 +226,7 @@ export const bondingTab: TabDef = {
 <li>Count valence electrons and say how many bonds a main-group atom will form.</li>
 <li>Use an electronegativity difference to call a bond nonpolar covalent, polar covalent or ionic.</li>
 <li>Count electron groups on a central atom to predict a shape, and say how a lone pair changes it.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Bonding & Molecular Shape', `
 <h3>What this block adds</h3>
 <p>Basics counted electron groups and read a shape off that count. Core draws the structure the count comes from, checks it with formal charge, and follows the shape through to polarity and to boiling point.</p>
@@ -260,8 +260,8 @@ export const bondingTab: TabDef = {
 <li>Predict shape and angle from a group count, including the squeeze a lone pair applies.</li>
 <li>Count sigma and pi bonds, and judge polarity from shape plus ΔEN.</li>
 <li>Name the strongest force between molecules of a substance and rank boiling points with it.</li>
-</ul>`, true),
-        theory('Exam-level reference — Bonding & Molecular Shape', `
+</ul>`, true, 'core'),
+        theory('Contest reference — Bonding & Molecular Shape', `
 <h3>Lewis structures & formal charge</h3>
 <span class="eq">FC = valence e⁻ − nonbonding e⁻ − ½(bonding e⁻)</span>
 <ul>
@@ -288,7 +288,7 @@ export const bondingTab: TabDef = {
 <li><span class="trap">The classic: O₂ is paramagnetic (2 unpaired π* electrons) — Lewis theory can't explain this, MO can.</span></li>
 <li>B₂ paramagnetic, C₂ diamagnetic — the π-below-σ ordering is testable.</li>
 <li>He₂, Ne₂: bond order 0 → don't exist.</li>
-</ul>`),
+</ul>`, false, 'contest'),
       ],
     }));
   },

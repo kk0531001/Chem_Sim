@@ -24,6 +24,7 @@ function transpile(srcPath, outName, rewrites = []) {
 writeFileSync(join(scratch, 'stub.mjs'),
   'export const h = () => ({});\nexport const topicIconSVG = () => "";\nexport const CLOCK_ICON = "";\n' +
   'export const ID_PREFIX = {};\nexport const MODULE_QUIZ_SIZE = {};\n' +
+  'export const PAGE_QUESTION_IDS = {};\nexport const solvedOf = () => 0;\n' +
   'export const solvedWithPrefix = () => 0;\nexport const onProgressChange = () => {};\n' +
   'export const activeMode = () => "all";\nexport const inScope = () => true;\n' +
   'export const onModeChange = () => {};\nexport const MODE_SHORT = {};\n');
@@ -33,6 +34,7 @@ transpile('src/topics.ts', 'topics.mjs', [
   ["'./icons'", "'./stub.mjs'"],
   ["'./content/topicIds'", "'./stub.mjs'"],
   ["'./content/counts'", "'./stub.mjs'"],
+  ["'./content/pageQuestions'", "'./stub.mjs'"],
   ["'./progress'", "'./stub.mjs'"],
   ["'./mode'", "'./stub.mjs'"],
 ]);

@@ -20,9 +20,9 @@
 // challengeLadder() and TopicMeta: framework → challenge → registry → topics →
 // framework is a cycle, and a cycle whose modules build top-level constants is
 // an initialisation-order bug waiting for someone at 3am.
-import { h, card, copyLinkButton } from './framework';
+import { h, card, copyLinkButton, type Level } from './framework';
 import { challengeLadder } from './challenge';
-import { topicById, type Ref } from '../topics';
+import { TOPICS, topicById, type Ref, type TopicMeta } from '../topics';
 import { isBookmarked, toggleBookmark, lastSection } from '../progress';
 import { createSectionHost, type SectionSource } from '../sectionHost';
 import type { SectionDef, Position } from '../spine';
@@ -194,6 +194,63 @@ function simBlocks(sims: readonly HTMLElement[], taken: Set<string>): Block[] {
   return out;
 }
 
+// ---- the two pages of a split module (plan3 Phase 6) -----------------------
+
+/**
+ * Which page of a split module a block belongs on.
+ *
+ * Untagged is `contest`, because that is what the exam-level material already
+ * was before the split — so an untouched module needs no tags, and the filter
+ * below never runs on it anyway.
+ */
+const levelOf = (el: HTMLElement): Level => (el.dataset.level as Level) ?? 'contest';
+
+/** Which levels each page shows, in the order it shows them. */
+const LAYER_LEVELS: Record<TopicMeta['layer'], Level[]> = {
+  course: ['basics', 'core'],
+  contest: ['contest'],
+};
+
+/**
+ * A split module's blocks, in this page's order: LEVEL FIRST, then the usual
+ * theory-before-simulations reading order inside it.
+ *
+ * So a course page runs Basics theory → Basics simulation → Core theory → Core
+ * simulations, not all the theory followed by all the simulations. That is the
+ * whole complaint Phase 6 answers: the level a reader is at should be one
+ * uninterrupted run, and a Core paragraph sitting between Basics and the
+ * simulation that goes with it puts the fast step back in.
+ *
+ * A module that is NOT split shows everything in the original order, whatever
+ * the tags say — the tags divide one module across two pages, and applying them
+ * to a single-page module would silently drop most of it.
+ */
+function pageOrder<T extends { el: HTMLElement }>(
+  theoryB: T[], simB: T[], meta: TopicMeta | undefined, split: boolean,
+): T[] {
+  if (!split || !meta) return [...theoryB, ...simB];
+  const at = (blocks: T[], level: Level) => blocks.filter(b => levelOf(b.el) === level);
+  return LAYER_LEVELS[meta.layer].flatMap(level => [...at(theoryB, level), ...at(simB, level)]);
+}
+
+/**
+ * The quiet handover at the foot of a course page — the only place a course
+ * page mentions a contest at all.
+ *
+ * It says what the other page CONTAINS rather than what the reader ought to be
+ * ready for: a section that grades your readiness is a section that tells most
+ * readers they are behind. Routed, never reloaded — `sectionLink` is the same
+ * anchor every other jump on the page uses, so cmd-click still works.
+ */
+function contestHandoff(contest: TopicMeta): HTMLElement {
+  return card('Ready for contests?',
+    h('p', { class: 'section-lede' },
+      'Everything above is the grade 11–12 course. The contest page takes the same chemistry further — '
+      + 'the extra ideas a contest asks about, harder simulations, and a challenge ladder.'),
+    sectionLink(contest.id, null, `${contest.title} →`, 'btn'),
+  );
+}
+
 // ---- the section navigation ------------------------------------------------
 
 /**
@@ -350,6 +407,14 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
   const taken = new Set<string>();
   const sections: Block[] = [];
 
+  // A SPLIT module (plan3 Phase 6) is one mount rendered as two pages. The
+  // module built every block; this page keeps its own half. `module` is the id
+  // everything content-shaped hangs off — the quiz bank, the ladder, the
+  // references — and on a contest page that is the parent, not this page.
+  const contest = TOPICS.find(t => t.parent === id);
+  const split = !!contest || meta?.layer === 'contest';
+  const module = meta?.parent ?? id;
+
   // Held so the contents list can be appended once every section exists — the
   // overview has to be pushed FIRST (it is section 1) but cannot know what it
   // is a table of until last.
@@ -372,31 +437,40 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
     bmBtn = btn;
     introEl = h('section', { class: 'topic-intro' },
       h('h2', {}, `About ${meta.title}`),
-      h('p', { html: meta.intro }),
+      // An empty intro renders NO paragraph, not an empty one: the nine contest
+      // pages ship with `intro: ''` until Prompt 16 writes them, and a blank
+      // box under a heading reads as a page that failed to load.
+      meta.intro ? h('p', { html: meta.intro }) : null,
     );
     sections.push(block(introEl, 'Overview', taken, 'overview'));
   }
 
   const theoryBlocks = Array.isArray(blocks.theory) ? blocks.theory : [blocks.theory];
-  for (const t of theoryBlocks) {
-    // theory() builds a <details>; as a section of its own there is nothing
-    // left to collapse it for, so it opens.
-    t.setAttribute('open', '');
-    sections.push(block(t, 'Theory', taken));
-  }
-
-  const simSections = simBlocks(blocks.sims, taken);
+  // theory() builds a <details>; as a section of its own there is nothing left
+  // to collapse it for, so it opens.
+  for (const t of theoryBlocks) t.setAttribute('open', '');
+  const allSims = simBlocks(blocks.sims, taken);
   // Reset lands before the sections are handed over, and before addReset()
   // appends its button into the h2 that titleOf() reads.
-  for (const s of simSections) {
+  for (const s of allSims) {
     if (s.el.matches('section.card') && needsReset(s.el)) addReset(s.el);
     s.el.setAttribute('open', '');   // no-op on a card, opens a panel's theory
   }
-  sections.push(...simSections);
+  const theorySections = theoryBlocks.map(el => block(el, 'Theory', taken));
+  const body = pageOrder(theorySections, allSims, meta, split);
+  const isSim = new Set(allSims);
+  const simSections = body.filter(s => isSim.has(s));
+  sections.push(...body);
 
   sections.push(block(card('Quick quiz', blocks.quiz), 'Quick quiz', taken, 'quiz'));
   for (const c of blocks.extra ?? []) sections.push(block(c, 'More', taken));
-  const ladder = challengeLadder(id);
+  // A course page ends at its quiz and offers the contest page; the ladder is
+  // the contest page's, because the tiers above Bronze are what a contest asks
+  // for and a course page that ends in a locked Gold rung reads as a wall.
+  if (contest) {
+    sections.push(block(contestHandoff(contest), 'Ready for contests', taken, 'contest-next'));
+  }
+  const ladder = meta?.layer === 'contest' || !split ? challengeLadder(module) : null;
   if (ladder) sections.push(block(ladder, 'Challenge ladder', taken, 'challenge'));
   if (meta && meta.refs.length) sections.push(block(references(meta.refs), 'References', taken, 'references'));
 
@@ -497,7 +571,14 @@ export function topicPage(id: string, blocks: TopicPageBlocks): DocumentFragment
 
   if (import.meta.env.DEV) {
     const simCards = simSections.filter(s => s.el.matches('section.card')).map(s => s.el);
-    if (!simCards.some(c => c.querySelector('.mission-ladder'))) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);
+    // The mission-ladder rule is a contract on the MODULE, and a split module's
+    // sims are divided between its two pages — Periodicity's one ladder is on
+    // the contest half, Lab Technique's on the other. Checking it per page
+    // would report a gap that does not exist. Same for a contest page with no
+    // simulation of its own (Moles): it is still a page — reference, quiz,
+    // ladder. Everything else below is checked on every page.
+    if (!split && !simCards.some(c => c.querySelector('.mission-ladder'))) console.error(`[page contract] ${id}: no mission ladder on any simulation card`);
+    if (meta?.layer !== 'contest' && !simSections.length) console.error(`[page contract] ${id}: no simulation on a course page`);
     // Every simulation card states its job in one imperative sentence. Checked
     // here rather than in the type because a card is assembled from a plain
     // children list — the type cannot see whether one of them is a task().

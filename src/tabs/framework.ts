@@ -1,10 +1,11 @@
 // Tab framework + shared DOM/plot helpers for the topic modules.
 // Each tab is lazily mounted on first visit; onShow/onHide let tabs with
 // animation loops pause when hidden.
-import { solvedWithPrefix, onProgressChange } from '../progress';
+import { solvedWithPrefix, solvedOf, onProgressChange } from '../progress';
 import { CHEVRON_ICON } from '../icons';
 import { ID_PREFIX } from '../content/topicIds';
 import { MODULE_QUIZ_SIZE } from '../content/counts';
+import { PAGE_QUESTION_IDS } from '../content/pageQuestions';
 import 'katex/dist/katex.min.css';
 
 /**
@@ -46,7 +47,7 @@ import { labelCanvases, markScrollableTables, folded, prefersReducedMotion } fro
 export { labelCanvases, markScrollableTables, folded, prefersReducedMotion } from './ui/a11y';
 export { plot, miniPlot, linspace, lnFactorial } from './ui/plot';
 export type { Series, PlotOpts } from './ui/plot';
-export { quiz, focusQuestion, helpfulBar, missionLadder } from './ui/quiz';
+export { quiz, pageQuiz, focusQuestion, helpfulBar, missionLadder } from './ui/quiz';
 export type { QuizQ, MissionDef, MissionMeter, MissionLadderHandle } from './ui/quiz';
 import type { MissionLadderHandle } from './ui/quiz';
 import { focusQuestion } from './ui/quiz';
@@ -130,7 +131,13 @@ export interface TabDef {
   id: string;
   label?: string;
   group?: string;
-  mount: (root: HTMLElement) => TabHandle | void | Promise<TabHandle | void>;
+  /**
+   * `pageId` is the id of the page being mounted, which is NOT always the
+   * module's own id: a split module (plan3 Phase 6) is registered twice, as
+   * `<id>` and `<id>-contest`, and both mount this same function. Modules that
+   * are not split ignore it.
+   */
+  mount: (root: HTMLElement, pageId?: string) => TabHandle | void | Promise<TabHandle | void>;
 }
 
 export interface TabsAPI {
@@ -181,15 +188,20 @@ function readOpenGroups(): string[] | null {
  * "0 of 25 solved" twenty-five times on a first visit.
  */
 function addNavMeter(btn: HTMLButtonElement, id: string, label: string): void {
+  // Same two sources as moduleProgress() in topics.ts, and the same exception
+  // for a split module's two pages — which this file cannot simply call,
+  // because topics.ts imports `h` from here and the cycle would be an
+  // initialisation-order bug.
+  const page = PAGE_QUESTION_IDS[id];
   const prefix = ID_PREFIX[id as keyof typeof ID_PREFIX];
-  const total = MODULE_QUIZ_SIZE[id];
-  if (!prefix || !total) return;   // sandbox and qbank own no quiz bank
+  const total = page ? page.length : MODULE_QUIZ_SIZE[id];
+  if (!total || (!page && !prefix)) return;   // sandbox and qbank own no quiz bank
 
   const fill = h('span', { class: 'nav-item-fill' });
   const meter = h('span', { class: 'nav-item-meter', 'aria-hidden': 'true' }, fill);
   btn.appendChild(meter);
   const paint = (): void => {
-    const done = Math.min(solvedWithPrefix(prefix), total);
+    const done = page ? solvedOf(page) : Math.min(solvedWithPrefix(prefix), total);
     meter.hidden = done === 0;
     fill.style.width = `${Math.round((done / total) * 100)}%`;
     btn.classList.toggle('done', done === total);
@@ -639,12 +651,36 @@ export function solutionToggle(html: string): { btn: HTMLButtonElement; panel: H
   return { btn, panel };
 }
 
-export function theory(title: string, html: string, open = false): HTMLElement {
+export function theory(title: string, html: string, open = false, level?: Level): HTMLElement {
   const content = h('div', { html });
   const d = h('details', { class: 'theory' }, h('summary', {}, title), content);
   if (open || html.length <= THEORY_AUTO_OPEN) d.setAttribute('open', '');
+  if (level) atLevel(level, d);
   annotateTerms(content);
   return d;
+}
+
+/**
+ * Which page of a SPLIT module a block belongs to (plan3 Phase 6).
+ *
+ * A split module builds every block once, in one `mount`, and `topicPage()`
+ * keeps the ones whose level matches the page's layer: `basics` and `core` on
+ * the course page, `contest` on the contest page. Untagged means `contest`,
+ * which is what the exam-level material already was — so the 16 unsplit modules
+ * need no tags at all and are unaffected.
+ *
+ * A function rather than an options bag on `card()`: the card helpers take a
+ * rest list of children, so a trailing options object would have to be told
+ * apart from a child at runtime. This wraps instead — `atLevel('core',
+ * card(…))` — and works unchanged on `cardWithMissions`, on a `pills()` panel's
+ * children, and on the `h('div', {class:'cards'})` wrapper some modules hand to
+ * `sims`, which are three different things the bag would each have to reach.
+ */
+export type Level = 'basics' | 'core' | 'contest';
+
+export function atLevel<T extends HTMLElement>(level: Level, el: T): T {
+  el.dataset.level = level;
+  return el;
 }
 
 /**

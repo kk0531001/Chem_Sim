@@ -15,6 +15,7 @@
 import { isSolved, markSolved, unmarkSolved, recordAttempt, onProgressChange,
          isBookmarked, toggleBookmark, weakTopics, solvedOf } from '../../progress';
 import { toExamTopic, isExamTopicId, EXAM_TOPIC_LABEL } from '../../content/topicIds';
+import { COURSE_QUIZ_SIZE } from '../../content/counts';
 import { signal, registerQuizReporter } from '../../signals';
 import { recommendNext } from '../../recommend';
 import { navigate } from '../../router';
@@ -161,7 +162,7 @@ function plainOpt(html: string): string {
 
 /**
  * `warmupCount` splits the bank into two visible STAGES (plan3 3.2): the first
- * n are "Basics" and the rest "Exam-style", with a checkpoint card between
+ * n are "Basics" and the rest "Core", with a checkpoint card between
  * them. It is a presentation of a split the bank already has — the questions
  * are unchanged, no progress field is added, and `recordAttempt`/`markSolved`
  * never see the checkpoint, because a screen that grades nothing must not
@@ -170,7 +171,7 @@ function plainOpt(html: string): string {
 export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => string): HTMLElement {
   let i = 0, score = 0, answered = false;
   // Shown once per run-through, on the way from the last Basics question to
-  // the first exam-style one. "Review basics again" deliberately leaves this
+  // the first Core one. "Review basics again" deliberately leaves this
   // false: a student who goes back to re-read gets the boundary marked again.
   let pastCheckpoint = false;
   // What the student picked, per index. Going BACK restores the answered state
@@ -325,10 +326,10 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
       bmBtn.hidden = true;
       setProgress(`Basics complete · ${warmupCount} of ${qs.length} questions`);
       qEl.innerHTML = `You have the basics — <b>${right}/${warmupCount}</b> right. `
-        + 'The rest of this quiz is exam-style: the same chemistry, with more steps in each question.';
+        + 'The rest of this quiz is Core: the same chemistry, with more steps in each question.';
       setOptsGrouped(false);
       optsEl.replaceChildren(
-        button('Continue to exam-style', () => { pastCheckpoint = true; render(true); }, 'primary'),
+        button('Continue to Core', () => { pastCheckpoint = true; render(true); }, 'primary'),
         button('Review basics again', () => { i = 0; render(true); }, 'btn-quiet'),
       );
       if (moveFocus) head.focus();
@@ -435,7 +436,7 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
 
   function updateProgressLine(): void {
     if (i >= qs.length) return;
-    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · Basics' : ' · exam-style';
+    const tier = warmupCount === 0 ? '' : i < warmupCount ? ' · Basics' : ' · Core';
     const note = noteFor?.(qs[i]);
     const done = solvedOf(ids);
     setProgress(`Question ${i + 1} of ${qs.length}${tier}${note ? ' · ' + note : ''}`
@@ -445,6 +446,21 @@ export function quiz(qs: QuizQ[], warmupCount = 0, noteFor?: (q: QuizQ) => strin
   jump(new URLSearchParams(location.search).get('q') ?? '', false);
   render();
   return wrap;
+}
+
+/**
+ * The quiz for one page of a split module.
+ *
+ * ONE bank in ONE order, sliced by page: the course page runs the first twenty
+ * with a Basics → Core checkpoint at ten, the contest page runs the rest with
+ * no checkpoint (it is one stage, and a checkpoint that says "you have the
+ * basics" is a lie on a page that assumes them). Ids never move, so a bank can
+ * be reordered without touching a single progress record.
+ */
+export function pageQuiz(pageId: string, bank: QuizQ[]): HTMLElement {
+  return pageId.endsWith('-contest')
+    ? quiz(bank.slice(COURSE_QUIZ_SIZE), 0)
+    : quiz(bank.slice(0, COURSE_QUIZ_SIZE), 10);
 }
 
 // ---- interactive simulation missions ----

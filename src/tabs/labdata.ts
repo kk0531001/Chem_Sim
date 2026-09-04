@@ -1,6 +1,6 @@
 // Lab & data analysis: Beer-Lambert spectrophotometry, significant figures,
 // glassware uncertainty, lab technique reference.
-import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, quiz, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
+import { h, card, cardWithMissions, missionLadder, theory, slider, button, plot, pills, pageQuiz, atLevel, numberInput, numVal, type TabDef, ctlRow, task } from './framework';
 import { topicPage } from './page';
 import { LABDATA_QUIZ } from './questions2';
 
@@ -69,12 +69,16 @@ function makeBeer(): HTMLElement {
   ]);
 
   const el = h('div', { class: 'cards' },
-    cardWithMissions('Beer\'s law: calibration curve → unknown', beerMissions,
+    // The pills group is FLATTENED into one section per card by topicPage, so
+    // each card carries its own level (plan3 Phase 6) rather than the group
+    // carrying one. The two "essentials" blocks are this module's exam-level
+    // reference and belong to the contest page.
+    atLevel('core', cardWithMissions('Beer\'s law: calibration curve → unknown', beerMissions,
       task('Read the unknown off the fitted line, then regenerate the noise and see how much the answer moves.'),
       slider({ label: 'unknown\'s A', min: 0.05, max: 1.5, step: 0.01, value: unknownA, fmt: v => v.toFixed(2), onInput: v => { unknownA = v; draw(); } }),
       button('new calibration data (fresh noise)', regenerate),
       canvas, out,
-    ),
+    )),
     theory('Spectrophotometry essentials', `
 <ul>
 <li>Blank (cuvette + solvent, no analyte) zeroes the instrument — corrects for cell and solvent absorption.</li>
@@ -82,7 +86,7 @@ function makeBeer(): HTMLElement {
 <li>Path length b is usually 1.00 cm; ε is compound- and wavelength-specific.</li>
 <li>Kinetics by spectrophotometry: watch A vs t for a colored species — A is proportional to concentration, so all the rate-law analysis applies directly.</li>
 <li><span class="trap">Fingerprints/bubbles on the cuvette and A outside ~0.1–1.0 are the classic error sources.</span></li>
-</ul>`),
+</ul>`, false, 'contest'),
   );
   regenerate();
   return el;
@@ -128,7 +132,7 @@ function makeSigFigs(): HTMLElement {
   errCalc();
 
   return h('div', { class: 'cards' },
-    card('Sig fig counter',
+    atLevel('basics', card('Sig fig counter',
       task('Type the awkward cases — leading zeros, trailing zeros, a pH — and check your count against the rules below.'),
       ctlRow('number', input),
       sfOut,
@@ -144,8 +148,8 @@ function makeSigFigs(): HTMLElement {
       ctlRow('measured', meas),
       ctlRow('accepted', acc),
       errOut,
-    ),
-    card('Glassware — precision you can claim',
+    )),
+    atLevel('basics', card('Glassware — precision you can claim',
       task('Before quoting any volume, find the piece of glassware in this table and let it fix your decimal places.'),
       h('table', { class: 'ref-table', html: `
 <tr><th>glassware</th><th>typical uncertainty</th><th>use for</th></tr>
@@ -156,14 +160,14 @@ function makeSigFigs(): HTMLElement {
 <tr><td>graduated cylinder</td><td>±0.5–1 mL</td><td>rough volumes only</td></tr>
 <tr><td>beaker/flask markings</td><td>±5%</td><td>never for measuring</td></tr>` }),
       h('p', { class: 'muted' }, 'A buret volume is a DIFFERENCE of two readings, so its uncertainty is about ±0.04 mL total. Report readings to two decimal places, estimating the last digit between graduations.'),
-    ),
+    )),
   );
 }
 
 // ================= TECHNIQUE =================
 function makeTechnique(): HTMLElement {
   return h('div', { class: 'cards' },
-    card('Titration technique — the classic exam questions',
+    atLevel('core', card('Titration technique — the classic exam questions',
       task('For each line, say which way the reported concentration moves before you read on.'),
       h('ul', {},
         h('li', { html: 'Rinse the buret <b>with the titrant</b> (water left inside would dilute it → volume reads high).' }),
@@ -174,8 +178,8 @@ function makeTechnique(): HTMLElement {
         h('li', { html: 'Endpoint = first PERMANENT faint color change (30 s). Add dropwise near the endpoint, swirl constantly.' }),
         h('li', { html: 'Overshooting, wrong indicator (methyl orange for weak acid/strong base), and misreading the buret scale are the standard error-analysis answers.' }),
       ),
-    ),
-    card('General technique & error direction reasoning',
+    )),
+    atLevel('core', card('General technique & error direction reasoning',
       task('Practise the drill: trace one mistake through the formula and state the direction of the final error.'),
       h('ul', {},
         h('li', { html: '<b>Weigh by difference</b>: (container + sample) − (container) — cancels container error and hygroscopic drift.' }),
@@ -185,7 +189,7 @@ function makeTechnique(): HTMLElement {
         h('li', { html: '<b>Crystallization vs evaporation</b>: evaporate to dryness traps impurities; cool slowly for pure crystals, wash with cold solvent.' }),
         h('li', { html: '<b>Filtration</b>: gravity for keeping the liquid, vacuum (Büchner) for keeping the solid; wet filter paper before adding.' }),
       ),
-    ),
+    )),
     theory('Accuracy vs precision & uncertainty propagation', `
 <ul>
 <li><b>Accuracy</b> = close to true value (systematic error moves it). <b>Precision</b> = reproducibility (random error spreads it). A miscalibrated balance is precise but inaccurate.</li>
@@ -193,7 +197,7 @@ function makeTechnique(): HTMLElement {
 <li>Adding/subtracting: absolute uncertainties add. Multiplying/dividing: RELATIVE (%) uncertainties add.</li>
 <li>Which measurement limits your result? The one with the largest % uncertainty — improve that one first (usually the smallest-volume measurement).</li>
 <li>Mean ± spread: report x̄ and note the range; discard an outlier only with a stated reason.</li>
-</ul>`, true),
+</ul>`, true, 'contest'),
   );
 }
 
@@ -271,26 +275,26 @@ function makeUncertainty(): HTMLElement {
   ]);
 
   return h('div', { class: 'cards' },
-    card('Uncertainty propagation',
+    atLevel('contest', card('Uncertainty propagation',
       task('Enter three measurements with their uncertainties and find which one dominates the result.'),
       h('p', { class: 'muted' }, 'Compute A·B/C with its uncertainty:'),
       ctlRow('A ± δA', A, dA),
       ctlRow('B ± δB', B, dB),
       ctlRow('C ± δC', C, dC),
       propOut,
-    ),
-    cardWithMissions('Q-test for outliers', qMissions,
+    )),
+    atLevel('contest', cardWithMissions('Q-test for outliers', qMissions,
       task('Paste a small data set with one suspect value and check whether Q actually lets you reject it.'),
       ctlRow('values (comma-sep)', vals),
       qOut,
-    ),
+    )),
   );
 }
 
 // ================= QUALITATIVE FUNCTIONAL-GROUP TESTS =================
 function makeQualTests(): HTMLElement {
   return h('div', { class: 'cards' },
-    card('Qualitative functional-group tests',
+    atLevel('contest', card('Qualitative functional-group tests',
       task('For each pair of similar groups, find the test that distinguishes them.'),
       h('table', { class: 'ref-table', html: `
 <tr><th>test / reagent</th><th>positive result</th><th>detects</th></tr>
@@ -305,8 +309,8 @@ function makeQualTests(): HTMLElement {
 <tr><td>NaHCO₃</td><td>effervescence (CO₂)</td><td>carboxylic acid</td></tr>
 <tr><td>Ceric ammonium nitrate</td><td>amber → red</td><td>alcohol</td></tr>` }),
       h('p', { class: 'muted' }, 'Strategy: 2,4-DNP first confirms a carbonyl, then Tollens/iodoform narrows aldehyde vs methyl ketone. Bromine water and Baeyer both flag unsaturation; combine tests to pin the group.'),
-    ),
-    card('Cation / anion & gas tests',
+    )),
+    atLevel('contest', card('Cation / anion & gas tests',
       task('Plan the order you would run these in to identify an unknown salt.'),
       h('ul', {},
         h('li', { html: '<b>Flame:</b> Li crimson, Na yellow, K lilac, Ca brick-red, Ba green, Cu blue-green.' }),
@@ -315,14 +319,14 @@ function makeQualTests(): HTMLElement {
         h('li', { html: '<b>NH₄⁺ + NaOH (warm):</b> NH₃ gas (damp red litmus → blue).' }),
         h('li', { html: '<b>Gas tests:</b> H₂ squeaky pop; O₂ relights glowing splint; CO₂ limewater milky.' }),
       ),
-    ),
+    )),
   );
 }
 
 export const labdataTab: TabDef = {
   id: 'labdata',
-  mount(root) {
-    root.append(topicPage('labdata', {
+  mount(root, pageId) {
+    root.append(topicPage(pageId ?? 'labdata', {
       sims: [pills([
         { label: 'Beer\'s law', el: makeBeer() },
         { label: 'Sig figs & error', el: makeSigFigs() },
@@ -330,7 +334,7 @@ export const labdataTab: TabDef = {
         { label: 'Qual. analysis', el: makeQualTests() },
         { label: 'Technique', el: makeTechnique() },
       ])],
-      quiz: quiz(LABDATA_QUIZ, 10),
+      quiz: pageQuiz(pageId ?? 'labdata', LABDATA_QUIZ),
       // Basics first; the exam-level material is one theory block per panel,
       // beside the tool it explains.
       theory: [
@@ -356,7 +360,7 @@ export const labdataTab: TabDef = {
 <li>Read a burette correctly, and say why eye level matters.</li>
 <li>Apply the decimal-place rule to a sum and the significant-figure rule to a product.</li>
 <li>Explain what absorbance measures, why λmax is chosen, and how a calibration line turns an absorbance into a concentration.</li>
-</ul>`, true),
+</ul>`, true, 'basics'),
         theory('Core — Lab & Data', `
 <h3>What this block adds</h3>
 <p>Basics read a burette and gave the two significant-figure rules. Core carries those digits through a whole calculation and puts numbers on how good each piece of glassware is. It also works out which way a mistake pushes the answer.</p>
@@ -394,7 +398,7 @@ export const labdataTab: TabDef = {
 <li>Quote a tolerance for a pipette, a flask and a burette, and turn it into a percentage.</li>
 <li>Build a calibration line, get ε from its slope, and read an unknown concentration off it.</li>
 <li>Say whether a named procedural error makes the result too high, too low or unaffected.</li>
-</ul>`, true),
+</ul>`, true, 'core'),
       ],
     }));
   },

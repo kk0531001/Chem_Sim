@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build && node scripts/prerender.mjs",
     "preview": "vite preview",
-    "audit": "node scripts/audit-content.mjs && node scripts/test-bronze.mjs && node scripts/test-router.mjs && node scripts/test-spine.mjs && node scripts/test-sections.mjs && node scripts/test-recommend.mjs && node scripts/test-sync.mjs && node scripts/test-plot.mjs && npm run audit:deps",
+    "audit": "node scripts/audit-content.mjs && node scripts/gen-page-questions.mjs --check && node scripts/test-bronze.mjs && node scripts/test-router.mjs && node scripts/test-spine.mjs && node scripts/test-sections.mjs && node scripts/test-recommend.mjs && node scripts/test-sync.mjs && node scripts/test-plot.mjs && npm run audit:deps",
     "audit:deps": "npm audit --omit=dev --audit-level=high"
   },
   "devDependencies": {
