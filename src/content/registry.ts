@@ -15,7 +15,7 @@ import { qid, remapProgressIds, needsIdMigration, markIdMigrationDone,
 import type { QuizQ } from '../tabs/framework';
 import type { FRQ } from '../tabs/bankPart2';
 import {
-  BANKS, COMPS, ID_PREFIX, EXAM_TOPIC_LABEL, ceilingRank, compsForDifficulty, isExamTopicId,
+  BANKS, COMPS, ID_PREFIX, EXAM_TOPIC_LABEL, ceilingRank, compRank, compsForDifficulty, isExamTopicId,
   isModuleId, toExamTopic,
   type Comp, type ExamTopicId, type QuizModuleId, type Tier,
 } from './topicIds';
@@ -119,8 +119,14 @@ const difficultyOfId = (id: string): readonly string[] => {
  * every quiz bank is documented as "CCC/CCO/USNCO-style", so a question in a
  * CCC-pitched module is still an exam question — without the floor, a
  * CCC-only module's whole bank collapsed into Bronze and became
- * indistinguishable from its own warm-ups. The cap: a four-option multiple
- * choice cannot be "a full olympiad problem", whatever it is about.
+ * indistinguishable from its own warm-ups. The floor covers the HS level for
+ * the same reason: Bronze is the warm-ups, so an HS-only module still starts
+ * at Silver. The cap: a four-option multiple choice cannot be "a full olympiad
+ * problem", whatever it is about.
+ *
+ * The tier scale is anchored at CCC = Silver, so a competition rank is offset
+ * by `compRank('ccc') - 1` before it is read as a tier — `hs` sits below the
+ * contests and must not push every other level up a rung.
  */
 export function tierOf(q: { id: string; tier?: Tier }): Tier {
   if (q.tier) return q.tier;
@@ -128,7 +134,7 @@ export function tierOf(q: { id: string; tier?: Tier }): Tier {
   if (isWarmup(id)) return 1;
   if (id.startsWith('cco-') || id.startsWith('int-')) return 4;
   if (id.startsWith('p2-') || /^mock\d-b-/.test(id)) return 3;
-  const base = moduleOfId(id) ? ceilingRank(difficultyOfId(id)) : 2; // exam banks have no module
+  const base = moduleOfId(id) ? ceilingRank(difficultyOfId(id)) - (compRank('ccc') - 1) : 2; // exam banks have no module
   return Math.min(3, Math.max(2, base)) as Tier;
 }
 

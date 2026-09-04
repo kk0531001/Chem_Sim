@@ -26,7 +26,7 @@ export const MODE_LABEL: Record<Mode, string> = {
 
 /** Short form, for chips and readouts where the full name doesn't fit. */
 export const MODE_SHORT: Record<Mode, string> = {
-  all: 'All', ccc: 'CCC', usnco: 'USNCO', cco: 'CCO', icho: 'IChO',
+  all: 'All', hs: 'HS', ccc: 'CCC', usnco: 'USNCO', cco: 'CCO', icho: 'IChO',
 };
 
 export const MODES: readonly Mode[] = ['all', ...COMPS];

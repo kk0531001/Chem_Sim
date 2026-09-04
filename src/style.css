@@ -596,6 +596,7 @@ body { overflow: hidden; }
   border-radius: var(--r-lg);
   border: 1px solid transparent;
 }
+.badge-hs { background: var(--paper-3); color: var(--ink-dim); border-color: var(--rule-2); }
 .badge-ccc { background: rgba(47, 158, 68, 0.1); color: var(--green-ink); border-color: rgba(47, 158, 68, 0.25); }
 .badge-usnco { background: rgba(61, 111, 165, 0.1); color: var(--blue-ink); border-color: rgba(61, 111, 165, 0.25); }
 .badge-cco { background: var(--accent-wash); color: var(--accent-dark); border-color: var(--accent-edge); }

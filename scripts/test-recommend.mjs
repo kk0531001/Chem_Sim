@@ -45,7 +45,7 @@ export const activeMode = () => state.mode;
 export const activeComp = () => (state.mode === 'all' ? undefined : state.mode);
 export const inScope = (d, m = state.mode) => m === 'all' || compsForDifficulty(d).includes(m);
 export const onModeChange = () => {};
-export const MODE_SHORT = { all: 'All', ccc: 'CCC', usnco: 'USNCO', cco: 'CCO', icho: 'IChO' };
+export const MODE_SHORT = { all: 'All', hs: 'HS', ccc: 'CCC', usnco: 'USNCO', cco: 'CCO', icho: 'IChO' };
 `);
 
 transpile('src/content/topicIds.ts', 'topicIds.mjs');
@@ -236,6 +236,27 @@ check('switching mode changes the recommendation, not the data', () => {
   if (!modeMod.inScope(cccMode.topic.difficulty, 'ccc')) {
     throw new Error(`CCC mode picked ${cccMode.topic.id}, which is off the CCC syllabus`);
   }
+});
+
+// The HS level sits BELOW the four contests (plan3 Phase 6). The upward
+// closure is what makes that safe: course material must stay in scope in every
+// contest mode, and no contest material may leak down into HS mode.
+console.log('\nlevels:');
+const { compsForDifficulty, ceilingRank, COMPS } = topicIds;
+
+check('HS content is in scope for every level', () => {
+  const got = compsForDifficulty(['HS']);
+  eq(got.length, COMPS.length, 'compsForDifficulty([HS]).length');
+  for (const c of COMPS) if (!got.includes(c)) throw new Error(`HS content missing from ${c}`);
+});
+
+check('CCC content is out of scope for HS', () => {
+  if (compsForDifficulty(['CCC']).includes('hs')) throw new Error('CCC material leaked into HS mode');
+});
+
+check('HS ranks below CCC', () => {
+  eq(ceilingRank(['HS']), 1, 'ceilingRank([HS])');
+  eq(ceilingRank(['CCC']), 2, 'ceilingRank([CCC])');
 });
 
 if (failures) {

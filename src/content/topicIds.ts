@@ -295,10 +295,18 @@ export function bankForModule(m: QuizModuleId): QuizBankSpec | undefined {
 // Competitions and difficulty tiers
 // ---------------------------------------------------------------------------
 
-/** The four exams the app trains for, in increasing order of demand. */
-export type Comp = 'ccc' | 'usnco' | 'cco' | 'icho';
-export const COMPS: readonly Comp[] = ['ccc', 'usnco', 'cco', 'icho'] as const;
+/**
+ * The levels the app trains for, in increasing order of demand.
+ *
+ * `hs` is not a contest: it is the grade 11-12 course the four contests sit
+ * above, and it is FIRST so the upward closure in `compsForDifficulty` puts
+ * course material in scope for every contest mode. Everything that compares
+ * levels goes through `compRank`; nothing may assume `ccc` is the bottom.
+ */
+export type Comp = 'hs' | 'ccc' | 'usnco' | 'cco' | 'icho';
+export const COMPS: readonly Comp[] = ['hs', 'ccc', 'usnco', 'cco', 'icho'] as const;
 export const COMP_LABEL: Record<Comp, string> = {
+  hs: 'High school course',
   ccc: 'Canadian Chemistry Contest',
   usnco: 'U.S. National Chemistry Olympiad',
   cco: 'Canadian Chemistry Olympiad',
@@ -306,16 +314,17 @@ export const COMP_LABEL: Record<Comp, string> = {
 };
 
 /**
- * The same four levels said in plain words, for a reader who has never heard of
- * any of them. Shown as a one-line subtitle wherever COMP_LABEL is offered as a
+ * The same levels said in plain words, for a reader who has never heard of any
+ * of them. Shown as a one-line subtitle wherever COMP_LABEL is offered as a
  * filter or an explainer. Says what the level IS — never dates, scoring or
  * eligibility, which are the organiser's to publish (see the guides rule).
  *
- * None of these names a beginner level: every one of them is a contest pitched
- * above the school course. The beginner entry point is the Basics block and the
+ * Only `hs` names a beginner level; the other four are contests pitched above
+ * the school course. The other beginner entry point is the Basics block and the
  * warm-up questions inside each module, which belong to no competition.
  */
 export const COMP_PLAIN: Record<Comp, string> = {
+  hs: 'The grade 11-12 course, before any contest',
   ccc: 'Canadian high-school contest — beyond the regular course',
   usnco: 'US high-school olympiad — advanced',
   cco: 'Canadian national olympiad',
@@ -323,7 +332,7 @@ export const COMP_PLAIN: Record<Comp, string> = {
 };
 
 /** `difficulty` in topics.ts uses these display labels; this is the bridge. */
-const COMP_OF_LABEL: Record<string, Comp> = { CCC: 'ccc', USNCO: 'usnco', CCO: 'cco', IChO: 'icho' };
+const COMP_OF_LABEL: Record<string, Comp> = { HS: 'hs', CCC: 'ccc', USNCO: 'usnco', CCO: 'cco', IChO: 'icho' };
 export const compRank = (c: Comp): number => COMPS.indexOf(c) + 1;
 
 /**
@@ -344,9 +353,9 @@ export const TIER_LABEL: Record<Tier, string> = {
  *
  * `TopicMeta.difficulty` already lists the levels each module is pitched at, so
  * this needs one mapping rather than 919 hand-tags. The semantics are an upward
- * closure from the LOWEST level listed: content pitched at CCC is also fair game
- * for a USNCO/CCO/IChO student (it's foundational), but CCO-level material is
- * out of scope for CCC. That asymmetry is the whole point of a competition mode
+ * closure from the LOWEST level listed: content pitched at HS or CCC is also
+ * fair game for a USNCO/CCO/IChO student (it's foundational), but CCO-level
+ * material is out of scope for CCC. That asymmetry is the whole point of a competition mode
  * — it should narrow what you're shown, not just relabel it.
  */
 export function compsForDifficulty(difficulty: readonly string[]): Comp[] {

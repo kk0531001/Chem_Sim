@@ -16,7 +16,7 @@ import { activeMode, inScope, onModeChange, setMode, MODE_SHORT, type Mode } fro
 import { GUIDES } from './guides';
 import { COMP_PLAIN, type Comp } from './content/topicIds';
 
-const LEVELS = ['CCC', 'USNCO', 'CCO', 'IChO'] as const;
+const LEVELS = ['HS', 'CCC', 'USNCO', 'CCO', 'IChO'] as const;
 type Level = (typeof LEVELS)[number];
 
 type Status = 'any' | 'todo' | 'doing' | 'done';
@@ -160,7 +160,7 @@ export function buildMenuPage(
     [{ value: 'any', label: 'All levels' },
      ...LEVELS.map(l => ({ value: l, label: l, plain: COMP_PLAIN[l.toLowerCase() as Comp] }))],
     () => level, v => { level = v; setMode(v === 'any' ? 'all' : v.toLowerCase() as Mode); });
-  // The pills are four acronyms. This says the chosen one in words, once,
+  // The pills are five short labels. This says the chosen one in words, once,
   // under the row — a tooltip is not readable on a phone and not discoverable
   // anywhere. Empty (and gone) at "All levels", where there is nothing to gloss.
   const levelNote = h('p', { class: 'muted menu-level-note' });

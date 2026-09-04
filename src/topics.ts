@@ -2,7 +2,7 @@
 // teaser grid, the full Menu directory, and the breadcrumb/prereq/next-lesson
 // chrome on each topic page. `group` must match the `group` field on each
 // TabDef. `difficulty` lists every exam level the module is pitched at, in
-// increasing order (CCC < USNCO < CCO < IChO). `prereqs` are topic ids.
+// increasing order (HS < CCC < USNCO < CCO < IChO). `prereqs` are topic ids.
 /**
  * One reading-list entry (ROADMAP D.5). `chapter` names the chapter rather
  * than numbering it: the numbering moves between editions, so "the chapter on
