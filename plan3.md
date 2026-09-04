@@ -753,9 +753,19 @@ quiz, ladder. The page contract (`sims` non‑empty) is relaxed for
 - A per‑page "show contest material" toggle. The split makes it unnecessary.
 
 - [ ] **6.1** `hs` level; `layer`/`parent` on TopicMeta; level tags; two pages per module; quiz slicing; MODULE_QUIZ_SIZE per page; prereqs and runs; router/prerender/sitemap (Prompt 13, engineering).
-- [ ] **6.2** Core theory block on each of the nine modules (Prompt 14, content). Runs alongside 6.1.
-- [ ] **6.3** Core questions: triage plus new, positions 11–20 tier 2 (Prompt 15, content). After 6.1 and 6.2.
-- [ ] **6.4** Intros for the nine course pages (rewrite to course register) and the nine contest pages (new, short) (Prompt 16, content). After 6.1.
+- [x] **6.2** Core theory block on each of the nine modules (Prompt 14, content). Runs alongside 6.1.
+- [x] **6.3** Core questions: triage plus new, positions 11–20 tier 2 (Prompt 15, content). After 6.1 and 6.2.
+- [x] **6.4** Intros for the nine course pages (rewrite to course register) and the nine contest pages (new, short) (Prompt 16, content). After 6.1.
+- [x] **6.A** Beginner walk-through of the live site, in Start-here order, by a
+      reader with no chemistry vocabulary: 144 findings in
+      [docs/walkthrough-2026-09-03.md](docs/walkthrough-2026-09-03.md), all
+      applied across three commits. The three worst were Equilibrium's ICE and
+      Ksp cards (pKa, Ka, pH used two modules before they are defined), the
+      VSEPR mission (needed five- and six-group shapes the course page never
+      teaches), and the Acids quiz (the only module with five Basics questions,
+      so the floor dropped at question six). Nine repeating patterns are listed
+      there; the ones worth remembering are that a chip label is read before any
+      prose, and that one letter must not mean two things on a page.
 - [ ] **6.5** Show it to the friends: "Start Atoms & Electrons and tell me when it first feels too hard."
 
 ### Prompt 13 — Two pages per module
