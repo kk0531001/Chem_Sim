@@ -12,7 +12,7 @@
  * shipping. Update these when a bank grows; the audit will tell you if you
  * forget.
  */
-export const CORPUS_COUNTS = { mc: 933, frq: 128, papers: 5 };
+export const CORPUS_COUNTS = { mc: 960, frq: 128, papers: 5 };
 
 /**
  * How many questions each PAGE's quiz holds — the denominator of the progress
@@ -34,15 +34,15 @@ export const CORPUS_COUNTS = { mc: 933, frq: 128, papers: 5 };
  */
 export const MODULE_QUIZ_SIZE: Record<string, number> = {
   // Split modules: course page (20) + contest page (the rest of the bank).
-  quantum: 20, 'quantum-contest': 10,
+  quantum: 20, 'quantum-contest': 18,
   periodicity: 20, 'periodicity-contest': 10,
-  bonding: 20, 'bonding-contest': 20,
-  stoich: 20, 'stoich-contest': 10,
+  bonding: 20, 'bonding-contest': 26,
+  stoich: 20, 'stoich-contest': 13,
   thermo1: 20, 'thermo1-contest': 10,
   equilibrium: 20, 'equilibrium-contest': 10,
-  aek: 20, 'aek-contest': 15,
+  aek: 20, 'aek-contest': 24,
   labdata: 20, 'labdata-contest': 10,
-  labtech: 20, 'labtech-contest': 14,
+  labtech: 20, 'labtech-contest': 15,
   // One page, one bank.
   thermo2: 25, gases: 35,
   physchem: 27, biophys: 25,
