@@ -82,7 +82,7 @@ function makeBeer(): HTMLElement {
     theory('Spectrophotometry essentials', `
 <ul>
 <li>Blank (cuvette + solvent, no analyte) zeroes the instrument — corrects for cell and solvent absorption.</li>
-<li>Choose λ<sub>max</sub> from the absorption spectrum; a solution's color is the <b>complement</b> of what it absorbs (CuSO₄ absorbs orange-red ~620+ nm, looks blue).</li>
+<li>Choose λ<sub>max</sub> from the absorption spectrum; a solution's colour is the <b>complement</b> of what it absorbs (CuSO₄ absorbs orange-red ~620+ nm, looks blue).</li>
 <li>Path length b is usually 1.00 cm; ε is compound- and wavelength-specific.</li>
 <li>Kinetics by spectrophotometry: watch A vs t for a colored species — A is proportional to concentration, so all the rate-law analysis applies directly.</li>
 <li><span class="trap">Fingerprints/bubbles on the cuvette and A outside ~0.1–1.0 are the classic error sources.</span></li>
@@ -132,7 +132,7 @@ function makeSigFigs(): HTMLElement {
   errCalc();
 
   return h('div', { class: 'cards' },
-    atLevel('basics', card('Sig fig counter',
+    atLevel('basics', card('Significant figures',
       task('Type the awkward cases — leading zeros, trailing zeros, a pH — and check your count against the rules below.'),
       ctlRow('number', input),
       sfOut,
@@ -155,11 +155,11 @@ function makeSigFigs(): HTMLElement {
 <tr><th>glassware</th><th>typical uncertainty</th><th>use for</th></tr>
 <tr><td>analytical balance</td><td>±0.0001 g</td><td>weighing by difference</td></tr>
 <tr><td>volumetric pipet (25 mL)</td><td>±0.03 mL</td><td>delivering one exact volume</td></tr>
-<tr><td>buret (50 mL)</td><td>±0.02 mL per reading</td><td>titration (record to 0.01 mL!)</td></tr>
+<tr><td>burette (50 mL)</td><td>±0.02 mL per reading</td><td>titration (record to 0.01 mL!)</td></tr>
 <tr><td>volumetric flask (100 mL)</td><td>±0.08 mL</td><td>making standard solutions</td></tr>
 <tr><td>graduated cylinder</td><td>±0.5–1 mL</td><td>rough volumes only</td></tr>
 <tr><td>beaker/flask markings</td><td>±5%</td><td>never for measuring</td></tr>` }),
-      h('p', { class: 'muted' }, 'A buret volume is a DIFFERENCE of two readings, so its uncertainty is about ±0.04 mL total. Report readings to two decimal places, estimating the last digit between graduations.'),
+      h('p', { class: 'muted' }, 'A burette volume is a DIFFERENCE of two readings, so its uncertainty is about ±0.04 mL total. Report readings to two decimal places, estimating the last digit between graduations.'),
     )),
   );
 }
@@ -167,16 +167,16 @@ function makeSigFigs(): HTMLElement {
 // ================= TECHNIQUE =================
 function makeTechnique(): HTMLElement {
   return h('div', { class: 'cards' },
-    atLevel('core', card('Titration technique — the classic exam questions',
+    atLevel('core', card('Titration technique — which way each mistake pushes the answer',
       task('For each line, say which way the reported concentration moves before you read on.'),
       h('ul', {},
-        h('li', { html: 'Rinse the buret <b>with the titrant</b> (water left inside would dilute it → volume reads high).' }),
-        h('li', { html: '<span class="trap">The Erlenmeyer flask may be wet with distilled water — moles of analyte are unchanged, so NO error!</span> The single most-tested titration concept.' }),
+        h('li', { html: 'Rinse the burette <b>with the titrant</b> (water left inside would dilute it → volume reads high).' }),
+        h('li', { html: '<span class="trap">The Erlenmeyer flask may be wet with distilled water — the moles of acid in the flask are unchanged, so NO error!</span> This is the one most often got wrong.' }),
         h('li', { html: 'Rinse the pipet with the analyte solution; let it drain by gravity — the last drop stays in (calibrated "to deliver").' }),
-        h('li', { html: 'Remove the air bubble from the buret tip (bubble escaping mid-run → volume reads high → concentration overestimated).' }),
+        h('li', { html: 'Remove the air bubble from the burette tip (bubble escaping mid-run → volume reads high → concentration overestimated).' }),
         h('li', { html: 'Read the bottom of the meniscus at eye level; record to 0.01 mL.' }),
-        h('li', { html: 'Endpoint = first PERMANENT faint color change (30 s). Add dropwise near the endpoint, swirl constantly.' }),
-        h('li', { html: 'Overshooting, wrong indicator (methyl orange for weak acid/strong base), and misreading the buret scale are the standard error-analysis answers.' }),
+        h('li', { html: 'The end point is the first PERMANENT faint colour change (lasting 30 s). Add dropwise near the endpoint, swirl constantly.' }),
+        h('li', { html: 'Overshooting, wrong indicator (methyl orange for weak acid/strong base), and misreading the burette scale are the usual causes to check.' }),
       ),
     )),
     atLevel('core', card('General technique & error direction reasoning',
@@ -185,7 +185,7 @@ function makeTechnique(): HTMLElement {
         h('li', { html: '<b>Weigh by difference</b>: (container + sample) − (container) — cancels container error and hygroscopic drift.' }),
         h('li', { html: '<b>Heat to constant mass</b>: repeat heat/cool/weigh until mass stops changing — otherwise hydrate water remains → mass reads high.' }),
         h('li', { html: '<b>Dilution</b>: add acid TO water (exothermic splatter). Let volumetric flasks cool before final fill (hot solution = expanded volume).' }),
-        h('li', { html: '<b>Error direction drill</b>: trace the mistake through the formula. Example: unnoticed bubble in buret → V(titrant) reads high → n(acid) calculated high → concentration reported HIGH.' }),
+        h('li', { html: '<b>Error direction drill</b>: trace the mistake through the formula. Example: unnoticed bubble in the burette → V(titrant) reads high → n(acid) calculated high → concentration reported HIGH.' }),
         h('li', { html: '<b>Crystallization vs evaporation</b>: evaporate to dryness traps impurities; cool slowly for pure crystals, wash with cold solvent.' }),
         h('li', { html: '<b>Filtration</b>: gravity for keeping the liquid, vacuum (Büchner) for keeping the solid; wet filter paper before adding.' }),
       ),
@@ -219,11 +219,11 @@ function makeUncertainty(): HTMLElement {
       const relLinear = relA + relB + relC;
       const relQuad = Math.sqrt(relA * relA + relB * relB + relC * relC);
       propOut.innerHTML =
-        `result = A·B/C = <b>${result.toPrecision(4)}</b><br>` +
-        `relative uncertainties: A ${(relA * 100).toFixed(2)}%, B ${(relB * 100).toFixed(2)}%, C ${(relC * 100).toFixed(2)}%<br>` +
+        `concentration = (titrant volume × titrant concentration) ÷ sample volume = <b>${result.toPrecision(4)}</b> mol/L<br>` +
+        `relative uncertainties: titrant volume ${(relA * 100).toFixed(2)}%, titrant concentration ${(relB * 100).toFixed(2)}%, sample volume ${(relC * 100).toFixed(2)}%<br>` +
         `linear sum (conservative): ±${(relLinear * 100).toFixed(2)}% → ±${(result * relLinear).toPrecision(2)}<br>` +
         `in quadrature (independent errors): ±${(relQuad * 100).toFixed(2)}% → <b>${result.toPrecision(4)} ± ${(result * relQuad).toPrecision(2)}</b><br>` +
-        `<span class="muted">For ×/÷ the RELATIVE uncertainties combine; for +/− the ABSOLUTE ones do. The largest relative term dominates — improve that measurement first.</span>`;
+        `<span class="muted">For × and ÷ the RELATIVE uncertainties combine; for + and − the ABSOLUTE ones do. The largest relative term dominates the answer, so that is the measurement to improve first.</span>`;
     }
   };
   [A, dA, B, dB, C, dC].forEach(i => i.addEventListener('input', propCalc));
@@ -275,16 +275,16 @@ function makeUncertainty(): HTMLElement {
   ]);
 
   return h('div', { class: 'cards' },
-    atLevel('contest', card('Uncertainty propagation',
+    atLevel('contest', card('Combining uncertainties',
       task('Enter three measurements with their uncertainties and find which one dominates the result.'),
-      h('p', { class: 'muted' }, 'Compute A·B/C with its uncertainty:'),
-      ctlRow('A ± δA', A, dA),
-      ctlRow('B ± δB', B, dB),
-      ctlRow('C ± δC', C, dC),
+      h('p', { class: 'muted' }, 'A worked titration: the concentration is (titrant volume × titrant concentration) ÷ sample volume, and each of the three carries an uncertainty of its own. δ, the Greek letter delta, means "the uncertainty in".'),
+      ctlRow('titrant volume (mL) ± δ', A, dA),
+      ctlRow('titrant concentration (mol/L) ± δ', B, dB),
+      ctlRow('sample volume (mL) ± δ', C, dC),
       propOut,
     )),
-    atLevel('contest', cardWithMissions('Q-test for outliers', qMissions,
-      task('Paste a small data set with one suspect value and check whether Q actually lets you reject it.'),
+    atLevel('contest', cardWithMissions('Testing an odd result — the Q-test', qMissions,
+      task('Paste a small data set with one suspect value and check whether the Q-test actually lets you throw it out.'),
       ctlRow('values (comma-sep)', vals),
       qOut,
     )),
@@ -303,12 +303,12 @@ function makeQualTests(): HTMLElement {
 <tr><td>2,4-DNP (Brady's)</td><td>yellow-orange precipitate</td><td>aldehyde OR ketone (C=O)</td></tr>
 <tr><td>Iodoform (I₂/NaOH)</td><td>yellow CHI₃ precipitate</td><td>methyl ketone or CH₃CH(OH)–</td></tr>
 <tr><td>Lucas (ZnCl₂/HCl)</td><td>cloudiness: 3° fast, 2° slow, 1° none</td><td>alcohol class</td></tr>
-<tr><td>Bromine water</td><td>orange → colorless</td><td>alkene/alkyne (C=C, C≡C)</td></tr>
+<tr><td>Bromine water</td><td>orange → colourless</td><td>alkene/alkyne (C=C, C≡C)</td></tr>
 <tr><td>Baeyer (cold dilute KMnO₄)</td><td>purple → brown MnO₂</td><td>alkene (also oxidizable groups)</td></tr>
-<tr><td>FeCl₃</td><td>violet/blue color</td><td>phenol</td></tr>
+<tr><td>FeCl₃</td><td>violet/blue colour</td><td>phenol</td></tr>
 <tr><td>NaHCO₃</td><td>effervescence (CO₂)</td><td>carboxylic acid</td></tr>
 <tr><td>Ceric ammonium nitrate</td><td>amber → red</td><td>alcohol</td></tr>` }),
-      h('p', { class: 'muted' }, 'Strategy: 2,4-DNP first confirms a carbonyl, then Tollens/iodoform narrows aldehyde vs methyl ketone. Bromine water and Baeyer both flag unsaturation; combine tests to pin the group.'),
+      h('p', { class: 'muted' }, 'A carbonyl is a C=O group; unsaturation means a carbon–carbon double or triple bond. Strategy: 2,4-DNP first confirms a carbonyl, then Tollens or the iodoform test narrows aldehyde against methyl ketone. Bromine water and Baeyer both flag unsaturation; combine tests to pin the group down.'),
     )),
     atLevel('contest', card('Cation / anion & gas tests',
       task('Plan the order you would run these in to identify an unknown salt.'),
@@ -370,7 +370,7 @@ export const labdataTab: TabDef = {
 <p>Counted numbers and exact conversions never limit the answer. The 1000 in millilitres per litre is exact, and so is the 2 in a two-to-one mole ratio.</p>
 <h3>Precision, accuracy and a set of repeats</h3>
 <p>Precision is measured from your own results, by how far the repeats sit from one another. Accuracy needs a known value to compare against. A titration is repeated until the results agree, not until one of them looks right.</p>
-<p>Four titres come in at 22.85, 22.35, 22.40 and 22.30 mL. The last three agree within 0.10 mL, while the first is half a millilitre away. Treat that first one as a rough trial, and the mean of the other three is 22.35 mL. Titres are normally accepted as concordant, meaning in agreement, when they fall within 0.10 mL of each other.</p>
+<p>Four titres come in at 22.85, 22.35, 22.40 and 22.30 mL. A titre is the volume the burette delivered in one run, the final reading minus the starting one. The last three agree within 0.10 mL, while the first is half a millilitre away. Treat that first one as a rough trial, and the mean of the other three is 22.35 mL. Titres are normally accepted as concordant, meaning in agreement, when they fall within 0.10 mL of each other.</p>
 <h3>What the glassware can promise</h3>
 <p>A tolerance is the largest error the maker guarantees the item stays inside. Class A is the more accurate grade of volumetric glassware.</p>
 <ul>
@@ -384,6 +384,9 @@ export const labdataTab: TabDef = {
 <p>Absorbance rises in proportion to concentration, so a set of standards plots as a straight line through the origin. The slope of that line is ε × b, and an unknown is read off the line.</p>
 <p>Four standards at 2.0, 4.0, 6.0 and 8.0 × 10⁻⁵ mol/L give absorbances of 0.104, 0.210, 0.315 and 0.418 in a 1.00 cm cuvette. The slope is (0.418 − 0.104) ÷ (6.0 × 10⁻⁵) = 5.2 × 10³ L/mol. Since <span class="eq">A = ε b c</span> and b = 1.00 cm, the molar absorptivity ε is 5.2 × 10³ L/(mol·cm). An unknown reading 0.260 has c = 0.260 ÷ (5.2 × 10³) = 5.0 × 10⁻⁵ mol/L.</p>
 <p>Read only inside the range you actually measured. A sample absorbing above the top standard is diluted by a known factor, measured again, and the factor applied.</p>
+<h3>The end point and the equivalence point</h3>
+<p>The equivalence point is where exactly enough titrant has been added to react with everything in the flask. It is a fact about the chemistry, and nothing on the bench announces it.</p>
+<p>The end point is what you actually see: the drop at which the indicator changes colour and stays changed. A well-chosen indicator puts the two within one drop of each other, and the gap that remains between them is called the indicator error.</p>
 <h3>Which way an error pushes the answer</h3>
 <p>Work it out in two steps. Ask what the mistake does to the number you write down, then follow that number through the calculation.</p>
 <ul>

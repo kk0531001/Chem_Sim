@@ -50,11 +50,11 @@ function makeAcidBase(): HTMLElement {
   }
 
   const Veq = () => (Ca * Va) / Cb;
-  let vbFrac = 0.35; // current buret position, as a fraction of 2·Veq
+  let vbFrac = 0.35; // current burette position, as a fraction of 2·Veq
   const liveOut = h('div', { class: 'result' });
 
   function phenColor(p: number): string {
-    if (p < 8.2) return '#e8e8e810'; // colorless
+    if (p < 8.2) return '#e8e8e810'; // colourless
     if (p > 10) return '#e858b8';
     return `rgba(232, 88, 184, ${(p - 8.2) / 1.8})`;
   }
@@ -68,13 +68,13 @@ function makeAcidBase(): HTMLElement {
     const Vb = vbFrac * 2 * Veq();
     const p = Math.min(14, Math.max(0, pHat(Vb)));
     const pct = (Vb / Veq()) * 100;
-    const stage = pct < 2 ? 'initial acid' : pct < 90 ? (strong ? 'excess acid' : 'buffer region') :
+    const stage = pct < 2 ? 'initial acid' : pct < 90 ? (strong ? 'excess acid' : 'the flat stretch, where the pH barely moves') :
       pct < 99.5 ? 'approaching equivalence — pH climbing fast' :
         pct <= 100.5 ? 'EQUIVALENCE POINT' : 'excess strong base';
     liveOut.innerHTML =
-      `Buret reads <b>${Vb.toFixed(2)} mL</b> (${pct.toFixed(0)}% to equivalence) → pH = <b class="big">${p.toFixed(2)}</b> · ${stage}<br>` +
-      `flask color — phenolphthalein: <span class="swatch" style="background:${phenColor(p)}"></span>` +
-      `${p < 8.2 ? ' colorless' : p > 10 ? ' pink' : ' first blush of pink'} · ` +
+      `Burette has delivered <b>${Vb.toFixed(2)} mL</b> of ${Veq().toFixed(2)} mL needed to reach equivalence → pH = <b class="big">${p.toFixed(2)}</b> · ${stage}<br>` +
+      `flask colour — phenolphthalein: <span class="swatch" style="background:${phenColor(p)}"></span>` +
+      `${p < 8.2 ? ' colourless' : p > 10 ? ' pink' : ' first blush of pink'} · ` +
       `methyl orange: <span class="swatch" style="background:${moColor(p)}"></span>` +
       `${p < 3.1 ? ' red' : p > 4.4 ? ' yellow' : ' orange (transition)'}`;
   }
@@ -102,8 +102,8 @@ function makeAcidBase(): HTMLElement {
     out.innerHTML =
       `Equivalence at V = <b>${Veq().toFixed(1)} mL</b>, pH = <b>${eqPH.toFixed(2)}</b> ` +
       (strong ? '(= 7: neutral salt)' : `(&gt;7: A⁻ is a weak base — <span class="trap">weak-acid titrations never end at 7</span>)`) +
-      `<br>Indicator choice: phenolphthalein (pink dashes, 8.2–10) fits weak-acid/strong-base; methyl orange (orange dashes, 3.1–4.4) fits strong-acid titrations.` +
-      (!strong ? `<br>Buffer region: flat zone around ½-equivalence where pH = pKa ± 1 (max buffer capacity at pH = pKa).` : '');
+      `<br>Indicator choice — an indicator is a dye that changes colour over a narrow band of pH: phenolphthalein (pink dashes, 8.2–10) suits a weak acid against a strong base; methyl orange (orange dashes, 3.1–4.4) suits a strong acid.` +
+      (!strong ? `<br>The curve is flattest halfway to equivalence, where half the acid has been converted and the pH equals the pKa, ${pKa.toFixed(2)} here.` : '');
     liveUpdate();
     titrMissions.tick();
   }
@@ -111,15 +111,15 @@ function makeAcidBase(): HTMLElement {
   const titrMissions = missionLadder([
     {
       id: 'msn-aek-01',
-      prompt: 'Keep the <b>weak acid</b> at pK<sub>a</sub> 4.74 and open the buret until you are exactly at the <b>equivalence point</b>.',
-      meter: () => ({ label: strong ? 'switch back to the weak acid' : `${(vbFrac * 200).toFixed(1)}% of the way to equivalence · pH ${pHat(vbFrac * 2 * Veq()).toFixed(2)}`, pct: strong ? 0 : Math.max(0, 100 - Math.abs(vbFrac * 200 - 100) * 4) }),
+      prompt: 'Keep the <b>weak acid</b> at pK<sub>a</sub> 4.74 and open the burette until you are exactly at the <b>equivalence point</b>.',
+      meter: () => ({ label: strong ? 'switch back to the weak acid' : `${(vbFrac * 2 * Veq()).toFixed(2)} mL of the ${Veq().toFixed(2)} mL needed · pH ${pHat(vbFrac * 2 * Veq()).toFixed(2)}`, pct: strong ? 0 : Math.max(0, 100 - Math.abs(vbFrac * 200 - 100) * 4) }),
       check: () => !strong && Math.abs(pKa - 4.74) < 0.03 && Math.abs(vbFrac - 0.5) < 0.0026,
-      hints: ['Equivalence is where the moles of added base equal the moles of acid you started with — 100% on the buret readout, not the middle of the slider\'s travel.'],
+      hints: ['Equivalence is where the moles of added base equal the moles of acid you started with. The slider tells you the volume delivered and the volume needed; match them. It is not the middle of the slider\'s travel.'],
       explain: 'At equivalence every HA has become A⁻. The pH there is <b>8.72</b>, not 7 — A⁻ is the conjugate base of a weak acid, so it hydrolyses and leaves the solution basic.',
     },
     {
       id: 'msn-aek-02',
-      prompt: 'You are standing at that equivalence point. A lab partner reaches for <b>methyl orange</b> (range 3.1–4.4). Which indicator should actually be used here?',
+      prompt: 'You are standing at that equivalence point. An indicator is a dye that changes colour over a narrow band of pH, called its range. A lab partner reaches for <b>methyl orange</b>, which changes between pH 3.1 and 4.4. Which of these should actually be used here?',
       choices: [
         { label: 'Phenolphthalein (8.2–10)', value: 'phen' },
         { label: 'Methyl orange (3.1–4.4)', value: 'mo' },
@@ -136,11 +136,11 @@ function makeAcidBase(): HTMLElement {
       { value: 'weak', label: 'weak acid (choose pKa)' },
       { value: 'strong', label: 'strong acid (HCl)' },
     ], v => { strong = v === 'strong'; draw(); }, 'weak'),
-    slider({ label: 'pKa (weak)', min: 2, max: 10, step: 0.05, value: pKa, fmt: v => v.toFixed(2), onInput: v => { pKa = v; draw(); } }),
-    slider({ label: 'acid conc (M)', min: 0.01, max: 0.5, step: 0.01, value: Ca, fmt: v => v.toFixed(2), onInput: v => { Ca = v; draw(); } }),
+    slider({ label: 'pKa of the weak acid (larger = weaker)', min: 2, max: 10, step: 0.05, value: pKa, fmt: v => v.toFixed(2), onInput: v => { pKa = v; draw(); } }),
+    slider({ label: 'acid concentration (mol/L)', min: 0.01, max: 0.5, step: 0.01, value: Ca, fmt: v => v.toFixed(2), onInput: v => { Ca = v; draw(); } }),
     slider({ label: 'acid volume (mL)', min: 5, max: 50, step: 1, value: Va, onInput: v => { Va = v; draw(); } }),
-    slider({ label: 'base conc (M)', min: 0.01, max: 0.5, step: 0.01, value: Cb, fmt: v => v.toFixed(2), onInput: v => { Cb = v; draw(); } }),
-    slider({ label: 'open the buret', min: 0, max: 1, step: 0.002, value: vbFrac, fmt: v => `${(v * 200).toFixed(0)}%·Veq`, onInput: v => { vbFrac = v; draw(); } }),
+    slider({ label: 'base concentration (mol/L)', min: 0.01, max: 0.5, step: 0.01, value: Cb, fmt: v => v.toFixed(2), onInput: v => { Cb = v; draw(); } }),
+    slider({ label: 'open the burette', min: 0, max: 1, step: 0.002, value: vbFrac, fmt: v => `${(v * 200).toFixed(0)}% of the way to equivalence`, onInput: v => { vbFrac = v; draw(); } }),
   );
   draw();
 
@@ -189,7 +189,7 @@ function makeAcidBase(): HTMLElement {
   const bufMissions = missionLadder([
     {
       id: 'msn-aek-03',
-      prompt: 'Design a buffer at <b>pH 5.0</b>. Set the target there, then work out the <b>[base]/[acid] ratio</b> Henderson–Hasselbalch requires for the pair the tool selects.',
+      prompt: 'Design a buffer at <b>pH 5.0</b>. Set the target there, then work out the <b>[base]/[acid] ratio</b> that the Henderson–Hasselbalch equation, pH = pKa + log([base]/[acid]), requires for the pair the tool selects.',
       numeric: { label: '[base]/[acid]', placeholder: 'e.g. 0.75', step: 0.01, validate: n => Math.abs(targetPH - 5.0) < 0.05 && Math.abs(n - 1.82) < 0.12 },
       hints: [
         'pH = pKₐ + log([A⁻]/[HA]). Solve it for the ratio.',
@@ -212,6 +212,7 @@ function makeAcidBase(): HTMLElement {
 
   const bufferCard = cardWithMissions('Buffer designer & shock test', bufMissions,
     task('Design a buffer at a target pH, then add strong acid or base and watch how little the pH moves until the buffer is spent.'),
+    h('p', { class: 'muted' }, 'A buffer is a mixture of a weak acid and its conjugate base in comparable amounts. Added H⁺ is mopped up by the base and added OH⁻ by the acid, so the pH barely moves. Its capacity is how many moles of acid or base it can absorb before one of those two components runs out and the protection stops.'),
     slider({ label: 'target pH', min: 2.5, max: 11.5, step: 0.1, value: targetPH, fmt: v => v.toFixed(1), onInput: v => { targetPH = v; designCalc(); } }),
     designOut,
     h('h3', {}, 'Hit the buffer with strong acid/base'),
@@ -227,7 +228,7 @@ function makeAcidBase(): HTMLElement {
     // carrying one. The three "essentials" blocks are the module's exam-level
     // reference, split three ways, and belong to the contest page.
     atLevel('basics', cardWithMissions('Titration simulator: acid + NaOH', titrMissions,
-      task('Titrate a weak acid and find the two landmarks: the half-equivalence point where pH = pKa, and the equivalence point, which is not at pH 7.'),
+      task('Run base into a weak acid and find the equivalence point, where exactly enough base has been added to react with all the acid. Note that it is not at pH 7.'),
       controls, curveCanvas, liveOut, out)),
     atLevel('contest', bufferCard),
     theory('Acid–base essentials', `
@@ -238,7 +239,7 @@ function makeAcidBase(): HTMLElement {
 <li>Structure → acidity: more electronegative/larger atom bonded to H, more resonance in conjugate base, more EWGs → stronger. Oxyacids: more O's → stronger (HClO₄ ≫ HClO).</li>
 <li>Salt pH: cation of weak base (NH₄⁺, Al³⁺, transition metals) → acidic; anion of weak acid → basic; both → compare Ka vs Kb.</li>
 <li>Polyprotic: treat one proton at a time; [second anion] ≈ K<sub>a2</sub> for a weak diprotic acid solution.</li>
-<li><span class="trap">Very dilute acid (10⁻⁸ M HCl) → pH ≈ 6.98, not 8! Water's autoionization dominates.</span></li>
+<li><span class="trap">Very dilute acid (10⁻⁸ M HCl) → pH ≈ 6.98, not 8! Water's autoionisation dominates.</span></li>
 <li>Buffer capacity ∝ concentrations; works within pK<sub>a</sub> ± 1. Choose an acid whose pK<sub>a</sub> ≈ target pH.</li>
 </ul>`, true, 'contest'),
   );
@@ -282,13 +283,13 @@ function makeElectro(): HTMLElement {
     const { cat, an, E0, n } = cellPair();
     const dG = -n * 96485 * E0 / 1000;
     out.innerHTML =
-      `Cathode (reduction): <b>${cat.label}</b> · Anode (oxidation): <b>${an.label}</b><br>` +
+      `Cathode, the electrode where reduction happens: <b>${cat.label}</b> · anode, where oxidation happens: <b>${an.label}</b><br>` +
       `<span class="eq">E°cell = E°cathode − E°anode = ${cat.E.toFixed(2)} − (${an.E.toFixed(2)}) = <b class="big">${E0.toFixed(2)} V</b></span>` +
       `n = ${n} e⁻ · ΔG° = −nFE° = <b>${dG.toFixed(0)} kJ/mol</b> · K = 10^(${(n * E0 / 0.0592).toFixed(1)})<br>` +
       `Cell diagram: ${an.ox} | ${an.red} ‖ ${cat.red} | ${cat.ox}<br>` +
-      `<span class="muted">Electrons flow anode → cathode through the wire; anions flow toward the anode in the salt bridge. "An Ox, Red Cat."</span>`;
+      `<span class="muted">Electrons flow from the anode to the cathode through the wire, and negative ions move toward the anode through the salt bridge. Oxidation happens at the anode, reduction at the cathode.</span>`;
     const E = cellE();
-    nernstOut.innerHTML = `Nernst: E = E° − (0.0592/n)·log Q = ${E0.toFixed(2)} − (0.0592/${n})·(${logQ}) = <b>${E.toFixed(3)} V</b>` +
+    nernstOut.innerHTML = `Nernst equation — what the voltage becomes once the concentrations are no longer standard: E = E° − (0.0592/n)·log Q = ${E0.toFixed(2)} − (0.0592/${n})·(${logQ}) = <b>${E.toFixed(3)} V</b>` +
       `<br>${logQ > 0 ? 'Products built up → E drops below E°.' : logQ < 0 ? 'Reactant-rich → E above E°.' : 'Standard conditions → E = E°.'} Battery dies when Q = K (E = 0).`;
     cellMissions.tick();
   }
@@ -329,10 +330,10 @@ function makeElectro(): HTMLElement {
     const molE = (amps * mins * 60) / 96485;
     const mol = molE / plate.n;
     farOut.innerHTML =
-      `mol e⁻ = It/F = (${amps.toFixed(1)} A × ${(mins * 60).toFixed(0)} s) / 96485 = <b>${molE.toPrecision(3)} mol</b><br>` +
-      `mol product = mol e⁻ / ${plate.n} = ${mol.toPrecision(3)} mol → <b class="big">${(mol * plate.M).toPrecision(3)} g</b>` +
+      `moles of electrons = current × time ÷ 96485 = (${amps.toFixed(1)} A × ${(mins * 60).toFixed(0)} s) ÷ 96485 C per mole of electrons = <b>${molE.toPrecision(3)} mol</b><br>` +
+      `mol product = mol of electrons ÷ ${plate.n} electrons per ion = ${mol.toPrecision(3)} mol → <b class="big">${(mol * plate.M).toPrecision(3)} g</b>` +
       (plate.gas ? ` = <b>${(mol * 22.7).toPrecision(3)} L at STP</b> (22.7 L/mol at 1 bar; 22.4 at 1 atm)` : '') +
-      `<br><span class="muted">Same charge deposits DIFFERENT moles of different metals — divide by the electron count n. Ag (n=1) plates 3× the moles of Al (n=3).</span>`;
+      `<br><span class="muted">The same charge deposits DIFFERENT amounts of different metals: divide by the number of electrons each ion needs. Silver needs one, so it plates three times the moles that aluminium (three electrons) does.</span>`;
     farMissions.tick();
   }
   const plateMass = () => ((amps * mins * 60) / 96485 / plate.n) * plate.M;
@@ -354,9 +355,9 @@ function makeElectro(): HTMLElement {
       explain: 'About <b>5.1 A</b>. Everything in electroplating is this one chain — grams → moles → moles of electrons → coulombs → amps — and the only place it can go wrong is forgetting that copper needs <em>two</em> electrons per atom. Two consequences worth carrying: current sets the <b>rate</b> and total charge sets the <b>amount</b>, so doubling the current halves the time for the same deposit; and in a real bath you cannot simply keep raising the current, because past a limiting value the copper ions near the surface are consumed faster than they can diffuse in, and the deposit turns from a smooth bright layer into a rough, powdery, poorly adherent one. Plating quality is a rate problem, not just a stoichiometry problem.',
     },
   ]);
-  const faradayCard = cardWithMissions('Electrolysis / Faraday calculator', farMissions,
-    task('Change the current and the time, then switch to a product with a different n and see how much less metal the same charge deposits.'),
-    select('product', PLATE.map(p => ({ value: p.name, label: `${p.name} (n=${p.n})` })), v => { plate = PLATE.find(p => p.name === v)!; farCalc(); }, plate.name),
+  const faradayCard = cardWithMissions('Plating metal with electricity', farMissions,
+    task('Change the current and the time, then switch to a product that needs a different number of electrons per ion, and see how much less of it the same charge lays down.'),
+    select('product', PLATE.map(p => ({ value: p.name, label: `${p.name} — ${p.n} electron${p.n > 1 ? 's' : ''} per ion` })), v => { plate = PLATE.find(p => p.name === v)!; farCalc(); }, plate.name),
     slider({ label: 'current (A)', min: 0.1, max: 20, step: 0.1, value: amps, fmt: v => v.toFixed(1), onInput: v => { amps = v; farCalc(); } }),
     slider({ label: 'time (min)', min: 1, max: 240, step: 1, value: mins, onInput: v => { mins = v; farCalc(); } }),
     farOut,
@@ -400,7 +401,7 @@ function makeElectro(): HTMLElement {
       prompt: 'Switch to <b>Manganese (acid)</b>. The diagram gives you MnO₄⁻ → MnO₂ (3 electrons) and MnO₂ → Mn²⁺ (2 electrons). Combine them to get E° for the <b>non-adjacent</b> couple MnO₄⁻/Mn²⁺, in volts.',
       numeric: { label: 'E°(MnO₄⁻/Mn²⁺) in V', placeholder: 'e.g. 1.23', step: 0.01, validate: n => Math.abs(n - 1.51) <= 0.03 },
       hints: [
-        'Potentials are intensive, so they do not add — but ΔG° = −nFE° does. Add the ΔG° values and convert back.',
+        'A voltage does not depend on the amount of material, so potentials do not add — but the free energies ΔG° = −nFE° do. Add those and convert back.',
         'E° = (n₁E₁ + n₂E₂)/(n₁ + n₂) = (3 × 1.70 + 2 × 1.23)/5. The plain average, 1.465 V, is not the answer.',
       ],
       explain: '(3 × 1.70 + 2 × 1.23)/5 = 7.56/5 = <b>1.51 V</b> — and you can check it without leaving this tab: the galvanic cell builder two cards up lists MnO₄⁻/Mn²⁺ at exactly +1.51 V. The plain average would have given 1.465 V, wrong by 45 mV, which at n = 5 is a factor of 40 in K.<br>The reason for the weighting is that free energies are additive and potentials are not: ΔG°<sub>total</sub> = ΔG°₁ + ΔG°₂ becomes −(n₁+n₂)FE°<sub>total</sub> = −n₁FE°₁ − n₂FE°₂, and F cancels. <span class="trap">Whenever you are tempted to add or average potentials, convert to ΔG° first — that is also why you never multiply E° by a stoichiometric coefficient.</span>',
@@ -408,20 +409,21 @@ function makeElectro(): HTMLElement {
   ]);
 
   const latCard = cardWithMissions('Latimer diagram & disproportionation', latMissions,
-    task('Read across each series and find the species whose left potential is smaller than its right — those are the ones that disproportionate.'),
+    task('Read across each series and find the species whose left-hand potential is smaller than its right-hand one; those are the ones that disproportionate, meaning they oxidise and reduce themselves at once, turning into a mixture of their neighbours.'),
     select('element series', LATIMERS.map(l => ({ value: l.name, label: l.name })), v => { lat = LATIMERS.find(l => l.name === v)!; latCalc(); }, lat.name),
     latOut,
-    h('p', { class: 'muted' }, 'Potentials are intensive — to get E° for a non-adjacent couple, weight by electron count: E° = Σ(nᵢE°ᵢ)/Σnᵢ, never a plain average.' ),
+    h('p', { class: 'muted' }, 'Potentials do not add: a voltage does not depend on how much material reacts, which is what "intensive" means. To get E° for a couple that is not adjacent, weight by the electron count instead: E° = Σ(nᵢE°ᵢ)/Σnᵢ, never a plain average.' ),
   );
   latCalc();
 
   const el = h('div', { class: 'cards' },
     atLevel('core', cardWithMissions('Galvanic cell builder', cellMissions,
-      task('Pair two half-cells, check which one is the cathode, then drag log Q to see how far the Nernst term can move E.'),
+      task('Pick two metals, check which one hands its electrons over, and read the voltage the pair delivers. Then build up the products and watch that voltage fall.'),
+      h('p', { class: 'muted' }, 'Each choice below is a half-cell: one metal standing in a solution of its own ion. They are written as ion/metal, the two forms the electrons move between, with the standard voltage of that pair in brackets.'),
       select('half-cell 1', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c1 = COUPLES.find(c => c.label === v)!; recompute(); }, c1.label),
       select('half-cell 2', COUPLES.map(c => ({ value: c.label, label: c.label })), v => { c2 = COUPLES.find(c => c.label === v)!; recompute(); }, c2.label),
       out,
-      slider({ label: 'log Q', min: -8, max: 8, step: 0.5, value: 0, onInput: v => { logQ = v; recompute(); } }),
+      slider({ label: 'log Q — how far the products have built up (0 = standard conditions)', min: -8, max: 8, step: 0.5, value: 0, onInput: v => { logQ = v; recompute(); } }),
       nernstOut,
     )),
     atLevel('core', faradayCard),
@@ -470,13 +472,13 @@ function makeKinetics(): HTMLElement {
       + MYSTERY.map(p => `<th>${p.t}</th>`).join('')
       + '</tr><tr><td>[A] (M)</td>'
       + MYSTERY.map(p => `<td>${p.A.toFixed(3)}</td>`).join('')
-      + '</tr></table></div><p class="muted">Reading an order off raw data is the single most common kinetics task on an olympiad paper. Don\'t guess from the shape of the decay — every order looks like "a curve going down". Test something quantitative.</p>',
+      + '</tr></table></div><p class="muted">Reading the order off raw data is the most common kinetics job there is. Don\'t guess from the shape of the decay — every order looks like "a curve going down". Test something you can put a number on.</p>',
   });
 
   const kinMissions = missionLadder([
     {
       id: 'msn-aek-05',
-      prompt: 'Leave the order at <b>1</b> and <b>halve the half-life</b> from its starting value of 4.62 s.',
+      prompt: 'Leave the order at <b>1</b> and <b>halve the half-life</b> — the time the concentration takes to fall to half of what it was — from its starting value of 4.62 s.',
       meter: () => ({ label: order === 1 ? `t½ = ${halfLife().toFixed(2)} s · target 2.31 s` : 'set the order back to 1', pct: order === 1 ? Math.max(0, 100 - Math.abs(halfLife() - 2.31) * 30) : 0 }),
       check: () => order === 1 && Math.abs(halfLife() - Math.LN2 / (2 * K0)) < 0.05,
       hints: ['For first order, t½ = 0.693/k. Only one control appears in that expression.'],
@@ -484,7 +486,7 @@ function makeKinetics(): HTMLElement {
     },
     {
       id: 'msn-aek-06',
-      prompt: 'Still at first order, drag <b>[A]₀</b> across its whole range and watch t½. What happens to it?',
+      prompt: 'Still at first order, drag the starting concentration <b>[A]₀</b> across its whole range and watch the half-life t½. What happens to it?',
       hints: [
         'Read t½ off the readout at the lowest [A]₀ and again at the highest — don\'t infer it from the shape of the curve.',
         'For first order, t½ = ln2/k. Is [A]₀ anywhere in that expression?',
@@ -573,13 +575,13 @@ function makeKinetics(): HTMLElement {
       task('Switch the order and watch which of the three plots straightens — that is exactly how the order is determined from data.'),
       select('order', [{ value: '0', label: '0th order' }, { value: '1', label: '1st order' }, { value: '2', label: '2nd order' }],
         v => { order = Number(v) as 0 | 1 | 2; draw(); }, '1'),
-      slider({ label: 'k', min: 0.02, max: 1, step: 0.01, value: k, fmt: v => v.toFixed(2), onInput: v => { k = v; draw(); } }),
-      slider({ label: '[A]₀ (M)', min: 0.2, max: 2, step: 0.1, value: A0, fmt: v => v.toFixed(1), onInput: v => { A0 = v; draw(); } }),
+      slider({ label: 'rate constant k', min: 0.02, max: 1, step: 0.01, value: k, fmt: v => v.toFixed(2), onInput: v => { k = v; draw(); } }),
+      slider({ label: 'starting concentration [A]₀ (mol/L)', min: 0.2, max: 2, step: 0.1, value: A0, fmt: v => v.toFixed(1), onInput: v => { A0 = v; draw(); } }),
       cCanvas, linCanvas, out, mysteryTable,
     )),
-    atLevel('contest', cardWithMissions('Arrhenius: temperature sensitivity', arrMissions,
-      task('Raise Ea and see how much more the same 10 K change in temperature multiplies the rate.'),
-      slider({ label: 'Ea (kJ/mol)', min: 10, max: 200, step: 1, value: Ea, onInput: v => { Ea = v; arrCalc(); } }),
+    atLevel('contest', cardWithMissions('Temperature sensitivity — the Arrhenius equation', arrMissions,
+      task('Raise Ea, the activation energy — the least energy a collision needs before it can produce products — and see how much more the same 10 K change in temperature multiplies the rate.'),
+      slider({ label: 'Ea, the activation energy (kJ/mol)', min: 10, max: 200, step: 1, value: Ea, onInput: v => { Ea = v; arrCalc(); } }),
       slider({ label: 'T₁ (K)', min: 250, max: 400, step: 1, value: T1, onInput: v => { T1 = v; arrCalc(); } }),
       slider({ label: 'T₂ (K)', min: 250, max: 400, step: 1, value: T2, onInput: v => { T2 = v; arrCalc(); } }),
       arrOut,
@@ -655,19 +657,23 @@ export const aekTab: TabDef = {
 <h3>Titration to the equivalence point</h3>
 <p>At the equivalence point the base added exactly matches the acid present, in the ratio the balanced equation gives. Everything follows from n = cV.</p>
 <p>25.00 mL of hydrochloric acid needs 22.40 mL of 0.1000 M sodium hydroxide. The base delivered 0.1000 × 0.02240 = 2.240 × 10⁻³ mol. HCl and NaOH react one to one, so the flask held the same amount. Its concentration is 2.240 × 10⁻³ ÷ 0.02500 = 0.08960 M.</p>
-<p>Watch the ratio when it is not one to one. Sulfuric acid gives two H⁺ per molecule, so the acid present is half the base added.</p>
+<p>Watch the ratio when it is not one to one. Sulfuric acid gives two H⁺ per molecule, which makes it diprotic, so the acid present is half the base added.</p>
+<h3>Halfway to equivalence</h3>
+<p>Stop a weak-acid titration when exactly half the base needed has gone in. Half the acid has been converted to its conjugate base, so [HA] = [A⁻], and at that point the pH equals the pKa of the acid.</p>
+<p>pKa is just −log₁₀(Ka), the same move that turned [H⁺] into pH. Ethanoic acid's Ka of 1.8 × 10⁻⁵ becomes a pKa of 4.74, so a titration of it flattens out at pH 4.74 halfway to equivalence. A bigger pKa means a weaker acid.</p>
 <h3>Oxidation states and half-equations</h3>
 <p>An oxidation state is the charge an atom would carry if every bond went to the more electronegative partner. Oxygen is normally −2 and hydrogen +1, and the states in a formula add up to its overall charge.</p>
 <p>In MnO₄⁻ the four oxygens give 4(−2) = −8, so manganese must be +7. A half-equation writes one side of the exchange with the electrons shown. Zinc dissolving is Zn → Zn²⁺ + 2e⁻ and copper depositing is Cu²⁺ + 2e⁻ → Cu. Adding them cancels the electrons.</p>
 <h3>A galvanic cell</h3>
 <p>A standard electrode potential, E°, says how strongly a species pulls electrons. It is measured against one shared reference, always for the reduction direction.</p>
-<p>Cu²⁺ + 2e⁻ → Cu is +0.34 V and Zn²⁺ + 2e⁻ → Zn is −0.76 V. The more positive value wins the electrons, so copper is reduced at the cathode and zinc oxidised at the anode. The cell voltage is 0.34 − (−0.76) = 1.10 V, and a positive value means the reaction runs on its own.</p>
+<p>Cu²⁺ + 2e⁻ → Cu is +0.34 V and Zn²⁺ + 2e⁻ → Zn is −0.76 V. The more positive value wins the electrons, so copper is reduced at the cathode, the electrode where reduction happens, and zinc is oxidised at the anode, the electrode where oxidation happens. The cell voltage is 0.34 − (−0.76) = 1.10 V, and a positive value means the reaction runs on its own.</p>
 <p><span class="eq">E°cell = E°cathode − E°anode</span></p>
 <h3>Rate laws</h3>
 <p>A rate law says how a rate depends on the concentrations, and its powers come from experiment. A rate itself is a change in concentration divided by the time it took.</p>
 <p><span class="eq">rate = Δ[ ] ÷ Δt</span></p>
-<p>For A + B → products, three runs are measured. At [A] = 0.10 M and [B] = 0.10 M the rate is 2.0 × 10⁻³ mol/(L·s). Doubling [A] with [B] held still gives 8.0 × 10⁻³, four times faster, so the rate goes as [A]². Doubling [B] instead gives 4.0 × 10⁻³, twice as fast, so it goes as [B]. The rate law is rate = k[A]²[B], and k = 2.0 × 10⁻³ ÷ (0.10² × 0.10) = 2.0 L²/(mol²·s).</p>
+<p>For A + B → products, three runs are measured. At [A] = 0.10 M and [B] = 0.10 M the rate is 2.0 × 10⁻³ mol/(L·s). Doubling [A] with [B] held still gives 8.0 × 10⁻³, four times faster, so the rate goes as [A]². Doubling [B] instead gives 4.0 × 10⁻³, twice as fast, so it goes as [B]. The rate law is rate = k[A]²[B], where k is the rate constant, the number that fixes the speed for that reaction at that temperature. Here k = 2.0 × 10⁻³ ÷ (0.10² × 0.10) = 2.0 L²/(mol²·s).</p>
 <p>The power on each reactant is its order, and adding them gives the overall order, 3 here.</p>
+<p>One number is quoted more than any other: the half-life, written t½, the time a reaction takes to use up half of what is left. For a first-order reaction t½ = 0.693 ÷ k and never changes as the reaction runs, which is what makes radioactive decay quotable as a single number.</p>
 <h3>Heat and catalysts</h3>
 <p>Molecules react only when they collide hard enough and with the right parts facing. Warming raises the fraction of collisions carrying at least the activation energy, so rates climb steeply with temperature.</p>
 <p>A catalyst opens a route with a lower activation energy, which more collisions can manage. It is recovered unchanged and speeds both directions equally.</p>

@@ -58,7 +58,7 @@ export const equilibriumTab: TabDef = {
       },
       {
         id: 'msn-eq-02',
-        prompt: 'Press <b>"+ Ar (inert, constant V)"</b> and watch the traces. What happens to the position of the equilibrium?',
+        prompt: 'Press <b>"+ argon, a gas that does not react"</b> and watch the traces. The flask keeps the same volume. What happens to the position of the equilibrium?',
         // Nudges toward pressing the button first, then gets out of the way.
         // Not a gate — a student who already knows the answer isn't blocked.
         meter: () => (pressedInert ? null : { label: 'press the argon button and watch the two traces', pct: 0 }),
@@ -73,12 +73,12 @@ export const equilibriumTab: TabDef = {
       },
       {
         id: 'msn-eq-03',
-        prompt: 'Now find the one stress that changes <b>K itself</b>: get K above <b>0.80</b>.',
+        prompt: 'Now find the one disturbance that changes <b>K itself</b>: get K above <b>0.80</b>.',
         meter: () => ({ label: `K = ${Kof().toFixed(2)} · target > 0.80`, pct: (Kof() / 0.8) * 100 }),
         check: () => Kof() > 0.80 && atEq(),
         hints: [
           'Four of the buttons cannot do this, no matter how many times you press them.',
-          'The forward reaction is endothermic (ΔH° = +57 kJ). Treat heat as a reactant.',
+          'The forward reaction is endothermic: splitting N₂O₄ takes in 57 kJ per mole. Treat that heat as a reactant.',
         ],
         explain: 'Only <b>temperature</b> changes K. Everything else — adding, removing, compressing, expanding, catalysing — moves Q and lets the system chase the same old K. Heating an endothermic forward reaction raises K, which is why this flask goes deep brown when warmed and colourless in ice.',
       },
@@ -113,7 +113,7 @@ export const equilibriumTab: TabDef = {
     }
 
     const note = (msg: string) => { eventOut.textContent = msg; };
-    const simCard = cardWithMissions('Live equilibrium: N₂O₄(g) ⇌ 2NO₂(g)  (colorless ⇌ brown, ΔH° = +57 kJ)', missions,
+    const simCard = cardWithMissions('Live equilibrium: N₂O₄(g) ⇌ 2NO₂(g)  (colourless ⇌ brown)', missions,
       task('Disturb the mixture with each button in turn and watch Q move away from K and then back.'),
       play.el, simCanvas, qkOut,
       h('div', {},
@@ -124,17 +124,17 @@ export const equilibriumTab: TabDef = {
         // Deliberately a no-op on the state: argon changes the total pressure
         // and nothing else. The button exists so the "nothing happens" is
         // something the student watches rather than something they're told.
-        button('+ Ar (inert, constant V)', () => {
+        button('+ argon, a gas that does not react', () => {
           pressedInert = true;
           note('Argon added. Total pressure rose, but [N₂O₄] and [NO₂] did not change — so Q did not change, and neither trace moves. An inert gas at constant volume does nothing at all.');
         }),
         button('heat ↑', () => { kf *= 2.2; kr *= 1.25; note('Forward reaction is endothermic → heating raises K (heat acts like a reactant). Both rates rise; kf rises more. More NO₂ at the new equilibrium.'); }),
-        button('cool ↓', () => { kf /= 2.2; kr /= 1.25; note('Cooling lowers K → shifts left toward N₂O₄. This flask goes colorless in ice — a classic demo.'); }),
+        button('cool ↓', () => { kf /= 2.2; kr /= 1.25; note('Cooling lowers K → shifts left toward N₂O₄. This flask goes colourless in ice.'); }),
         button('reset', () => { A = 1; B = 0; kf = 0.30; kr = 0.60; histT.length = 0; histA.length = 0; histB.length = 0; t = 0; note('Reset.'); }),
       ),
       eventOut,
       h('p', { class: 'muted' }, 'Only temperature changes K itself — concentration and volume changes just move Q, and the system chases K back.'),
-      h('p', { class: 'muted', html: 'This simulator\'s forward/reverse rates happen to equal the stoichiometric coefficients (rate<sub>f</sub> ∝ [N₂O₄], rate<sub>r</sub> ∝ [NO₂]²) because N₂O₄ ⇌ 2NO₂ really is believed to proceed as a single elementary step both ways — not because rate laws in general can be read off a balanced equation. For any reaction that happens in more than one step, the rate law has to come from experiment (see Kinetics).' }),
+      h('p', { class: 'muted' }, 'The two rates on the readout are the speeds of the forward and the reverse reaction. Equilibrium is the moment they become equal, which is why both traces flatten together.'),
     );
 
     // ---- ICE solver ----
@@ -149,7 +149,7 @@ export const equilibriumTab: TabDef = {
       {
         id: 'msn-eq-04',
         prompt: 'Keep the acid at acetic acid\'s pK<sub>a</sub> of <b>4.74</b> and dilute it until the "small x" shortcut <b>stops being valid</b>.',
-        meter: () => ({ label: `${pctIonized.toFixed(1)}% ionized · the shortcut fails past 5%`, pct: (pctIonized / 5) * 100 }),
+        meter: () => ({ label: `${pctIonized.toFixed(1)}% ionised · the shortcut fails past 5%`, pct: (pctIonized / 5) * 100 }),
         check: () => Math.abs(pKa - 4.74) < 0.03 && !approxValid,
         hints: [
           'The 5% rule compares x with the initial concentration. You cannot change x without changing C₀ — so change C₀.',
@@ -160,9 +160,9 @@ export const equilibriumTab: TabDef = {
       },
       {
         id: 'msn-eq-05',
-        prompt: 'Diluting raised the pH (fewer H⁺ overall) <em>and</em> raised the percent ionized at the same time. Is that a contradiction?',
+        prompt: 'Diluting raised the pH (fewer H⁺ overall) <em>and</em> raised the percentage of the acid that has split at the same time. Is that a contradiction?',
         hints: [
-          'Percent ionized is a ratio; [H⁺] is an amount. A ratio can rise while the quantity on top falls.',
+          'The percentage ionised is a ratio; [H⁺] is an amount. A ratio can rise while the quantity on top falls.',
           'Kₐ is a constant at fixed temperature — nothing you do with a volumetric flask changes it.',
         ],
         choices: [
@@ -171,7 +171,7 @@ export const equilibriumTab: TabDef = {
           { label: 'No — dilution raises Kₐ', value: 'ka' },
         ],
         validateChoice: v => v === 'ok',
-        explain: 'No contradiction, and K<sub>a</sub> never moved. Dilution shifts the dissociation equilibrium to the right (Le Chatelier — water is a "reactant"), so a <em>larger fraction</em> ionizes; but there is less acid to start with, so the <em>absolute</em> [H⁺] still falls and the pH rises. Fraction and amount move in opposite directions. This is Ostwald\'s dilution law.',
+        explain: 'No contradiction, and K<sub>a</sub> never moved. Dilution shifts the dissociation equilibrium to the right (Le Châtelier — water is a "reactant"), so a <em>larger fraction</em> ionises; but there is less acid to start with, so the <em>absolute</em> [H⁺] still falls and the pH rises. Fraction and amount move in opposite directions. This is Ostwald\'s dilution law.',
       },
     ]);
 
@@ -190,16 +190,17 @@ export const equilibriumTab: TabDef = {
         `<tr><td>Change</td><td>−x</td><td>+x</td><td>+x</td></tr>` +
         `<tr><td>Equilibrium</td><td>${(C0 - x).toPrecision(3)}</td><td>${x.toPrecision(3)}</td><td>${x.toPrecision(3)}</td></tr></table></div>`;
       iceOut.innerHTML =
-        `exact (quadratic): x = [H⁺] = <b>${x.toPrecision(3)} M</b> → pH = <b class="big">${(-Math.log10(x)).toFixed(2)}</b> · ${pct.toFixed(1)}% ionized<br>` +
+        `exact (quadratic): x = [H⁺] = <b>${x.toPrecision(3)} M</b> → pH = <b class="big">${(-Math.log10(x)).toFixed(2)}</b> · ${pct.toFixed(1)}% ionised<br>` +
         `approximation x ≈ √(K<sub>a</sub>C₀) = ${approxX.toPrecision(3)} — ` +
         (okApprox ? '<b style="color:#7ae27a">valid</b> (&lt;5% rule ✓)' : '<b class="trap">NOT valid (&gt;5% — use the quadratic)</b>') +
-        `<br><span class="muted">Dilute the acid and watch % ionization rise even as pH climbs — Le Chatelier on the dissociation.</span>`;
+        `<br><span class="muted">Dilute the acid and watch the percentage ionised rise even as the pH climbs — Le Châtelier on the splitting.</span>`;
       iceMissions.tick();
     }
-    const iceCard = cardWithMissions('ICE table solver: HA ⇌ H⁺ + A⁻', iceMissions,
-      task('Push the concentration down at fixed pKa until the small-x approximation stops being safe, and watch the table report it.'),
-      slider({ label: 'pKa', min: 1, max: 10, step: 0.05, value: pKa, fmt: v => `${v.toFixed(2)} (Ka=${Math.pow(10, -v).toExponential(1)})`, onInput: v => { pKa = v; iceCalc(); } }),
-      slider({ label: 'C₀ (M)', min: 0.001, max: 1, step: 0.001, value: C0, fmt: v => v.toFixed(3), onInput: v => { C0 = v; iceCalc(); } }),
+    const iceCard = cardWithMissions('ICE table solver — working out how far a weak acid splits', iceMissions,
+      task('Push the starting concentration down at a fixed pKa until the small-x shortcut stops being safe, and watch the table report it.'),
+      h('p', { class: 'muted' }, 'A weak acid, written HA, splits only partly in water into H⁺ and the leftover ion A⁻. Ka, the acid dissociation constant, is the equilibrium constant for that split, so a larger Ka means more of the acid splits. pKa is −log₁₀(Ka), which turns those tiny numbers into everyday ones and runs the other way: a larger pKa means a weaker acid. pH is −log₁₀[H⁺], so a lower pH means more hydrogen ions and a more acidic solution.'),
+      slider({ label: 'pKa of the acid (larger = weaker acid)', min: 1, max: 10, step: 0.05, value: pKa, fmt: v => `${v.toFixed(2)} (Ka = ${Math.pow(10, -v).toExponential(1)})`, onInput: v => { pKa = v; iceCalc(); } }),
+      slider({ label: 'starting concentration C₀ (mol/L)', min: 0.001, max: 1, step: 0.001, value: C0, fmt: v => v.toFixed(3), onInput: v => { C0 = v; iceCalc(); } }),
       iceTable, iceOut,
     );
     iceCalc();
@@ -249,14 +250,14 @@ export const equilibriumTab: TabDef = {
     const kspMissions = missionLadder([
       {
         id: 'msn-eq-06',
-        prompt: 'Gravimetric analysis only works if essentially all the analyte precipitates. With <b>AgCl</b> selected, add enough Cl⁻ to cut its solubility by a factor of <b>100 or more</b>.',
+        prompt: 'To weigh a product accurately you need essentially all of it out of solution and sitting in the filter. With <b>AgCl</b> selected, add enough Cl⁻ to cut its solubility by a factor of <b>100 or more</b>.',
         meter: () => ({ label: `${salt.name}: suppressed ${suppression.toPrecision(3)}× · target 100×`, pct: (suppression / 100) * 100 }),
         check: () => salt.name === 'AgCl' && suppression >= 100,
         hints: [
           'AgCl dissolves to give one Ag⁺ and one Cl⁻, so K_sp = s². Adding Cl⁻ from elsewhere forces s down to keep the product constant.',
           'For a 1:1 salt, s falls roughly in proportion to the common-ion concentration. You need [Cl⁻] around 10⁻³ M.',
         ],
-        explain: 'This is why a gravimetric chloride determination is done with a deliberate <em>excess</em> of silver: the common ion drives the residual dissolved AgCl down by orders of magnitude, so what stays in solution is small enough to ignore when you weigh the precipitate. Push the excess much further, though, and AgCl starts redissolving as [AgCl₂]⁻ — an effect this simple K_sp model does not include.',
+        explain: 'This is why a chloride measurement by weighing is done with a deliberate <em>excess</em> of silver: the common ion drives the residual dissolved AgCl down by orders of magnitude, so what stays in solution is small enough to ignore when you weigh the precipitate. Push the excess much further, though, and AgCl starts redissolving as [AgCl₂]⁻ — an effect this simple K_sp model does not include.',
       },
       {
         id: 'msn-eq-07',
@@ -280,7 +281,7 @@ export const equilibriumTab: TabDef = {
           'Q for Ag₂CrO₄ = [Ag⁺]²[CrO₄²⁻]. Set that equal to Ksp and solve for [Ag⁺].',
           '[Ag⁺] ≈ 1.0×10⁻⁵ M when [CrO₄²⁻] = 0.010 M.',
         ],
-        explain: 'At [Ag⁺] ≈ 1.05×10⁻⁵ M, Ag₂CrO₄ just reaches Q = Ksp. Compare that to AgCl\'s threshold under the same 0.010 M common-ion concentration: [Ag⁺] = Ksp/[Cl⁻] = 1.8×10⁻⁸ M — nearly <b>600× lower</b>. That gap is the whole Mohr-titration trick: essentially all the Cl⁻ has already precipitated as AgCl by the time enough Ag⁺ is around for the red Ag₂CrO₄ endpoint color to appear.',
+        explain: 'At [Ag⁺] ≈ 1.05×10⁻⁵ M, Ag₂CrO₄ just reaches Q = Ksp. Compare that to AgCl\'s threshold under the same 0.010 M common-ion concentration: [Ag⁺] = Ksp/[Cl⁻] = 1.8×10⁻⁸ M — nearly <b>600× lower</b>. That gap is the whole Mohr-titration trick: essentially all the Cl⁻ has already precipitated as AgCl by the time enough Ag⁺ is around for the red Ag₂CrO₄ end-point colour to appear.',
       },
     ]);
 
@@ -308,7 +309,7 @@ export const equilibriumTab: TabDef = {
           ? `agrees here, because C ≫ s.`
           : `<b>invalid here.</b> C is not ≫ s, so the ${ns} contributed by the dissolving solid can't be dropped. The figure above solves ${exactExpr} exactly.`) +
         `</span><br>` +
-        `<span class="muted">Common-ion effect = Le Chatelier on dissolution. The coefficient trap: for ${salt.name}, s is NOT √Ksp unless it's 1:1.</span>`;
+        `<span class="muted">The common-ion effect is Le Châtelier applied to dissolving. Watch the coefficients: s, the molar solubility, is √Ksp only for a salt that gives one of each ion. For ${salt.name}, ${salt.expr}.</span>`;
       kspMissions.tick();
       qCalc();
     }
@@ -326,8 +327,9 @@ export const equilibriumTab: TabDef = {
       kspMissions.tick();
     }
     [catIn, anIn].forEach(i => i.addEventListener('input', qCalc));
-    const kspCard = cardWithMissions('Ksp — solubility equilibria', kspMissions,
-      task('Add a common ion and watch molar solubility fall, then use the mixing check below to decide whether a precipitate forms.'),
+    const kspCard = cardWithMissions('How much of a solid will dissolve — Ksp', kspMissions,
+      task('Add a common ion and watch the molar solubility fall, then use the mixing check below to decide whether a precipitate forms.'),
+      h('p', { class: 'muted' }, 'Three words for this card. Ksp, the solubility product, is the equilibrium constant for a solid dissolving into its ions. The molar solubility, s, is how many moles of the solid dissolve in one litre of water. A common ion is one the solution already contains before the solid goes in, and a precipitate is solid that comes back out of a solution that cannot hold any more.'),
       select('salt', SALTS.map(s2 => ({ value: s2.name, label: `${s2.name} (Ksp ${s2.ksp.toExponential(1)})` })), v => { salt = SALTS.find(s2 => s2.name === v)!; kspCalc(); }, salt.name),
       slider({ label: `[common ion] log₁₀`, min: -4, max: 0, step: 0.1, value: logC, fmt: v => `${Math.pow(10, v).toExponential(1)} M`, onInput: v => { logC = v; kspCalc(); } }),
       kspOut,
@@ -335,7 +337,7 @@ export const equilibriumTab: TabDef = {
       ctlRow('[cation] after mixing (M)', catIn),
       ctlRow('[anion] after mixing (M)', anIn),
       qOut,
-      h('p', { class: 'muted' }, 'Remember to recompute concentrations after dilution when two solutions are mixed (each is diluted by the combined volume) BEFORE computing Q. Selective precipitation: the salt whose Ksp is exceeded first precipitates first — that\'s how Ag₂CrO₄\'s red color signals the endpoint after AgCl finishes (Mohr titration).'),
+      h('p', { class: 'muted' }, 'Remember to recompute concentrations after dilution when two solutions are mixed (each is diluted by the combined volume) BEFORE computing Q. Selective precipitation: the salt whose Ksp is exceeded first precipitates first — which is how Ag₂CrO₄\'s red colour marks the end point, the moment the colour changes to say the reaction is over, once all the AgCl has finished (this is the Mohr titration).'),
     );
     kspCalc();
 
@@ -371,7 +373,7 @@ export const equilibriumTab: TabDef = {
 <p>Basics wrote K for one reaction and compared Q with K to get a direction. Core writes K in both of its forms, calculates the equilibrium amounts from a starting mixture, and gives the reason behind each shift.</p>
 <h3>Kc and Kp</h3>
 <p>Kc is built from concentrations in mol/L. Kp is built from partial pressures instead. A partial pressure is the pressure one gas would exert if it had the container to itself.</p>
-<p>For N₂O₄(g) ⇌ 2NO₂(g) the two expressions are Kc = [NO₂]² ÷ [N₂O₄] and Kp = p(NO₂)² ÷ p(N₂O₄). At 25 °C, Kc is 4.63 × 10⁻³. The two are linked by the expression below, in which Δn is the moles of gas on the right minus the moles on the left and R = 0.08206 L·atm/(mol·K).</p>
+<p>For N₂O₄(g) ⇌ 2NO₂(g) the two expressions are Kc = [NO₂]² ÷ [N₂O₄] and Kp = p(NO₂)² ÷ p(N₂O₄). At 25 °C, Kc is 4.63 × 10⁻³. The two are linked by the expression below, in which Δn is the moles of gas on the right minus the moles on the left and R, the gas constant, is 0.08206 L·atm/(mol·K).</p>
 <p><span class="eq">Kp = Kc(RT)<sup>Δn</sup></span></p>
 <p>For this reaction Δn = 2 − 1 = 1, so Kp = 4.63 × 10⁻³ × 0.08206 × 298 = 0.113.</p>
 <p>When Δn is zero the two constants are equal, because (RT)⁰ = 1.</p>
@@ -407,13 +409,15 @@ export const equilibriumTab: TabDef = {
 <li>K<sub>p</sub> = K<sub>c</sub>(RT)<sup>Δn(gas)</sup>. Reverse the reaction → 1/K. Multiply by n → Kⁿ. Add reactions → multiply K's.</li>
 <li>Q uses the same expression with current (non-equilibrium) values. Q &lt; K → forward; Q &gt; K → reverse.</li>
 </ul>
-<h3>Le Chatelier — what actually changes K?</h3>
+<h3>Le Châtelier — what actually changes K?</h3>
 <div class="table-scroll"><table><tr><th>stress</th><th>response</th><th>K changes?</th></tr>
 <tr><td>add reactant</td><td>shift right</td><td>no</td></tr>
 <tr><td>shrink volume (gas)</td><td>shift to fewer gas moles</td><td>no</td></tr>
 <tr><td>add inert gas, constant V</td><td><b>no shift</b> (concentrations unchanged)</td><td>no</td></tr>
 <tr><td>raise T, endothermic fwd</td><td>shift right</td><td><b>K increases</b></td></tr>
 <tr><td>catalyst</td><td><b>no shift</b> — reaches equilibrium faster</td><td>no</td></tr></table></div>
+<h3>Why this module's live simulation can use the coefficients as powers</h3>
+<p>The simulation's forward and reverse rates are taken as rate<sub>f</sub> ∝ [N₂O₄] and rate<sub>r</sub> ∝ [NO₂]², matching the coefficients, because N₂O₄ ⇌ 2NO₂ is believed to go in a single elementary step each way. That is a fact about this reaction, not a general rule: for anything that proceeds in more than one step the rate law comes from experiment (see Kinetics).</p>
 <h3>Quantitative tools</h3>
 <span class="eq">van 't Hoff: ln(K₂/K₁) = −(ΔH°/R)(1/T₂ − 1/T₁)</span>
 <ul>

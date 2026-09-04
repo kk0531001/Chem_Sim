@@ -108,7 +108,7 @@ export const thermo1Tab: TabDef = {
       ctx.fillStyle = '#7d8fa3'; ctx.fillText('→', 302, 64);
       calMissions.tick();
     }
-    const calCard = cardWithMissions('Calorimetry: mix two substances (q = mcΔT)', calMissions,
+    const calCard = cardWithMissions('Mixing hot and cold (q = mcΔT)', calMissions,
       task('Mix two substances and watch where the final temperature lands — push the specific heats apart and see which one moves further.'),
       select('substance 1', SUBSTANCES.map(s => ({ value: s.name, label: `${s.name} (c=${s.c})` })), v => { sA = SUBSTANCES.find(s => s.name === v)!; calRedraw(); }, sA.name),
       slider({ label: 'mass 1 (g)', min: 10, max: 500, value: mA, onInput: v => { mA = v; calRedraw(); } }),
@@ -130,9 +130,9 @@ export const thermo1Tab: TabDef = {
         `<div class="table-scroll"><table class="ref-table"><tr><th>step</th><th>ΔH (kJ)</th><th>manipulation</th></tr>` +
         ex.steps.map(s => `<tr><td>${s.eq}</td><td>${s.dH > 0 ? '+' : ''}${s.dH.toFixed(1)}</td><td>${s.op}</td></tr>`).join('') +
         `</table></div><div class="result">Sum: ΔH = <b class="big">${sum > 0 ? '+' : ''}${sum.toFixed(1)} kJ/mol</b> (${sum < 0 ? 'exothermic' : 'endothermic'})</div>` +
-        `<p class="muted">Rules: reverse a step → flip the sign. Multiply a step → multiply ΔH. Enthalpy is a state function, so the path doesn't matter.</p>`;
+        `<p class="muted">Rules: reverse a step and its sign flips. Multiply a step and its ΔH is multiplied too. Enthalpy depends only on where you start and where you finish, so the route between them does not matter.</p>`;
     };
-    const hessCard = card("Hess's law worked examples",
+    const hessCard = card("Adding reactions together — Hess's law",
       task('Read each worked cycle and check which equations were reversed or doubled before they were added.'),
       select('target reaction', HESS.map(e => ({ value: e.name, label: e.name })), setHess, HESS[0].name),
       hessBox,
@@ -159,17 +159,17 @@ export const thermo1Tab: TabDef = {
     const bondMissions = missionLadder([
       {
         id: 'msn-th1-02',
-        prompt: 'Select <b>CH₄ + 2O₂ → CO₂ + 2H₂O</b>. The bond sum gives about −798 kJ/mol, but every data book lists methane\'s enthalpy of combustion as <b>−890 kJ/mol</b>. Almost the whole 92 kJ gap is one physical process that the bond-enthalpy method structurally cannot see. How much energy (in kJ) does that process release, for this reaction as written?',
+        prompt: 'Select <b>CH₄ + 2O₂ → CO₂ + 2H₂O</b>. The bond sum gives about −798 kJ/mol, but a data book lists methane\'s enthalpy of combustion — the heat given out when one mole of it burns completely — as <b>−890 kJ/mol</b>. Almost the whole 92 kJ gap is one physical step the bond-enthalpy method cannot see: the steam this sum produces turning into liquid water. Condensing one mole of steam releases about <b>44 kJ</b>. How much energy (in kJ) does that release for this reaction as written?',
         numeric: { label: 'energy released (kJ)', placeholder: 'e.g. 40', step: 1, validate: n => n >= 78 && n <= 98 },
         hints: [
           'Bond enthalpies are tabulated for gas-phase species only. Which product is not a gas at 25 °C?',
-          'The bond sum has produced two moles of water VAPOUR. The data-book value is quoted with liquid water. ΔH_vap(H₂O) ≈ 44 kJ/mol at 25 °C.',
+          'The bond sum has produced two moles of water VAPOUR. The data-book value is quoted with liquid water. Condensing water releases about 44 kJ for every mole, so how many moles are there here?',
         ],
         explain: '<b>≈ 88 kJ — the condensation of 2 mol of water</b> (2 × 44 kJ/mol at 25 °C). Bond enthalpies only ever describe gas-phase molecules, so the −798 kJ/mol estimate is really the enthalpy of combustion to <em>steam</em>; the tabulated −890 kJ/mol collects the extra heat given up when that steam condenses. −798 − 88 = −886, and the residual 4 kJ is the averaging error the card already warns about — real gas-phase combustion of methane is −802 kJ/mol. This is not a technicality: it is the difference between the <b>higher and lower heating value</b> of a fuel. A condensing domestic boiler is called that precisely because it recovers this 88 kJ, which is why its efficiency can be quoted above 100% — the figure is being measured against the lower (steam) value.',
       },
     ]);
 
-    const bondCard = cardWithMissions('ΔH from bond enthalpies', bondMissions,
+    const bondCard = cardWithMissions('Estimating heat from bond strengths', bondMissions,
       task('Choose a reaction and count the bonds broken against the bonds formed to get ΔH from the table alone.'),
       select('reaction', BOND_RXNS.map(r => ({ value: r.name, label: r.name })), setBondRxn, BOND_RXNS[0].name),
       bondBox,
@@ -187,15 +187,15 @@ export const thermo1Tab: TabDef = {
         `<span class="eq">ΔH_f = ΔH_sub + IE + ½D − EA + U_lattice</span>` +
         `Solving for lattice energy: U = ΔH_f − (ΔH_sub + IE + ½D − EA)<br>` +
         `U = ${bhHf} − (${bhSub} + ${bhIE} + ${bhDiss} − ${bhEA}) = <b class="big">${U.toFixed(0)} kJ/mol</b><br>` +
-        `<span class="muted">The large negative lattice energy is the pay-off that makes ionic-solid formation favourable despite the endothermic sublimation and ionization steps. Higher ionic charge and smaller ions ⇒ more exothermic U (MgO ≫ NaCl).</span>`;
+        `<span class="muted">The large negative lattice energy is the pay-off that makes ionic-solid formation favourable despite the endothermic sublimation and ionisation steps. Higher ionic charge and smaller ions ⇒ more exothermic U (MgO ≫ NaCl).</span>`;
     };
     const bhCard = card('Born–Haber cycle — lattice energy',
-      task('Adjust each measured step of the NaCl cycle and watch the lattice energy that has to close the loop.'),
-      slider({ label: 'ΔH_sub metal (kJ/mol)', min: 50, max: 200, step: 1, value: bhSub, onInput: v => { bhSub = v; bhCalc(); } }),
-      slider({ label: 'IE metal (kJ/mol)', min: 300, max: 900, step: 1, value: bhIE, onInput: v => { bhIE = v; bhCalc(); } }),
-      slider({ label: '½ dissociation X₂ (kJ/mol)', min: 50, max: 250, step: 1, value: bhDiss, onInput: v => { bhDiss = v; bhCalc(); } }),
-      slider({ label: 'EA nonmetal (kJ/mol)', min: 200, max: 400, step: 1, value: bhEA, onInput: v => { bhEA = v; bhCalc(); } }),
-      slider({ label: 'ΔH_f salt (kJ/mol)', min: -700, max: -200, step: 1, value: bhHf, onInput: v => { bhHf = v; bhCalc(); } }),
+      task('The lattice energy, U_lattice, is the energy released when free gaseous ions come together into one mole of the solid, and it cannot be measured directly. Adjust each measured step of the NaCl cycle and watch the lattice energy that has to close the loop.'),
+      slider({ label: 'ΔH_sub, turning the solid metal into gas (kJ/mol)', min: 50, max: 200, step: 1, value: bhSub, onInput: v => { bhSub = v; bhCalc(); } }),
+      slider({ label: 'IE, ionisation energy of the metal atom (kJ/mol)', min: 300, max: 900, step: 1, value: bhIE, onInput: v => { bhIE = v; bhCalc(); } }),
+      slider({ label: '½D, splitting half a mole of X₂ into atoms (kJ/mol)', min: 50, max: 250, step: 1, value: bhDiss, onInput: v => { bhDiss = v; bhCalc(); } }),
+      slider({ label: 'EA, electron affinity of the non-metal atom (kJ/mol)', min: 200, max: 400, step: 1, value: bhEA, onInput: v => { bhEA = v; bhCalc(); } }),
+      slider({ label: 'ΔH_f, enthalpy of formation of the salt (kJ/mol)', min: -700, max: -200, step: 1, value: bhHf, onInput: v => { bhHf = v; bhCalc(); } }),
       bhOut,
       h('p', { class: 'muted' }, 'Defaults are NaCl, whose measured steps return U ≈ −788 kJ/mol. The cycle is just Hess\'s law drawn as a loop — the unmeasurable lattice energy falls out of the measurable steps.'),
     );
@@ -253,6 +253,7 @@ export const thermo1Tab: TabDef = {
 <p>A bond enthalpy is the energy needed to break one mole of a particular bond in the gas phase. Breaking bonds always costs energy and making them always releases it.</p>
 <p>For H₂(g) + Cl₂(g) → 2HCl(g), breaking one H–H bond at 436 kJ/mol and one Cl–Cl bond at 242 kJ/mol costs 678 kJ. Making two H–Cl bonds at 431 kJ/mol each releases 862 kJ. So ΔH = 678 − 862 = −184 kJ/mol, against a measured −184.6. In general:</p>
 <p><span class="eq">ΔH ≈ Σ(bonds broken) − Σ(bonds formed)</span></p>
+<p>Σ is the Greek capital letter sigma, and it means "add up all of". So this says: add up every bond broken, add up every bond formed, and subtract the second total from the first.</p>
 <p>This route gives an estimate rather than an exact answer. A tabulated bond enthalpy is an average taken over many different molecules, and the method only works for gases.</p>
 <h3>What you should be able to do now</h3>
 <ul>

@@ -25,11 +25,11 @@ function makeRecryst(): HTMLElement {
       `Max recovery = ${mass} − ${dissolvedCold.toFixed(2)} = <b class="big">${recovered.toFixed(2)} g (${pct.toFixed(0)}%)</b><br>` +
       (mass > sHot * vol / 100
         ? '<span class="trap">You are trying to dissolve more than the hot solvent can hold — use more solvent or you won\'t fully dissolve it.</span>'
-        : 'Good: it all dissolves hot, then most crystallizes cold. Use the <b>minimum</b> hot solvent and cool slowly (ice bath) for pure crystals.') +
-      `<br><span class="muted">Ideal solvent: high hot / low cold solubility; impurities either stay dissolved cold or are removed by hot filtration (+ charcoal for colour).</span>`;
+        : 'Good: it all dissolves hot, then most of it crystallises cold. Use the <b>smallest</b> volume of hot solvent that will take it, and cool slowly in an ice bath for pure crystals.') +
+      `<br><span class="muted">The best solvent dissolves the compound freely when hot and barely at all when cold. The impurities either stay dissolved in the cold liquid, or are caught by filtering the hot solution before it cools.</span>`;
   }
-  const el = card('Recrystallization — solubility & % recovery',
-    task('Narrow the gap between hot and cold solubility and watch the recovery collapse.'),
+  const el = card('Recrystallisation — solubility and how much you get back',
+    task('Narrow the gap between the hot and the cold solubility, and watch how much of the solid you can recover collapse.'),
     // Clamped against each other: hot < cold would draw a solubility curve that
     // FALLS with temperature, which is not the chemistry this card is about.
     slider({ label: 'hot solubility (g/100 mL)', min: 5, max: 60, step: 1, value: sHot, onInput: v => { sHot = Math.max(v, sCold); draw(); } }),
@@ -56,27 +56,28 @@ function makeDistillation(): HTMLElement {
       const orgPerWater = (po * mo) / (pw * mw);
       out.innerHTML =
         `<span class="eq">boils when \\(P_{water} + P_{organic} = P_{total}\\) &nbsp;·&nbsp; mass ratio \\(= (P\\cdot M)\\) ratio</span>` +
-        `If the mixture boils at P_total = ${pt} torr with P_organic = ${po} torr, then P_water = <b>${pw} torr</b>.<br>` +
-        `mass(organic)/mass(water) in distillate = (P_org·M_org)/(P_water·M_water) = <b class="big">${orgPerWater.toFixed(3)}</b><br>` +
-        `<span class="muted">Even a barely-volatile organic (small P) with a high M carries over appreciably. The mixture boils below 100 °C — gentle on heat-sensitive natural products.</span>`;
+        `If the mixture boils at a total pressure of ${pt} torr with the organic contributing ${po} torr, water must contribute the rest: <b>${pw} torr</b>.<br>` +
+        `mass of organic ÷ mass of water in what comes over = (${po} × ${mo}) ÷ (${pw} × ${mw}) = <b class="big">${orgPerWater.toFixed(3)}</b><br>` +
+        `<span class="muted">Even a substance that barely evaporates carries over in useful amounts if its molar mass is large. The mixture boils below 100 °C, which is gentle on anything heat would spoil.</span>`;
     }
   }
   [pOrg, mOrg, mWat, pTot].forEach(i => i.addEventListener('input', calc));
-  const el = card('Distillation — simple / fractional / steam / vacuum',
+  const el = card('Distillation — four ways to separate liquids',
     task('Pick the right method for a given pair of liquids, then use the calculator below on a steam distillation.'),
     h('table', { class: 'ref-table', html: `
 <tr><th>method</th><th>when to use</th><th>key idea</th></tr>
-<tr><td>simple distillation</td><td>ΔBP &gt; ~25–30 °C, one volatile component</td><td>one vapor–liquid equilibrium</td></tr>
-<tr><td>fractional distillation</td><td>close boiling points (miscible liquids)</td><td>column = many theoretical plates</td></tr>
-<tr><td>steam distillation</td><td>water-immiscible, heat-sensitive high-boilers</td><td>P_total = ΣP; boils &lt; 100 °C</td></tr>
-<tr><td>vacuum distillation</td><td>compound decomposes before its BP</td><td>lower P → lower BP</td></tr></table>` }),
+<tr><td>simple distillation</td><td>boiling points more than about 25 °C apart</td><td>one boil-and-condense step</td></tr>
+<tr><td>fractional distillation</td><td>boiling points close together</td><td>the column repeats that step many times over</td></tr>
+<tr><td>steam distillation</td><td>a substance that does not mix with water and is spoilt by heat</td><td>the two vapour pressures add up, so the mixture boils below 100 °C</td></tr>
+<tr><td>vacuum distillation</td><td>a substance that falls apart before it boils</td><td>lower the pressure and it boils at a lower temperature</td></tr></table>` }),
     h('h3', {}, 'Steam distillation calculator'),
-    ctlRow('P_organic at boil (torr)', pOrg),
-    ctlRow('M_organic (g/mol)', mOrg),
-    ctlRow('M_water (g/mol)', mWat),
-    ctlRow('P_total (torr)', pTot),
+    h('p', { class: 'muted' }, 'A vapour pressure is the pressure the vapour above a liquid pushes with; the liquid boils once that pressure matches the pressure of the room. It is measured here in torr, an old unit in which ordinary air pressure is 760.'),
+    ctlRow('vapour pressure of the organic at the boil (torr)', pOrg),
+    ctlRow('molar mass of the organic (g/mol)', mOrg),
+    ctlRow('molar mass of water (g/mol)', mWat),
+    ctlRow('total pressure above the flask (torr)', pTot),
     out,
-    h('p', { class: 'trap' }, 'Azeotropes (e.g. 95.6% ethanol/water) cannot be separated further by distillation — the vapor has the same composition as the liquid.'),
+    h('p', { class: 'muted' }, 'Some pairs stick at one fixed composition, such as 95.6% ethanol in water. That mixture is called an azeotrope, and distillation cannot take it further, because its vapour has exactly the same composition as its liquid.'),
   );
   calc();
   return el;
@@ -101,11 +102,11 @@ function makeExtraction(): HTMLElement {
     out.innerHTML =
       `<span class="eq">fraction left after \\(n\\) equal extractions \\(= \\left[\\frac{V_{aq}}{V_{aq} + K(V_{org}/n)}\\right]^n\\) &nbsp;·&nbsp; \\(K = [A]_{org}/[A]_{aq}\\)</span>` +
       `One ${Vorg} mL extraction leaves <b>${(single * 100).toFixed(1)}%</b> in water; ${n} × ${(Vorg / n).toFixed(1)} mL leaves <b class="big">${(multi * 100).toFixed(1)}%</b>.<br>` +
-      `<span class="muted">Splitting the same solvent into more, smaller portions always extracts more. In an acid/base extraction you can also switch a compound between layers by (de)protonating it (e.g. wash out RCOOH with NaHCO₃).</span>`;
+      `<span class="muted">Splitting the same volume of solvent into more, smaller portions always extracts more. You can also move a compound from one layer to the other by adding or removing an H⁺: washing with sodium hydrogencarbonate turns an organic acid into its salt, which then prefers the water.</span>`;
   }
   const el = card('Liquid–liquid extraction — multiple extractions win',
     task('Hold the total solvent volume fixed and split it into more portions to see how much more you recover.'),
-    slider({ label: 'partition coeff K = org/aq', min: 0.5, max: 20, step: 0.5, value: K, fmt: v => v.toFixed(1), onInput: v => { K = v; draw(); } }),
+    slider({ label: 'partition coefficient K — concentration in the organic layer ÷ in the water', min: 0.5, max: 20, step: 0.5, value: K, fmt: v => v.toFixed(1), onInput: v => { K = v; draw(); } }),
     slider({ label: 'aqueous volume (mL)', min: 10, max: 100, step: 5, value: Vaq, onInput: v => { Vaq = v; draw(); } }),
     slider({ label: 'total organic solvent (mL)', min: 10, max: 100, step: 5, value: Vorg, onInput: v => { Vorg = v; draw(); } }),
     slider({ label: 'split into n extractions', min: 1, max: 6, step: 1, value: n, onInput: v => { n = v; draw(); } }),
@@ -125,8 +126,8 @@ function makeStandardBuffer(): HTMLElement {
   const sCalc = () => {
     const M = numVal(molarity), V = numVal(volFlask), MM = numVal(molarMass);
     const g = M * (V / 1000) * MM;
-    sOut.innerHTML = `mass to weigh = M × V × M_r = ${M} × ${(V / 1000).toFixed(4)} L × ${MM} = <b class="big">${g.toFixed(4)} g</b><br>` +
-      `<span class="muted">Weigh accurately (analytical balance), dissolve, then dilute to the mark in a Class-A volumetric flask. KHP (M = 204.22) is a common primary standard.</span>`;
+    sOut.innerHTML = `mass to weigh = concentration × volume × molar mass = ${M} × ${(V / 1000).toFixed(4)} L × ${MM} = <b class="big">${g.toFixed(4)} g</b><br>` +
+      `<span class="muted">Weigh it on an analytical balance, dissolve it, then make the volume up to the mark in a Class A volumetric flask. Potassium hydrogen phthalate, molar mass 204.22 g/mol, is a common primary standard: a solid pure and stable enough that its weighed mass can be trusted.</span>`;
   };
   [molarity, volFlask, molarMass].forEach(i => i.addEventListener('input', sCalc));
   // buffer
@@ -139,22 +140,23 @@ function makeStandardBuffer(): HTMLElement {
     bOut.innerHTML =
       `<span class="eq">\\(\\text{pH} = \\text{p}K_a + \\log([\\text{A}^-]/[\\text{HA}])\\)</span>` +
       `[A⁻]/[HA] = 10^(pH−pKa) = <b>${ratio.toFixed(2)}</b> → mole fraction A⁻ = ${(fA * 100).toFixed(0)}%<br>` +
-      `For ${Vbuf} mL of ${Cbuf} M total buffer: n(A⁻) = <b>${(nTotal * fA).toFixed(4)} mol</b>, n(HA) = <b>${(nTotal * (1 - fA)).toFixed(4)} mol</b>.<br>` +
+      `For ${Vbuf} mL at ${Cbuf} mol/L of the two together: conjugate base = <b>${(nTotal * fA).toFixed(4)} mol</b>, weak acid = <b>${(nTotal * (1 - fA)).toFixed(4)} mol</b>.<br>` +
       (Math.abs(pH - pKa) > 1
-        ? '<span class="trap">|pH − pKa| &gt; 1 — poor buffer capacity here; pick an acid whose pKa is within 1 unit of the target pH.</span>'
-        : 'Good: pH is within ±1 of pKa, so buffer capacity is high.');
+        ? '<span class="trap">The target pH is more than 1 unit from the pKa, so this buffer holds very little. Pick an acid whose pKa is within 1 unit of the pH you want.</span>'
+        : 'Good: the pH is within 1 unit of the pKa, so the buffer has plenty in reserve on both sides.');
   };
-  const el = card('Standard-solution & buffer preparation',
-    task('Work out the mass to weigh for a standard, then design a buffer at a pH away from the pKa and check the ratio.'),
+  const el = card('Making up a solution of known concentration',
+    task('Work out the mass to weigh for a solution of known concentration, then design a buffer at a pH away from the pKa and check the ratio it needs.'),
     h('h3', {}, 'Standard solution from a primary standard'),
-    ctlRow('target molarity (M)', molarity),
+    ctlRow('target concentration (mol/L)', molarity),
     ctlRow('flask volume (mL)', volFlask),
     ctlRow('molar mass (g/mol)', molarMass),
     sOut,
-    h('h3', {}, 'Buffer recipe (Henderson–Hasselbalch)'),
-    slider({ label: 'weak-acid pKa', min: 2, max: 11, step: 0.01, value: pKa, fmt: v => v.toFixed(2), onInput: v => { pKa = v; bCalc(); } }),
+    h('h3', {}, 'Buffer recipe'),
+    h('p', { class: 'muted' }, 'A buffer is a mixture of a weak acid and its conjugate base, the ion left after that acid gives up its H⁺. Added acid is mopped up by the base and added base by the acid, so the pH barely moves. The ratio of the two is what sets the pH: pH = pKa + log([base] ÷ [acid]).'),
+    slider({ label: 'pKa of the weak acid (larger = weaker)', min: 2, max: 11, step: 0.01, value: pKa, fmt: v => v.toFixed(2), onInput: v => { pKa = v; bCalc(); } }),
     slider({ label: 'target pH', min: 2, max: 12, step: 0.1, value: pH, fmt: v => v.toFixed(1), onInput: v => { pH = v; bCalc(); } }),
-    slider({ label: 'total buffer conc (M)', min: 0.01, max: 1, step: 0.01, value: Cbuf, fmt: v => v.toFixed(2), onInput: v => { Cbuf = v; bCalc(); } }),
+    slider({ label: 'total concentration of the two together (mol/L)', min: 0.01, max: 1, step: 0.01, value: Cbuf, fmt: v => v.toFixed(2), onInput: v => { Cbuf = v; bCalc(); } }),
     slider({ label: 'buffer volume (mL)', min: 50, max: 1000, step: 10, value: Vbuf, onInput: v => { Vbuf = v; bCalc(); } }),
     bOut,
   );
@@ -217,7 +219,7 @@ function makeChromatography(): HTMLElement {
   const tlcMissions = missionLadder([
     {
       id: 'msn-lbt-01',
-      prompt: 'The plate as loaded runs at <b>R_f = 0.64</b> in 30% polar eluent — too far up to resolve it from a close-running impurity. Without touching the plate, change the <b>eluent</b> until the spot sits in the useful <b>0.30–0.50</b> window.',
+      prompt: 'The plate as loaded runs at <b>R_f = 0.64</b> in a 30% polar eluent — too far up the plate to be told apart from an impurity running just behind it. Without touching the plate, change the <b>eluent</b>, the solvent creeping up it, until the spot sits in the useful <b>0.30–0.50</b> window.',
       meter: () => {
         const rf = front > 0 ? spot / front : 0;
         return { label: `R_f = ${rf.toFixed(2)} · target 0.30–0.50`, pct: Math.max(0, Math.min(100, 100 - Math.abs(rf - 0.40) * 250)) };
@@ -231,8 +233,8 @@ function makeChromatography(): HTMLElement {
     },
   ]);
 
-  const el = cardWithMissions('Chromatography — TLC, column & method choice', tlcMissions,
-    task('Change the eluent polarity and watch the R_f move, then find the polarity that puts a spot in the useful 0.3–0.5 window.'),
+  const el = cardWithMissions('Chromatography — TLC, column and method choice', tlcMissions,
+    task('TLC is thin-layer chromatography: a drop of the mixture is placed near the bottom of a coated plate and a solvent, the eluent, creeps up past it. R_f is how far the spot travelled as a fraction of how far the eluent got. Change the eluent polarity, watch R_f move, and find the polarity that puts the spot in the useful 0.3–0.5 window.'),
     spotCtl,
     slider({ label: 'solvent front (cm)', min: 1, max: 8, step: 0.1, value: front, fmt: v => v.toFixed(1), onInput: v => { front = v; spot = Math.min(spot, front); reanchor(); calc(); } }),
     slider({
@@ -272,7 +274,7 @@ function makeReference(): HTMLElement {
     if (A && B) {
       const R = A / B;
       const relR = Math.sqrt(Math.pow(sa / A, 2) + Math.pow(sb / B, 2));
-      uOut.innerHTML = `R = A/B = ${R.toFixed(4)}; relative uncertainties add in quadrature → σR/R = √((σA/A)² + (σB/B)²) = ${(relR * 100).toFixed(2)}% → R = <b class="big">${R.toFixed(3)} ± ${(relR * R).toFixed(3)}</b>`;
+      uOut.innerHTML = `result R = A ÷ B = ${R.toFixed(4)}. The two percentage uncertainties combine in quadrature: σR/R = √((σA/A)² + (σB/B)²) = ${(relR * 100).toFixed(2)}%, so R = <b class="big">${R.toFixed(3)} ± ${(relR * R).toFixed(3)}</b>`;
     }
   };
   [a, ea, b, eb].forEach(i => i.addEventListener('input', uCalc));
@@ -281,7 +283,7 @@ function makeReference(): HTMLElement {
     h('h3', {}, 'Filtration: gravity vs vacuum'),
     h('table', { class: 'ref-table', html: `
 <tr><th>method</th><th>use it to…</th></tr>
-<tr><td>gravity (fluted paper, hot funnel)</td><td>remove insoluble junk from a HOT solution without crystallizing product</td></tr>
+<tr><td>gravity (fluted paper, hot funnel)</td><td>take undissolved solids out of a HOT solution before the product crystallises</td></tr>
 <tr><td>vacuum (Büchner / Hirsch)</td><td>collect a solid fast and dry it (recrystallized product, precipitate)</td></tr></table>` }),
     h('h3', {}, 'Drying agents'),
     h('table', { class: 'ref-table', html: `
@@ -291,12 +293,12 @@ function makeReference(): HTMLElement {
 <tr><td>CaCl₂</td><td>cheap but forms adducts with alcohols/amines — avoid there</td></tr>
 <tr><td>K₂CO₃</td><td>basic — for amines, not for acids</td></tr>
 <tr><td>molecular sieves (3Å/4Å)</td><td>trap water by size; give very dry solvents</td></tr></table>` }),
-    h('h3', {}, 'Uncertainty propagation'),
-    h('p', { class: 'muted' }, 'Sums/differences: add ABSOLUTE uncertainties in quadrature. Products/quotients: add RELATIVE uncertainties in quadrature.'),
-    ctlRow('A', a),
-    ctlRow('σA', ea),
-    ctlRow('B', b),
-    ctlRow('σB', eb),
+    h('h3', {}, 'Combining uncertainties'),
+    h('p', { class: 'muted' }, 'σ, the Greek letter sigma, means "the uncertainty in". Adding or subtracting two measurements combines their uncertainties as they stand. Multiplying or dividing combines them as percentages instead. "In quadrature" means squaring each, adding, and taking the square root.'),
+    ctlRow('measurement on top, A', a),
+    ctlRow('its uncertainty σA', ea),
+    ctlRow('measurement underneath, B', b),
+    ctlRow('its uncertainty σB', eb),
     uOut,
     h('h3', {}, 'Lab safety essentials'),
     h('ul', {},

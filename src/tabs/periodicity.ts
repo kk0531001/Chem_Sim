@@ -32,7 +32,7 @@ function makeTrends(): HTMLElement {
   let prop: 'ie1' | 'radius' | 'ea' | 'en' = 'ie1';
   const canvas = h('canvas', { width: 500, height: 280 });
   const out = h('div', { class: 'result' });
-  const LABEL = { ie1: 'first ionization energy (kJ/mol)', radius: 'atomic radius (pm)', ea: 'electron affinity (kJ/mol)', en: 'electronegativity (Pauling)' };
+  const LABEL = { ie1: 'first ionisation energy (kJ/mol)', radius: 'atomic radius (pm)', ea: 'electron affinity (kJ/mol)', en: 'electronegativity (Pauling)' };
   function draw(): void {
     // plot period 2 and period 3 as two series on a shared "position in period" axis
     const pos = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -42,15 +42,20 @@ function makeTrends(): HTMLElement {
     ], { xLabel: 'position in period (group 1 → 18)', yLabel: LABEL[prop] });
     let note = '';
     if (prop === 'ie1') note = 'Note the two dips: <b>Be→B</b> (new higher-energy 2p) and <b>N→O</b> (pairing repulsion in 2p⁴). The same pattern repeats in period 3 (Mg→Al, P→S).';
-    else if (prop === 'radius') note = 'Radius <b>decreases</b> across each period (rising Z_eff) and each period-3 element is larger than its period-2 congener (extra shell).';
+    else if (prop === 'radius') note = 'Radius <b>decreases</b> across each period (a rising Z_eff, the pull an outer electron actually feels) and each period-3 element is larger than its period-2 congener (extra shell).';
     else if (prop === 'ea') note = 'Zero bars are the stable-shell cases (Be, N, Ne — noble gases and filled/half-filled shells barely accept electrons). <b>F\'s EA is smaller than Cl\'s</b> — small-atom electron repulsion.';
     else note = 'Electronegativity rises toward the top-right; the noble gases are left off the Pauling scale (shown as 0).';
-    out.innerHTML = `Showing <b>${LABEL[prop]}</b>.<br>${note}`;
+    // Row 59: naming the property without a number left the readout saying
+    // nothing. Period 3's two extremes are the smallest honest summary.
+    const vals = PERIOD3.map(e => e[prop]).filter(v => v > 0);
+    const lo = Math.min(...vals), hi = Math.max(...vals);
+    const symOf = (v: number) => PERIOD3.find(e => e[prop] === v)!.sym;
+    out.innerHTML = `Showing <b>${LABEL[prop]}</b>. Across period 3 it runs from ${lo} at ${symOf(lo)} to ${hi} at ${symOf(hi)}.<br>${note}`;
   }
   const el = card('Periodic trends explorer',
     task('Switch between the four properties and find where each one breaks its trend across a period.'),
     select('property', [
-      { value: 'ie1', label: 'first ionization energy' },
+      { value: 'ie1', label: 'first ionisation energy' },
       { value: 'radius', label: 'atomic radius' },
       { value: 'ea', label: 'electron affinity' },
       { value: 'en', label: 'electronegativity' },
@@ -65,10 +70,14 @@ function makeTrends(): HTMLElement {
 // ---- Slater's rules Z_eff ----
 function makeSlater(): HTMLElement {
   const ELEMS = ['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca'];
+  // The element is named in words in the readout: on the default selection the
+  // symbol S sat beside the screening constant S, which is a different S.
+  const NAMES = ['hydrogen','helium','lithium','beryllium','boron','carbon','nitrogen','oxygen','fluorine','neon',
+    'sodium','magnesium','aluminium','silicon','phosphorus','sulfur','chlorine','argon','potassium','calcium'];
   let Z = 16; // sulfur
   const out = h('div', { class: 'result' });
   // build config as [ (n, l-group, count) ] using Slater grouping: (1s)(2s2p)(3s3p)(3d)(4s4p)...
-  function slater(z: number): { zeff: number; s: number; group: string } {
+  function slater(z: number): { zeff: number; sigma: number; group: string } {
     // Fill order for grouping — 4s BEFORE 3d (Madelung's (n+l) rule: 4s has
     // n+l=4, 3d has n+l=5), matching quantum.ts's electronConfig(). Getting
     // this order backwards was a real bug: for K (Z=19) and Ca (Z=20), it
@@ -102,36 +111,36 @@ function makeSlater(): HTMLElement {
       // d electron: everything inside shields 1.00, same-group 0.35
       for (let i = 0; i < lastIdx; i++) { const [, n] = filled[i]; s += n * 1.00; }
     }
-    return { zeff: z - s, s, group: lastG };
+    return { zeff: z - s, sigma: s, group: lastG };
   }
   const missions = missionLadder([
     {
       id: 'msn-per-01',
-      prompt: 'Check the Z<sub>eff</sub> of <b>Na</b>\'s valence electron, then switch to <b>K</b> — same group, 8 more protons. Is K\'s Z<sub>eff</sub> much bigger, much smaller, or about the same as Na\'s?',
+      prompt: 'Check the Z_eff of <b>Na</b>\'s valence electron, then switch to <b>K</b> — same group, 8 more protons. Is K\'s Z_eff much bigger, much smaller, or about the same as Na\'s?',
       hints: [
         'Read both numbers off the calculator before answering — this one punishes guessing from the proton count.',
-        'Z_eff = Z − S. Going Na → K adds 8 protons, but how much shielding do the 8 extra core electrons contribute?',
+        'Z_eff = Z − σ. Going Na → K adds 8 protons, but how much screening do the 8 extra core electrons contribute?',
       ],
-      meter: () => ({ label: `${ELEMS[Z - 1]}: Zeff = ${slater(Z).zeff.toFixed(2)} — check both Na and K before answering`, pct: 0 }),
+      meter: () => ({ label: `${NAMES[Z - 1]}: Z_eff = ${slater(Z).zeff.toFixed(2)} — check both Na and K before answering`, pct: 0 }),
       choices: [
         { label: 'Much bigger (8 more protons)', value: 'bigger' },
         { label: 'Much smaller', value: 'smaller' },
         { label: 'About the same', value: 'same' },
       ],
       validateChoice: v => v === 'same',
-      explain: 'Almost exactly the same: Z<sub>eff</sub>(Na, 3s) = 2.20 and Z<sub>eff</sub>(K, 4s) = 2.20. Each extra proton picked up going down a group is nearly cancelled by an extra full shell of core electrons shielding it (each core electron blocks 0.85–1.00 of a proton\'s charge). <span class="trap">Z<sub>eff</sub> on the valence electron stays roughly constant down a group</span> — it is the growing n (a bigger, higher-energy orbital, farther from the nucleus) that lowers ionization energy and raises atomic radius down a group, not a weakening nuclear pull.',
+      explain: 'Almost exactly the same: Z_eff(Na, 3s) = 2.20 and Z_eff(K, 4s) = 2.20. Each extra proton picked up going down a group is nearly cancelled by an extra full shell of core electrons shielding it (each core electron blocks 0.85–1.00 of a proton\'s charge). <span class="trap">Z_eff on the valence electron stays roughly constant down a group</span> — it is the growing n (a bigger, higher-energy orbital, farther from the nucleus) that lowers ionisation energy and raises atomic radius down a group, not a weakening nuclear pull.',
     },
   ]);
   function calc(): void {
-    const { zeff, s, group } = slater(Z);
+    const { zeff, sigma, group } = slater(Z);
     out.innerHTML =
-      `<b>${ELEMS[Z - 1]}</b> (Z = ${Z}) · outermost group ${group}<br>` +
-      `screening constant S = <b>${s.toFixed(2)}</b> → Z_eff = Z − S = <b class="big">${zeff.toFixed(2)}</b><br>` +
-      `<span class="muted">Slater: same-group electrons shield 0.35 (0.30 for 1s); the (n−1) shell 0.85; deeper shells 1.00. Rising Z_eff across a period is what drives radius↓, IE↑, EN↑.</span>`;
+      `element: <b>${NAMES[Z - 1]}</b> (${ELEMS[Z - 1]}, Z = ${Z} protons) · outermost electrons: ${group}<br>` +
+      `screening constant σ = <b>${sigma.toFixed(2)}</b> → Z_eff = Z − σ = <b class="big">${zeff.toFixed(2)}</b><br>` +
+      `<span class="muted">Counting rules: electrons in the same shell screen 0.35 each (0.30 within 1s); those in the shell one below screen 0.85; anything deeper screens 1.00. A rising Z_eff across a period is what drives radius down, and ionisation energy and electronegativity up.</span>`;
     missions.tick();
   }
-  const el = cardWithMissions("Slater's rules — effective nuclear charge", missions,
-    task('Step across a period and then down a group, and compare how Z_eff changes in each direction.'),
+  const el = cardWithMissions("Estimating the pull an electron feels — Slater's rules", missions,
+    task('Step across a period and then down a group, and compare how Z_eff — the pull an outer electron actually feels — changes in each direction.'),
     select('element', ELEMS.map((s, i) => ({ value: String(i + 1), label: `${s} (Z=${i + 1})` })), v => { Z = Number(v); calc(); }, String(Z)),
     out,
   );
@@ -141,9 +150,9 @@ function makeSlater(): HTMLElement {
 
 function makeAnomalies(): HTMLElement {
   return h('div', { class: 'cards' },
-    card('Anomalies, diagonals & amphoterism',
-      task('Learn each anomaly with its reason attached — the exam asks why, not which.'),
-      h('h3', {}, 'Trend-breaking anomalies (know the WHY)'),
+    card('Where the trends break, and why',
+      task('Learn each break in the pattern with its reason attached; the reason is the part you have to be able to state.'),
+      h('h3', {}, 'Places the trend breaks'),
       h('ul', {},
         h('li', { html: '<b>IE dip Be→B:</b> B\'s electron leaves a higher-energy 2p, shielded by the 2s².' }),
         h('li', { html: '<b>IE dip N→O:</b> O pairs a 2p electron (2p⁴); pairing repulsion aids removal. N\'s half-filled 2p³ is extra stable.' }),
@@ -152,8 +161,8 @@ function makeAnomalies(): HTMLElement {
       ),
       h('h3', {}, 'Diagonal relationships'),
       h('p', { html: 'Li~Mg, Be~Al, B~Si — similar charge/radius ratio → similar chemistry (Li and Mg both form nitrides; Be and Al both amphoteric).' }),
-      h('h3', {}, 'Amphoterism & oxide acidity'),
-      h('p', { html: 'Amphoteric oxides/hydroxides: <b>Al, Zn, Be, Sn, Pb</b> — dissolve in both acid and base. Across a period, oxides go basic (Na₂O) → amphoteric (Al₂O₃) → acidic (SO₃, Cl₂O₇).' }),
+      h('h3', {}, 'Oxides that react with both acids and bases'),
+      h('p', { html: 'Amphoteric means a substance reacts with acids and with bases alike. Amphoteric oxides/hydroxides: <b>Al, Zn, Be, Sn, Pb</b> — dissolve in both acid and base. Across a period, oxides go basic (Na₂O) → amphoteric (Al₂O₃) → acidic (SO₃, Cl₂O₇).' }),
     ),
   );
 }
@@ -179,7 +188,7 @@ export const periodicityTab: TabDef = {
 <h3>Ionisation energy</h3>
 <p>The first ionisation energy is the energy needed to pull the outermost electron off one atom in the gas phase. Lithium needs 520 kJ/mol and sodium only 496 kJ/mol, so less energy is required further down the group. That electron is in a bigger shell with more inner electrons in the way, so it is held loosely. Across a period the ionisation energy climbs instead, because the same shell is being gripped by a stronger effective pull.</p>
 <h3>Electron affinity and electronegativity</h3>
-<p>Electron affinity is the energy released when a gaseous atom gains an electron. Chlorine releases 349 kJ/mol and fluorine only 328 kJ/mol, so this one does not simply improve up the group. Electronegativity is a different quantity: it is how strongly an atom pulls on the electrons of a bond it already shares. On the Pauling scale it rises going up and to the right, and fluorine tops the scale at 3.98.</p>
+<p>Electron affinity is the energy released when a gaseous atom gains an electron. Chlorine releases 349 kJ/mol and fluorine only 328 kJ/mol, so this one does not simply improve up the group. Electronegativity is a different quantity: it is how strongly an atom pulls on the electrons of a bond, the shared pair of electrons that joins two atoms, that it is already part of. On the Pauling scale it rises going up and to the right, and fluorine tops the scale at 3.98.</p>
 <h3>An ion is a different size from its atom</h3>
 <p>An ion is an atom that has gained or lost electrons and so carries a charge, written as a superscript: Na⁺ has lost one electron and Cl⁻ has gained one. A positive ion is a cation and a negative ion is an anion. Losing an electron makes a particle smaller and gaining one makes it larger. Sodium gives up its entire outer shell to become Na⁺, so Na⁺ is far smaller than Na. Line up Na, Na⁺, Mg²⁺ and Al³⁺ and the neutral sodium atom is the largest by a wide margin, because the other three have each shed a whole shell.</p>
 <h3>Metals and non-metals</h3>
@@ -196,8 +205,8 @@ export const periodicityTab: TabDef = {
 <p>Basics gave the four trends and the direction each one runs. Core puts numbers on them, estimates the effective nuclear charge by counting, and turns the trends into a way of comparing any two atoms.</p>
 <h3>Counting the effective nuclear charge</h3>
 <p>An outer electron feels the nuclear charge minus whatever the other electrons screen. A rough count treats each inner-shell electron as blocking one unit of charge, and electrons in the same shell as blocking almost none.</p>
-<p>Sodium has 11 protons and 10 inner electrons, so its outer electron feels about 11 − 10 = 1. Chlorine has 17 protons and the same 10 inner electrons, so its outer electrons feel about 17 − 10 = 7. Seven times the pull, across a single row, is what every trend below is made of. Written in general, with Z the number of protons and S the screening from the other electrons:</p>
-<p><span class="eq">Z_eff ≈ Z − S</span></p>
+<p>Sodium has 11 protons and 10 inner electrons, so its outer electron feels about 11 − 10 = 1. Chlorine has 17 protons and the same 10 inner electrons, so its outer electrons feel about 17 − 10 = 7. Seven times the pull, across a single row, is what every trend below is made of. Written in general, with Z the number of protons and σ (the Greek letter sigma) the screening from the other electrons:</p>
+<p><span class="eq">Z_eff ≈ Z − σ</span></p>
 <h3>Atomic radius and ionic radius</h3>
 <p>Across period 3 the radius falls from 186 pm at sodium to 99 pm at chlorine. Z_eff climbs by about one unit per step while the outer shell stays at n = 3, so the shell is drawn in tighter. Down group 1 the radius rises: 152 pm at lithium, 186 pm at sodium, 227 pm at potassium. Each step down adds a whole shell.</p>
 <p>An ion is a different size from its parent atom. Na⁺ is 102 pm against sodium's 186 pm, because losing the single 3s electron removes the third shell entirely. Cl⁻ is 181 pm against chlorine's 99 pm, because the extra electron adds repulsion to a shell whose nuclear pull has not changed.</p>
@@ -224,9 +233,10 @@ export const periodicityTab: TabDef = {
 </ul>`, true, 'core'),
         theory('Contest reference — Periodicity', `
 <h3>The trends and their driver</h3>
-<span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>
+<p>Three abbreviations run through this block: IE is the first ionisation energy, EA the electron affinity, and EN the electronegativity. Electron affinity is quoted here as the energy released when a gaseous atom gains an electron, so a bigger number means a more eager atom.</p>
+<span class="eq">Z_eff = Z − σ (Slater) — the single quantity behind every periodic trend</span>
 <ul>
-<li>Across a period: Z_eff ↑ (same shell, poor mutual shielding) → radius ↓, IE ↑, EA more −ve, EN ↑.</li>
+<li>Across a period: Z_eff ↑ (same shell, poor mutual screening) → radius ↓, IE ↑, EA releases more energy, EN ↑.</li>
 <li>Down a group: new shells dominate → radius ↑, IE ↓, EN ↓; reactivity of metals ↑, of non-metals ↓.</li>
 <li>Isoelectronic series: more protons → smaller (O²⁻ &gt; F⁻ &gt; Na⁺ &gt; Mg²⁺).</li>
 </ul>

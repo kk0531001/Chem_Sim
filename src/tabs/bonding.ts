@@ -121,50 +121,78 @@ function moDiagram(canvas: HTMLCanvasElement, sp: MOSpecies): string {
   const mag = unpaired > 0 ? `paramagnetic (${unpaired} unpaired)` : 'diamagnetic';
   return `<b>${sp.label}</b>: bond order = (${bondingE}−${antiE})/2 = <b>${bo}</b> · <b>${mag}</b>` +
     (bo === 0 ? ' · not bound!' : '') +
-    `<br><span class="muted">Higher bond order → shorter, stronger bond. Removing an e⁻ from O₂ (antibonding π*) strengthens the bond; adding one weakens it.</span>`;
+    `<br><span class="muted">A higher bond order means a shorter, stronger bond. The starred orbitals are antibonding: an electron in one works against the bond. So taking an electron out of O₂'s π* strengthens the bond, and adding one weakens it.</span>`;
 }
 
 export const bondingTab: TabDef = {
   id: 'bonding',
   mount(root, pageId) {
-    // VSEPR card
-    const shapeBox = h('div', {});
-    const infoBox = h('div', { class: 'result' });
-    let curShape = 'AX₂E₂';
-    const vseprMissions = missionLadder([
-      {
-        id: 'msn-bon-01',
-        prompt: 'Most shapes with lone pairs on the central atom are polar. Find one of the <b>two</b> shape classes here that has lone pairs on the central atom yet is still NONPOLAR overall.',
-        hints: [
-          'Step through the shapes and watch the polarity label — but ask why, not just which: do the bond dipoles cancel?',
-          'A dipole cancels when the arrangement is symmetric. Where do three lone pairs sit in a trigonal bipyramid, and two in an octahedron?',
-        ],
-        meter: () => ({ label: `current: ${curShape} — ${VSEPR.find(v => v.code === curShape)!.polar}, ${VSEPR.find(v => v.code === curShape)!.lp} lone pair(s)`, pct: 0 }),
-        choices: [
-          { label: 'AX₂E₃ (linear, e.g. XeF₂)', value: 'AX₂E₃' },
-          { label: 'AX₃E (trigonal pyramidal, e.g. NH₃)', value: 'AX₃E' },
-          { label: 'AX₂E₂ (bent, e.g. H₂O)', value: 'AX₂E₂' },
-          { label: 'AX₄E₂ (square planar, e.g. XeF₄)', value: 'AX₄E₂' },
-        ],
-        validateChoice: v => v === 'AX₂E₃' || v === 'AX₄E₂',
-        explain: 'Both <b>AX₂E₃</b> (XeF₂, I₃⁻ — linear, 3 lone pairs) and <b>AX₄E₂</b> (XeF₄, ICl₄⁻ — square planar, 2 lone pairs) are nonpolar despite carrying lone pairs. <span class="trap">Lone pairs don\'t automatically make a molecule polar</span> — what matters is whether the overall arrangement (bonds AND lone pairs together) is symmetric enough for every dipole contribution to cancel. In both cases the lone pairs sit at symmetric, opposing positions rather than breaking the symmetry.',
-      },
-    ]);
-    const setShape = (code: string) => {
-      curShape = code;
-      const e = VSEPR.find(v => v.code === code)!;
-      shapeBox.innerHTML = vseprSVG(e);
-      infoBox.innerHTML = `<b>${e.code}</b> — electron geometry: <b>${e.eGeom}</b> · molecular shape: <b>${e.mGeom}</b><br>` +
-        `bond angle: ${e.angle} · hybridization: ${e.hybrid}<br>examples: ${e.examples}<br>polarity: ${e.polar}` +
-        (e.lp > 0 ? `<br><span class="muted">Lone pairs (yellow) repel more than bonds → they compress the bond angles.</span>` : '');
-      vseprMissions.tick();
-    };
-    const vseprCard = cardWithMissions('VSEPR geometry explorer', vseprMissions,
-      task('Work down the AXₙEₘ list and note how each added lone pair bends the shape away from the electron geometry.'),
-      select('shape class', VSEPR.map(v => ({ value: v.code, label: `${v.code} — ${v.mGeom}` })), setShape, 'AX₂E₂'),
-      shapeBox, infoBox,
-    );
-    setShape('AX₂E₂');
+    // One simulation, two cards (plan3 Phase 6 / walk-through rows 71-73). The
+    // course page never covers five- and six-group geometries, so its copy
+    // lists only the 2-4 group shapes, hides the hybridisation line (a contest
+    // concept), and runs the four-group mission. The contest copy carries the
+    // full list, the hybridisation line, and the original nonpolar-with-lone-
+    // pairs mission — whose id is unchanged, because mission ids are permanent.
+    function makeVsepr(contest: boolean): HTMLElement {
+      const shapes = contest ? VSEPR : VSEPR.filter(v => v.domains <= 4);
+      let curShape = contest ? 'AX₂E₃' : 'AX₄';
+      const shapeBox = h('div', {});
+      const infoBox = h('div', { class: 'result' });
+      const at = () => VSEPR.find(v => v.code === curShape)!;
+      const vseprMissions = missionLadder(contest ? [
+        {
+          id: 'msn-bon-01',
+          prompt: 'Most shapes with lone pairs on the central atom are polar. Find one of the <b>two</b> shape classes here that has lone pairs on the central atom yet is still NONPOLAR overall.',
+          hints: [
+            'Step through the shapes and watch the polarity label — but ask why, not just which: do the bond dipoles cancel?',
+            'A dipole cancels when the arrangement is symmetric. Where do three lone pairs sit in a trigonal bipyramid, and two in an octahedron?',
+          ],
+          meter: () => ({ label: `current: ${curShape} — ${at().polar}, ${at().lp} lone pair(s)`, pct: 0 }),
+          choices: [
+            { label: 'AX₂E₃ (linear, e.g. XeF₂)', value: 'AX₂E₃' },
+            { label: 'AX₃E (trigonal pyramidal, e.g. NH₃)', value: 'AX₃E' },
+            { label: 'AX₂E₂ (bent, e.g. H₂O)', value: 'AX₂E₂' },
+            { label: 'AX₄E₂ (square planar, e.g. XeF₄)', value: 'AX₄E₂' },
+          ],
+          validateChoice: v => v === 'AX₂E₃' || v === 'AX₄E₂',
+          explain: 'Both <b>AX₂E₃</b> (XeF₂, I₃⁻ — linear, 3 lone pairs) and <b>AX₄E₂</b> (XeF₄, ICl₄⁻ — square planar, 2 lone pairs) are nonpolar despite carrying lone pairs. <span class="trap">Lone pairs don\'t automatically make a molecule polar</span> — what matters is whether the overall arrangement (bonds AND lone pairs together) is symmetric enough for every dipole contribution to cancel. In both cases the lone pairs sit at symmetric, opposing positions rather than breaking the symmetry.',
+        },
+      ] : [
+        {
+          id: 'msn-bon-03',
+          prompt: 'The card opens on four groups and no lone pairs, at 109.5°. Step through the list and find the shape where <b>two lone pairs</b> squeeze that angle down to <b>104.5°</b>.',
+          meter: () => ({ label: `current: ${curShape} — ${at().lp} lone pair(s), angle ${at().angle}`, pct: at().domains === 4 ? (at().lp / 2) * 100 : 0 }),
+          check: () => curShape === 'AX₂E₂',
+          hints: [
+            'Keep four groups around the central atom and swap bonded atoms for lone pairs one at a time. Each E in the code is one lone pair.',
+            'One lone pair gives about 107°. You want the next one down.',
+          ],
+          explain: '<b>AX₂E₂.</b> Four groups still spread to the corners of a tetrahedron, but two of them are lone pairs. A lone pair spreads out more than a bonding pair, so the two remaining bonds are pushed closer together, from 109.5° to about 104.5°. Only the bonds are visible, so the shape is called bent rather than tetrahedral — this is water.',
+        },
+      ]);
+      const setShape = (code: string) => {
+        curShape = code;
+        const e = VSEPR.find(v => v.code === code)!;
+        shapeBox.innerHTML = vseprSVG(e);
+        infoBox.innerHTML = `<b>${e.code}</b> — arrangement of all the groups: <b>${e.eGeom}</b> · shape you would see: <b>${e.mGeom}</b><br>` +
+          `bond angle: ${e.angle}${contest ? ` · hybridisation: ${e.hybrid}` : ''}<br>examples: ${e.examples}<br>polarity: ${e.polar}` +
+          (e.lp > 0 ? `<br><span class="muted">Lone pairs (yellow) push harder than bonds, so they close the bond angles up.</span>` : '');
+        vseprMissions.tick();
+      };
+      const card = cardWithMissions(
+        contest ? 'All thirteen VSEPR shapes — including five and six groups' : 'Shapes from counting groups',
+        vseprMissions,
+        task(contest
+          ? 'Work through the five- and six-group classes, and note which of them stay nonpolar even with lone pairs on the central atom.'
+          : 'Work down the AXₙEₘ list and note how each added lone pair bends the shape away from the arrangement the groups themselves take.'),
+        select('shape class', shapes.map(v => ({ value: v.code, label: `${v.code} — ${v.mGeom}` })), setShape, curShape),
+        shapeBox, infoBox,
+      );
+      setShape(curShape);
+      return card;
+    }
+    const vseprCard = makeVsepr(false);
+    const vseprContestCard = makeVsepr(true);
 
     // MO card
     const moCanvas = h('canvas', { width: 380, height: 320 });
@@ -173,10 +201,10 @@ export const bondingTab: TabDef = {
     const moMissions = missionLadder([
       {
         id: 'msn-bon-02',
-        prompt: 'Every species below has an EVEN number of valence electrons — normally a strong hint that all of them pair up. Which one is paramagnetic anyway — the single most famous example of Lewis theory failing where MO theory succeeds?',
+        prompt: 'Every species below has an EVEN number of valence electrons — normally a strong hint that all of them pair up. Which one still leaves two electrons unpaired, and so is paramagnetic, meaning it is pulled into a magnetic field?',
         hints: [
           'Build each diagram and count unpaired electrons in the filled orbitals — don\'t judge from the Lewis structure.',
-          'Look for a species whose last two electrons land in a degenerate π* pair: Hund\'s rule then puts one in each.',
+          'Look for a species whose last two electrons land in a pair of π* orbitals of equal energy: one electron then goes into each, rather than both into one.',
         ],
         meter: () => ({ label: `current: ${curMO}`, pct: 0 }),
         choices: [
@@ -195,23 +223,23 @@ export const bondingTab: TabDef = {
       moOut.innerHTML = moDiagram(moCanvas, sp);
       moMissions.tick();
     };
-    const moCard = cardWithMissions('MO diagram — period 2 diatomics', moMissions,
-      task('Fill each diatomic in turn and read the bond order and the unpaired electrons straight off the diagram.'),
+    const moCard = cardWithMissions('Molecular orbital diagram — period 2 diatomic molecules', moMissions,
+      task('Fill each molecule in turn and read off two things: the bond order, which is half the difference between the bonding and antibonding electrons, and the number of electrons left unpaired.'),
       select('species', MO_SPECIES.map(s => ({ value: s.label, label: s.label })), setMO, 'O₂'),
       moCanvas, moOut,
     );
     setMO('O₂');
     root.append(topicPage(pageId ?? 'bonding', {
-      sims: [atLevel('basics', vseprCard), atLevel('contest', moCard)],
+      sims: [atLevel('basics', vseprCard), atLevel('contest', vseprContestCard), atLevel('contest', moCard)],
       quiz: pageQuiz(pageId ?? 'bonding', BONDING_QUIZ),
       theory: [
         theory('Basics — Bonding & Molecular Shape', `
 <h3>What this is about</h3>
 <p>Atoms stick together by sharing or by transferring electrons, and the way they do it fixes the shape of the molecule. This block covers how to tell the two kinds of bond apart, and how to predict a shape from a simple count.</p>
 <h3>Valence electrons and the octet</h3>
-<p>The valence electrons are the electrons in an atom's outermost shell, and they are the only ones that take part in bonding. Most main-group atoms, the ones in the tall columns at the left and right of the table, are stable once they have eight valence electrons, the number a full s and p set holds. Carbon starts with four valence electrons, so it needs four more and forms four bonds. Nitrogen starts with five and forms three. Oxygen starts with six and forms two.</p>
+<p>The valence electrons are the electrons in an atom's outermost shell, and they are the only ones that take part in bonding. Most main-group atoms, the ones in the tall columns at the left and right of the table, are stable once they have eight valence electrons, the number a full s and p set holds. That set of eight is called an octet. Carbon starts with four valence electrons, so it needs four more and forms four bonds. Nitrogen starts with five and forms three. Oxygen starts with six and forms two.</p>
 <h3>Sharing or handing over</h3>
-<p>Electronegativity is how strongly an atom pulls on the electrons of a bond. Take the difference between the two atoms' values, written ΔEN. Below about 0.4 the electrons are shared evenly and the bond is nonpolar covalent. Between about 0.4 and 1.8 one atom pulls harder, and the bond is polar covalent, meaning one end carries a small negative charge. Above about 1.8 the pull is so one-sided that the electron is handed over instead of shared, and the bond is ionic.</p>
+<p>A covalent bond is a pair of electrons shared between two atoms. How evenly that pair is shared depends on electronegativity, which is how strongly an atom pulls on the electrons of a bond. Take the difference between the two atoms' values, written ΔEN. Below about 0.4 the electrons are shared evenly and the bond is nonpolar covalent. Between about 0.4 and 1.8 one atom pulls harder, and the bond is polar covalent, meaning one end carries a small negative charge. Above about 1.8 the pull is so one-sided that the electron is handed over instead of shared, and the bond is ionic.</p>
 <p>Work a case through. Sodium is 0.93 on the Pauling scale and chlorine is 3.16, so ΔEN = 3.16 − 0.93 = 2.23. That is well past 1.8, so sodium gives its electron up and sodium chloride is a lattice, a repeating grid, of Na⁺ and Cl⁻ ions. A gap of only 0.5 would have left the bond polar covalent.</p>
 <h3>Sigma and pi bonds</h3>
 <p>The first bond between two atoms is always a sigma bond, made by two orbitals overlapping head-on along the line joining the nuclei. Any further bond between the same two atoms is a pi bond, made by p orbitals overlapping sideways above and below that line. A double bond is therefore one sigma plus one pi, and a triple bond is one sigma plus two pi.</p>
@@ -220,7 +248,7 @@ export const bondingTab: TabDef = {
 <p>Take carbon dioxide, O=C=O. Carbon has two groups here, the two double bonds, and no lone pairs. Two groups get furthest apart by sitting at 180°, so CO₂ is linear. The rule is the same count every time: two groups give a linear shape, three give a flat triangle with 120° angles, called trigonal planar, and four give a tetrahedron with angles near 109.5°, called tetrahedral.</p>
 <h3>Lone pairs bend the shape</h3>
 <p>A lone pair is a pair of valence electrons that is not shared with another atom. It still takes up a position and still pushes the other groups away, but it does not show in the drawn shape. Water has four groups around its oxygen, two bonds and two lone pairs, so those groups sit at the corners of a tetrahedron. Only the two bonds are visible, so water is called bent rather than tetrahedral, and its angle is about 104.5°. Ammonia, NH₃, has four groups with one lone pair instead of two, and the three visible bonds make a squashed pyramid called trigonal pyramidal, at about 107°.</p>
-<p>The first card lists these arrangements as AXₙEₘ, where X is a bonded atom and E is a lone pair. Watch the angle close up a little each time an E replaces an X.</p>
+<p>The first card lists these arrangements as AXₙEₘ, where A is the central atom, each X is an atom bonded to it, and each E is a lone pair. Watch the angle close up a little each time an E replaces an X.</p>
 <h3>What you should be able to do now</h3>
 <ul>
 <li>Count valence electrons and say how many bonds a main-group atom will form.</li>
@@ -238,7 +266,7 @@ export const bondingTab: TabDef = {
 <p>Carbon has 4 valence electrons, no lone pairs and 8 bonding electrons, so its formal charge is 4 − 0 − 4 = 0. Oxygen has 6, 4 and 4, giving 6 − 4 − 2 = 0. The better drawing is the one whose formal charges sit closest to zero. In general:</p>
 <p><span class="eq">formal charge = valence electrons − lone-pair electrons − ½(bonding electrons)</span></p>
 <h3>Groups, shapes and angles</h3>
-<p>Count the groups on the central atom, where a group is one lone pair or one bond of any order. Two groups give a linear shape at 180°, three a trigonal planar shape at 120°, and four a tetrahedral shape at 109.5°.</p>
+<p>Count the groups on the central atom, where a group is one lone pair or one bond, whether that bond is single, double or triple. Two groups give a linear shape at 180°, three a trigonal planar shape at 120°, and four a tetrahedral shape at 109.5°.</p>
 <p>A lone pair spreads out more than a bonding pair, so it squeezes the remaining angles closed. Ammonia has four groups with one lone pair and is trigonal pyramidal at 107°. Water has two lone pairs and is bent at 104.5°. Methanal's carbon carries three groups and no lone pairs, so it is trigonal planar, with a measured H–C–H angle of 116°.</p>
 <h3>Sigma and pi bonds</h3>
 <p>The first bond between two atoms is a sigma bond, from head-on overlap along the line joining the nuclei. Any extra bond in the same pair is a pi bond, from sideways overlap above and below that line.</p>

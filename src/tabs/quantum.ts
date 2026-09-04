@@ -14,11 +14,11 @@ type OrbitalId = '1s' | '2s' | '2pz' | '2px' | '3s' | '3pz' | '3dz2' | '3dxz' | 
 
 const ORBITALS: Record<OrbitalId, { n: number; l: number; psi: (a: number, b: number) => number; desc: string; plane?: string }> = {
   '1s':     { n: 1, l: 0, psi: (x, z) => Math.exp(-r(x, z)), desc: 'spherical, no nodes' },
-  '2s':     { n: 2, l: 0, psi: (x, z) => (2 - r(x, z)) * Math.exp(-r(x, z) / 2), desc: '1 radial node (sign flips at r = 2a₀)' },
-  '2pz':    { n: 2, l: 1, psi: (x, z) => z * Math.exp(-r(x, z) / 2), desc: '1 angular node (xy-plane)' },
+  '2s':     { n: 2, l: 0, psi: (x, z) => (2 - r(x, z)) * Math.exp(-r(x, z) / 2), desc: '1 radial node: a hollow spherical shell where the sign flips, at r = 2a₀' },
+  '2pz':    { n: 2, l: 1, psi: (x, z) => z * Math.exp(-r(x, z) / 2), desc: '1 angular node: the flat plane between the two lobes' },
   '2px':    { n: 2, l: 1, psi: (x, z) => x * Math.exp(-r(x, z) / 2), desc: 'same shape as 2p𝑧, rotated 90°' },
-  '3s':     { n: 3, l: 0, psi: (x, z) => { const rr = r(x, z); return (27 - 18 * rr + 2 * rr * rr) * Math.exp(-rr / 3); }, desc: '2 radial nodes' },
-  '3pz':    { n: 3, l: 1, psi: (x, z) => { const rr = r(x, z); return rr === 0 ? 0 : (6 - rr) * z * Math.exp(-rr / 3); }, desc: '1 radial + 1 angular node' },
+  '3s':     { n: 3, l: 0, psi: (x, z) => { const rr = r(x, z); return (27 - 18 * rr + 2 * rr * rr) * Math.exp(-rr / 3); }, desc: '2 radial nodes: two spherical shells where the sign flips' },
+  '3pz':    { n: 3, l: 1, psi: (x, z) => { const rr = r(x, z); return rr === 0 ? 0 : (6 - rr) * z * Math.exp(-rr / 3); }, desc: '1 radial node (a spherical shell) + 1 angular node (a flat plane)' },
   '3dz2':   { n: 3, l: 2, psi: (x, z) => (3 * z * z - (x * x + z * z)) * Math.exp(-r(x, z) / 3), desc: 'two lobes + torus; 2 angular (conical) nodes' },
   '3dxz':   { n: 3, l: 2, psi: (x, z) => x * z * Math.exp(-r(x, z) / 3), desc: '4 lobes between axes; 2 angular nodes' },
   // Drawn in the x–y plane, unlike every other orbital here. Its angular part
@@ -83,7 +83,7 @@ function levelDiagram(canvas: HTMLCanvasElement, ni: number, nf: number): string
     ctx.fillText(`n=${n}  ${E(n).toFixed(2)} eV`, 66, y + 3);
   }
   ctx.fillStyle = '#8b9bb0'; ctx.textAlign = 'left';
-  ctx.fillText('E = 0 (ionized)', 70, 14);
+  ctx.fillText('E = 0 (ionised)', 70, 14);
 
   const hi = Math.max(ni, nf), lo = Math.min(ni, nf);
   const dE = Math.abs(E(hi) - E(lo));
@@ -147,7 +147,7 @@ function configHTML(Z: number): string {
     boxes += `<div style="margin:3px 0"><span style="color:#7d8fa3;display:inline-block;width:26px">${SUBSHELLS[i].label}</span>${arr.join('')}</div>`;
   });
   return `<p class="big"><b>${SYMBOLS[Z - 1]}</b> (Z=${Z}): ${cfg}</p>${note ? `<p class="trap">${note}</p>` : ''}${boxes}
-  <p class="muted">Boxes fill by Hund's rule: one ↑ in each degenerate orbital before pairing. Cations lose 4s before 3d (Fe²⁺ = [Ar]3d⁶, not 4s²3d⁴).</p>`;
+  <p class="muted">Boxes fill one electron at a time: a single ↑ goes into each orbital of equal energy before any orbital takes a second. A cation, an atom that has lost electrons, loses its 4s electrons before its 3d ones (Fe²⁺ = [Ar]3d⁶, not 4s²3d⁴).</p>`;
 }
 
 export const quantumTab: TabDef = {
@@ -161,7 +161,7 @@ export const quantumTab: TabDef = {
     const orbMissions = missionLadder([
       {
         id: 'msn-qua-01',
-        prompt: 'Select <b>3s</b> in the viewer and count its <b>radial nodes</b> — the spheres where the wavefunction changes sign.',
+        prompt: 'Select <b>3s</b> in the viewer and count its <b>radial nodes</b> — the hollow spherical shells where the electron\'s wave changes sign, and the colour on the picture flips.',
         numeric: { label: 'radial nodes in 3s', placeholder: '0', step: 1, validate: n => curOrb === '3s' && n === 2 },
         hints: [
           'Radial nodes = n − ℓ − 1. For 3s, n = 3 and ℓ = 0.',
@@ -189,16 +189,16 @@ export const quantumTab: TabDef = {
       curOrb = id as OrbitalId;
       drawOrbital(orbCanvas, curOrb);
       const o = ORBITALS[curOrb];
-      orbDesc.textContent = `n=${o.n}, ℓ=${o.l} · radial nodes = n−ℓ−1 = ${o.n - o.l - 1} · angular nodes = ℓ = ${o.l} · ${o.desc}`;
+      orbDesc.textContent = `n=${o.n}, ℓ=${o.l} · radial nodes (spherical shells) = n−ℓ−1 = ${o.n - o.l - 1} · angular nodes (flat planes) = ℓ = ${o.l} · ${o.desc}`;
       orbMissions.tick();
     };
     // "Orbital shapes" on the course page (plan3 Phase 6): the old title named
     // the plotted quantity before the reader knew what an orbital looked like.
-    const orbCard = cardWithMissions('Orbital shapes — ψ, signed amplitude (blue = ψ > 0, red = ψ < 0)', orbMissions,
-      task('Step through the orbitals and count the nodes, watching where the wavefunction changes sign.'),
+    const orbCard = cardWithMissions('Orbital shapes', orbMissions,
+      task('Step through the orbitals and count the nodes, watching where the wave that describes the electron changes sign.'),
       select('orbital', Object.keys(ORBITALS).map(k => ({ value: k, label: k.replace('z2', ' z²').replace('x2y2', ' x²−y²') })), drawOrb, '2pz'),
       orbCanvas, orbDesc,
-      h('p', { class: 'trap' }, 'This plots ψ itself, not |ψ|². The two colours are the SIGN of the wavefunction — and sign is the whole point: bonding vs antibonding overlap depends on it. |ψ|² would be positive everywhere and the nodes would be the only structure left. Squaring loses exactly the information you need for MO theory.'),
+      h('p', { class: 'muted' }, 'The picture plots the wave itself, written ψ and called the wavefunction, rather than the chance of finding the electron. The two colours are the two signs the wave can take, blue for positive and red for negative, and a node is where it passes through zero on its way from one to the other.'),
     );
     drawOrb('2pz');
 
@@ -219,10 +219,10 @@ export const quantumTab: TabDef = {
       ], { xLabel: 'r / a₀', yLabel: '4πr²|ψ|² (radial probability)' });
     };
     drawRadial();
-    const radCard = card('Radial distribution — where the electron actually is',
+    const radCard = card('Radial distribution — how far out the electron actually sits',
       task('Compare the 2s curve with 2p and find the inner lobe that makes 2s the lower-energy orbital.'),
       radCanvas,
-      h('p', {}, '2s has a small inner lobe that penetrates close to the nucleus — closer than 2p. That penetration is why 2s is lower in energy than 2p in multi-electron atoms (it feels a larger Z_eff).'),
+      h('p', {}, '2s has a small inner lobe that reaches in close to the nucleus, closer than 2p does. That is why 2s is lower in energy than 2p in an atom with several electrons: from in there it feels a larger Z_eff, the effective nuclear charge, meaning the pull that survives once the inner electrons have screened part of the nucleus.'),
     );
 
     // energy levels
@@ -237,7 +237,7 @@ export const quantumTab: TabDef = {
     const lvlMissions = missionLadder([
       {
         id: 'msn-qua-03',
-        prompt: 'The diagram opens on the red 656 nm line. Find the transition that emits the <b>blue-green 486 nm</b> Balmer line instead.',
+        prompt: 'The diagram opens on the red 656 nm line. Find the jump that emits the <b>blue-green 486 nm</b> line instead — one of the Balmer lines, which all land on n = 2.',
         meter: () => ({ label: `n=${ni} → n=${nf} · λ = ${lambdaNm().toFixed(0)} nm · target 486 nm`, pct: Math.max(0, 100 - Math.abs(lambdaNm() - 486) / 3) }),
         check: () => ni === 4 && nf === 2,
         hints: [
@@ -262,18 +262,19 @@ export const quantumTab: TabDef = {
     const redraw = () => { lvlOut.innerHTML = levelDiagram(lvlCanvas, ni, nf); lvlMissions.tick(); };
     const lvlCard = cardWithMissions('Energy levels & spectral lines (Rydberg)', lvlMissions,
       task('Choose a starting and ending level and read off the wavelength — then find the jumps that land in the visible.'),
-      slider({ label: 'initial n', min: 1, max: 6, value: ni, onInput: v => { ni = v; redraw(); } }),
-      slider({ label: 'final n', min: 1, max: 6, value: nf, onInput: v => { nf = v; redraw(); } }),
+      slider({ label: 'starting level n', min: 1, max: 6, value: ni, onInput: v => { ni = v; redraw(); } }),
+      slider({ label: 'ending level n', min: 1, max: 6, value: nf, onInput: v => { nf = v; redraw(); } }),
       lvlCanvas, lvlOut,
+      h('p', { class: 'muted' }, 'ΔE is the size of the energy gap the electron crosses. It is quoted in eV, the electronvolt, an energy unit sized for a single atom: 1 eV per atom is 96.5 kJ per mole. A series is the family of lines that all end on the same lower level.'),
     );
     redraw();
 
     // configuration builder
     const cfgOut = h('div', {});
     const setZ = (Z: number) => { cfgOut.innerHTML = configHTML(Z); };
-    const cfgCard = card('Electron configuration builder (H → Kr)',
-      task('Sweep Z through the first four rows and stop at Cr and Cu, where the filling order breaks.'),
-      slider({ label: 'Z', min: 1, max: 36, value: 26, onInput: setZ }),
+    const cfgCard = card('Electron configuration builder (hydrogen to krypton)',
+      task('Drag the atomic number through the first four rows of the periodic table, and stop at chromium (24) and copper (29), where the filling order breaks.'),
+      slider({ label: 'atomic number Z (protons)', min: 1, max: 36, value: 26, onInput: setZ }),
       cfgOut,
     );
     setZ(26);
@@ -306,9 +307,12 @@ export const quantumTab: TabDef = {
 </ul>
 <p>No two electrons in one atom may carry all four numbers the same. That single rule is why an orbital stops at two electrons.</p>
 <h3>Nodes: where the electron is never found</h3>
-<p>A node is a surface on which the chance of finding the electron drops to zero. The wave that describes the electron changes sign as it crosses one, which is the blue-to-red switch shown in the first card. A 1s orbital has no node. A 2s orbital has one, a hollow spherical shell inside it. A 2p orbital has one as well, the flat plane through the nucleus that separates its two lobes. Counting nodes is the quickest way to tell two orbitals apart on screen.</p>
+<p>An electron is described by a wave, called the wavefunction: a number that is positive on one side of a surface and negative on the other. A node is a surface on which that wave is zero, so the chance of finding the electron there is zero too. The wave changes sign as it crosses one, which is the blue-to-red switch shown in the orbital pictures.</p>
+<p>Nodes come in two kinds. A radial node is a hollow spherical shell around the nucleus. An angular node is a flat plane through the nucleus.</p>
+<p> A 1s orbital has no node. A 2s orbital has one, a hollow spherical shell inside it. A 2p orbital has one as well, the flat plane through the nucleus that separates its two lobes. Counting nodes is the quickest way to tell two orbitals apart on screen.</p>
 <h3>Filling the orbitals up</h3>
-<p>Electrons go into the lowest-energy orbitals available, and that lowest arrangement is called the ground state. Sodium has 11 electrons. Two fill 1s, two fill 2s and six fill 2p, which uses ten of them and matches a neon atom exactly. The eleventh has to start the next shell, so it goes into 3s and the arrangement is written 1s²2s²2p⁶3s¹, shortened to [Ne]3s¹. That list of occupied orbitals is the atom's electron configuration. Those superscripts are electron counts, not powers.</p>
+<p>The number of protons in an atom is its atomic number, written Z, and a neutral atom holds that same number of electrons. Sodium has Z = 11, so it has 11 electrons.</p>
+<p>Electrons go into the lowest-energy orbitals available, and that lowest arrangement is called the ground state. Two fill 1s, two fill 2s and six fill 2p, which uses ten of them and matches a neon atom exactly. The eleventh has to start the next shell, so it goes into 3s and the arrangement is written 1s²2s²2p⁶3s¹, shortened to [Ne]3s¹. That list of occupied orbitals is the atom's electron configuration. Those superscripts are electron counts, not powers.</p>
 <h3>What you should be able to do now</h3>
 <ul>
 <li>Say how many orbitals and how many electrons a given shell or subshell holds.</li>
@@ -325,13 +329,15 @@ export const quantumTab: TabDef = {
 <p>Electrons enter the lowest available orbital first. Up to shell 3 that order follows the shell numbers. But 4s lies slightly lower in energy than 3d, so 4s fills first.</p>
 <p>The order as far as krypton is 1s, 2s, 2p, 3s, 3p, 4s, 3d, 4p. Bromine has 35 electrons, so filling in that order gives 1s²2s²2p⁶3s²3p⁶4s²3d¹⁰4p⁵. Argon accounts for the first 18, so the short form is [Ar]3d¹⁰4s²4p⁵, with the subshells collected by shell number. Adding the superscripts gives 18 + 10 + 2 + 5 = 35, and that check is worth doing every time.</p>
 <h3>Core electrons and valence electrons</h3>
-<p>The valence electrons are those in the outermost shell, meaning the highest n present. Everything below is core, and core electrons take no part in bonding.</p>
+<p>The valence electrons are those in the outermost shell, meaning the highest n present. Everything below is core, and core electrons take no part in bonding, the joining of atoms into molecules.</p>
 <p>Bromine's highest shell is n = 4, holding 4s²4p⁵, so bromine has 7 valence electrons. The 3d¹⁰ set counts as core even though it filled last. For a main-group element the group number gives the count directly. Groups 1 and 2 give 1 and 2, and groups 13 to 18 give the group number minus 10, so group 17 gives 7.</p>
 <h3>The blocks of the table</h3>
-<p>The shape of the periodic table is the filling order drawn out. The two columns on the left are the s block, because their last electron enters an s orbital. The six columns on the right are the p block, and the ten in the middle are the d block.</p>
+<p>A row of the periodic table is called a period, and a column is called a group. The shape of the table is the filling order drawn out.</p>
+<p> The two columns on the left are the s block, because their last electron enters an s orbital. The six columns on the right are the p block, and the ten in the middle are the d block.</p>
 <p>That lets you read a configuration off a position. Sulfur sits in period 3, in the fourth column of the p block, so its outer shell is 3s²3p⁴ and the configuration is [Ne]3s²3p⁴.</p>
 <h3>Configurations of ions</h3>
-<p>A positive ion is made by removing electrons from the outermost shell, which is not always the subshell that filled last. For a d-block atom the 4s electrons leave before the 3d electrons do.</p>
+<p>An ion is an atom that has gained or lost electrons and so carries a charge. A positive ion is called a cation and a negative one an anion. A cation is made by removing electrons from the outermost shell, which is not always the subshell that filled last.</p>
+<p> For a d-block atom the 4s electrons leave before the 3d electrons do.</p>
 <p>Iron is [Ar]3d⁶4s². Taking away the two 4s electrons gives Fe²⁺ = [Ar]3d⁶, and taking one more from 3d gives Fe³⁺ = [Ar]3d⁵. Negative ions fill the gaps instead: chlorine is [Ne]3s²3p⁵, so Cl⁻ is [Ne]3s²3p⁶, the same arrangement as an argon atom.</p>
 <h3>Light arrives in packets</h3>
 <p>Light travels in packets called photons, and one photon carries an energy fixed by its wavelength. A short wavelength means a large energy per photon.</p>
@@ -343,7 +349,7 @@ export const quantumTab: TabDef = {
 <h3>What you should be able to do now</h3>
 <ul>
 <li>Say how many electrons a shell or subshell holds, and where 2, 8, 18 comes from.</li>
-<li>Write the full and shortened configuration of any element up to krypton, and check it against Z.</li>
+<li>Write the full and shortened configuration of any element up to krypton, and check the electron count against the atomic number Z.</li>
 <li>Separate core from valence electrons, and get the valence count from the group number.</li>
 <li>Write the configuration of a common cation or anion, taking 4s electrons out before 3d.</li>
 <li>Turn a wavelength into a photon energy, and say why absorption and emission share a wavelength.</li>
