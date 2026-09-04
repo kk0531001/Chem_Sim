@@ -366,6 +366,40 @@ export const equilibriumTab: TabDef = {
 <li>Write K for a simple gas reaction, leave out pure solids and liquids, and read off what a large or small K means.</li>
 <li>Compare Q with K to say which way a mixture will move, and name the one change that alters K.</li>
 </ul>`, true),
+        theory('Core — Chemical Equilibrium', `
+<h3>What this block adds</h3>
+<p>Basics wrote K for one reaction and compared Q with K to get a direction. Core writes K in both of its forms, calculates the equilibrium amounts from a starting mixture, and gives the reason behind each shift.</p>
+<h3>Kc and Kp</h3>
+<p>Kc is built from concentrations in mol/L. Kp is built from partial pressures instead. A partial pressure is the pressure one gas would exert if it had the container to itself.</p>
+<p>For N₂O₄(g) ⇌ 2NO₂(g) the two expressions are Kc = [NO₂]² ÷ [N₂O₄] and Kp = p(NO₂)² ÷ p(N₂O₄). At 25 °C, Kc is 4.63 × 10⁻³. The two are linked by the expression below, in which Δn is the moles of gas on the right minus the moles on the left and R = 0.08206 L·atm/(mol·K).</p>
+<p><span class="eq">Kp = Kc(RT)<sup>Δn</sup></span></p>
+<p>For this reaction Δn = 2 − 1 = 1, so Kp = 4.63 × 10⁻³ × 0.08206 × 298 = 0.113.</p>
+<p>When Δn is zero the two constants are equal, because (RT)⁰ = 1.</p>
+<h3>An ICE table</h3>
+<p>ICE stands for initial, change and equilibrium, the three rows of a small table with one column per substance. Every entry in the change row comes from a single unknown, x, in the ratio the coefficients set.</p>
+<p>Start with 1.00 M N₂O₄ and no NO₂ at 25 °C. The initial row is 1.00 and 0. The change row is −x and +2x, because two NO₂ appear for each N₂O₄ that breaks up. The equilibrium row is 1.00 − x and 2x. Substituting into Kc gives (2x)² ÷ (1.00 − x) = 4.63 × 10⁻³, which is 4x² ÷ (1.00 − x) = 4.63 × 10⁻³.</p>
+<p>K is small here, so very little reacts and 1.00 − x stays close to 1.00. Dropping the x from the bottom gives 4x² = 4.63 × 10⁻³, so x = 0.0340. Then [NO₂] = 2x = 0.068 M and [N₂O₄] = 0.966 M.</p>
+<p>That shortcut has to be checked. Divide x by the starting concentration: 0.0340 ÷ 1.00 = 3.4%, which is under 5%, so the answer stands. Above 5% the shortcut has moved the answer too far and the full quadratic must be solved. Starting from 0.100 M rather than 1.00 M gives x = 0.0108, which is about 11% and fails the check.</p>
+<h3>Q against K</h3>
+<p>Q is the same expression as K, worked out from whatever is in the flask at this moment. Comparing the two says which way the mixture moves next.</p>
+<p>Suppose the flask holds [NO₂] = 0.020 M and [N₂O₄] = 0.50 M. Then Q = 0.020² ÷ 0.50 = 8.0 × 10⁻⁴, smaller than Kc = 4.63 × 10⁻³. There is too little product, so the reaction runs forward until Q has climbed to meet K.</p>
+<h3>Le Châtelier, one change at a time</h3>
+<ul>
+<li>Concentration: adding N₂O₄ makes the bottom of Q larger, so Q falls below K and the mixture shifts right until they match. Removing NO₂ has the same effect. K itself does not move.</li>
+<li>Pressure: halving the volume doubles every concentration, and the mixture shifts toward the side with fewer moles of gas. The left has 1 mole and the right has 2, so squeezing this flask shifts it left. K does not move.</li>
+<li>Temperature: splitting N₂O₄ absorbs 57.2 kJ per mole, so heat acts like a reactant here. Warming the flask shifts it right, and this is the only change that alters K itself. Cooling shifts it left and lowers K.</li>
+</ul>
+<h3>Why a catalyst leaves K alone</h3>
+<p>A catalyst offers the reaction a route over a lower energy barrier. That barrier lies between the same two sides for the forward and the reverse reaction, so both speed up by the same factor.</p>
+<p>Speeding both up equally leaves the point where the two rates match exactly where it was. The mixture gets there sooner and gets to the same place, so neither Q nor K changes. Adding an unreactive gas at constant volume does nothing either, because no concentration in the expression has changed.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Write Kc and Kp for a gas reaction and convert between them with Δn.</li>
+<li>Build an ICE table, put x into the K expression, and solve it.</li>
+<li>Use the small-x shortcut and apply the 5% check to decide whether it was allowed.</li>
+<li>Calculate Q and compare it with K to give the direction of the next change.</li>
+<li>Predict the shift for a change in concentration, pressure or temperature, and say which of them moves K.</li>
+</ul>`, true),
         theory('Exam-level reference — Chemical Equilibrium', `
 <h3>The law of mass action</h3>
 <span class="eq">aA + bB ⇌ cC + dD: &nbsp; K = [C]ᶜ[D]ᵈ / [A]ᵃ[B]ᵇ — omit pure solids & liquids!</span>

@@ -357,6 +357,44 @@ export const labdataTab: TabDef = {
 <li>Apply the decimal-place rule to a sum and the significant-figure rule to a product.</li>
 <li>Explain what absorbance measures, why λmax is chosen, and how a calibration line turns an absorbance into a concentration.</li>
 </ul>`, true),
+        theory('Core — Lab & Data', `
+<h3>What this block adds</h3>
+<p>Basics read a burette and gave the two significant-figure rules. Core carries those digits through a whole calculation and puts numbers on how good each piece of glassware is. It also works out which way a mistake pushes the answer.</p>
+<h3>Significant figures across several steps</h3>
+<p>Round once, at the very end. Rounding at every step lets small errors build up until they reach the last digit you report.</p>
+<p>A burette reads 0.05 mL at the start and 22.40 mL at the end, so the volume delivered is 22.40 − 0.05 = 22.35 mL. Both readings carried two decimal places, so the difference keeps two. The base was 0.1000 M, so n = 0.1000 × 0.02235 = 2.235 × 10⁻³ mol. That is four significant figures, because both inputs had four. Dividing by a 25.00 mL sample gives 2.235 × 10⁻³ ÷ 0.02500 = 0.08940 M, still four.</p>
+<p>Counted numbers and exact conversions never limit the answer. The 1000 in millilitres per litre is exact, and so is the 2 in a two-to-one mole ratio.</p>
+<h3>Precision, accuracy and a set of repeats</h3>
+<p>Precision is measured from your own results, by how far the repeats sit from one another. Accuracy needs a known value to compare against. A titration is repeated until the results agree, not until one of them looks right.</p>
+<p>Four titres come in at 22.85, 22.35, 22.40 and 22.30 mL. The last three agree within 0.10 mL, while the first is half a millilitre away. Treat that first one as a rough trial, and the mean of the other three is 22.35 mL. Titres are normally accepted as concordant, meaning in agreement, when they fall within 0.10 mL of each other.</p>
+<h3>What the glassware can promise</h3>
+<p>A tolerance is the largest error the maker guarantees the item stays inside. Class A is the more accurate grade of volumetric glassware.</p>
+<ul>
+<li>A 25.00 mL Class A pipette is ±0.03 mL, about 0.1% of its volume.</li>
+<li>A 250.0 mL Class A volumetric flask is ±0.12 mL, about 0.05%.</li>
+<li>A 50 mL Class A burette is ±0.05 mL on a single reading, so a titre built from two readings carries about ±0.10 mL.</li>
+<li>A 50 mL measuring cylinder is roughly ±0.4 mL, close to 1%.</li>
+</ul>
+<p>On a 22.35 mL titre the burette's ±0.10 mL is 0.10 ÷ 22.35 × 100 = 0.45%. That is why titres are planned to be reasonably large: the same absolute uncertainty is a smaller fraction of a bigger volume. It is also why a measuring cylinder never measures a sample.</p>
+<h3>Beer's law with a calibration line</h3>
+<p>Absorbance rises in proportion to concentration, so a set of standards plots as a straight line through the origin. The slope of that line is ε × b, and an unknown is read off the line.</p>
+<p>Four standards at 2.0, 4.0, 6.0 and 8.0 × 10⁻⁵ mol/L give absorbances of 0.104, 0.210, 0.315 and 0.418 in a 1.00 cm cuvette. The slope is (0.418 − 0.104) ÷ (6.0 × 10⁻⁵) = 5.2 × 10³ L/mol. Since <span class="eq">A = ε b c</span> and b = 1.00 cm, the molar absorptivity ε is 5.2 × 10³ L/(mol·cm). An unknown reading 0.260 has c = 0.260 ÷ (5.2 × 10³) = 5.0 × 10⁻⁵ mol/L.</p>
+<p>Read only inside the range you actually measured. A sample absorbing above the top standard is diluted by a known factor, measured again, and the factor applied.</p>
+<h3>Which way an error pushes the answer</h3>
+<p>Work it out in two steps. Ask what the mistake does to the number you write down, then follow that number through the calculation.</p>
+<ul>
+<li>A burette rinsed with water and not with the solution it will hold delivers a slightly diluted solution. More volume is then needed to reach the end point, so the calculated concentration comes out too high.</li>
+<li>An air bubble in the burette tip that leaves during the titration is recorded as delivered liquid. The titre is too large, so again the answer is too high.</li>
+<li>A conical flask still wet with distilled water changes nothing. The water dilutes the sample, but it adds no acid and removes none, so the amount being titrated is unchanged.</li>
+</ul>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Carry significant figures through a multi-step calculation and round only at the end.</li>
+<li>Pick out a rough trial from a set of titres and average only the concordant ones.</li>
+<li>Quote a tolerance for a pipette, a flask and a burette, and turn it into a percentage.</li>
+<li>Build a calibration line, get ε from its slope, and read an unknown concentration off it.</li>
+<li>Say whether a named procedural error makes the result too high, too low or unaffected.</li>
+</ul>`, true),
       ],
     }));
   },

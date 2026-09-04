@@ -339,6 +339,39 @@ export const labTechTab: TabDef = {
 <li>Work out a recrystallisation recovery from a cold solubility and a solvent volume.</li>
 <li>Choose gravity or vacuum filtration for a given job, and say what a drying agent removes.</li>
 </ul>`, true),
+        theory('Core — Laboratory Techniques', `
+<h3>What this block adds</h3>
+<p>Basics named what each technique separates on. Core is about choosing between them and setting the numbers: which solvent, how many extractions, and what mass to weigh out.</p>
+<h3>Choosing a recrystallisation solvent</h3>
+<p>A good solvent dissolves the compound freely when hot and barely at all when cold. It must also boil below the compound's melting point, or the compound oils out instead of crystallising.</p>
+<p>Benzoic acid in water is the standard case. Water holds 6.8 g per 100 mL at 95 °C and only 0.29 g per 100 mL at 20 °C. Dissolve 5.0 g of crude benzoic acid in 75 mL of near-boiling water and let it cool. The cold liquid keeps 0.29 × 0.75 = 0.22 g, so 5.0 − 0.22 = 4.8 g crystallises, a recovery of 96%.</p>
+<p>The impurities behave the other way round. They either stay dissolved in the cold liquid, or never dissolve in the hot solvent.</p>
+<h3>Filtering without losing the product</h3>
+<p>Hot gravity filtration through fluted paper removes the insoluble impurities while the solution is still hot. Fluting increases the paper's area, so the liquid runs through before it crystallises in the funnel. The crystals themselves are collected later by vacuum filtration in a Büchner funnel, then washed with a little ice-cold solvent.</p>
+<h3>Simple or fractional distillation</h3>
+<p>A simple distillation gives one round of enrichment, which is enough when the boiling points are far apart. A useful working line is a gap of about 25 °C.</p>
+<p>Diethyl ether boils at 34.6 °C and toluene at 111 °C, a gap of 76 °C, so a simple distillation separates them. Ethanol boils at 78.4 °C and water at 100 °C, a gap of only 22 °C, so that pair needs a fractional column. The column supplies many condense-and-reboil cycles in one pass.</p>
+<p>Set the thermometer bulb level with the side arm, so it reads the vapour going over. A steady reading means one substance is distilling. A rising one means the mixture is coming over together.</p>
+<h3>Extraction: which layer, and how many times</h3>
+<p>The layers stack in order of density. Water is 1.00 g/mL, so diethyl ether at 0.71 g/mL floats on top while dichloromethane at 1.33 g/mL sinks below.</p>
+<p>Splitting the solvent into portions recovers more. Suppose 1.00 g of a compound sits in 100 mL of water and dissolves four times better in the organic solvent. One extraction with 100 mL leaves 100 ÷ (100 + 4 × 100) = 0.20 of it behind, so 0.80 g is recovered. Two extractions of 50 mL each leave (100 ÷ (100 + 4 × 50))² = 0.111 behind. That recovers 0.89 g from the same total volume.</p>
+<p>To tell the layers apart, add a few drops of water and watch which one grows. Keep every layer until the product is in hand.</p>
+<h3>Drying the organic layer</h3>
+<p>Add anhydrous magnesium sulfate a little at a time and swirl. Damp solid clumps and sticks to the glass. The layer is dry once fresh crystals swim freely and the solution is clear. Filter the drying agent off before removing the solvent.</p>
+<h3>Preparing a standard solution</h3>
+<p>A standard solution is one whose concentration is accurately known. It is made from a primary standard: a solid that is pure, stable in air and of known formula, such as anhydrous sodium carbonate.</p>
+<p>To make 250.0 mL of 0.1000 M sodium carbonate, n = 0.1000 × 0.2500 = 0.02500 mol. Its molar mass is 2(22.990) + 12.011 + 3(15.999) = 105.99 g/mol, so the mass needed is 0.02500 × 105.99 = 2.650 g. Weigh it accurately and dissolve it in a little water. Transfer everything to a 250.0 mL volumetric flask with the rinsings, make up to the mark, and invert to mix.</p>
+<p>Sodium hydroxide cannot be used this way. It takes up water and carbon dioxide from the air, so a weighed mass is not all NaOH. Its solutions must be checked against a primary standard.</p>
+<h3>Working safely</h3>
+<p>Add acid to water and never the other way round. The heat released can boil a small volume of water and throw it out. Wear goggles from the moment anyone in the room starts work. Use a fume hood for anything volatile or toxic. Never heat a closed vessel, and never point a heated tube at a person.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Judge a recrystallisation solvent from its hot and cold solubilities, and calculate the recovery.</li>
+<li>Choose simple or fractional distillation from the gap between two boiling points.</li>
+<li>Identify the organic layer from a density, and show that two small extractions beat one large one.</li>
+<li>Weigh out and make up a standard solution, and say why sodium hydroxide is not a primary standard.</li>
+<li>State the safety rules for heating, diluting acid and handling volatile substances.</li>
+</ul>`, true),
         theory('Exam-level reference — Laboratory Techniques', `
 <h3>Recrystallization</h3>
 <ul><li>Dissolve in the MINIMUM hot solvent; hot-filter (+ charcoal) to drop insoluble/coloured impurities; cool slowly to grow pure crystals; collect by vacuum filtration; wash with cold solvent.</li>

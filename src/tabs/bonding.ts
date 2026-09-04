@@ -227,6 +227,40 @@ export const bondingTab: TabDef = {
 <li>Use an electronegativity difference to call a bond nonpolar covalent, polar covalent or ionic.</li>
 <li>Count electron groups on a central atom to predict a shape, and say how a lone pair changes it.</li>
 </ul>`, true),
+        theory('Core — Bonding & Molecular Shape', `
+<h3>What this block adds</h3>
+<p>Basics counted electron groups and read a shape off that count. Core draws the structure the count comes from, checks it with formal charge, and follows the shape through to polarity and to boiling point.</p>
+<h3>Drawing a Lewis structure</h3>
+<p>A Lewis structure shows every valence electron as either a bonding pair or a lone pair. Draw one by counting the electrons available, then handing them out until every atom is full.</p>
+<p>Take methanal, CH₂O. Carbon brings 4 valence electrons, each hydrogen 1 and oxygen 6, so 12 are available. Put carbon in the middle and single-bond it to both hydrogens and the oxygen, using 6 electrons in three bonds. Place the other 6 on oxygen as three lone pairs, and carbon is left with only 6. Move one oxygen lone pair into a second carbon–oxygen bond. Now carbon has 8 and oxygen has 8, with two lone pairs left on oxygen.</p>
+<h3>Formal charge checks the structure</h3>
+<p>Formal charge is the charge an atom would carry if every bond were shared perfectly evenly. It is a bookkeeping test, not a real charge you could measure.</p>
+<p>Carbon has 4 valence electrons, no lone pairs and 8 bonding electrons, so its formal charge is 4 − 0 − 4 = 0. Oxygen has 6, 4 and 4, giving 6 − 4 − 2 = 0. The better drawing is the one whose formal charges sit closest to zero. In general:</p>
+<p><span class="eq">formal charge = valence electrons − lone-pair electrons − ½(bonding electrons)</span></p>
+<h3>Groups, shapes and angles</h3>
+<p>Count the groups on the central atom, where a group is one lone pair or one bond of any order. Two groups give a linear shape at 180°, three a trigonal planar shape at 120°, and four a tetrahedral shape at 109.5°.</p>
+<p>A lone pair spreads out more than a bonding pair, so it squeezes the remaining angles closed. Ammonia has four groups with one lone pair and is trigonal pyramidal at 107°. Water has two lone pairs and is bent at 104.5°. Methanal's carbon carries three groups and no lone pairs, so it is trigonal planar, with a measured H–C–H angle of 116°.</p>
+<h3>Sigma and pi bonds</h3>
+<p>The first bond between two atoms is a sigma bond, from head-on overlap along the line joining the nuclei. Any extra bond in the same pair is a pi bond, from sideways overlap above and below that line.</p>
+<p>Methanal has three sigma bonds and one pi bond, the pi being half of the C=O. A pi bond locks the two atoms against twisting. A C=C double bond therefore has a fixed geometry, while a C–C single bond turns freely.</p>
+<h3>Polarity needs the shape as well as the bonds</h3>
+<p>A polar bond has a slightly negative end and a slightly positive end. It acts like an arrow, so a molecule is polar only if those arrows fail to cancel.</p>
+<p>Carbon dioxide has two polar C=O bonds, each with ΔEN = 3.44 − 2.55 = 0.89. The molecule is linear, so the two arrows point exactly opposite and cancel, and CO₂ is nonpolar. Water has two O–H bonds with ΔEN = 3.44 − 2.20 = 1.24. It is bent at 104.5°, so its arrows add up and water is polar. Methanal is polar for the same reason: nothing points against its C=O arrow.</p>
+<h3>Forces between molecules set the boiling point</h3>
+<p>Boiling pulls molecules apart without breaking anything inside them. A boiling point therefore measures the attraction between molecules, not the bonds within one.</p>
+<ul>
+<li>Dispersion forces act between all molecules. They come from the momentary uneven spread of electrons, and they grow with the electron count. Down the halogens the boiling point climbs: F₂ at −188 °C, Cl₂ at −34 °C, Br₂ at 59 °C and I₂ at 184 °C.</li>
+<li>Dipole–dipole forces act between polar molecules, whose positive ends attract their neighbours' negative ends. Propane and ethanal both weigh about 44 g/mol, but nonpolar propane boils at −42 °C and polar ethanal at 20 °C.</li>
+<li>Hydrogen bonding is the strongest of the three. It needs a hydrogen attached to nitrogen, oxygen or fluorine, plus a lone pair on an N, O or F atom nearby. Water boils at 100 °C. H₂S is heavier, has no hydrogen bonding, and boils at −60 °C.</li>
+</ul>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Draw a Lewis structure for a small molecule, with lone pairs and multiple bonds in place.</li>
+<li>Work out a formal charge and use it to choose between two candidate structures.</li>
+<li>Predict shape and angle from a group count, including the squeeze a lone pair applies.</li>
+<li>Count sigma and pi bonds, and judge polarity from shape plus ΔEN.</li>
+<li>Name the strongest force between molecules of a substance and rank boiling points with it.</li>
+</ul>`, true),
         theory('Exam-level reference — Bonding & Molecular Shape', `
 <h3>Lewis structures & formal charge</h3>
 <span class="eq">FC = valence e⁻ − nonbonding e⁻ − ½(bonding e⁻)</span>

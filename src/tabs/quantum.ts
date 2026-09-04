@@ -306,6 +306,39 @@ export const quantumTab: TabDef = {
 <li>Name the shape that each of s, p and d stands for, and say which quantum number sets it.</li>
 <li>Write the ground-state arrangement of electrons for a light element, and count the nodes in a simple orbital.</li>
 </ul>`, true),
+        theory('Core — Atoms & Electrons', `
+<h3>What this block adds</h3>
+<p>Basics named the parts of an atom and wrote one configuration out in full. Core turns that into a system: the filling order up to krypton, the configurations of ions, and how the table's layout follows from both.</p>
+<h3>How many electrons a shell holds</h3>
+<p>Shell n contains n² orbitals and every orbital holds two electrons, so a shell holds 2n² electrons. That gives 2, 8, 18 and 32 for the first four shells.</p>
+<p>Those totals come from the subshells inside. Shell 3 has one 3s orbital, three 3p orbitals and five 3d orbitals, which is 9 orbitals and so 18 electrons. The 2, 8, 18 pattern is just 2n² written out.</p>
+<h3>The filling order up to krypton</h3>
+<p>Electrons enter the lowest available orbital first. Up to shell 3 that order follows the shell numbers. But 4s lies slightly lower in energy than 3d, so 4s fills first.</p>
+<p>The order as far as krypton is 1s, 2s, 2p, 3s, 3p, 4s, 3d, 4p. Bromine has 35 electrons, so filling in that order gives 1s²2s²2p⁶3s²3p⁶4s²3d¹⁰4p⁵. Argon accounts for the first 18, so the short form is [Ar]3d¹⁰4s²4p⁵, with the subshells collected by shell number. Adding the superscripts gives 18 + 10 + 2 + 5 = 35, and that check is worth doing every time.</p>
+<h3>Core electrons and valence electrons</h3>
+<p>The valence electrons are those in the outermost shell, meaning the highest n present. Everything below is core, and core electrons take no part in bonding.</p>
+<p>Bromine's highest shell is n = 4, holding 4s²4p⁵, so bromine has 7 valence electrons. The 3d¹⁰ set counts as core even though it filled last. For a main-group element the group number gives the count directly. Groups 1 and 2 give 1 and 2, and groups 13 to 18 give the group number minus 10, so group 17 gives 7.</p>
+<h3>The blocks of the table</h3>
+<p>The shape of the periodic table is the filling order drawn out. The two columns on the left are the s block, because their last electron enters an s orbital. The six columns on the right are the p block, and the ten in the middle are the d block.</p>
+<p>That lets you read a configuration off a position. Sulfur sits in period 3, in the fourth column of the p block, so its outer shell is 3s²3p⁴ and the configuration is [Ne]3s²3p⁴.</p>
+<h3>Configurations of ions</h3>
+<p>A positive ion is made by removing electrons from the outermost shell, which is not always the subshell that filled last. For a d-block atom the 4s electrons leave before the 3d electrons do.</p>
+<p>Iron is [Ar]3d⁶4s². Taking away the two 4s electrons gives Fe²⁺ = [Ar]3d⁶, and taking one more from 3d gives Fe³⁺ = [Ar]3d⁵. Negative ions fill the gaps instead: chlorine is [Ne]3s²3p⁵, so Cl⁻ is [Ne]3s²3p⁶, the same arrangement as an argon atom.</p>
+<h3>Light arrives in packets</h3>
+<p>Light travels in packets called photons, and one photon carries an energy fixed by its wavelength. A short wavelength means a large energy per photon.</p>
+<p>Sodium colours a flame orange at a wavelength of 589 nm, which is 589 × 10⁻⁹ m. Planck's constant, the number linking a photon's energy to its frequency, is h = 6.626 × 10⁻³⁴ J·s. The speed of light is c = 2.998 × 10⁸ m/s. The energy is (6.626 × 10⁻³⁴ × 2.998 × 10⁸) ÷ (589 × 10⁻⁹) = 3.37 × 10⁻¹⁹ J. One mole of those photons carries 203 kJ. Written in general, with λ the wavelength in metres:</p>
+<p><span class="eq">E = hc ÷ λ</span></p>
+<h3>Absorbing and emitting</h3>
+<p>An electron may only sit at certain energies, so only certain energy gaps exist inside an atom. A photon is absorbed only when its energy matches a gap exactly, and the electron then jumps up.</p>
+<p>It falls back sooner or later, emitting a photon of that same energy. So the wavelength an atom absorbs and the wavelength it emits for one particular jump are identical. A sodium lamp glows at 589 nm, and sodium vapour in front of a white lamp removes that same colour.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Say how many electrons a shell or subshell holds, and where 2, 8, 18 comes from.</li>
+<li>Write the full and shortened configuration of any element up to krypton, and check it against Z.</li>
+<li>Separate core from valence electrons, and get the valence count from the group number.</li>
+<li>Write the configuration of a common cation or anion, taking 4s electrons out before 3d.</li>
+<li>Turn a wavelength into a photon energy, and say why absorption and emission share a wavelength.</li>
+</ul>`, true),
         theory('Exam-level reference — Atoms & Electrons', `
 <h3>Quantum numbers</h3>
 <ul>

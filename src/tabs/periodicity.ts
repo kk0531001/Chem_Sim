@@ -188,6 +188,37 @@ export const periodicityTab: TabDef = {
 <li>Explain each of those directions using effective nuclear charge and screening.</li>
 <li>Rank an atom against its own ion by size, and point to the most metallic and most electronegative corners of the table.</li>
 </ul>`, true),
+        theory('Core — Periodicity', `
+<h3>What this block adds</h3>
+<p>Basics gave the four trends and the direction each one runs. Core puts numbers on them, estimates the effective nuclear charge by counting, and turns the trends into a way of comparing any two atoms.</p>
+<h3>Counting the effective nuclear charge</h3>
+<p>An outer electron feels the nuclear charge minus whatever the other electrons screen. A rough count treats each inner-shell electron as blocking one unit of charge, and electrons in the same shell as blocking almost none.</p>
+<p>Sodium has 11 protons and 10 inner electrons, so its outer electron feels about 11 − 10 = 1. Chlorine has 17 protons and the same 10 inner electrons, so its outer electrons feel about 17 − 10 = 7. Seven times the pull, across a single row, is what every trend below is made of. Written in general, with Z the number of protons and S the screening from the other electrons:</p>
+<p><span class="eq">Z_eff ≈ Z − S</span></p>
+<h3>Atomic radius and ionic radius</h3>
+<p>Across period 3 the radius falls from 186 pm at sodium to 99 pm at chlorine. Z_eff climbs by about one unit per step while the outer shell stays at n = 3, so the shell is drawn in tighter. Down group 1 the radius rises: 152 pm at lithium, 186 pm at sodium, 227 pm at potassium. Each step down adds a whole shell.</p>
+<p>An ion is a different size from its parent atom. Na⁺ is 102 pm against sodium's 186 pm, because losing the single 3s electron removes the third shell entirely. Cl⁻ is 181 pm against chlorine's 99 pm, because the extra electron adds repulsion to a shell whose nuclear pull has not changed.</p>
+<p>Ions with the same number of electrons are called isoelectronic, and among them only the proton count matters. O²⁻ (140 pm), F⁻ (133 pm), Na⁺ (102 pm) and Mg²⁺ (72 pm) all hold 10 electrons. The size shrinks as the protons rise from 8 to 12.</p>
+<h3>First ionisation energy</h3>
+<p>Across period 3 the first ionisation energy climbs from 496 kJ/mol at sodium to 1251 kJ/mol at chlorine and 1521 kJ/mol at argon. A smaller atom with a higher Z_eff holds its outer electron more tightly.</p>
+<p>The climb is not perfectly smooth, and the two breaks have plain reasons. Aluminium needs 578 kJ/mol against magnesium's 738, because aluminium's electron leaves a 3p orbital that starts out higher than magnesium's 3s. Sulfur needs 1000 kJ/mol against phosphorus's 1012. Sulfur is the first in the row to put two electrons in one 3p orbital, and those two repel.</p>
+<h3>Electronegativity and electron affinity</h3>
+<p>Electronegativity is how hard an atom pulls on the electrons of a bond it is already in. It follows Z_eff and size together, so it climbs across a period and falls down a group. On the Pauling scale period 3 runs 0.93 at sodium, 1.90 at silicon and 3.16 at chlorine. Fluorine is highest at 3.98 and caesium lowest at 0.79.</p>
+<p>Electron affinity is the energy released when a free atom in the gas phase gains an electron. It grows across a period, but it does not simply grow up a group. Chlorine releases 349 kJ/mol and fluorine only 328 kJ/mol. Fluorine's 2p shell is small, so an arriving electron is crowded by the ones already there.</p>
+<h3>Metallic character</h3>
+<p>Metallic character is how readily an atom gives electrons up, so it runs opposite to ionisation energy. It grows down a group and to the left. The most metallic elements are at the bottom left and the non-metals at the top right.</p>
+<h3>Comparing two atoms</h3>
+<p>Two questions settle almost every comparison. Do the two atoms have the same number of shells, and if so, which has more protons?</p>
+<p>Compare magnesium and calcium for size. Calcium is one period lower, so it has an extra shell and is bigger, 197 pm against 160 pm. Compare phosphorus and oxygen for electronegativity. Oxygen has fewer shells, so it grips bonding electrons harder, 3.44 against 2.19.</p>
+<p>On a diagonal the shell count and the proton count push opposite ways, so a value is needed. Nitrogen is 3.04 and chlorine is 3.16, so chlorine is the more electronegative despite lying a period lower.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Estimate Z_eff by subtracting the inner electrons, and use it to explain a trend rather than state it.</li>
+<li>Give the direction and rough size of the change in radius, ionisation energy and electronegativity across period 3.</li>
+<li>Rank an atom against its own ion, and order an isoelectronic set by size.</li>
+<li>Say why chlorine's electron affinity beats fluorine's, and why aluminium's ionisation energy dips below magnesium's.</li>
+<li>Decide which of two named atoms is larger or more electronegative, and say which comparison needs a table.</li>
+</ul>`, true),
         theory('Exam-level reference — Periodicity', `
 <h3>The trends and their driver</h3>
 <span class="eq">Z_eff = Z − S (Slater) — the single quantity behind every periodic trend</span>

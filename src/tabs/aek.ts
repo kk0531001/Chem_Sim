@@ -637,6 +637,44 @@ export const aekTab: TabDef = {
 <li>Name which metal is oxidised in a cell and which way its electrons travel.</li>
 <li>Work out an average rate, and say what a catalyst does and does not change.</li>
 </ul>`, true),
+        theory('Core — Acids, Batteries & Reaction Rates', `
+<h3>What this block adds</h3>
+<p>Basics defined pH, neutralisation, oxidation and rate. Core makes each one calculable: a pH from a Ka, a concentration from a titration, a voltage from a table.</p>
+<h3>Strong and weak acids</h3>
+<p>A strong acid hands over essentially all of its hydrogen ions, so [H⁺] is simply its concentration. A weak acid splits only partly, and the acid dissociation constant Ka measures how far.</p>
+<p>In 0.010 M nitric acid, [H⁺] = 0.010 M and pH = −log(0.010) = 2.00. A strong base goes through pOH: 0.010 M sodium hydroxide gives pOH = 2.00, so pH = 14.00 − 2.00 = 12.00.</p>
+<p>Ethanoic acid has Ka = 1.8 × 10⁻⁵. In 0.10 M solution [H⁺] = [A⁻] = x, and [HA] stays near 0.10 because so little splits. So x² ÷ 0.10 = 1.8 × 10⁻⁵, giving x = 1.3 × 10⁻³ M and pH = 2.87. A smaller Ka means a weaker acid. Written in general:</p>
+<p><span class="eq">Ka = [H⁺][A⁻] ÷ [HA]</span></p>
+<h3>Conjugate pairs</h3>
+<p>Take one H⁺ away from an acid and what remains is its conjugate base. They differ by one hydrogen ion and one unit of charge.</p>
+<p>Ethanoic acid CH₃COOH pairs with the ethanoate ion CH₃COO⁻, and NH₄⁺ pairs with NH₃. The stronger the acid, the weaker its conjugate base. That is why sodium ethanoate gives a slightly basic solution and sodium chloride a neutral one.</p>
+<h3>Titration to the equivalence point</h3>
+<p>At the equivalence point the base added exactly matches the acid present, in the ratio the balanced equation gives. Everything follows from n = cV.</p>
+<p>25.00 mL of hydrochloric acid needs 22.40 mL of 0.1000 M sodium hydroxide. The base delivered 0.1000 × 0.02240 = 2.240 × 10⁻³ mol. HCl and NaOH react one to one, so the flask held the same amount. Its concentration is 2.240 × 10⁻³ ÷ 0.02500 = 0.08960 M.</p>
+<p>Watch the ratio when it is not one to one. Sulfuric acid gives two H⁺ per molecule, so the acid present is half the base added.</p>
+<h3>Oxidation states and half-equations</h3>
+<p>An oxidation state is the charge an atom would carry if every bond went to the more electronegative partner. Oxygen is normally −2 and hydrogen +1, and the states in a formula add up to its overall charge.</p>
+<p>In MnO₄⁻ the four oxygens give 4(−2) = −8, so manganese must be +7. A half-equation writes one side of the exchange with the electrons shown. Zinc dissolving is Zn → Zn²⁺ + 2e⁻ and copper depositing is Cu²⁺ + 2e⁻ → Cu. Adding them cancels the electrons.</p>
+<h3>A galvanic cell</h3>
+<p>A standard electrode potential, E°, says how strongly a species pulls electrons. It is measured against one shared reference, always for the reduction direction.</p>
+<p>Cu²⁺ + 2e⁻ → Cu is +0.34 V and Zn²⁺ + 2e⁻ → Zn is −0.76 V. The more positive value wins the electrons, so copper is reduced at the cathode and zinc oxidised at the anode. The cell voltage is 0.34 − (−0.76) = 1.10 V, and a positive value means the reaction runs on its own.</p>
+<p><span class="eq">E°cell = E°cathode − E°anode</span></p>
+<h3>Rate laws</h3>
+<p>A rate law says how a rate depends on the concentrations, and its powers come from experiment. A rate itself is a change in concentration divided by the time it took.</p>
+<p><span class="eq">rate = Δ[ ] ÷ Δt</span></p>
+<p>For A + B → products, three runs are measured. At [A] = 0.10 M and [B] = 0.10 M the rate is 2.0 × 10⁻³ mol/(L·s). Doubling [A] with [B] held still gives 8.0 × 10⁻³, four times faster, so the rate goes as [A]². Doubling [B] instead gives 4.0 × 10⁻³, twice as fast, so it goes as [B]. The rate law is rate = k[A]²[B], and k = 2.0 × 10⁻³ ÷ (0.10² × 0.10) = 2.0 L²/(mol²·s).</p>
+<p>The power on each reactant is its order, and adding them gives the overall order, 3 here.</p>
+<h3>Heat and catalysts</h3>
+<p>Molecules react only when they collide hard enough and with the right parts facing. Warming raises the fraction of collisions carrying at least the activation energy, so rates climb steeply with temperature.</p>
+<p>A catalyst opens a route with a lower activation energy, which more collisions can manage. It is recovered unchanged and speeds both directions equally.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Find the pH of a strong acid or base directly, and of a weak acid from its Ka.</li>
+<li>Give the conjugate base of an acid, and say whether its salt is basic or neutral.</li>
+<li>Work a titration through to a concentration, with the right ratio for a diprotic acid.</li>
+<li>Assign oxidation states, write half-equations, and get E°cell from two standard potentials.</li>
+<li>Read a rate law and rate constant off a table, and explain a rate change by collisions.</li>
+</ul>`, true),
       ],
     }));
   },

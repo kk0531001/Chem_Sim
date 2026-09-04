@@ -213,6 +213,41 @@ export const stoichTab: TabDef = {
 <li>Balance a simple equation and read its coefficients as a ratio of moles.</li>
 <li>Divide moles by coefficients to find the reactant that runs out first, and work out a molarity from moles and litres.</li>
 </ul>`, true),
+        theory('Core — Moles & Solutions', `
+<h3>What this block adds</h3>
+<p>Basics turned a mass into moles and found the reactant that runs out first. Core does the whole journey: grams in, grams out, with the leftover, the yield and the concentrations included.</p>
+<h3>Coefficients convert moles of one substance into moles of another</h3>
+<p>A balanced equation fixes the ratio in which substances react. That ratio is the only bridge from one substance's amount to another's.</p>
+<p>Burn methane, CH₄ + 2O₂ → CO₂ + 2H₂O, starting from 8.00 g of CH₄. Its molar mass is 12.011 + 4(1.008) = 16.04 g/mol, so n = 8.00 ÷ 16.04 = 0.499 mol. The equation gives one CO₂ for every CH₄, so 0.499 mol of CO₂ forms. CO₂ has a molar mass of 44.01 g/mol, so that is 0.499 × 44.01 = 22.0 g.</p>
+<p>Grams never convert to grams directly. Every route goes through moles. The same three steps written in general:</p>
+<p><span class="eq">n(A) = m(A) ÷ M(A) &nbsp;→&nbsp; n(B) = n(A) × (coefficient B ÷ coefficient A) &nbsp;→&nbsp; m(B) = n(B) × M(B)</span></p>
+<h3>The limiting reagent, and what is left behind</h3>
+<p>The reactant that runs out first sets everything the reaction can make. The other is in excess, and the unused part stays in the flask.</p>
+<p>Mix 10.0 g of N₂ with 3.00 g of H₂ for N₂ + 3H₂ → 2NH₃. That is 10.0 ÷ 28.01 = 0.357 mol of N₂ and 3.00 ÷ 2.016 = 1.488 mol of H₂. Divide each by its own coefficient: N₂ gives 0.357 and H₂ gives 0.496, so nitrogen runs out first. The reaction makes 2 × 0.357 = 0.714 mol of NH₃, which is 0.714 × 17.03 = 12.2 g.</p>
+<p>Now the leftover. Hydrogen used = 3 × 0.357 = 1.071 mol. That leaves 1.488 − 1.071 = 0.417 mol, or 0.417 × 2.016 = 0.841 g of H₂. In general, leftover moles = starting moles − (moles of limiting reagent × coefficient ratio).</p>
+<h3>Percent yield</h3>
+<p>The mass the equation predicts is the theoretical yield. A real reaction loses product to side reactions and to spills, so the mass collected is smaller.</p>
+<p>If the ammonia above is dried and weighs 10.5 g, the yield is 10.5 ÷ 12.2 × 100 = 86.1%. Both figures are for the same substance, and the theoretical one always comes from the limiting reagent. Written in general:</p>
+<p><span class="eq">percent yield = (actual yield ÷ theoretical yield) × 100</span></p>
+<h3>Solutions: amount, dilution and ions</h3>
+<p>Molarity connects a volume you can measure to an amount in moles. Rearranging c = n ÷ V gives the working form.</p>
+<p>Take 250.0 mL of 0.400 M glucose. In litres that is 0.2500 L, so n = 0.400 × 0.2500 = 0.100 mol. Written in general, with V in litres:</p>
+<p><span class="eq">n = c V</span></p>
+<p>Adding water adds no solute, so the moles stay fixed while the volume grows. Dilute 25.0 mL of 6.00 M hydrochloric acid down to 0.500 M and the new volume is 25.0 × 6.00 ÷ 0.500 = 300 mL. Any volume unit will do, as long as both sides use the same one.</p>
+<p><span class="eq">c₁V₁ = c₂V₂</span></p>
+<p>A salt splits into ions when it dissolves, and each ion has a concentration of its own. Sodium sulfate, Na₂SO₄, releases two Na⁺ and one SO₄²⁻ per formula unit. A 0.10 M solution is therefore 0.20 M in Na⁺ and 0.10 M in SO₄²⁻.</p>
+<h3>Empirical formula from percentages</h3>
+<p>The empirical formula is the simplest whole-number ratio of the atoms in a compound. Percentages by mass give that ratio once they are turned into moles.</p>
+<p>A compound is 52.14% carbon, 13.13% hydrogen and 34.73% oxygen. Take a 100 g sample, so each percentage becomes a mass in grams. The moles are 52.14 ÷ 12.011 = 4.341, 13.13 ÷ 1.008 = 13.03 and 34.73 ÷ 15.999 = 2.171. Divide all three by the smallest, 2.171, to get 2.00, 6.00 and 1.00, so the formula is C₂H₆O.</p>
+<p>A ratio sometimes lands on 1.5 or 1.33 instead. Multiply every figure by 2 or by 3 until all of them are whole. The molecular formula is the empirical formula scaled by (molar mass ÷ empirical formula mass).</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Run a mass through to a mass: grams to moles, moles to moles by the coefficient ratio, then back to grams.</li>
+<li>Find the limiting reagent, the mass of product, and how much excess reactant is left over.</li>
+<li>Work out a percent yield from a collected mass and a predicted one.</li>
+<li>Use n = cV and c₁V₁ = c₂V₂, and give the concentration of each ion in a dissolved salt.</li>
+<li>Turn a percentage composition into an empirical formula, then into a molecular formula.</li>
+</ul>`, true),
         theory('Exam-level reference — Moles & Solutions', `
 <h3>The mole highway</h3>
 <span class="eq">grams ⇄(÷M) moles ⇄(×ratio) moles ⇄(×M) grams &nbsp;·&nbsp; n = CV (solutions) &nbsp;·&nbsp; n = PV/RT (gases)</span>

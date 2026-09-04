@@ -227,6 +227,38 @@ export const thermo1Tab: TabDef = {
 <li>Give the sign of ΔH for an exothermic and an endothermic change, and sort melting, freezing, boiling and burning into the two.</li>
 <li>Explain why the substance with the larger m × c moves less in temperature when two substances are mixed.</li>
 </ul>`, true),
+        theory('Core — Thermodynamics I', `
+<h3>What this block adds</h3>
+<p>Basics used q = mcΔT on a single substance and gave the sign of ΔH. Core runs that equation on both substances at once and turns a measured heat into an enthalpy change per mole. It also finds ΔH for a reaction that was never carried out.</p>
+<h3>Two substances, one final temperature</h3>
+<p>Inside an insulated container the heat one substance loses is exactly the heat the other gains. Setting the two q = mcΔT expressions equal leaves one unknown, the shared final temperature.</p>
+<p>Drop 50.0 g of copper at 100.0 °C into 100.0 g of water at 20.0 °C. Copper's specific heat capacity is 0.385 J/g·K. The copper loses 50.0 × 0.385 × (100.0 − T) and the water gains 100.0 × 4.18 × (T − 20.0). Setting those equal gives 1925 − 19.25T = 418T − 8360, so T = 23.5 °C.</p>
+<p>The copper cools by 76.5 degrees while the water warms by only 3.5. The product m × c decides that split, and the water's is more than twenty times larger.</p>
+<h3>From a measured heat to an enthalpy change per mole</h3>
+<p>A calorimeter is an insulated container that lets a reaction's heat warm a known mass of liquid. Measure the temperature rise, work out q, then divide by the moles that reacted.</p>
+<p>Mix 50.0 mL of 1.00 M hydrochloric acid with 50.0 mL of 1.00 M sodium hydroxide, both starting at 21.0 °C. The temperature rises to 27.8 °C. The mixture masses about 100.0 g and behaves like water, so c = 4.18 J/g·K. That gives q = 100.0 × 4.18 × 6.8 = 2840 J. The acid supplied 0.0500 L × 1.00 mol/L = 0.0500 mol of H⁺, and the mixture warmed, so the reaction gave that heat out.</p>
+<p>That works out at −2840 ÷ 0.0500 = −56 800 J/mol, or −56.8 kJ per mole of water formed. The minus sign comes from the mixture heating up, not from the arithmetic. Written in general, with n the moles the value is quoted per:</p>
+<p><span class="eq">ΔH = −q ÷ n</span></p>
+<h3>Reading an energy diagram</h3>
+<p>An energy diagram places the reactants and the products on a vertical energy scale. Nothing else on the axis matters, because only the difference between the two levels is measurable.</p>
+<p>In an exothermic reaction the products sit below the reactants, and ΔH is the downward gap, written with a minus sign. In an endothermic reaction the products sit above and ΔH is positive. Burning methane drops a long way at −890 kJ/mol, while melting ice climbs a short way at +6.01 kJ/mol.</p>
+<h3>Hess's law</h3>
+<p>The enthalpy change of a reaction depends only on the substances you start and finish with, never on the route between them. So known equations can be reversed, scaled and added until they sum to the equation you want.</p>
+<p>Carbon monoxide cannot be made cleanly from carbon and oxygen, so ΔH for C(s) + ½O₂(g) → CO(g) is found indirectly. Two combustions are known: C(s) + O₂(g) → CO₂(g) at −393.5 kJ/mol, and CO(g) + ½O₂(g) → CO₂(g) at −283.0 kJ/mol. Reverse the second, which flips its sign to +283.0, then add the two. CO₂ appears on both sides and cancels, leaving C(s) + ½O₂(g) → CO(g) with ΔH = −393.5 + 283.0 = −110.5 kJ/mol.</p>
+<p>Two rules do all the work here. Reversing an equation reverses the sign of its ΔH, and multiplying an equation through by a number multiplies ΔH by that same number.</p>
+<h3>Estimating ΔH from bond enthalpies</h3>
+<p>A bond enthalpy is the energy needed to break one mole of a particular bond in the gas phase. Breaking bonds always costs energy and making them always releases it.</p>
+<p>For H₂(g) + Cl₂(g) → 2HCl(g), breaking one H–H bond at 436 kJ/mol and one Cl–Cl bond at 242 kJ/mol costs 678 kJ. Making two H–Cl bonds at 431 kJ/mol each releases 862 kJ. So ΔH = 678 − 862 = −184 kJ/mol, against a measured −184.6. In general:</p>
+<p><span class="eq">ΔH ≈ Σ(bonds broken) − Σ(bonds formed)</span></p>
+<p>This route gives an estimate rather than an exact answer. A tabulated bond enthalpy is an average taken over many different molecules, and the method only works for gases.</p>
+<h3>What you should be able to do now</h3>
+<ul>
+<li>Find a shared final temperature by setting one substance's heat loss equal to the other's heat gain.</li>
+<li>Turn a calorimeter temperature rise into ΔH per mole, with the correct sign and units.</li>
+<li>Sketch and read an energy diagram for an exothermic and an endothermic change.</li>
+<li>Combine two known reactions by Hess's law, reversing and scaling the ΔH values as you go.</li>
+<li>Estimate ΔH from bond enthalpies, and say why the answer is only an estimate.</li>
+</ul>`, true),
         theory('Exam-level reference — Thermodynamics I', `
 <h3>First law</h3>
 <span class="eq">ΔU = q + w &nbsp;·&nbsp; w = −P<sub>ext</sub>ΔV (work done ON the system is +)</span>
