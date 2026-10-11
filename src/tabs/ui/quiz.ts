@@ -287,7 +287,9 @@ export function quiz(
    * Restart drops to quiet: it is available, but it is not the advice.
    */
   function doneActions(): (HTMLElement | string)[] {
-    const restart = button('Restart quiz', () => { i = 0; score = 0; pastCheckpoint = false; render(true); }, 'btn-quiet');
+    // A restart is a fresh attempt, so the remembered picks go too — otherwise
+    // every question replays as already graded and none can be answered again.
+    const restart = button('Restart quiz', () => { i = 0; score = 0; pastCheckpoint = false; chosen.fill(null); render(true); }, 'btn-quiet');
     const weak = weakTopics(1)[0];
     if (weak && isExamTopicId(weak.topic)) {
       const label = EXAM_TOPIC_LABEL[weak.topic];

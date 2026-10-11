@@ -33,6 +33,9 @@ function frqItem(f: FRQ): HTMLElement {
     solveBtn.className = done ? 'btn btn-quiet on' : 'btn btn-quiet';
   }
   syncBtn();
+  // Built once per ladder (see `content` in challengeLadder), so it follows
+  // solved-state changes itself — credit from the exam bank shows up here too.
+  onProgressChange(syncBtn);
   const el = h('div', { class: 'challenge-frq' },
     h('h4', {}, f.title),
     h('div', { class: 'result', html: f.prompt }),
@@ -62,6 +65,25 @@ export function challengeLadder(moduleId: string): HTMLElement | null {
   if (TIERS.every(t => ladderFor(moduleId)[t].length === 0)) return null;
 
   const body = h('div', { class: 'challenge-ladder' });
+  // Each unlocked tier's questions, built ONCE and re-attached on every
+  // render. render() runs on every progress change — including the one the
+  // tier's own quiz fires when a student answers — so rebuilding the quiz there
+  // threw away the answer it had just graded: no red/green, no explanation, no
+  // Next button, and the student was back on question 1. Keyed on the item ids,
+  // so a competition-mode switch that changes the tier's contents still gets a
+  // fresh quiz, while headers, locks and done-state are recomputed as before.
+  const content = new Map<string, HTMLElement>();
+  function tierContent(t: Tier, items: Indexable[]): HTMLElement {
+    const key = `${t}:${items.map(q => q.id).join(',')}`;
+    let el = content.get(key);
+    if (!el) {
+      const frqs = items.filter(isFRQ);
+      const mcs = items.filter((q): q is QuizQ => !isFRQ(q));
+      el = h('div', {}, ...frqs.map(frqItem), mcs.length ? quiz(mcs) : '');
+      content.set(key, el);
+    }
+    return el;
+  }
 
   function render(): void {
     body.replaceChildren();
@@ -81,8 +103,6 @@ export function challengeLadder(moduleId: string): HTMLElement | null {
       const items = ladder[t];
       if (items.length === 0) continue; // most modules have no Platinum item yet — skip, don't dead-end the ladder on it
       const done = tierSolved(items);
-      const frqs = items.filter(isFRQ);
-      const mcs = items.filter((q): q is QuizQ => !isFRQ(q));
       const tierEl = h('div', { class: `challenge-tier ${TIER_CLASS[t]} ${unlocked ? '' : 'challenge-locked'} ${done ? 'challenge-done' : ''}` },
         // h3, not h4: the ladder sits under the page's h2 cards, and a level
         // skipped is a level a screen-reader user has to guess at.
@@ -93,7 +113,7 @@ export function challengeLadder(moduleId: string): HTMLElement | null {
           h('span', { class: 'muted' }, `(${items.length} question${items.length === 1 ? '' : 's'})`),
         ),
         unlocked
-          ? h('div', {}, ...frqs.map(frqItem), mcs.length ? quiz(mcs) : '')
+          ? tierContent(t, items)
           : h('p', { class: 'muted' }, `Solve every ${prevLabel} question above to unlock.`),
       );
       body.append(tierEl);
