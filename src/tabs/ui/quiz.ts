@@ -308,12 +308,12 @@ export function quiz(
     answered = false;
     whyEl.innerHTML = '';
     whyEl.className = 'quiz-why';
-    nextBtn.style.display = 'none';
     prevBtn.style.display = i > 0 && i <= qs.length ? '' : 'none';
     syncBookmark();
     // Nothing to bookmark on the "Done" screen — it is not a question.
     bmBtn.hidden = i >= qs.length;
     if (i >= qs.length) {
+      nextBtn.style.display = 'none';
       setProgress('');
       qEl.innerHTML = `Done — score <b>${score}/${qs.length}</b> ` +
         (score === qs.length ? '— perfect!'
@@ -332,6 +332,7 @@ export function quiz(
     if (warmupCount > 0 && i === warmupCount && !pastCheckpoint) {
       const right = chosen.slice(0, warmupCount).filter((c, k) => c !== null && c === qs[k].a).length;
       prevBtn.style.display = 'none';
+      nextBtn.style.display = 'none';
       bmBtn.hidden = true;
       // The copy BRANCHES on the stage score, and so does which button is the
       // primary one. "You have the basics" under a 2/10 is not encouragement,
@@ -352,6 +353,11 @@ export function quiz(
       return;
     }
     const q = qs[i];
+    // Moving on never requires an answer. Unanswered, the button is a quiet
+    // "Skip" — a skip records nothing (no recordAttempt, no score), because a
+    // question the student never tried is not a wrong answer. grade() promotes
+    // it to the primary "Next question" once there is an answer to move past.
+    setNextLabel(false);
     updateProgressLine();
     setOptsGrouped(true);
     qEl.innerHTML = q.q + (isSolved(ids[i]) ? ' <span class="solved-tag">✓ solved</span>' : '');
@@ -434,13 +440,21 @@ export function quiz(
         whyEl.append(helpfulBar(ids[i]));
         typesetMath(whyEl);
         updateProgressLine();
-        nextBtn.style.display = '';
+        setNextLabel(true);
     }
     // Typeset any LaTeX/mhchem in the question and options now, rather than
     // depending on the rAF-based observer (which can flash raw \( … \)).
     typesetMath(qEl);
     typesetMath(optsEl);
     if (moveFocus) head.focus();
+  }
+
+  function setNextLabel(done: boolean): void {
+    const last = i === qs.length - 1;
+    nextBtn.textContent = done ? (last ? 'See results' : 'Next question')
+      : (last ? 'Skip to results' : 'Skip question');
+    nextBtn.className = `btn ${done ? 'primary' : 'btn-quiet'}`;
+    nextBtn.style.display = '';
   }
 
   // Rewriting the text node is what triggers a live-region announcement, so
